@@ -25,8 +25,10 @@ jobs:
       - name: Instalar dependencias
         run: npm install
 
-      - name: Sincronizar fuentes y verificar copias
-        run: node scripts/sync-all.js
+      - name: Sincronizar fuentes y plugins de Capacitor
+        run: |
+          node scripts/sync-all.js
+          npx cap sync android
 
       - name: Configurar Java 21 (Temurin)
         uses: actions/setup-java@v4
