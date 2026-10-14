@@ -1,0 +1,67 @@
+name: Compilar APK Android
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Compilacion y Generacion de APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas de verificacion
+        run: npm run verify
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Dar permisos de ejecucion a Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      - name: Compilar APK Debug con Gradle
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Renombrar APK a BlackjackTorre21.apk
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk BlackjackTorre21.apk
+
+      - name: Subir APK como Artefacto de Acciones
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlackjackTorre21-APK
+          path: BlackjackTorre21.apk
+
+      - name: Publicar Lanzamiento (Release) descargable
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Black Jack Torre 21 (Build #${{ github.run_number }})
+          body: |
+            ### ♠ Black Jack: La Torre del 21 (v1.0)
+            Compilación automática generada en la nube desde GitHub Actions.
+            
+            * **Descarga para celular:** Toca el archivo `BlackjackTorre21.apk` de abajo para instalar o actualizar el juego en tu teléfono.
+          files: BlackjackTorre21.apk
