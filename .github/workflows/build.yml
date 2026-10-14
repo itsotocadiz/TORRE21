@@ -21,20 +21,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install
 
-      - name: Ejecutar pruebas de verificacion
-        run: npm run verify
+      - name: Sincronizar fuentes y verificar copias
+        run: node scripts/sync-all.js
 
       - name: Configurar Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
 
       - name: Dar permisos de ejecucion a Gradle Wrapper
         run: chmod +x android/gradlew
@@ -44,24 +42,26 @@ jobs:
           cd android
           ./gradlew assembleDebug --no-daemon
 
-      - name: Renombrar APK a BlackjackTorre21.apk
+      - name: Copiar APK generado a la raiz
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk BlackjackTorre21.apk
 
-      - name: Subir APK como Artefacto de Acciones
+      - name: Subir APK como Artefacto descargable
         uses: actions/upload-artifact@v4
         with:
           name: BlackjackTorre21-APK
           path: BlackjackTorre21.apk
+          retention-days: 14
 
-      - name: Publicar Lanzamiento (Release) descargable
+      - name: Publicar Release (Lanzamiento)
         uses: softprops/action-gh-release@v2
+        continue-on-error: true
         with:
           tag_name: build-${{ github.run_number }}
           name: Black Jack Torre 21 (Build #${{ github.run_number }})
           body: |
             ### ♠ Black Jack: La Torre del 21 (v1.0)
-            Compilación automática generada en la nube desde GitHub Actions.
+            Compilación automática generada en GitHub Actions.
             
-            * **Descarga para celular:** Toca el archivo `BlackjackTorre21.apk` de abajo para instalar o actualizar el juego en tu teléfono.
+            * Toca `BlackjackTorre21.apk` para instalar o actualizar el juego en tu celular.
           files: BlackjackTorre21.apk

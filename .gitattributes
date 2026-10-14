@@ -1,0 +1,15 @@
+# Normalización de saltos de línea para compatibilidad Windows/Linux
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Archivos binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.mp3 binary
+*.woff2 binary
+*.jar binary
+*.apk binary
+*.aab binary
