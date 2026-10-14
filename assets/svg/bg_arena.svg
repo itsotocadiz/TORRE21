@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" width="360" height="640">
+  <defs>
+    <radialGradient id="arenaSky" cx="50%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#1f2438"/>
+      <stop offset="50%" stop-color="#121624"/>
+      <stop offset="100%" stop-color="#080a10"/>
+    </radialGradient>
+    <radialGradient id="torchGlowL" cx="20%" cy="32%" r="28%">
+      <stop offset="0%" stop-color="#ffb703" stop-opacity="0.85"/>
+      <stop offset="40%" stop-color="#d90429" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#d90429" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="torchGlowR" cx="80%" cy="32%" r="28%">
+      <stop offset="0%" stop-color="#ffb703" stop-opacity="0.85"/>
+      <stop offset="40%" stop-color="#d90429" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#d90429" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sandPit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a3d28"/>
+      <stop offset="40%" stop-color="#3d2719"/>
+      <stop offset="100%" stop-color="#1e130c"/>
+    </linearGradient>
+    <radialGradient id="arenaSpot" cx="50%" cy="65%" r="55%">
+      <stop offset="0%" stop-color="#ffd166" stop-opacity="0.22"/>
+      <stop offset="60%" stop-color="#e76f51" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#100b08" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="640" fill="url(#arenaSky)"/>
+  
+  <!-- Gradas colosales superiores en sombra -->
+  <path d="M0 60 L360 60 L360 180 L0 180 Z" fill="#10151f" opacity="0.95"/>
+  <line x1="0" y1="90" x2="360" y2="90" stroke="#1c2333" stroke-width="2"/>
+  <line x1="0" y1="120" x2="360" y2="120" stroke="#1c2333" stroke-width="2"/>
+  <line x1="0" y1="150" x2="360" y2="150" stroke="#1c2333" stroke-width="2"/>
+
+  <!-- Muro de contención con arcos de piedra romana -->
+  <path d="M0 180 L360 180 L360 270 L0 270 Z" fill="#1b1714"/>
+  <!-- Arcos romanos recortados -->
+  <path d="M30 270 L30 215 Q50 195 70 215 L70 270 Z" fill="#0d0a08"/>
+  <path d="M110 270 L110 215 Q130 195 150 215 L150 270 Z" fill="#0d0a08"/>
+  <path d="M210 270 L210 215 Q230 195 250 215 L250 270 Z" fill="#0d0a08"/>
+  <path d="M290 270 L290 215 Q310 195 330 215 L330 270 Z" fill="#0d0a08"/>
+  <!-- Cornisa de piedra -->
+  <rect x="0" y="176" width="360" height="8" fill="#322a22"/>
+
+  <!-- Estandartes de gladiador colgados -->
+  <polygon points="85,184 97,184 97,230 91,220 85,230" fill="#9e2a2b"/>
+  <polygon points="265,184 277,184 277,230 271,220 265,230" fill="#264653"/>
+  <polygon points="174,184 186,184 186,238 180,226 174,238" fill="#b5179e"/>
+
+  <!-- Braseros y antorchas encendidas con resplandor -->
+  <circle cx="70" cy="205" r="50" fill="url(#torchGlowL)"/>
+  <circle cx="290" cy="205" r="50" fill="url(#torchGlowR)"/>
+  <!-- Soporte antorcha izq -->
+  <rect x="68" y="210" width="4" height="24" fill="#2b2d42"/>
+  <polygon points="65,210 75,210 70,196" fill="#f77f00"/>
+  <polygon points="67,208 73,208 70,198" fill="#ffd166"/>
+  <!-- Soporte antorcha der -->
+  <rect x="288" y="210" width="4" height="24" fill="#2b2d42"/>
+  <polygon points="285,210 295,210 290,196" fill="#f77f00"/>
+  <polygon points="287,208 293,208 290,198" fill="#ffd166"/>
+
+  <!-- Foso de arena de combate gladiatoria -->
+  <path d="M0 270 L360 270 L360 640 L0 640 Z" fill="url(#sandPit)"/>
+  <!-- Resplandor central de arena -->
+  <ellipse cx="180" cy="450" rx="170" ry="150" fill="url(#arenaSpot)"/>
+
+  <!-- Círculos de combate gladiatorio grabados en la arena -->
+  <ellipse cx="180" cy="460" rx="145" ry="75" fill="none" stroke="#d4a373" stroke-width="3" stroke-dasharray="14 10" opacity="0.45"/>
+  <ellipse cx="180" cy="460" rx="100" ry="50" fill="none" stroke="#ffd166" stroke-width="2" stroke-dasharray="8 6" opacity="0.35"/>
+  <!-- Espadas cruzadas en relieve de arena -->
+  <line x1="160" y1="440" x2="200" y2="480" stroke="#17110c" stroke-width="4" opacity="0.3"/>
+  <line x1="200" y1="440" x2="160" y2="480" stroke="#17110c" stroke-width="4" opacity="0.3"/>
+</svg>

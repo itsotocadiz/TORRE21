@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" width="360" height="640">
+  <defs>
+    <radialGradient id="infernoWash" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#4a0e17"/>
+      <stop offset="50%" stop-color="#24070b"/>
+      <stop offset="100%" stop-color="#0a0203"/>
+    </radialGradient>
+    <radialGradient id="dragonFire" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ffd166" stop-opacity="0.6"/>
+      <stop offset="35%" stop-color="#f72585" stop-opacity="0.35"/>
+      <stop offset="70%" stop-color="#7209b7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#0a0203" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lavaFloor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38040e"/>
+      <stop offset="50%" stop-color="#1f0208"/>
+      <stop offset="100%" stop-color="#080003"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="640" fill="url(#infernoWash)"/>
+  <circle cx="180" cy="220" r="160" fill="url(#dragonFire)"/>
+
+  <!-- Columnas colosales de obsidiana con grietas ardientes -->
+  <polygon points="0,0 80,0 60,340 0,380" fill="#14070a"/>
+  <polygon points="360,0 280,0 300,340 360,380" fill="#14070a"/>
+  <!-- Grietas de lava dorada en las columnas -->
+  <path d="M40 40 L50 90 L35 140 L45 220" stroke="#f72585" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M320 40 L310 90 L325 140 L315 220" stroke="#f72585" stroke-width="2" fill="none" opacity="0.8"/>
+
+  <!-- Silueta imponente del Trono de Naipes de BLACK y alas de dragón al fondo -->
+  <polygon points="180,90 140,240 220,240" fill="#1c070c"/>
+  <polygon points="180,60 170,120 190,120" fill="#ffd166" opacity="0.8"/>
+  <!-- Alas y cuernos en la sombra -->
+  <path d="M140 140 Q80 100 60 170 Q110 170 140 190 Z" fill="#120407"/>
+  <path d="M220 140 Q280 100 300 170 Q250 170 220 190 Z" fill="#120407"/>
+
+  <!-- Suelo de obsidiana con círculo ritual del 21 ardiente -->
+  <path d="M0 380 L360 380 L360 640 L0 640 Z" fill="url(#lavaFloor)"/>
+  <ellipse cx="180" cy="520" rx="150" ry="70" fill="none" stroke="#f72585" stroke-width="3" stroke-dasharray="10 8" opacity="0.6"/>
+  <ellipse cx="180" cy="520" rx="90" ry="40" fill="none" stroke="#ffd166" stroke-width="2" stroke-dasharray="6 6" opacity="0.75"/>
+  <!-- Chispas doradas y brasas de dragón flotantes -->
+  <circle cx="160" cy="420" r="2.5" fill="#ffd166" opacity="0.9"/>
+  <circle cx="210" cy="380" r="2" fill="#ff758f" opacity="0.8"/>
+  <circle cx="130" cy="340" r="1.5" fill="#ffd166" opacity="0.7"/>
+  <circle cx="230" cy="460" r="3" fill="#ff4d6d" opacity="0.85"/>
+</svg>

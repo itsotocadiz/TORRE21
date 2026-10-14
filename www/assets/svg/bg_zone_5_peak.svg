@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" width="360" height="640">
+  <defs>
+    <radialGradient id="skyZenith" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#003566"/>
+      <stop offset="50%" stop-color="#001d3d"/>
+      <stop offset="100%" stop-color="#000814"/>
+    </radialGradient>
+    <radialGradient id="auroraGlow" cx="50%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="#48cae4" stop-opacity="0.45"/>
+      <stop offset="50%" stop-color="#0077b6" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000814" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="640" fill="url(#skyZenith)"/>
+  <circle cx="180" cy="180" r="160" fill="url(#auroraGlow)"/>
+
+  <!-- Estrellas y polvo celestial -->
+  <circle cx="50" cy="50" r="1.5" fill="#fff" opacity="0.8"/>
+  <circle cx="120" cy="80" r="2" fill="#fff" opacity="0.9"/>
+  <circle cx="280" cy="60" r="1.5" fill="#fff" opacity="0.7"/>
+  <circle cx="230" cy="110" r="2" fill="#caf0f8" opacity="0.8"/>
+  <circle cx="80" cy="140" r="1" fill="#fff" opacity="0.6"/>
+  <circle cx="320" cy="130" r="1.5" fill="#caf0f8" opacity="0.75"/>
+
+  <!-- Nubes de tormenta y viento de altura -->
+  <path d="M-20 180 Q80 140 180 190 T380 160 Q400 240 300 250 T60 240 Z" fill="#0c1d36" opacity="0.5"/>
+
+  <!-- Almenas y parapeto de piedra blanca en la cima -->
+  <path d="M0 290 L360 290 L360 380 L0 380 Z" fill="#1b2838"/>
+  <rect x="20" y="260" width="40" height="30" fill="#243548"/>
+  <rect x="100" y="260" width="40" height="30" fill="#243548"/>
+  <rect x="180" y="260" width="40" height="30" fill="#243548"/>
+  <rect x="260" y="260" width="40" height="30" fill="#243548"/>
+  <rect x="340" y="260" width="30" height="30" fill="#243548"/>
+
+  <!-- Suelo de baluarte celestial y abismo -->
+  <ellipse cx="180" cy="540" rx="190" ry="110" fill="#101924"/>
+  <ellipse cx="180" cy="510" rx="140" ry="40" fill="#00b4d8" opacity="0.18"/>
+</svg>

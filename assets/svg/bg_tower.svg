@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" width="360" height="640">
+  <defs>
+    <radialGradient id="skyWash" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#1b2838"/>
+      <stop offset="60%" stop-color="#0f1722"/>
+      <stop offset="100%" stop-color="#070a0f"/>
+    </radialGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff8db" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#ffd166" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cloudWash1" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2a3b50" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#141d28" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="towerBaseWash" cx="50%" cy="85%" r="45%">
+      <stop offset="0%" stop-color="#2a9d8f" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#070a0f" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="640" fill="url(#skyWash)"/>
+  <!-- Manchas acuareladas de nubes altas -->
+  <path d="M-20 80 Q60 50 140 90 T300 70 Q370 90 390 140 Q350 200 240 170 T60 180 Z" fill="url(#cloudWash1)"/>
+  <path d="M20 220 Q120 180 220 230 T380 200 Q400 280 290 300 T80 280 Z" fill="url(#cloudWash1)" opacity="0.6"/>
+  <!-- Luna acuarelada difusa -->
+  <circle cx="280" cy="110" r="55" fill="url(#moonGlow)"/>
+  <circle cx="280" cy="110" r="28" fill="#fff8db" opacity="0.85"/>
+  <!-- Resplandor arcano en la base -->
+  <circle cx="180" cy="540" r="160" fill="url(#towerBaseWash)"/>
+  <!-- Silueta de la Gran Torre 21 (pigmento azul pizarra húmedo) -->
+  <path d="M140 180 L180 120 L220 180 L212 260 L228 260 L220 400 L236 400 L248 640 L112 640 L124 400 L140 400 L132 260 L148 260 Z" fill="#141c26" opacity="0.95"/>
+  <!-- Aguja y almenas -->
+  <path d="M176 90 L184 90 L182 120 L178 120 Z" fill="#ffd166" opacity="0.8"/>
+  <polygon points="180,70 176,90 184,90" fill="#ffd166"/>
+  <!-- Ventanas con luz de vela dorada acuarelada -->
+  <rect x="174" y="220" width="12" height="20" rx="6" fill="#ffd166" opacity="0.75"/>
+  <rect x="172" y="320" width="16" height="24" rx="8" fill="#ffd166" opacity="0.65"/>
+  <rect x="170" y="440" width="20" height="30" rx="10" fill="#ffd166" opacity="0.7"/>
+</svg>

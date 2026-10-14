@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#07090e">
+  <title>TORRE 21: EL PACTO DE BLACK JACK — Roguelike</title>
+  <!-- Tipografías locales offline (Fredoka y Nunito) embebidas en css/style.css -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="low-hp-vignette"></div>
+<div id="game-container">
+
+  <!-- ===== CINEMÁTICA DE APERTURA CON FLOW: LA LEYENDA DE BLACK JACK ===== -->
+  <div id="screen-intro">
+    <div class="intro-scene" id="intro-scene">
+      <div class="intro-backdrop" style="background-image: url('assets/svg/bg_tower.svg');"></div>
+      <div class="intro-vignette"></div>
+
+      <div class="intro-header-box" id="intro-header-box" style="margin-top:22px;">
+        <div class="intro-badge">♠ ROGUELIKE DE CARTAS ARCANAS ♥</div>
+        <h1 class="intro-title" style="letter-spacing:1px;font-size:24px;">TORRE 21</h1>
+        <div class="intro-subtitle" style="letter-spacing:1.5px;color:#ffd166;font-size:11px;">EL PACTO DE BLACK JACK</div>
+        <div class="intro-sub" style="font-size: 9px;max-width:320px;margin:2px auto 0;">
+          Cuatro heraldos desafían el Abismo para quebrar el reinado de <b>BLACK</b>.
+        </div>
+      </div>
+
+      <!-- Indicador elegante de oro acumulado (ubicado debajo del título, libre de cámaras/notch) -->
+      <div class="intro-minigame-hud" id="intro-minigame-hud" style="margin-top:14px;">
+        <div class="intro-gold-badge" id="intro-gold-badge">
+          <span class="gold-icon">🪙</span>
+          <span class="gold-val" id="intro-gold-val">0 ORO</span>
+        </div>
+        <button class="intro-frenzy-btn" id="intro-frenzy-btn" onclick="triggerIntroFrenzy(event)" title="Activa lluvia de cartas y oro x3">
+          ⚡ FRENESÍ x3
+        </button>
+      </div>
+
+      <!-- Canvas del tirachinas y trayectoria de vuelo -->
+      <canvas id="intro-slingshot-canvas" class="intro-slingshot-canvas"></canvas>
+
+      <!-- Cartas mágicas flotantes interactivas para atrapar con el héroe -->
+      <div class="intro-cards-container" id="intro-cards-container">
+        <div class="intro-card-particle p1" data-gold="1"><span class="intro-card-rank">A</span><span class="intro-card-suit">♠</span></div>
+        <div class="intro-card-particle p2" data-gold="1"><span class="intro-card-rank">K</span><span class="intro-card-suit">♥</span></div>
+        <div class="intro-card-particle p3" data-gold="1"><span class="intro-card-rank">Q</span><span class="intro-card-suit">♦</span></div>
+        <div class="intro-card-particle p4" data-gold="1"><span class="intro-card-rank">J</span><span class="intro-card-suit">♣</span></div>
+        <div class="intro-card-particle p5" data-gold="1"><span class="intro-card-rank">10</span><span class="intro-card-suit">♠</span></div>
+        <div class="intro-card-particle p6" data-gold="1"><span class="intro-card-rank">7</span><span class="intro-card-suit">♥</span></div>
+        <div class="intro-card-particle p7" data-gold="1"><span class="intro-card-rank">21</span><span class="intro-card-suit">♦</span></div>
+      </div>
+      <div class="intro-fx-container" id="intro-fx-container"></div>
+
+      <!-- Héroe interactivo con física, lanzamiento con dedo y rebotes -->
+      <div class="intro-hero-container" id="intro-hero-container">
+        <div class="intro-hero-medallion" id="intro-hero-medallion">
+          <img src="assets/svg/knight_idle.svg" class="intro-hero-img" id="intro-hero-img" alt="" onerror="this.style.display='none'; document.getElementById('intro-hero-fallback').style.display='flex';">
+          <div id="intro-hero-fallback" class="intro-hero-fallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:26px;">🛡️</div>
+          <div class="intro-hero-aura"></div>
+          <div class="intro-hero-sparkles"></div>
+        </div>
+        <div class="intro-hero-label" id="intro-hero-label">CABALLERO</div>
+      </div>
+
+      <div class="intro-hint" id="intro-hint" onclick="startFromIntro(event)">Saltar al menú ▸</div>
+      <button class="intro-start visible" id="intro-start-btn" onclick="startFromIntro(event)">▶ DESAFIAR LA TORRE</button>
+    </div>
+  </div>
+
+  <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
+  <div id="screen-title" class="overlay hidden">
+    <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
+    <div class="lore-banner">
+      «En la cima de la torre aguarda <b>BLACK</b>, el Jack Supremo. Elige tu heraldo y quiebra la maldición del 21.»
+    </div>
+
+    <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
+    <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
+      <span class="upc-avatar" id="upc-avatar">👤</span>
+      <span class="upc-name" id="upc-name">Heraldo Invitado</span>
+      <span class="upc-status" id="upc-status">● Local</span>
+    </div>
+
+    <!-- ACCESO RÁPIDO: RECOMPENSA DIARIA -->
+    <div class="daily-reward-quickbar">
+      <button id="btn-daily-login" class="daily-login-badge-btn" onclick="openDailyLoginModal()" title="Recompensa Diaria de Conexión">
+        <span class="daily-btn-ico">🎁</span>
+        <span class="daily-btn-lbl">RECOMPENSA DIARIA</span>
+        <span id="daily-login-status-tag" class="daily-status-tag pending">LISTA</span>
+      </button>
+    </div>
+
+    <!-- NAVEGACIÓN POR 5 PESTAÑAS DEL MENÚ -->
+    <div class="title-nav-tabs">
+      <button class="title-tab-btn active" id="btn-tab-play" onclick="switchTitleTab('play')">
+        <span class="tab-ico">⚔️</span>
+        <span>TORRE</span>
+      </button>
+      <button class="title-tab-btn" id="btn-tab-pvp" onclick="switchTitleTab('pvp')">
+        <span class="tab-ico">🏆</span>
+        <span>ARENA PVP</span>
+      </button>
+      <button class="title-tab-btn" id="btn-tab-lore" onclick="switchTitleTab('lore')">
+        <span class="tab-ico">📖</span>
+        <span>LORE</span>
+      </button>
+      <button class="title-tab-btn tab-shop" id="btn-tab-shop" onclick="switchTitleTab('shop')">
+        <span class="tab-ico">🏪</span>
+        <span>TIENDAS</span>
+      </button>
+      <button class="title-tab-btn" id="btn-tab-config" onclick="switchTitleTab('config')">
+        <span class="tab-ico">⚙️</span>
+        <span>AJUSTES</span>
+      </button>
+    </div>
+
+    <!-- PESTAÑA 1: JUGAR (DEFAULT) -->
+    <div class="title-tab-pane active" id="title-pane-play">
+      <!-- Botín extra acumulado -->
+      <div id="intro-gold-reward-banner" class="intro-gold-reward-banner hidden">
+        <span>🪙 <b>¡BOTÍN EXTRA ACUMULADO!</b> +<span id="title-minigame-gold-val">0</span> de Oro inicial para tu héroe.</span>
+        <button class="banner-close-btn" onclick="dismissIntroGoldBanner(event)" title="Cerrar banner">✕</button>
+      </div>
+
+      <!-- Banner de recompensa de victoria pendiente de la Torre (derrota de Black) -->
+      <div id="pending-victory-reward-banner" class="pending-victory-reward-card hidden">
+        <div class="pvr-icon">👑</div>
+        <div class="pvr-body">
+          <div class="pvr-title">¡BOTÍN DE VICTORIA PENDIENTE!</div>
+          <div class="pvr-desc">Derrotaste a Black Jack. Tienes 1 Sello Ancestral y 3 Naipes Arcanos listos para tu baraja permanente.</div>
+        </div>
+        <button class="pvr-claim-btn" onclick="openPendingTowerReward()">RECLAMAR</button>
+      </div>
+
+      <!-- Contenedor dinámico de reanudación automática de partida -->
+      <div id="container-resume-run"></div>
+
+      <!-- BANNER DE EVENTO SEMANAL: SIEMPRE ARRIBA PARA QUE SEA VISIBLE -->
+      <div id="weekly-event-banner" class="hidden" style="margin:6px auto;max-width:390px;width:95%;"></div>
+
+
+      <!-- SELECTOR DE HÉROES ESTILO LIBRO / GRIMORIO -->
+      <div class="hero-book-wrapper">
+        <div class="hero-book-header">
+          <div class="hero-book-page-badge" id="hero-book-page-badge">📖 LIBRO DE HÉROES • 1 / 4</div>
+        </div>
+
+        <div class="hero-book-main">
+          <button class="hero-book-arrow prev" id="btn-hero-book-prev" onclick="prevHeroBook()" title="Héroe anterior" aria-label="Anterior">◀</button>
+
+          <div class="hero-book-stage" id="hero-book-stage">
+            <!-- Renderizado dinámicamente un héroe a la vez -->
+          </div>
+
+          <button class="hero-book-arrow next" id="btn-hero-book-next" onclick="nextHeroBook()" title="Siguiente héroe" aria-label="Siguiente">▶</button>
+        </div>
+
+        <!-- Indicadores de páginas (Dots) -->
+        <div class="hero-book-dots" id="hero-book-dots">
+          <button class="hero-dot active" onclick="setHeroBookIndex(0)" title="Caballero"></button>
+          <button class="hero-dot" onclick="setHeroBookIndex(1)" title="Pícaro"></button>
+          <button class="hero-dot" onclick="setHeroBookIndex(2)" title="Monje"></button>
+          <button class="hero-dot" onclick="setHeroBookIndex(3)" title="Nigromante"></button>
+        </div>
+
+        <!-- SELECTOR DE DIFICULTAD DE LA TORRE (SISTEMA DE ASCENSIÓN) -->
+        <div class="difficulty-selection-container">
+          <div class="difficulty-title-label">⚔️ DIFICULTAD DE LA ASCENSIÓN</div>
+          <div class="difficulty-selector-bar" id="difficulty-selector-bar">
+            <button class="diff-btn active" data-diff="normal" onclick="setGameDifficulty('normal')">
+              <span class="diff-icon">🟢</span>
+              <span class="diff-text">NORMAL</span>
+            </button>
+            <button class="diff-btn" data-diff="hard" onclick="setGameDifficulty('hard')">
+              <span class="diff-icon">🟡</span>
+              <span class="diff-text">HEROICO</span>
+            </button>
+            <button class="diff-btn" data-diff="mythic" onclick="setGameDifficulty('mythic')">
+              <span class="diff-icon">🔴</span>
+              <span class="diff-text">MÍTICO</span>
+            </button>
+            <button class="diff-btn" data-diff="nightmare" onclick="setGameDifficulty('nightmare')">
+              <span class="diff-icon">🟣</span>
+              <span class="diff-text">PESADILLA</span>
+            </button>
+          </div>
+          <div class="difficulty-desc-box" id="difficulty-desc-box">
+            🟢 <b>Torre del Novicio (7 Pisos):</b> Batallas fluidas. ¡Vence a BLACK en el Piso 7! (🏆 +1 Trofeo)
+          </div>
+        </div>
+      </div>
+
+      <div id="hero-locked-toast" class="hero-locked-toast hidden"></div>
+
+    </div>
+    
+    <!-- PESTAÑA: ARENA MULTIJUGADOR PVP -->
+    <div class="title-tab-pane" id="title-pane-pvp">
+      <div class="pvp-teaser-card active-arena-card" style="margin:16px auto;max-width:440px;" onclick="openArenaPvpModal()">
+        <div class="pvp-teaser-badge" id="pvp-arena-badge">⚔️ ARENA DEL 21 (DUELOS BO3)</div>
+        <div class="pvp-teaser-title">🏆 DUELOS DE LA ARENA • AL MEJOR DE 3</div>
+        <div class="pvp-teaser-desc" id="pvp-arena-desc">Desafía a campeones y heraldos de la Torre con tu baraja forjada. ¡Combates tácticos al mejor de 3 rondas!</div>
+        <button class="pvp-enter-btn" onclick="event.stopPropagation(); openArenaPvpModal()">ENTRAR A LA ARENA ➔</button>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: LORE Y HISTORIA -->
+    <div class="title-tab-pane" id="title-pane-lore">
+      <!-- LA LEYENDA DEL NAIPE MÁGICO -->
+      <div class="legend-cards-banner" style="background:linear-gradient(135deg,rgba(255,209,102,0.12),rgba(11,12,16,0.95));border:1px solid rgba(255,209,102,0.4);border-radius:10px;padding:10px 14px;margin:6px auto 10px;max-width:440px;text-align:left;">
+        <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:11px;color:#ffd166;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span>📖</span> <span>LA LEYENDA DEL NAIPE MÁGICO</span>
+        </div>
+        <p style="font-size:9px;color:#cbd5e1;margin:0;line-height:1.45;">
+          En la Torre del 21 no se lucha con armas convencionales: cada naipe es un conjuro milenario forjado en la sangre de los antiguos Jacks. Quien domina la suma exacta del 21 domina el destino mismo de la Torre y los poderes arcanos del Abismo.
+        </p>
+      </div>
+
+      <div class="title-action-buttons" style="display:flex;flex-direction:column;gap:8px;max-width:380px;margin:10px auto;">
+        <button onclick="openAchievementsModal()" class="btn-glow-gold" style="border-color:#ffd166;color:#ffd166;padding:10px;font-size:9px;background:rgba(255,209,102,0.12);">
+          🏆 SALÓN DE LOGROS (25 DESAFÍOS)
+        </button>
+        <button onclick="openCodex()" class="btn-glow-gold" style="border-color:#48cae4;color:#48cae4;padding:10px;font-size:9px;">
+          📜 CÓDICE DE LA TORRE (BESTIARIO Y ARTEFACTOS)
+        </button>
+        <button onclick="showControls()" style="padding:10px;font-size:9px;border-color:#66fcf1;color:#66fcf1;">
+          📖 REGLAS DEL BLACKJACK Y GUÍA DE COMBATE
+        </button>
+      </div>
+
+      <!-- GRIMORIO DE HISTORIA DE LOS 4 JACKS -->
+      <div class="lore-grimoire-section" style="max-width:440px;margin:12px auto;text-align:left;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border-bottom:1px solid rgba(255,209,102,0.3);padding-bottom:4px;">
+          <span style="font-family:var(--font-pixel,monospace);font-size:9px;color:#ffd166;">📚 CRÓNICAS Y MEMORIAS DE LOS 4 JACKS</span>
+          <span style="font-size: 9px;color:#94a3b8;">Desbloqueo por Nivel</span>
+        </div>
+        <div id="lore-heroes-grimoire" class="lore-heroes-grimoire">
+          <!-- Renderizado dinámicamente por renderLoreGrimoire() -->
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: TIENDAS -->
+    <div class="title-tab-pane" id="title-pane-shop">
+      <div style="background:radial-gradient(circle at top,rgba(255,209,102,0.15),rgba(13,18,28,0.95));border:1.5px solid #ffd166;border-radius:12px;padding:12px 14px;max-width:420px;margin:8px auto;text-align:center;">
+        <div style="font-family:var(--font-pixel);font-size:10px;color:#ffd166;margin-bottom:6px;">🏪 BAZAR Y MERCADO REAL</div>
+        
+        <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin:10px 0;font-size:10px;">
+          <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(230,57,70,0.15);padding:6px 12px;border-radius:8px;border:1px solid rgba(230,57,70,0.4);color:#ff758f;">
+            💀 MONEDAS DE CRIPTA: <b id="ui-crypt-coins" class="term" data-term="crypt" style="color:#ffd166;margin-left:4px;font-size:12px;">0</b>
+          </span>
+        </div>
+
+        <p style="font-size: 9px;color:#94a3b8;line-height:1.4;margin:6px 0 12px;">
+          Las monedas de cripta son permanentes entre partidas. Se utilizan para desbloquear a Jack el Pícaro, Jack el Monje y Jack el Nigromante, o adquirir mejoras arcanas del Códice.
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:8px;max-width:320px;margin:0 auto;">
+          <button onclick="showIAPModal('starter')" style="background:linear-gradient(135deg,#f4a261,#e63946);color:#ffffff;border:none;padding:10px;font-family:var(--font-pixel);font-size: 9px;border-radius:8px;cursor:pointer;box-shadow:0 0 12px rgba(244,162,97,0.4);">
+            ⚡ TIENDA REAL (IAP) • VER OFERTAS
+          </button>
+          <button onclick="showIAPModal('hero_bundle')" style="background:rgba(255,255,255,0.06);border:1px solid #ffd166;color:#ffd166;padding:8px;font-family:var(--font-pixel);font-size: 9px;border-radius:8px;cursor:pointer;">
+            👑 BUNDLE MAESTRO DE LOS 4 HÉROES
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 5: CONFIGURACIÓN -->
+    <div class="title-tab-pane" id="title-pane-config">
+      <div style="max-width:420px;margin:6px auto;text-align:left;">
+
+        <!-- BLOQUE DE CUENTA GOOGLE Y NUBE (FASE 4 & 6) -->
+        <div class="config-account-card">
+          <div class="cac-header">
+            <span class="cac-title">👤 CUENTA Y PROGRESO EN LA NUBE</span>
+            <span id="cfg-account-sync-badge" class="cac-badge">● MODO SEGURO OFFLINE</span>
+          </div>
+          <div class="cac-desc" id="cfg-account-email">
+            Vincula tu cuenta de Google para respaldar tus héroes, cartas y logros.
+          </div>
+          <div class="cac-actions">
+            <button id="btn-google-auth" class="btn-google-auth" onclick="handleGoogleAuthToggle()">
+              🔗 VINCULAR CUENTA GOOGLE
+            </button>
+            <button id="btn-cloud-sync" class="btn-cloud-sync" onclick="manualCloudSync()" title="Sincronizar progreso ahora">
+              ☁️
+            </button>
+          </div>
+        </div>
+
+        <!-- ACCIONES RÁPIDAS DE CONFIGURACIÓN -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+          <button onclick="showConfig()" style="background:rgba(69,162,158,0.15);border:1px solid #45a29e;color:#66fcf1;padding:10px;font-family:var(--font-pixel);font-size: 9px;border-radius:8px;cursor:pointer;">
+            ⚙️ AJUSTES COMPLETOS (SONIDO, DIFICULTAD, ESTADÍSTICAS)
+          </button>
+          <button onclick="openPrivacyPolicy()" style="background:rgba(255,209,102,0.10);border:1px solid #ffd166;color:#ffd166;padding:9px;font-family:var(--font-pixel);font-size: 9px;border-radius:8px;cursor:pointer;">
+            🔒 POLÍTICA DE PRIVACIDAD Y DATOS
+          </button>
+          <button onclick="resetCharacterProgress()" style="background:rgba(230,57,70,0.12);border:1px solid #e63946;color:#ff758f;padding:9px;font-family:var(--font-pixel);font-size: 9px;border-radius:8px;cursor:pointer;">
+            🗑️ REINICIAR PROGRESO PERMANENTE (0 EXP)
+          </button>
+        </div>
+
+        <!-- CRÉDITOS MUSICALES (OBLIGATORIO SI ALGUNA PISTA PASA A CC-BY) -->
+        <details style="margin-top:12px;padding:8px 12px;background:rgba(102,252,241,0.05);border:1px solid rgba(69,162,158,0.35);border-radius:8px;font-size:8.5px;color:#94a3b8;">
+          <summary style="cursor:pointer;color:#66fcf1;font-family:var(--font-pixel);font-size:9px;">🎵 CRÉDITOS MUSICALES</summary>
+          <div style="margin-top:8px;line-height:1.7;">
+            <div>⚔️ Combate — "Determined Pursuit" por <b style="color:#66fcf1;">Emma_MA</b> · OpenGameArt · CC0</div>
+            <div>👑 Jefe final — "The Final Battle" por <b style="color:#66fcf1;">skrjablin</b> · OpenGameArt · CC0</div>
+            <div>🎰 Bazar — "Moil" por <b style="color:#66fcf1;">Ruskerdax</b> · OpenGameArt · CC0</div>
+            <div style="margin-top:6px;color:#2a9d8f;">Todas las pistas son de dominio público (CC0): uso libre, también comercial, sin atribución obligatoria. Efectos y marchas: síntesis procedural original de Black Jack: La Torre del 21.</div>
+          </div>
+        </details>
+
+        <div style="margin-top:14px;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:8.5px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;">
+          <span>📱 VERSIÓN 1.0.0 (BUILD 36)</span>
+          <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TUTORIAL INTERACTIVO: CÓMO SE JUEGA Y SE ATACA -->
+  <div id="screen-tutorial" class="overlay hidden">
+    <div class="tutorial-card">
+      <div class="tutorial-header">
+        <h2>❓ GUÍA: CÓMO JUGAR Y ATACAR</h2>
+        <button class="inspect-close-btn" onclick="closeTutorial()">✕</button>
+      </div>
+
+      <div class="tutorial-tabs">
+        <button class="tut-tab active" id="tab-btn-attacks" onclick="switchTutorialTab('attacks')">⚔️ ¿CÓMO SE ATACA?</button>
+        <button class="tut-tab" id="tab-btn-rules" onclick="switchTutorialTab('rules')">🃏 REGLAS DEL 21</button>
+        <button class="tut-tab" id="tab-btn-lore" onclick="switchTutorialTab('lore')">👑 LORE Y NIVELES</button>
+      </div>
+
+      <div class="tutorial-content" id="tut-content-attacks">
+        <div class="tut-box highlight">
+          <div class="tut-title">🎯 EL COMBATE: GOLPEAR O DEFENDER</div>
+          <p>Cada mano es un duelo entre tú y el rival. El daño que infliges o recibes depende directamente del valor de las cartas:</p>
+        </div>
+        
+        <div class="tut-step">
+          <div class="tut-step-num">1</div>
+          <div class="tut-step-body">
+            <b>FASE DE APUESTA</b>: Al inicio de la mano apuestas poder (HP). Cuanto mayor sea tu apuesta, más devastador será tu impacto si ganas.
+          </div>
+        </div>
+
+        <div class="tut-step">
+          <div class="tut-step-num">2</div>
+          <div class="tut-step-body">
+            <b>¡SI GANAS LA MANO (TÚ ATACAS)!</b><br>
+            Si tu suma es mayor que la del rival (o el rival se pasa de 21):
+            <div class="formula-box">
+              💥 TU DAÑO = [ PWR + Apuesta + Margen de Mano ] Ã— Multiplicador de Nivel (+12%/nvl) - DEF Rival
+            </div>
+            ⭐ <b>Crecimiento por Nivel:</b> A mayor nivel, tu Jack golpea con un porcentaje multiplicador devastador (+12% por cada nivel de combate).<br>
+            🃏 <b>Margen de Mano:</b> Ganar con ventaja amplia (ej. 21 vs 16 = margen +5) amplifica el impacto.<br>
+            ⭐ <b>¡BLACKJACK NATURAL!</b> Si sumas 21 con tus 2 primeras cartas, ¡el daño se multiplica por <b>x3</b> (o <b>x4</b> con reliquia heredada)!
+          </div>
+        </div>
+
+        <div class="tut-step">
+          <div class="tut-step-num">3</div>
+          <div class="tut-step-body">
+            <b>¡SI PIERDES LA MANO (EL RIVAL ATACA)!</b><br>
+            Si el rival saca más que tú o tú te pasas de 21 (BUST):
+            <div class="formula-box def">
+              🛡️ DAÑO ENTRANTE = (PWR Rival + Tu Apuesta) - Tu DEF
+            </div>
+            <b>Jerarquía de Protección (3 Capas):</b><br>
+            1. <b>Armadura (DEF)</b>: Reduce directamente el golpe. Si tu DEF supera o iguala al ataque, ¡recibes <b>0 de daño (BLOQUEO TOTAL)</b>!<br>
+            2. <b>Escudo Azul</b>: Si el golpe supera tu DEF, el daño restante desgasta tu barra de Escudo Azul.<br>
+            3. <b>Vida (HP)</b>: Solo el daño que atraviese tu DEF y tu Escudo Azul restará puntos a tu vida real.
+          </div>
+        </div>
+
+        <div class="tut-step">
+          <div class="tut-step-num">4</div>
+          <div class="tut-step-body">
+            <b>EMPATE (PUSH)</b>: Si ambos obtienen exactamente la misma puntuación, ¡las armas chocan en el aire (CHOQUE) y <b>ninguno recibe daño directo</b>!
+          </div>
+        </div>
+
+        <div class="tut-step">
+          <div class="tut-step-num">5</div>
+          <div class="tut-step-body">
+            <b>🔥 MUERTE SÚBITA (MODO FURIA ESCALABLE)</b>:<br>
+            Si el combate supera las 7 manos (desde la <b>Mano 8</b>), la arena entra en frenesí letal:
+            <div class="formula-box" style="border-color:#ff4d4d;color:#ff758f;background:rgba(230,57,70,0.12);">
+              ⚡ ¡EL MULTIPLICADOR ESCALA CADA ASALTO!<br>
+              • Asalto 1 = <b>Daño x2</b><br>
+              • Asalto 2 = <b>Daño x3</b><br>
+              • Asalto 3 = <b>Daño x4</b> (+1x por asalto)<br>
+              🗡️ Además, los ataques rivales perforan armadura defensiva.
+            </div>
+            ¡Cada asalto sucesivo es exponencialmente más letal para liquidar el combate al instante!
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-content hidden" id="tut-content-rules">
+        <div class="tut-step">
+          <div class="tut-step-body">
+            <b>VALORES DE LAS CARTAS</b>:<br>
+            • <b>Números 2 al 10</b>: Valen su número nominal.<br>
+            • <b>Figuras (J, Q, K)</b>: Valen 10 puntos cada una.<br>
+            • <b>As (A)</b>: Vale 1 u 11 automáticamente para favorecer tu jugada sin pasarte.<br>
+            • <b>21 con 2 cartas</b> = ¡BLACKJACK! (Daño x3 crítico).
+          </div>
+        </div>
+        <div class="tut-step">
+          <div class="tut-step-body">
+            <b>ACCIONES DE TU TURNO</b>:<br>
+            • <b>🃏 PEDIR CARTA</b>: Robas una carta del mazo. Si pasas de 21, ¡te pasas (BUST)!<br>
+            • <b>✋ PLANTARSE</b>: Te quedas con tu total. El rival jugará su turno.<br>
+            • <b>🔄 REROLL</b>: Cambia la última carta si posees dados de tirada.<br>
+            • <b>🧪 POCIÓN</b>: Restaura 30 HP inmediatamente en cualquier momento del combate.
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-content hidden" id="tut-content-lore">
+        <div class="tut-step">
+          <div class="tut-step-body">
+            <b>EL LORE DE "BLACK JACK"</b>:<br>
+            En la cúspide de la torre gobierna <b>BLACK</b>, la entidad primigenia que corrompió la baraja. Para derrotarlo, cuatro héroes conocidos como los <b>Heraldos</b> han jurado escalar los pisos:<br>
+            • <b>Caballero</b>: Escudo pesado y resistencia inquebrantable.<br>
+            • <b>Pícaro</b>: Daño doble x2 con manos pares y evasión letal.<br>
+            • <b>Monje</b>: Revela las cartas ocultas del rival y medita el 21.<br>
+            • <b>Nigromante</b>: Inocula veneno mortal con Blackjack y roba almas.<br><br>
+            <b>SISTEMA DE EXPERIENCIA Y NIVELES (LEVEL UP)</b>:<br>
+            Cada rival que derrotes te otorgará <b>EXP</b>. ¡Al subir de nivel podrás elegir mejoras permanentes de Vida (+HP), Daño (+PWR) o Escudo (+DEF)!
+          </div>
+        </div>
+      </div>
+
+      <button onclick="closeTutorial()" class="btn-close-tut">ENTENDIDO, ¡A JUGAR!</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE SUBIDA DE NIVEL (LEVEL UP) -->
+  <div id="screen-levelup" class="overlay hidden">
+    <div class="levelup-card-modal">
+      <div class="levelup-header">
+        <div class="levelup-icon">⭐</div>
+        <h2>¡SUBIDA DE NIVEL!</h2>
+        <div class="levelup-sub">Tu Jack asciende al <b id="levelup-lvl-num" style="color:#ffd166;">NIVEL 2</b>. ¡Elige una bendición permanente!</div>
+      </div>
+      <div class="levelup-choices" id="levelup-choices">
+        <!-- Generado dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE CONTROLES -->
+  <div id="screen-controls" class="overlay hidden">
+    <h2 class="sm">📖 REGLAS Y HABILIDADES</h2>
+    <div class="controls-list" style="max-height:65vh;overflow-y:auto;">
+      <div><kbd>Pedir carta</kbd> — Roba del mazo de 52 cartas estándar (A, 2-10, J, Q, K). Pasar de 21 es BUST.</div>
+      <div><kbd>Plantarse</kbd> — Conserva tu total. El rival juega (se planta en 17+ o según su rasgo).</div>
+      <div><kbd>Poción</kbd> — Recupera +30 HP (hasta tu máximo).</div>
+      <div><kbd>Reroll</kbd> — Cambia tus dos cartas iniciales si tienes cargas de reroll.</div>
+      <br>
+      <div><b>LOS CUATRO HERALDOS:</b></div>
+      <div>• <b style="color:#2a9d8f;">Caballero:</b> Tanque sólido. Si tus cartas iniciales suman ≤ 14, ganas +4 de escudo protector.</div>
+      <div>• <b style="color:#f4a261;">Pícaro:</b> Asesino letal. Si tu mano total es par, tu daño se duplica (x2). Además tienes 25% de esquivar contragolpes.</div>
+      <div>• <b style="color:#a8dadc;">Monje:</b> Sabio iluminado. Su visión revela las cartas rivales y puede ajustar +1 punto de concentración al plantarse con 18 o 19.</div>
+      <div>• <b style="color:#c77dff;">Nigromante:</b> Mago oscuro. Cada Blackjack inocula 3 acumulaciones de Veneno residual. Devora el alma de rivales caídos (+8 HP).</div>
+      <br>
+      <div><b>SISTEMA DE EFECTOS:</b></div>
+      <div>• 🛡️ <b style="color:#90e0ef;">Escudo:</b> Absorbe daño antes de tocar tu barra de vida.</div>
+      <div>• ☠️ <b style="color:#c77dff;">Veneno:</b> Daña al portador al final de cada mano y se reduce en 1.</div>
+      <div>• 🔥 <b style="color:#ff758f;">Quemadura:</b> Daño ígneo residual por turnos.</div>
+      <div>• ⚡ <b style="color:#ffd166;">Dupla:</b> Pareja del mismo rango (ej: K y K o A y A) otorga +2 DEF.</div>
+      <br>
+      <div><b>PROGRESIÓN Y VICTORIA:</b></div>
+      <div>• Son 7 manos por piso. <b style="color:#ffd166;">¡Es obligatorio derrotar al rival para superar el piso!</b></div>
+      <div>• En la cúspide aguarda <b style="color:#ff758f;">BLACK</b>, el temible Jack Supremo que gobierna la Torre.</div>
+    </div>
+    <button onclick="closeControls()" style="border-color:#c5c6c7;margin-top:10px;">◀ VOLVER AL MENÚ</button>
+  </div>
+
+  <!-- PANTALLA DE CONFIGURACIÓN -->
+  <div id="screen-config" class="overlay hidden">
+    <h2 class="sm">⚙️ CONFIGURACIÓN</h2>
+    <div id="config-body"></div>
+    <div id="config-footer-actions" class="config-footer-actions">
+      <button onclick="closeConfig()" class="config-btn-back">◀ VOLVER AL MENÚ</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE EVENTO (recompensas, maldiciones, shop, game over, victoria) -->
+  <div id="screen-event" class="overlay hidden">
+    <h2 id="event-title">SALA DE ALCANCE</h2>
+    <p id="event-desc" style="font-size:11px;margin-bottom:15px;"></p>
+    <div id="event-options" class="cards-container"></div>
+  </div>
+
+  <!-- MODAL DEL PACTO DEL ABISMO (ALTAR OSCURO REDISEÑADO) -->
+  <div id="screen-abyss-pact-modal" class="abyss-modal-overlay hidden">
+    <div class="abyss-modal-card">
+      <div class="abyss-fog-layer"></div>
+      <div class="abyss-figure-container">
+        <div class="abyss-figure-avatar">👁️</div>
+        <div class="abyss-candles-flank">
+          <span class="abyss-candle">🕯️</span>
+          <span class="abyss-candle">🕯️</span>
+        </div>
+        <div class="abyss-header-title">PACTO DEL ABISMO</div>
+        <div class="abyss-lore-dialogue">«El Abismo te observa desde las sombras de la Torre... ¿Cuál es tu precio, Jack?»</div>
+      </div>
+
+      <div class="abyss-pacts-list" id="abyss-pacts-list">
+        <!-- 3 opciones de pacto renderizadas dinámicamente -->
+      </div>
+
+      <button class="abyss-reject-btn" onclick="rejectAbyssPact()">
+        ✕ RECHAZAR Y SEGUIR EL CAMINO
+      </button>
+    </div>
+  </div>
+
+  <!-- POPUP / MODAL DE INSPECCIÓN DETALLADA DE PERSONAJES -->
+  <div id="screen-inspect" class="overlay hidden" onclick="closeFighterInspect(event)">
+    <div class="inspect-card" onclick="event.stopPropagation()">
+      <div class="inspect-header">
+        <div id="inspect-avatar-container" class="inspect-avatar"></div>
+        <div class="inspect-title-box">
+          <div id="inspect-name" class="inspect-name">CABALLERO</div>
+          <div id="inspect-subtitle" class="inspect-subtitle">HERALDO DEL DESTINO</div>
+        </div>
+        <button class="inspect-close-btn" onclick="closeFighterInspect()">✕</button>
+      </div>
+
+      <div class="inspect-stats-grid">
+        <div class="inspect-stat-item">
+          <span class="stat-lbl">❤️ SALUD</span>
+          <span class="stat-val" id="inspect-hp">90 / 90</span>
+        </div>
+        <div class="inspect-stat-item">
+          <span class="stat-lbl">⚔️ PODER (PWR)</span>
+          <span class="stat-val" id="inspect-pwr">2</span>
+        </div>
+        <div class="inspect-stat-item">
+          <span class="stat-lbl">🛡️ DEFENSA (DEF)</span>
+          <span class="stat-val" id="inspect-def">3</span>
+        </div>
+        <div class="inspect-stat-item">
+          <span class="stat-lbl">🛡️ ESCUDO ACTIVO</span>
+          <span class="stat-val" id="inspect-shield">0</span>
+        </div>
+      </div>
+
+      <div class="inspect-section">
+        <div class="inspect-section-title">📜 HABILIDAD / RASGO:</div>
+        <div id="inspect-trait" class="inspect-trait-desc"></div>
+      </div>
+
+      <div class="inspect-section">
+        <div class="inspect-section-title">⚡ ESTADOS EN COMBATE:</div>
+        <div id="inspect-status" class="inspect-status-desc"></div>
+      </div>
+
+      <div class="inspect-section" id="inspect-enchanted-section" style="display:none;">
+        <div class="inspect-section-title" id="inspect-enchanted-title">🃏 CARTAS ARCANAS FORJADAS:</div>
+        <div id="inspect-enchanted-grid" class="dossier-enchanted-grid" style="margin-top:6px;"></div>
+      </div>
+
+      <button onclick="closeFighterInspect()" style="margin-top:10px;width:100%;font-size:9px;padding:8px;border-color:#45a29e;background:#151a21;">◀ CERRAR FICHA</button>
+    </div>
+  </div>
+
+  <!-- SPRINT 5: FICHA COMPLETA DEL HÉROE / GRIMORIO -->
+  <div id="screen-hero-sheet" class="overlay hidden" onclick="closeHeroSheet()">
+    <div class="hero-sheet-card" onclick="event.stopPropagation()">
+      <div class="hero-sheet-header">
+        <div class="hero-sheet-title" id="hero-sheet-title">📊 FICHA DEL HÉROE</div>
+        <button class="inspect-close-btn" onclick="closeHeroSheet()">✕</button>
+      </div>
+      <div class="hero-sheet-body" id="hero-sheet-body"></div>
+      <button class="hero-sheet-close-btn" onclick="closeHeroSheet()">◀ CERRAR</button>
+    </div>
+  </div>
+
+  <!-- MODAL: RECOMPENSA DIARIA DE CONEXIÓN (7 DÍAS) -->
+  <div id="screen-daily-login" class="overlay hidden" onclick="closeDailyLoginModal()">
+    <div class="daily-login-card" onclick="event.stopPropagation()">
+      <div class="daily-login-header">
+        <div class="daily-login-title">🎁 RECOMPENSAS DIARIAS DE LA TORRE</div>
+        <button class="inspect-close-btn" onclick="closeDailyLoginModal()">✕</button>
+      </div>
+      <div class="daily-login-body" id="daily-login-body"></div>
+      <button class="daily-login-close-btn" onclick="closeDailyLoginModal()">◀ VOLVER A LA TORRE</button>
+    </div>
+  </div>
+
+  <!-- VENTANA DE CRÓNICA (LORE): LAS CRÓNICAS SE ABREN EN UNA VENTANA -->
+  <div id="screen-lore-chapter" class="overlay hidden" onclick="closeLoreChapter()">
+    <div class="hero-sheet-card" onclick="event.stopPropagation()">
+      <div class="hero-sheet-header">
+        <div class="hero-sheet-title" id="lore-chapter-title">📖 CRÓNICA</div>
+        <button class="inspect-close-btn" onclick="closeLoreChapter()">✕</button>
+      </div>
+      <div class="hero-sheet-body" id="lore-chapter-body"></div>
+      <button class="hero-sheet-close-btn" onclick="closeLoreChapter()">◀ VOLVER</button>
+    </div>
+  </div>
+
+
+  <!-- MODAL DEL CÓDICE DE LA TORRE -->
+  <!-- MODAL: EL YUNQUE TAHÚR (APUESTA RIESGOSA) -->
+  <div id="screen-gamble-forge" class="overlay hidden" onclick="closeGambleForgeModal()">
+    <div class="gamble-forge-card" onclick="event.stopPropagation()">
+      <div class="gamble-forge-header">
+        <div class="gamble-forge-title">🎰 EL YUNQUE DE LA FRAGUA TAHÚR</div>
+        <button class="inspect-close-btn" onclick="closeGambleForgeModal()">✕</button>
+      </div>
+
+      <div class="gamble-forge-desc">
+        Arriesga tus tributos en el yunque sagrado. Si el martillo forja la llama, ¡<b>un grupo entero de cartas</b> recibirá una Bendición Arquetípica de Lote! Si el fuego se apaga, perderás tu ofrenda.
+      </div>
+
+      <!-- FONDOS ACTUALES -->
+      <div class="gamble-wallet-row">
+        <div class="gamble-wallet-chip gold">
+          <span>🪙 ORO DISPONIBLE:</span>
+          <b id="gamble-forge-gold">0 🪙</b>
+        </div>
+        <div class="gamble-wallet-chip crypt">
+          <span>💀 CRIPTAS:</span>
+          <b id="gamble-forge-crypt">0 💀</b>
+        </div>
+      </div>
+
+      <!-- SELECCIÓN DE APUESTA -->
+      <div class="gamble-tiers-container" id="gamble-tiers-container">
+        <!-- Generado dinámicamente -->
+      </div>
+
+      <!-- RESULTADO / ANIMACIÓN DEL YUNQUE -->
+      <div id="gamble-forge-status" class="gamble-forge-status hidden"></div>
+
+      <div class="gamble-forge-actions">
+        <button id="gamble-forge-btn" class="gamble-forge-submit-btn" onclick="executeGambleForge()">
+          🔨 GOLPEAR EL YUNQUE
+        </button>
+        <button class="gamble-forge-leave-btn" onclick="closeGambleForgeModal()">
+          🚪 SALIR SIN APOSTAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COMPENDIO Y GLOSARIO DE PERKS TÁCTICOS -->
+  <div id="modal-perks-codex" class="overlay hidden" onclick="closePerksCodexModal()">
+    <div class="perks-codex-card" onclick="event.stopPropagation()">
+      <div class="perks-codex-header">
+        <div class="perks-codex-title">⚡ GUÍA Y COMPENDIO DE PERKS TÁCTICOS</div>
+        <button class="inspect-close-btn" onclick="closePerksCodexModal()">✕</button>
+      </div>
+      <div class="perks-codex-desc">
+        Los <b>Perks Tácticos</b> son combos y condiciones secretas de combate que se disparan en cada mano ganada. Cumple la condición para recibir bonificaciones devastadoras de daño, escudo o cura.
+      </div>
+      <div class="perks-codex-tabs" id="perks-codex-tabs">
+        <button class="pct-tab-btn active" data-filter="all" onclick="switchPerksCodexTab('all')">✨ TODOS (15)</button>
+        <button class="pct-tab-btn" data-filter="knight" onclick="switchPerksCodexTab('knight')">🛡️ CABALLERO</button>
+        <button class="pct-tab-btn" data-filter="rogue" onclick="switchPerksCodexTab('rogue')">🗡️ PÍCARO</button>
+        <button class="pct-tab-btn" data-filter="monk" onclick="switchPerksCodexTab('monk')">🧘 MONJE</button>
+        <button class="pct-tab-btn" data-filter="necro" onclick="switchPerksCodexTab('necro')">💀 NIGROMANTE</button>
+        <button class="pct-tab-btn" data-filter="universal" onclick="switchPerksCodexTab('universal')">⚡ UNIVERSALES</button>
+      </div>
+      <div class="perks-codex-grid" id="perks-codex-grid">
+        <!-- Generado dinámicamente -->
+      </div>
+      <div class="perks-codex-footer">
+        <button class="perks-codex-close-btn" onclick="closePerksCodexModal()">ENTENDIDO • VOLVER</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-codex" class="overlay hidden">
+    <div class="codex-modal">
+      <div class="codex-header">
+        <div class="codex-title">📜 CÓDICE DE LA TORRE</div>
+        <div class="codex-count-badge" id="codex-count-badge">0 / 24 DESCUBIERTOS</div>
+        <button class="inspect-close-btn" onclick="closeCodex()">✕</button>
+      </div>
+      <div class="codex-tabs">
+        <button class="codex-tab-btn active" id="codex-tab-relics" onclick="switchCodexTab('relics')">🏺 ARTEFACTOS</button>
+        <button class="codex-tab-btn" id="codex-tab-amulets" onclick="switchCodexTab('amulets')">💍 ACCESORIOS</button>
+        <button class="codex-tab-btn" id="codex-tab-enemies" onclick="switchCodexTab('enemies')">👹 BESTIARIO</button>
+        <button class="codex-tab-btn" id="codex-tab-perks" onclick="openPerksCodexModal()">⚡ PERKS (15)</button>
+      </div>
+      <div class="codex-grid" id="codex-grid">
+        <!-- Renderizado dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE PAUSA Y CONFIGURACIÓN IN-GAME -->
+  <div id="screen-ingame-pause" class="overlay hidden" onclick="closeInGamePauseMenu(event)">
+    <div class="pause-menu-card" onclick="event.stopPropagation()">
+      <div class="pause-header">
+        <div class="pause-title">⚙️ PAUSA Y CONFIGURACIÓN</div>
+        <div class="pause-run-meta" id="pause-run-meta">PISO 1 • CABALLERO • NVL 1</div>
+        <button class="inspect-close-btn" onclick="closeInGamePauseMenu()">✕</button>
+      </div>
+
+      <!-- Cuadro de confirmación contextual (reiniciar / salir) -->
+      <div id="pause-confirm-box" class="pause-confirm-box hidden">
+        <div class="pause-confirm-msg" id="pause-confirm-msg">¿Seguro que deseas reiniciar la partida?</div>
+        <div class="pause-confirm-btns">
+          <button class="pause-conf-btn cancel" onclick="cancelPauseConfirm()">◀ VOLVER</button>
+          <button class="pause-conf-btn danger" id="pause-confirm-ok-btn">SÍ, CONFIRMAR</button>
+        </div>
+      </div>
+
+      <!-- ACCIONES PRINCIPALES DE PARTIDA -->
+      <div class="pause-actions-group" id="pause-actions-main">
+        <button class="pause-btn resume" onclick="closeInGamePauseMenu()">
+          <span class="p-icon">▶</span>
+          <span class="p-text">CONTINUAR COMBATE</span>
+        </button>
+
+        <button class="pause-btn restart" onclick="askRestartRun()">
+          <span class="p-icon">🔄</span>
+          <div class="p-info">
+            <span class="p-title">REINICIAR ASCENSO</span>
+            <span class="p-sub">Volver al Piso 1 (conserva la EXP permanente ganada)</span>
+          </div>
+        </button>
+
+        <button class="pause-btn exit" onclick="askExitToMainMenu()">
+          <span class="p-icon">🚪</span>
+          <div class="p-info">
+            <span class="p-title">SALIR AL MENÚ PRINCIPAL</span>
+            <span class="p-sub">Guardar progreso permanente y volver a selección de héroes</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- AJUSTES ESENCIALES -->
+      <div class="pause-settings-box">
+        <div class="pause-section-title">🎛️ CONFIGURACIÓN DE JUEGO</div>
+        <div class="pause-account-row">
+          <span>👤 Jugador: <b id="pause-account-name" style="color:#66fcf1;">Heraldo Invitado</b></span>
+          <span id="pause-cloud-status" style="font-size:8px;color:#2a9d8f;">● Respaldo Local</span>
+        </div>
+
+        <div class="pause-setting-row">
+          <span class="ps-label">🔊 Efectos de Sonido:</span>
+          <button id="pause-btn-sound" class="ps-toggle-btn active" onclick="toggleSoundFromPause()">ACTIVADO</button>
+        </div>
+
+        <!-- Control de volumen dual (Música y Efectos SFX independientes) -->
+        <div class="pause-setting-row volume-setting-block">
+          <div class="speed-header-row">
+            <span class="ps-label">🎵 Música:</span>
+            <span id="pause-vol-music-val" class="speed-indicator-badge">50%</span>
+          </div>
+          <input type="range" id="pause-music-slider" min="0" max="100" value="50"
+                 oninput="changeMusicVolume(this.value)"
+                 style="width:100%;accent-color:#45a29e;margin-top:4px;">
+        </div>
+
+        <div class="pause-setting-row volume-setting-block">
+          <div class="speed-header-row">
+            <span class="ps-label">🔊 Efectos (SFX):</span>
+            <span id="pause-vol-sfx-val" class="speed-indicator-badge">80%</span>
+          </div>
+          <input type="range" id="pause-sfx-slider" min="0" max="100" value="80"
+                 oninput="changeSfxVolume(this.value)"
+                 style="width:100%;accent-color:#ffd166;margin-top:4px;">
+        </div>
+
+        <!-- SPRINT 6: control de volumen maestro (retrocompatibilidad con tests) -->
+        <div class="pause-setting-row volume-setting-block" style="display:none;">
+          <div class="speed-header-row">
+            <span class="ps-label">🔉 Volumen:</span>
+            <span id="pause-vol-val" class="speed-indicator-badge">50%</span>
+          </div>
+          <input type="range" id="pause-volume-slider" min="0" max="100" value="50"
+                 oninput="changeVolumeFromPause(this.value)"
+                 style="width:100%;accent-color:#45a29e;margin-top:4px;">
+        </div>
+
+
+        <div class="pause-setting-row speed-setting-block">
+          <div class="speed-header-row">
+            <span class="ps-label">⚡ Velocidad de Juego:</span>
+            <span id="speed-indicator-badge" class="speed-indicator-badge">1x Normal</span>
+          </div>
+          <div class="speed-toggle-group segmented-control">
+            <button class="speed-btn active" id="speed-btn-1" onclick="setGameSpeed(1)">1x Normal</button>
+            <button class="speed-btn" id="speed-btn-15" onclick="setGameSpeed(1.5)">1.5x Rápido</button>
+            <button class="speed-btn" id="speed-btn-2" onclick="setGameSpeed(2)">2x Turbo</button>
+          </div>
+        </div>
+
+        <div class="pause-setting-row">
+          <span class="ps-label">📲 Vibración Háptica:</span>
+          <button id="pause-btn-haptic" class="ps-toggle-btn active" onclick="toggleHapticsFromPause()">ACTIVADA</button>
+        </div>
+      </div>
+
+      <!-- ENLACE SECUNDARIO A REGLAS Y PERKS -->
+      <div class="pause-footer-links">
+        <button class="pause-link-btn" onclick="openPerksCodexModal()">💡 Guía de Perks Tácticos (15 Combos)</button>
+        <button class="pause-link-btn" onclick="openTutorial('attacks')">📖 Ver Reglas y Guía de Ataque</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL / POPUP DE INSPECCIÓN DETALLADA DE CARTA Y SELLO ARCANO -->
+  <div id="screen-card-detail" class="overlay hidden" onclick="closeCardDetailModal(event)">
+    <div class="card-detail-modal" onclick="event.stopPropagation()">
+      <div class="card-detail-header">
+        <div class="card-detail-badge" id="card-detail-badge">🃏 CARTA DE LA BARAJA</div>
+        <button class="inspect-close-btn" onclick="closeCardDetailModal()">✕</button>
+      </div>
+
+      <div class="card-detail-body">
+        <!-- Visualización gráfica de la carta destacada -->
+        <div class="card-detail-preview-container">
+          <div class="card-face card-detail-card" id="card-detail-card-preview">
+            <span class="card-seal-icon" id="card-detail-seal-icon">✨</span>
+            <span class="card-value" id="card-detail-rank">A</span>
+            <span class="suit" id="card-detail-suit">♠</span>
+            <span class="card-label" id="card-detail-val">11</span>
+          </div>
+        </div>
+
+        <!-- Información táctica del Sello -->
+        <div class="card-detail-info">
+          <div class="card-detail-name" id="card-detail-name">AS DE PICAS</div>
+          <div class="card-detail-seal-badge" id="card-detail-seal-badge">🔥 SELLO ÍGNEO (RARO)</div>
+          
+          <div class="card-detail-desc-box">
+            <div class="cd-section-title">📜 EFECTO EN PARTIDA:</div>
+            <div class="cd-desc-text" id="card-detail-desc">Al jugarse en tu mano: Quema al rival e inflige daño residual.</div>
+          </div>
+
+          <div class="card-detail-synergy-box" id="card-detail-synergy-box">
+            <div class="cd-section-title">⚡ ELEMENTO Y SINERGIA:</div>
+            <div class="cd-synergy-text" id="card-detail-synergy">Fuego (1/2 para Explosión Ígnea)</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="card-detail-close-btn" onclick="closeCardDetailModal()">◀ ENTENDIDO</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="header-left">
+      <span id="ui-floor">PISO 1 / 13</span>
+      <span id="ui-gold" class="term" data-term="gold">💰 0</span>
+      <span id="ui-kills">💀 0/5</span>
+    </div>
+    <div class="header-right">
+      <button id="btn-header-codex" onclick="openCodex()" class="header-btn" title="Códice de Colección">📜 CÓDICE</button>
+      <button id="btn-header-pause" onclick="openInGamePauseMenu()" class="header-btn" title="Menú de Pausa y Ajustes">⚙️ AJUSTES</button>
+      <button id="btn-header-sound" onclick="toggleSound()" class="header-btn" title="Alternar Sonido">🔊</button>
+    </div>
+  </header>
+
+  <div id="stage">
+    <div id="damage-flash"></div>
+
+    <!-- BANNER DINÁMICO DE RESOLUCIÓN DE COMBATE -->
+    <div id="combat-banner" class="combat-banner hidden">
+      <div class="combat-banner-title" id="combat-banner-title">⚔️ ¡GOLPE DE JACK!</div>
+      <div class="combat-banner-detail" id="combat-banner-detail">Mano 20 vs 17 | 14 de daño infligido</div>
+    </div>
+
+    <!-- ESCENARIO DE COMBATE: cartas arriba (enfrentadas), personajes abajo al centro -->
+    <div class="battle-scene">
+      <!-- SPRINT 2: CONTADOR DE MANOS TRASLÚCIDO EN EL CENTRO SUPERIOR DE LA MESA -->
+      <div id="table-hand-pill" class="table-hand-pill" title="Mano actual de combate en la Torre">MANO 1/5</div>
+
+      <!-- FILA 1: manos -->
+      <div class="hands-row">
+        <div class="battle-player player-cards-col">
+          <div class="hand-label player">◆ TU MANO</div>
+          <div class="cards-hand" id="player-cards"></div>
+          <div class="hand-total" id="player-total">0</div>
+        </div>
+        <div class="battle-enemy enemy-hand-col">
+          <div class="hand-label enemy">◇ MANO RIVAL</div>
+          <div class="cards-hand" id="enemy-cards"></div>
+          <div class="hand-total" id="enemy-total">0</div>
+          <div class="enemy-card-info" id="enemy-info">■ Cartas ocultas</div>
+        </div>
+      </div>
+      <!-- FILA 2: combatientes cara a cara con simetría axial 50/50 -->
+      <div class="fighters-row">
+        <div class="fighter-clash-icon" id="fighter-clash-icon">⚔️</div>
+
+        <!-- COLUMNA HÉROE (JACK) -->
+        <div class="fighter-col player-fighter" onclick="openFighterInspect('player')" title="Toca o pasa el cursor para ver ficha de combate">
+          <div id="player-sprite" class="sprite">
+            <span id="player-sprite-icon"><img src="assets/svg/knight_idle.svg" class="sprite-img" alt="Héroe"></span>
+            <div id="player-streak-badge" class="player-streak-badge hidden">🔥 x1.5</div>
+            <div id="player-acc-slot" class="player-acc-slot" onclick="inspectActiveBlessing(event)" title="Medallón de Bendición del Destino (Toca para ver)"></div>
+          </div>
+          <div class="fighter-meta">
+            <span class="fighter-name" id="player-class-title">CABALLERO</span>
+            <div class="fighter-meters-panel">
+              <!-- BARRA DE VIDA -->
+              <div class="meter-group hp-group">
+                <div class="meter-header">
+                  <span class="meter-title"><img src="assets/svg/ui/icon_hp.svg" class="meter-icon" alt=""> VIDA</span>
+                  <span class="hp-text term" data-term="hp" id="player-hp-text">90/90</span>
+                </div>
+                <div class="bar-container hp-bar-container">
+                  <div id="player-hp-bar" class="bar-fill player-bar"></div>
+                  <div id="player-hp-ghost-bar" class="bar-ghost player-ghost"></div>
+                </div>
+              </div>
+              <!-- BARRA DE ESCUDO -->
+              <div class="meter-group shield-group" id="player-shield-wrapper" title="Escudo protector absorbente">
+                <div class="meter-header">
+                  <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
+                  <span class="shield-text" id="player-shield-text">0</span>
+                </div>
+                <div class="shield-bar-container">
+                  <div id="player-shield-bar" class="shield-bar-fill"></div>
+                </div>
+              </div>
+              <!-- BARRA DE EXP Y NIVEL -->
+              <div class="meter-group exp-group" title="Experiencia para subir de nivel">
+                <div class="meter-header">
+                  <span class="meter-title exp-title term" data-term="level">⭐ NVL <span id="ui-player-lvl">1</span></span>
+                  <span class="exp-text term" data-term="exp" id="ui-player-exp-text">0/60 EXP</span>
+                </div>
+                <div class="exp-bar-container">
+                  <div id="player-exp-bar" class="exp-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+            <div id="player-stats-mini" class="fighter-stat-pills" title="Poder y Defensa del Héroe">⚔️ 2  🛡️ 3</div>
+            <div class="fighter-inspect-hint">🔍 Toca para stats</div>
+            <div id="player-status-badges" class="status-badges"></div>
+          </div>
+        </div>
+
+        <!-- COLUMNA RIVAL -->
+        <div class="fighter-col enemy-fighter" onclick="openFighterInspect('enemy')" title="Toca o pasa el cursor para ver ficha de combate">
+          <div class="sprite enemy-avatar" id="enemy-sprite"><img src="assets/svg/enemy_goblin.svg" class="sprite-img" alt="Rival"></div>
+          <div class="fighter-meta">
+            <span class="fighter-name enemy-name" id="enemy-name-tag">RIVAL</span>
+            <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
+            <div class="fighter-meters-panel">
+              <!-- BARRA DE VIDA -->
+              <div class="meter-group hp-group">
+                <div class="meter-header">
+                  <span class="meter-title"><img src="assets/svg/ui/icon_hp.svg" class="meter-icon" alt=""> VIDA</span>
+                  <span class="hp-text" id="enemy-hp-text">0/0</span>
+                </div>
+                <div class="bar-container hp-bar-container">
+                  <div id="enemy-hp-bar" class="bar-fill enemy-bar"></div>
+                  <div id="enemy-hp-ghost-bar" class="bar-ghost enemy-ghost"></div>
+                </div>
+              </div>
+              <!-- BARRA DE ESCUDO DEL RIVAL -->
+              <div class="meter-group shield-group" id="enemy-shield-wrapper" title="Escudo protector del rival">
+                <div class="meter-header">
+                  <span class="meter-title shield-title">🛡️ ESCUDO</span>
+                  <span class="shield-text" id="enemy-shield-text">0</span>
+                </div>
+                <div class="shield-bar-container">
+                  <div id="enemy-shield-bar" class="shield-bar-fill"></div>
+                </div>
+              </div>
+            </div>
+            <div id="enemy-stats-mini" class="fighter-stat-pills" title="Poder y Defensa del Rival">⚔️ 1  🛡️ 0</div>
+            <div class="fighter-inspect-hint">🔍 Toca para stats</div>
+            <div id="enemy-status-badges" class="status-badges"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="log-container"><div class="log-entry info">¡Un rival bloquea el paso de la torre!</div></div>
+  </div>
+
+  <!-- MODAL DE CRÓNICA DE PISO (HISTORIA CON MÁQUINA DE ESCRIBIR Y REVISIÓN DEL HÉROE) -->
+  <div id="screen-chronicle" class="overlay hidden">
+    <div class="chronicle-card-modal">
+      <div class="chronicle-header">
+        <div class="chronicle-badge" id="chronicle-floor-badge">📜 CRÓNICA DEL ASCENSO • PISO 1</div>
+        <h2 id="chronicle-zone-title" class="chronicle-zone-title">LOS DELINCUENTES DE LA TORRE</h2>
+      </div>
+
+      <div class="chronicle-story-box" id="chronicle-story-box" onclick="skipTypewriter()" title="Toca para completar el texto de inmediato">
+        <div class="chronicle-story-scroll">
+          <div class="chronicle-story-text" id="chronicle-story-text">
+            <!-- Efecto máquina de escribir dinámico -->
+          </div>
+        </div>
+      </div>
+
+      <!-- FICHA TÁCTICA DEL HÉROE -->
+      <div class="chronicle-hero-dossier" id="chronicle-hero-dossier">
+        <!-- Renderizado dinámico: stats, salud, oro, artefactos equipados -->
+      </div>
+
+      <button id="btn-ascend-tower" class="chronicle-ascend-btn" onclick="startTowerAscent()">
+        <span class="btn-main-text" id="chronicle-btn-main">➔ ASCENDER AL PISO SIGUIENTE</span>
+        <span class="btn-sub-text" id="chronicle-btn-sub">Subir por las escaleras hacia el Piso 2</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MOTOR DE APERTURA DE SOBRES (ESTILO BALATRO / POKÉMON CON 3 ELECCIONES Y RAREZA ESCALADA) -->
+  <div id="screen-pack-open" class="overlay hidden pack-opening-overlay">
+    <div class="pack-modal-wrapper">
+      <!-- HEADER CON INFORMACIÓN Y BOTÓN DE PROBABILIDADES -->
+      <div class="pack-header-bar">
+        <div class="pack-badge-pill" id="pack-badge-pill">🎴 SOBRE DE ARTEFACTOS</div>
+        <div class="pack-header-actions">
+          <button class="pack-odds-btn" onclick="showPackOddsModal()">ℹ️ PROBABILIDADES</button>
+          <button class="pack-close-mini-btn" onclick="closePackOpeningModal()" title="Cerrar">✕</button>
+        </div>
+      </div>
+
+      <!-- ESCENARIO PRINCIPAL -->
+      <div class="pack-stage" id="pack-stage">
+        <!-- ESTADO 1: SOBRE SELLADO (FOIL PACK 3D) -->
+        <div class="pack-foil-container" id="pack-foil-container" onclick="ripBoosterPack()">
+          <div class="pack-foil-card" id="pack-foil-card">
+            <div class="pack-foil-shine"></div>
+            <div class="pack-foil-tear-line">
+              <span class="tear-arrow">✂️ RASGAR AQUÍ ✂️</span>
+            </div>
+            <div class="pack-foil-art" id="pack-foil-art">🎴</div>
+            <div class="pack-foil-title" id="pack-foil-title">SOBRE DE ARTEFACTOS</div>
+            <div class="pack-foil-subtitle" id="pack-foil-subtitle">CONTIENE 3 ARTEFACTOS • ELIGE 1</div>
+            <div class="pack-foil-prompt">¡TOCA PARA ABRIR!</div>
+          </div>
+        </div>
+
+        <!-- ESTADO 2: 3 CARTAS EXPUESTAS / VOLTEÁNDOSE -->
+        <div class="pack-cards-container hidden" id="pack-cards-container">
+          <div class="pack-instructions" id="pack-instructions">✨ Selecciona 1 de las 3 recompensas reveladas:</div>
+          <div class="pack-cards-row" id="pack-cards-row">
+            <!-- 3 cartas generadas con animación 3D Flip -->
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER: BOTÓN SALTAR CON REEMBOLSO PARCIAL -->
+      <div class="pack-footer-bar" id="pack-footer-bar">
+        <button class="pack-skip-btn" id="pack-skip-btn" onclick="skipBoosterPack()">
+          ⏭️ SALTAR ESTE SOBRE (RECUPERAR +<span id="pack-refund-amt">8</span> 🪙)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPRINT 3: CONFIRMACIÓN DE FORJA ARQUETÍPICA DE LOTE -->
+  <div id="screen-forge-result" class="overlay hidden" onclick="closeForgeResult()">
+    <div class="forge-result-card" onclick="event.stopPropagation()">
+      <div class="forge-result-anvil">🔨</div>
+      <div class="forge-result-title" id="forge-result-title">✨ ¡4 CARTAS ENCANTADAS EN TU MAZO!</div>
+      <div class="forge-result-desc" id="forge-result-desc"></div>
+      <button class="forge-result-btn" onclick="closeForgeResult()">CONTINUAR</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE PROBABILIDADES DE SOBRE (TRANSPARENCIA TOTAL) -->
+  <div id="modal-pack-odds" class="overlay hidden pack-odds-overlay" onclick="closePackOddsModal(event)">
+    <div class="pack-odds-card" onclick="event.stopPropagation()">
+      <div class="pack-odds-header">
+        <span class="pack-odds-icon">⚖️</span>
+        <h3>PROBABILIDADES DE BOTÍN</h3>
+      </div>
+      <p class="pack-odds-intro">
+        Las probabilidades de cartas y reliquias escalan según tu <b>Piso de la Torre</b> y el <b>Nivel de tu Héroe</b>. A mayor piso y nivel, mayor probabilidad de cartas Épicas y Legendarias.
+      </p>
+      <div class="pack-odds-table" id="pack-odds-content">
+        <!-- Renderizado dinámico -->
+      </div>
+      <div class="pack-pity-notice" id="pack-pity-notice">
+        🛡️ <b>Garantía (Pity):</b> Si no obtienes ninguna recompensa Épica o superior en 4 sobres, el 5.º garantiza al menos 1 carta Épica o Legendaria.
+      </div>
+      <button class="pack-odds-close-btn" onclick="closePackOddsModal()">CERRAR</button>
+    </div>
+  </div>
+
+  <!-- MODAL SECUNDARIO: DESTINO DE ENCANTAMIENTO ARCANO -->
+  <div id="screen-booster-pack" class="overlay hidden">
+    <div class="booster-modal-card">
+      <div class="booster-header">
+        <div class="booster-pack-badge">📦 FORJA DEL SELLO ARCANO</div>
+        <h2 class="booster-title">¡SELECCIONA LA CARTA!</h2>
+        <div class="booster-sub" id="booster-pack-sub">Elige cuál de tus cartas recibirá el encantamiento permanente:</div>
+      </div>
+
+      <!-- SELLO EXTRAÍDO -->
+      <div class="booster-seal-box" id="booster-seal-reveal">
+        <!-- Renderizado dinámico: icono, nombre, badge y descripción -->
+      </div>
+
+      <div class="booster-prompt">
+        🃏 Toca esta carta para forjarle el sello arcano permanentemente:
+      </div>
+
+      <!-- LAS 3 CARTAS CANDIDATAS -->
+      <div class="booster-cards-row" id="booster-cards-candidates">
+        <!-- 3 cartas generadas dinámicamente -->
+      </div>
+
+      <button class="booster-cancel-btn" onclick="closeBoosterPackModal()">
+        ◀ CANCELAR Y VOLVER A LA TIENDA
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL ASTRAL: ELECCIÓN DE BENDICIÓN INICIAL DEL DESTINO (PRE-PISO 1) -->
+  <div id="screen-starter-blessing" class="overlay hidden">
+    <div class="starter-blessing-box">
+      <div class="starter-blessing-badge">✨ CÁMARA DEL DESTINO • PISO 1</div>
+      <h2 class="starter-blessing-title">ELOGIO DE LA TORRE</h2>
+      <div class="starter-blessing-sub">
+        Los Arcanos Ancestrales te ofrecen su favor. Elige <b>1 Bendición</b> para incrustar en tu medallón durante esta ascensión:
+      </div>
+
+      <!-- 3 CARTAS DE BENDICIONES OFRECIDAS -->
+      <div class="starter-blessings-grid" id="starter-blessings-grid">
+        <!-- Generado dinámicamente según nivel de maestría -->
+      </div>
+
+      <div class="starter-blessing-mastery-hint" id="starter-blessing-mastery-hint">
+        ⭐ Maestría Permanente Nivel 1 activa. ¡Sube de nivel para desbloquear Bendiciones Raras, Épicas y Míticas!
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL TUTORIAL DE PRIMERA RUN ===== -->
+  <div id="screen-first-run-tutorial" class="overlay hidden frt-overlay">
+    <div class="frt-card">
+      <button class="frt-btn-skip" onclick="_closeTutorialAndContinue()">Saltar ▸</button>
+
+      <div class="frt-icon-wrap">
+        <div class="frt-icon">🃏</div>
+      </div>
+
+      <h2 class="frt-title">¿Qué es una Mano?</h2>
+      <div class="frt-body">
+        <!-- Contenido dinámico por JS -->
+      </div>
+
+      <div class="frt-hint-box">
+        <span class="frt-hint-icon">💡</span>
+        <span class="frt-hint">Tip del maestro</span>
+      </div>
+
+      <div class="frt-dots">
+        <!-- Generado dinámicamente -->
+      </div>
+
+      <button class="frt-btn-next" onclick="_nextTutorialStep()">SIGUIENTE (1/4) ▶</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE INICIO DE COMBATE MANUAL (VERSUS) -->
+  <div id="screen-combat-start" class="overlay hidden">
+    <div class="combat-start-box">
+      <div class="cs-badge" id="cs-floor-badge">🏰 PISO 1 / 13</div>
+      <h2 class="cs-title">¡ENCUENTRO DE COMBATE!</h2>
+      <div class="cs-sub" id="cs-sub-text">Un rival bloquea tu ascenso en la Torre. Prepárate para el duelo del 21.</div>
+
+      <div class="cs-versus-container">
+        <!-- LADO HEROE -->
+        <div class="cs-fighter-card player">
+          <div class="cs-avatar-slot" id="cs-player-avatar">🛡️</div>
+          <div class="cs-fighter-name" id="cs-player-name">CABALLERO</div>
+          <div class="cs-fighter-stats" id="cs-player-stats">❤️ 90 HP &nbsp;|&nbsp; ⚔️ 2 PWR &nbsp;|&nbsp; 🛡️ 3 DEF</div>
+          <div class="cs-fighter-sub" id="cs-player-sub">Escudo Inicial: 6</div>
+        </div>
+
+        <div class="cs-vs-divider">
+          <span>⚔️</span>
+          <b>VS</b>
+        </div>
+
+        <!-- LADO RIVAL -->
+        <div class="cs-fighter-card enemy">
+          <div class="cs-avatar-slot" id="cs-enemy-avatar">👺</div>
+          <div class="cs-fighter-name" id="cs-enemy-name">DUENDE PILLUELO</div>
+          <div class="cs-fighter-stats" id="cs-enemy-stats">❤️ 32 HP &nbsp;|&nbsp; ⚔️ 1 PWR &nbsp;|&nbsp; 🛡️ 0 DEF</div>
+          <div class="cs-fighter-sub trait" id="cs-enemy-trait">Rasgo: Pillaje</div>
+        </div>
+      </div>
+
+      <div class="cs-rules-reminder">
+        🃏 <b>Duelo de Blackjack:</b> 7 manos • ¡Reduce la vida del rival a 0!
+      </div>
+
+      <button id="btn-start-combat-confirm" class="cs-start-btn" onclick="confirmStartCombat()">
+        ⚔️ ¡INICIAR COMBATE!
+      </button>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE APUESTA DE VIDA -->
+  <div id="screen-bet" class="overlay hidden">
+    <div class="floor-transition-inner">
+      <div class="floor-icon">⚔️</div>
+      <h2>APUESTA DE PODER</h2>
+      <p id="bet-desc"></p>
+      <div class="config-group">
+        <div class="bet-cards-row">
+          <div class="card" onclick="placeBet(1)" style="border-color:#45a29e;">
+            <div class="bet-val">1 HP</div>
+            <div class="bet-sub">prudente</div>
+          </div>
+          <div class="card" onclick="placeBet(5)" style="border-color:#e63946;">
+            <div class="bet-val">5 HP</div>
+            <div class="bet-sub">arriesgado</div>
+          </div>
+          <div class="card" onclick="placeBet(10)" style="border-color:#f4a261;">
+            <div class="bet-val">10 HP</div>
+            <div class="bet-sub">medio</div>
+          </div>
+          <div class="card" onclick="placeBet(15)" style="border-color:#a8dadc;">
+            <div class="bet-val">15 HP</div>
+            <div class="bet-sub">valiente</div>
+          </div>
+          <div class="card" onclick="placeBet(25)" style="border-color:#ff6b6b;">
+            <div class="bet-val">25 HP</div>
+            <div class="bet-sub">suicida</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE RUEDA DE DESTINO CON ESTÉTICA DARK FANTASY Y CUENTA REGRESIVA -->
+  <div id="screen-fate-wheel" class="overlay hidden">
+    <div class="floor-transition-inner wheel-theatre-inner" style="max-width:350px;">
+      <div style="font-family:var(--font-pixel);font-size: 9px;color:#48cae4;letter-spacing:1px;margin-bottom:2px;">✦ UMBRAL DE LA MUERTE ✦</div>
+      <h2 style="font-size:13px;color:#ffd166;margin-bottom:6px;text-shadow:0 0 10px rgba(255,209,102,0.6);">RUEDA DEL DESTINO</h2>
+      <p id="wheel-desc" style="font-size: 9px;color:#c5c6c7;margin-bottom:8px;line-height:1.4;"></p>
+
+      <!-- Escenario teatral Paper Mario: Rueda + Rayo celestial/aniquilador + Figura suplicante / Tumba -->
+      <div class="wheel-stage-wrapper">
+        <div id="wheel-beam" class="wheel-light-beam hidden"></div>
+        <div id="wheel-container" style="width:220px;height:220px;margin:0 auto;position:relative;cursor:pointer;">
+          <!-- Rueda dibujada con canvas -->
+          <canvas id="wheel-canvas" width="220" height="220" style="width:220px;height:220px;border-radius:50%;box-shadow:0 0 25px rgba(255,209,102,0.4);border:2px solid #ffd166;"></canvas>
+        </div>
+        <!-- Figura bajo la rueda: enemigo/héroe arrodillado o lápida fúnebre al morir -->
+        <div id="wheel-actors-altar" class="wheel-altar">
+          <img id="wheel-actor-kneeling" class="wheel-actor-sprite" src="assets/svg/wheel_kneeling.svg" alt="Súplica al Destino" />
+          <img id="wheel-actor-tomb" class="wheel-actor-sprite hidden" src="assets/svg/wheel_tomb.svg" alt="Lápida Sepulcral" />
+        </div>
+      </div>
+
+      <!-- CONTADOR EN RETROCESO (DESDE 6 HASTA 0 EN SEGUNDAS SALVACIONES) -->
+      <div id="wheel-countdown-container" class="wheel-countdown-box hidden">
+        <span style="font-size: 9px;color:#cbd5e1;">TIEMPO PARA DECIDIR TU SALVACIÓN:</span>
+        <span id="wheel-countdown-val" class="wheel-timer-val">6</span>
+      </div>
+
+      <div id="wheel-action-wrapper" style="margin-top:8px;">
+        <button onclick="spinFateWheel()" id="btn-spin-wheel" style="border-color:#ffd166;color:#ffd166;padding:10px 20px;font-size: 9px;margin-bottom:6px;font-weight:bold;width:100%;box-shadow:0 0 12px rgba(255,209,102,0.3);">🎲 GIRAR LA RUEDA</button>
+      </div>
+      <p id="wheel-result" style="font-size:9.5px;color:#66fcf1;font-weight:bold;min-height:16px;margin-top:4px;"></p>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE TRANSICIÓN DE PISO -->
+  <div id="screen-floor-transition" class="hidden">
+    <div class="floor-transition-inner">
+      <div class="floor-icon" id="ft-icon">🏰</div>
+      <h2 id="ft-title">SUBIENDO A LA TORRE</h2>
+      <p class="floor-sub" id="ft-sub">Piso 2</p>
+      <div class="ascent-stairs-container">
+        <div class="ascent-stair s1"></div>
+        <div class="ascent-stair s2"></div>
+        <div class="ascent-stair s3"></div>
+      </div>
+      <p class="ascent-flavor-text" id="ft-flavor" style="font-size:10px;color:#66fcf1;margin-top:12px;">Ascendiendo por los peldaños de piedra...</p>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div class="equipment-row">
+      <div class="eq-pill" id="ui-artifacts-pill" onclick="explainEquipmentPill('artifacts')" title="Ranuras de Artefactos (Toca para info)">🎴 <b id="ui-artifacts-count">0/1</b></div>
+      <div class="eq-pill" id="ui-gem-pill" onclick="explainEquipmentPill('blessing')" title="Bendición del Destino (Toca para info)">💎 <b id="ui-gem">NINGUNA</b></div>
+      <div class="eq-pill" id="ui-acc-pill" onclick="explainEquipmentPill('accessory')" title="Accesorio equipado (Toca para info)">💍 <b id="ui-acc">NINGUNO</b></div>
+      <div class="eq-pill" id="ui-dupla-pill" onclick="explainEquipmentPill('dupla')" title="Dupla activa en mano (Toca para info)">⚡ <b id="ui-dupla">NO</b></div>
+      <div class="eq-pill highlight" id="ui-synergies-pill" onclick="explainEquipmentPill('synergies')" title="Sinergias elementales activas (Toca para ver)">🔮 <b id="ui-synergies-count">0</b></div>
+      <div class="eq-pill" id="ui-perks-pill" onclick="openPerksCodexModal()" title="Perks Tácticos (Toca para ver los 15 combos)">💡 <b>PERKS</b></div>
+    </div>
+    <!-- BANNER DISCRETO DE SINERGIAS ACTIVAS -->
+    <div id="active-synergies-shelf" class="active-synergies-shelf hidden"></div>
+
+    <div class="action-grid" id="action-grid">
+      <button id="btn-hit" onclick="playerAction('hit')" title="Pide una carta más de la baraja para acercarte a 21. Cuidado con pasarte (Bust)."><img src="assets/svg/ui/icon_card_draw.svg" class="btn-icon" alt=""> PEDIR CARTA</button>
+      <button id="btn-stand" onclick="playerAction('stand')" title="Conserva tu puntuación actual y resuelve el enfrentamiento contra el rival."><img src="assets/svg/ui/icon_stand.svg" class="btn-icon" alt=""> PLANTARSE</button>
+      <button id="btn-reroll" onclick="playerAction('reroll')" title="Descarta tu mano actual y roba 2 naipes nuevos (consume 1 Reroll)." disabled><img src="assets/svg/ui/icon_reroll.svg" class="btn-icon" alt=""> REROLL (0)</button>
+      <button id="btn-potion" onclick="playerAction('potion')" title="Consume una poción curativa para restaurar vida inmediatamente."><img src="assets/svg/ui/icon_potion.svg" class="btn-icon" alt=""> POCIÓN (<span id="ui-potions">2</span>)</button>
+    </div>
+    <div id="next-round-container" class="next-round-container hidden">
+      <button id="btn-next-round" class="btn-next-round" onclick="advanceToNextRound()">▶ SIGUIENTE RONDA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ELEGANTE DE INSPECCIÓN DE BENDICIÓN / MEDALLÓN ===== -->
+<div id="modal-blessing-detail" class="hidden" onclick="closeBlessingDetailModal()">
+  <div class="blessing-modal-card" onclick="event.stopPropagation()">
+    <div class="blessing-modal-icon" id="bmodal-icon">🔮</div>
+    <div class="blessing-modal-title" id="bmodal-title">BENDICIÓN DEL DESTINO</div>
+    <div class="blessing-modal-tag" id="bmodal-tag">TIER I • PASIVA PERMANENTE</div>
+    <div class="blessing-modal-desc" id="bmodal-desc">Detalles del poder arcano incrustado en el medallón.</div>
+    <button class="blessing-modal-close-btn" onclick="closeBlessingDetailModal()">ENTENDIDO</button>
+  </div>
+</div>
+
+<!-- ===== MODAL DE LA FOGATA ANCESTRAL (REFUGIO Y DESCANSO) ===== -->
+<div id="screen-campfire-modal" class="overlay hidden campfire-overlay">
+  <div class="campfire-scene-card">
+    <div class="campfire-night-sky">
+      <div class="campfire-stars"></div>
+      <div class="campfire-moon">🌙</div>
+    </div>
+    <div class="campfire-flame-wrapper">
+      <div class="campfire-sparks"></div>
+      <div class="campfire-flame">🔥</div>
+      <div class="campfire-wood">🪵🪵🪵</div>
+      <div class="campfire-glow"></div>
+    </div>
+    <div class="campfire-hero-warm" id="campfire-hero-warm">
+      <img src="assets/svg/knight_idle.svg" id="campfire-hero-img" class="campfire-hero-img" alt="Héroe descansando">
+      <div class="campfire-warm-halo"></div>
+    </div>
+    <div class="campfire-title">LA HOGUERA ANCESTRAL</div>
+    <div class="campfire-desc" id="campfire-desc-text">
+      El calor de las brasas reconforta tu espíritu. Elige cómo deseas prepararte para el siguiente piso:
+    </div>
+    <div class="campfire-actions-row" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;width:100%;box-sizing:border-box;">
+      <button class="campfire-continue-btn" onclick="finishCampfireRest('heal')" style="background:linear-gradient(135deg,#e63946,#d90429);margin-top:0;">
+        🔥 DESCANSAR (+30% SALUD MÁXIMA)
+      </button>
+      <button class="campfire-continue-btn" onclick="finishCampfireRest('cleanse')" style="background:linear-gradient(135deg,#0284c7,#0369a1);margin-top:0;border-color:#38bdf8;">
+        ✨ MEDITAR Y PURGAR (+15 HP, +10 ESCUDO Y LIMPIEZA)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL FORJA DE MAESTRÍA (ELIGE 1 DE 3 CARTAS CON SELLO / 3 NAIPES) ===== -->
+<div id="screen-mastery-forge-modal" class="overlay hidden mastery-forge-overlay" onclick="closeMasteryForgeModal()">
+  <div class="mastery-forge-card" onclick="event.stopPropagation()" style="position:relative;">
+    <button class="inspect-close-btn" style="position:absolute;top:8px;right:8px;" onclick="closeMasteryForgeModal()">✕</button>
+    <div class="mastery-forge-crown" id="mf-crown">👑 RECOMPENSA DE MAESTRÍA ANCESTRAL</div>
+    <div class="mastery-forge-title" id="mf-title">FORJA DE NAIPE PERMANENTE</div>
+    <div class="mastery-forge-sub" id="mf-desc">
+      Tu héroe ha alcanzado un nuevo dominio de la Torre. Elige <b>1 de 3 cartas</b> para sellarla para siempre en tu baraja histórica:
+    </div>
+    <div class="mastery-forge-candidates" id="mf-candidates-grid">
+      <!-- Cartas generadas dinámicamente -->
+    </div>
+    <div id="mf-action-container" style="display:none;margin-top:10px;text-align:center;">
+      <button id="mf-confirm-cards-btn" class="forge-btn" onclick="confirmVictoryCardsSelection()" style="width:100%;padding:10px;font-family:var(--font-display);font-size:12px;cursor:pointer;background:#2a9d8f;color:#fff;border:2px solid #17110c;border-radius:8px;font-weight:bold;box-shadow:0 3px 0 #17110c;" disabled>
+        ELIGE 3 NAIPES (0/3)
+      </button>
+    </div>
+    <div class="mastery-forge-hint" id="mf-hint">✨ Este naipe conservará su Sello Arcano en todas tus futuras runs y en la Arena.</div>
+  </div>
+</div>
+
+<!-- ===== MODAL RECOMPENSA GUARDADA TRAS VENCER LA TORRE ===== -->
+<div id="screen-victory-reward-saved-modal" class="overlay hidden mastery-forge-overlay" onclick="closeVictoryRewardSavedModal()">
+  <div class="mastery-forge-card" style="max-width:440px;position:relative;" onclick="event.stopPropagation()">
+    <button class="inspect-close-btn" style="position:absolute;top:8px;right:8px;" onclick="closeVictoryRewardSavedModal()">✕</button>
+    <div class="mastery-forge-crown">👑 CONQUISTA DE LA TORRE REGISTRADA</div>
+    <div class="mastery-forge-title" style="color:#66fcf1;">RECOMPENSA GUARDADA</div>
+    <div class="mastery-forge-sub" id="vrs-desc" style="margin-top:6px;line-height:1.4;">
+      Tus naipes y bendiciones de forja se han grabado permanentemente en tu baraja histórica.
+    </div>
+    <div id="vrs-summary-content" style="margin:12px 0;text-align:left;">
+      <!-- Inyectado dinámicamente: sello forjado + 3 cartas añadidas + tamaño de baraja -->
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+      <button class="forge-btn" onclick="startNewAscensionRun()" style="width:100%;padding:10px;font-family:var(--font-display);font-size:11px;background:#2a9d8f;color:#fff;border:2px solid #17110c;border-radius:8px;font-weight:bold;cursor:pointer;">
+        ⚔️ NUEVA ASCENSIÓN
+      </button>
+      <button class="forge-btn" onclick="returnToMainMenuClean()" style="width:100%;padding:10px;font-family:var(--font-display);font-size:11px;background:#334155;color:#e2e8f0;border:2px solid #17110c;border-radius:8px;font-weight:bold;cursor:pointer;">
+        🏠 MENÚ PRINCIPAL
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ARENA MULTIJUGADOR (DUELOS AL MEJOR DE 3) ===== -->
+<div id="screen-arena-pvp-modal" class="overlay hidden arena-pvp-overlay">
+  <div class="arena-pvp-card">
+    <div class="arena-top-bar">
+      <div class="arena-trophies-badge">
+        <span>🏆</span> <b id="arena-trophies-val">1,250</b> <span style="font-size: 9px;opacity:0.7;">TROFEOS</span>
+      </div>
+      <div class="arena-skulls-badge">
+        <span>💀</span> <b id="arena-skulls-val">0</b> <span style="font-size: 9px;opacity:0.7;">MONEDAS CRIPTA</span>
+      </div>
+      <button class="arena-close-btn" onclick="closeArenaPvpModal()">✕</button>
+    </div>
+
+    <div class="arena-rank-banner">
+      <span class="arb-tag">RANGO DE LA TORRE</span>
+      <div class="arb-rank-name" id="arena-rank-title">GLADIADOR DE PICAS</div>
+    </div>
+
+    <!-- PESTAÑAS DE NAVEGACIÓN DE LA ARENA -->
+    <div class="arena-tabs-nav">
+      <button class="arena-tab-btn active" id="btn-arena-battles" onclick="switchArenaTab('battles')">⚔️ DUELOS</button>
+      <button class="arena-tab-btn" id="btn-arena-market" onclick="switchArenaTab('market')">🃏 MERCADO MAZO</button>
+      <button class="arena-tab-btn" id="btn-arena-ranking" onclick="switchArenaTab('ranking')">🏆 RANKING</button>
+    </div>
+
+    <!-- VISTA 1: DUELOS (LOBBY Y COMBATE BO3) -->
+    <div id="arena-view-battles" class="arena-view-pane active">
+      <!-- PANTALLA 1: LOBBY DE COMBATE -->
+      <div id="arena-stage-lobby" class="arena-stage">
+        <div class="arena-match-preview">
+          <div class="arena-fighter player">
+            <div class="af-avatar" id="arena-player-avatar">🛡️</div>
+            <div class="af-name" id="arena-player-name">TÚ (HERALDO)</div>
+            <div class="af-status">Listo</div>
+          </div>
+          <div class="arena-vs">VS</div>
+          <div class="arena-fighter rival">
+            <div class="af-avatar" id="arena-rival-avatar">👺</div>
+            <div class="af-name" id="arena-rival-name">DANTE DE PICAS</div>
+            <div class="af-status" style="color:#ffd166;">Nvl 8 • ELO 1280</div>
+          </div>
+        </div>
+        <div class="arena-rules-card">
+          <div>🪙 <b>1. Moneda al Aire:</b> Sortea el primer turno de juego.</div>
+          <div>🙈 <b>2. Apuesta Ciega:</b> Ninguno ve la apuesta del otro hasta revelarse.</div>
+          <div>🏆 <b>3. Al Mejor de 3:</b> El primer duelista con 2 victorias se lleva el botín.</div>
+        </div>
+        <button class="arena-start-btn" onclick="startArenaMatch()">⚔️ BUSCAR RIVAL Y LANZAR MONEDA</button>
+      </div>
+
+      <!-- PANTALLA 2: COMBATE ARENA BO3 ACTIVO -->
+      <div id="arena-stage-battle" class="arena-stage hidden">
+        <!-- OVERLAY MONEDA AL AIRE -->
+        <div id="arena-coin-box" class="arena-coin-box hidden" onclick="skipArenaCoinFlip()" title="Toca para ingresar de inmediato">
+          <div class="arena-coin spinning" id="arena-coin-icon">🪙</div>
+          <div class="arena-coin-text" id="arena-coin-status">¡LANZANDO MONEDA AL AIRE!</div>
+          <div class="arena-coin-sub" id="arena-coin-result-sub" style="font-size:9px;color:#cbd5e1;margin-top:4px;">Sorteando quién tiene el primer turno... (Toca para continuar)</div>
+        </div>
+        
+        <!-- ZONA DEL RIVAL -->
+        <div class="arena-combat-zone enemy-zone">
+          <div class="combat-actor-box">
+            <div id="arena-combat-enemy-avatar" class="actor-avatar">💀</div>
+            <div id="arena-combat-enemy-name" class="actor-name">RIVAL</div>
+            <div class="actor-hp">HP: <span id="arena-score-rival-hp">0</span></div>
+          </div>
+          <div class="arena-hand-block">
+            <div class="ah-title">PUNTOS: <span id="arena-rival-sum">?</span></div>
+            <div class="ah-cards" id="arena-rival-cards"></div>
+          </div>
+        </div>
+
+        <!-- SCOREBOARD (MARCADOR DE VICTORIAS) -->
+        <div class="arena-scoreboard">
+          <div class="as-score" id="arena-score-player">TÚ: 0</div>
+          <div class="as-round-pill" id="arena-round-pill">RONDA 1 / 3</div>
+          <div class="as-score" id="arena-score-rival">RIVAL: 0</div>
+        </div>
+
+        <!-- ZONA DEL JUGADOR -->
+        <div class="arena-combat-zone player-zone">
+          <div class="arena-hand-block">
+            <div class="ah-title">TUS PUNTOS: <span id="arena-player-sum">0</span></div>
+            <div class="ah-cards" id="arena-player-cards"></div>
+          </div>
+          <div class="combat-actor-box">
+            <div id="arena-combat-player-avatar" class="actor-avatar">🛡️</div>
+            <div id="arena-combat-player-name" class="actor-name">TÚ</div>
+            <div class="actor-hp">HP: <span id="arena-score-player-hp">0</span></div>
+          </div>
+        </div>
+
+        <div class="arena-actions-grid" id="arena-actions">
+          <button class="arena-act-btn hit" onclick="arenaPlayerHit()">🂠 PEDIR CARTA</button>
+          <button class="arena-act-btn stand" onclick="arenaPlayerStand()">✋ PLANTARSE</button>
+        </div>
+        <div class="arena-skills-grid" id="arena-skills">
+          <button class="arena-act-btn skill hidden" id="btn-arena-spy" onclick="arenaPlayerSpy()">👁️ ESPIAR</button>
+          <button class="arena-act-btn skill hidden" id="btn-arena-swap" onclick="arenaPlayerSwap()">🔄 CAMBIAR</button>
+          <button class="arena-act-btn skill hidden" id="btn-arena-steal" onclick="arenaPlayerSteal()">🥷 ROBO</button>
+        </div>
+        <div id="arena-round-result" class="arena-round-result hidden">
+          <div class="arr-title" id="arr-title">¡GANASTE LA RONDA!</div>
+          <button id="btn-arena-next-round" class="arena-next-round-btn" onclick="arenaNextRound()">SIGUIENTE RONDA ➔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA 2: MERCADO DE CRIPTA (MEJORA DE MAZO DE LA ARENA) -->
+    <div id="arena-view-market" class="arena-view-pane hidden">
+      <div class="arena-sub-banner" style="background:rgba(230,57,70,0.12);border:1px solid rgba(230,57,70,0.3);border-radius:8px;padding:8px;margin-bottom:10px;text-align:center;">
+        <div style="font-family:var(--font-pixel);font-size: 9px;color:#ff758f;">💀 MERCADO DE CRIPTA: FORJA DE ARENA</div>
+        <div style="font-size: 9px;color:#cbd5e1;margin-top:2px;">Adquiere cartas benditas permanentes para tus duelos PvP con Monedas de Cripta.</div>
+      </div>
+      <div class="arena-market-list" id="arena-market-list"></div>
+    </div>
+
+    <!-- VISTA 3: RANKING DE LIGAS -->
+    <div id="arena-view-ranking" class="arena-view-pane hidden">
+      <div class="arena-sub-banner" style="background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.3);border-radius:8px;padding:8px;margin-bottom:10px;text-align:center;">
+        <div style="font-family:var(--font-pixel);font-size: 9px;color:#ffd166;">🏆 ESCALAFÓN DE LIGAS (TEMPORADA 1)</div>
+        <div style="font-size: 9px;color:#cbd5e1;margin-top:2px;">Gana duelos para ascender desde Bronce hasta la Cúspide de la Torre.</div>
+      </div>
+      <div class="arena-ranking-list" id="arena-ranking-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL DETALLE DE CÓDICE / BESTIARIO / VESTUARIO ===== -->
+<div id="screen-codex-detail-modal" class="overlay hidden codex-detail-overlay" onclick="closeCodexDetailModal()">
+  <div class="codex-detail-card" onclick="event.stopPropagation()">
+    <div class="cdd-top-type" id="cdd-type">BESTIARIO DE LA TORRE</div>
+    <div class="cdd-icon-box" id="cdd-icon">👹</div>
+    <div class="cdd-name" id="cdd-name">ORCO DE AZUFRE</div>
+    <div class="cdd-meta-badge" id="cdd-meta">PISO 4 • AGRESIVO</div>
+    <div class="cdd-lore-text" id="cdd-lore">Descripción e historia de la criatura o reliquia...</div>
+    <div class="cdd-stats-grid" id="cdd-stats">
+      <!-- Inyectado dinámicamente -->
+    </div>
+    <div class="cdd-weakness-tip" id="cdd-tip">💡 Consejo de combate</div>
+    <button class="cdd-close-btn" onclick="closeCodexDetailModal()">CERRAR FICHA</button>
+  </div>
+</div>
+
+<!-- ===== MODAL SELECTOR DE TRAJES / ASPECTOS (SKINS) ===== -->
+<div id="screen-hero-skin-modal" class="overlay hidden skin-modal-overlay" onclick="closeHeroSkinModal()">
+  <div class="skin-modal-card" onclick="event.stopPropagation()">
+    <div class="smc-header">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="smc-crown">👑</span>
+        <h2 class="smc-title" id="smc-hero-title">ASPECTOS DE HÉROE</h2>
+      </div>
+      <button class="inspect-close-btn" onclick="closeHeroSkinModal()">✕</button>
+    </div>
+    <div class="smc-desc" id="smc-hero-desc" style="font-size: 9px;color:#cbd5e1;margin-bottom:10px;text-align:left;">
+      Elige la vestidura sagrada de tu Jack. Se desbloquean al completar la Torre o con tributos de Cripta 💀.
+    </div>
+    <div class="skin-selector-grid" id="skin-selector-grid">
+      <!-- Skins inyectadas dinámicamente -->
+    </div>
+    <button class="smc-close-btn" onclick="closeHeroSkinModal()">CONFIRMAR ASPECTO</button>
+  </div>
+</div>
+
+<!-- ===== PANTALLA DE POLÍTICA DE PRIVACIDAD (REQUERIDA PARA TIENDAS DE APLICACIONES) ===== -->
+<div id="screen-privacy" class="overlay hidden">
+  <div class="tutorial-card" style="max-width:520px;">
+    <div class="tutorial-header">
+      <h2>🔒 POLÍTICA DE PRIVACIDAD Y DATOS</h2>
+      <button class="inspect-close-btn" onclick="closePrivacyPolicy()">✕</button>
+    </div>
+    <div class="tutorial-content" style="max-height:64vh;overflow-y:auto;text-align:left;padding:14px 6px;">
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>1. Datos que recopilamos.</b><br>
+        Black Jack: La Torre del 21 no solicita cuenta, correo, nombre ni ningún dato personal identificable.
+        No pedimos permisos de contactos, cámara, micrófono, ubicación ni archivos.
+      </p>
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>2. Dónde se guarda tu progreso.</b><br>
+        Tu progreso (partidas, niveles permanentes, configuración y estadísticas) se guarda únicamente en el
+        almacenamiento local de tu dispositivo. No se envía a nuestros servidores porque no los utilizamos.
+      </p>
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>3. Publicidad y compras.</b><br>
+        El juego no muestra anuncios de terceros ni perfila a sus jugadores.
+        Las <b>compras dentro de la app</b> (Tesoro Real) se procesan
+        <b>exclusivamente a través de Google Play</b>: no vemos ni almacenamos los
+        datos de tu tarjeta ni de tu cuenta de Google, y los precios, impuestos y
+        reembolsos los gestiona Google según su política. El contenido comprado se
+        guarda en el almacenamiento local de tu dispositivo.
+      </p>
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>4. Servicios de terceros.</b><br>
+        No se usan herramientas de analíticas, seguimiento, perfiles publicitarios ni
+        SDK de Firebase activos. El único SDK de terceros integrado es
+        <b>Google Play Billing</b>, necesario para procesar los pagos descritos en el
+        punto 3. No se comparte ninguna información con anunciantes ni redes sociales.
+      </p>
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>5. Cómo borrar tus datos.</b><br>
+        Puedes eliminar todo el progreso desde <b>Ajustes → Reiniciar progreso permanente</b>, o desinstalando
+        la aplicación desde los ajustes de tu dispositivo.
+      </p>
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>6. Menores de edad.</b><br>
+        El juego no recopila información de menores. Las compras dentro de la app
+        están sujetas a los controles parentales configurados en la cuenta de Google
+        y en Google Play.
+      </p>
+      <p style="font-size: 9px;color:#e2e8f0;line-height:1.6;">
+        <b>7. Contacto y derechos.</b><br>
+        Para cualquier pregunta, solicitud o ejercicio de derechos sobre tus datos,
+        escríbenos a: <b>itsotocadiz@gmail.com</b>. Respondemos a todas las
+        solicitudes.
+      </p>
+      <p style="font-size: 9px;color:#94a3b8;line-height:1.6;margin-top:14px;">
+        Última actualización: 7 de octubre de 2026. Cualquier cambio se publicará en esta misma pantalla.
+      </p>
+    </div>
+    <button class="fork-action-btn" style="width:100%;margin-top:10px;" onclick="closePrivacyPolicy()">ENTENDIDO</button>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+<!-- ===== ANUNCIO RECOMPENSADO MODAL ===== -->
+<div id="screen-rewarded-ad" class="overlay hidden" style="z-index:10000;align-items:center;justify-content:center;display:flex;background:rgba(0,0,0,0.92);">
+  <div style="background:linear-gradient(160deg,#1a1f2e,#0d1117);border:1.5px solid rgba(255,209,102,0.45);border-radius:16px;padding:24px 20px 20px;max-width:320px;width:90vw;text-align:center;">
+    <div class="rad-icon" style="font-size:40px;margin-bottom:8px;">X</div>
+    <div class="rad-label" style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:#ffd166;margin-bottom:6px;">RECOMPENSA</div>
+    <div class="rad-desc" style="font-size:10px;color:#c5c6c7;margin-bottom:16px;">Ver anuncio para obtener tu recompensa</div>
+    <button class="rad-btn-watch frt-btn-next" style="margin-bottom:8px;">VER ANUNCIO (GRATIS)</button>
+    <button class="rad-btn-skip" style="width:100%;padding:8px;background:transparent;border:1px solid rgba(197,198,199,0.25);color:#64748b;border-radius:8px;cursor:pointer;font-family:inherit;font-size:9px;">Ahora no</button>
+  </div>
+</div>
+<!-- ===== IAP MODAL =====
+     ELIMINADO: antes mostraba un botón "COMPRAR AHORA" que otorgaba
+     el artículo sin pasar por Google Play Billing (violación de la
+     política de pagos de Play). Se recreará al integrar Billing real.
+-->
+
+
+
+<script src="js/improvements.js"></script>
+
+<!-- ===== MODAL SALÓN DE LOGROS Y DESAFÍOS (FASE 5) ===== -->
+<div id="screen-achievements-modal" class="overlay hidden achievements-overlay">
+  <div class="achievements-card">
+    <div class="achievements-top-bar">
+      <div class="achievements-title-badge">
+        <span>🏆</span> <b>SALÓN DE LOGROS</b>
+      </div>
+      <button class="achievements-close-btn" onclick="closeAchievementsModal()">✕</button>
+    </div>
+
+    <!-- BARRA DE PROGRESO GLOBAL -->
+    <div class="ach-global-progress-box">
+      <div class="ach-progress-labels">
+        <span>PROGRESO DE ASCENSIÓN</span>
+        <b id="ach-progress-percent">0%</b>
+      </div>
+      <div class="ach-progress-track">
+        <div class="ach-progress-fill" id="ach-progress-fill" style="width: 0%;"></div>
+      </div>
+      <div class="ach-progress-count" id="ach-progress-count">0 / 25 Desafíos Completados</div>
+    </div>
+
+    <!-- FILTROS POR FAMILIA -->
+    <div class="ach-filters-nav" id="ach-filters-nav">
+      <button class="ach-filter-btn active" data-family="all" onclick="filterAchievementsFamily('all')">TODOS</button>
+      <button class="ach-filter-btn" data-family="tower" onclick="filterAchievementsFamily('tower')">🏰 TORRE</button>
+      <button class="ach-filter-btn" data-family="combat" onclick="filterAchievementsFamily('combat')">⚔️ COMBATE</button>
+      <button class="ach-filter-btn" data-family="economy" onclick="filterAchievementsFamily('economy')">🪙 ECONOMÍA</button>
+      <button class="ach-filter-btn" data-family="collection" onclick="filterAchievementsFamily('collection')">🃏 COLECCIÓN</button>
+      <button class="ach-filter-btn" data-family="arena" onclick="filterAchievementsFamily('arena')">🏆 ARENA</button>
+    </div>
+
+    <!-- LISTA DE LOGROS -->
+    <div class="achievements-list" id="achievements-list"></div>
+  </div>
+</div>
+
+</body>
+</html>
+

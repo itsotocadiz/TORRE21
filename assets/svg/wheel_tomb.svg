@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <!-- Suelo de montículo fúnebre -->
+  <ellipse cx="80" cy="146" rx="60" ry="12" fill="#17110c" opacity="0.3"/>
+  <!-- Sombra de papel proyectada -->
+  <g transform="translate(6,8)" opacity="0.32" fill="#17110c">
+    <path d="M50 144 L50 62 C50 38 110 38 110 62 L110 144 Z"/>
+  </g>
+  <!-- Lápida de piedra estilo Paper Mario -->
+  <g stroke="#17110c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Montículo de tierra recortado -->
+    <ellipse cx="80" cy="142" rx="52" ry="12" fill="#292524"/>
+    <!-- Lápida pétrea con arco superior -->
+    <path d="M50 140 L50 62 C50 36 110 36 110 62 L110 140 Z" fill="#64748b"/>
+    <!-- Textura y grieta en la piedra -->
+    <path d="M60 48 L70 65 L66 82 L76 95" fill="none" stroke="#334155" stroke-width="3.5"/>
+    <!-- Cruz tallada en la lápida -->
+    <path d="M80 60 L80 100 M68 74 L92 74" fill="none" stroke="#17110c" stroke-width="6"/>
+    <!-- Epitafio RIP grabado en piedra -->
+    <text x="80" y="122" text-anchor="middle" font-family="'Nunito', 'Fredoka', sans-serif" font-size="14" font-weight="900" fill="#17110c" stroke="none">R.I.P.</text>
+    <!-- Vela izquierda con llama parpadeante -->
+    <rect x="36" y="126" width="8" height="18" rx="2" fill="#fef08a"/>
+    <ellipse cx="40" cy="120" rx="4" ry="7" fill="#f97316" stroke="#17110c" stroke-width="2"/>
+    <!-- Vela derecha con llama -->
+    <rect x="116" y="128" width="8" height="16" rx="2" fill="#fef08a"/>
+    <ellipse cx="120" cy="122" rx="4" ry="7" fill="#f97316" stroke="#17110c" stroke-width="2"/>
+  </g>
+</svg>
