@@ -1876,4 +1876,9 @@
     document.addEventListener("DOMContentLoaded", function () { setTimeout(onImprovementsReady, 250); });
   }
 
-})();
+})();// Mejoras Fases 1 a 5
+try { localStorage.removeItem("torre21_prologue_seen"); } catch(e){}
+window.PVP_CONFIG = { autoStart: true, coinMessage: "COMIENZA" };
+window.MINIGAME_CONFIG = { maxThrows: 10 };
+window.FRENZY_CONFIG = { duration: 15, conversionRate: 7, multiplier: 3 };
+window.DECK_CONFIG = { exactSize: 52, replaceTransmuted: true, ascensionAutoScroll: true };
