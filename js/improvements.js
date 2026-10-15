@@ -996,6 +996,10 @@
       showGameToast("🎉 ¡Reclamaste +" + reward.amount + " Monedas de Cripta! (Racha: " + reward.streak + "/7)");
       try { if (typeof playVictoryFanfareSound === "function") playVictoryFanfareSound(); } catch (_) {}
       renderDailyLoginUI();
+      const ccEl = document.getElementById("ui-crypt-coins");
+      if (ccEl && typeof getPlayerCryptCoins === "function") ccEl.innerText = String(getPlayerCryptCoins());
+      const accEl = document.getElementById("arena-skulls-val");
+      if (accEl && typeof getPlayerCryptCoins === "function") accEl.innerText = String(getPlayerCryptCoins());
     } else {
       showGameToast("Ya reclamaste la recompensa de hoy.");
       renderDailyLoginUI();

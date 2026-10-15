@@ -1444,6 +1444,76 @@
   }
   window.playHitSound = playHitSound;
 
+  function playBaritaChimeSound() {
+    if (!gameState || !gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      playTone(523.25, 0.15, "sine", 0.4);
+      setTimeout(() => playTone(659.25, 0.18, "sine", 0.45), 70);
+      setTimeout(() => playTone(783.99, 0.22, "sine", 0.5), 140);
+      setTimeout(() => playTone(1046.50, 0.35, "triangle", 0.55), 210);
+      setTimeout(() => playTone(1567.98, 0.4, "sine", 0.35), 280);
+    } catch (_) {}
+  }
+  window.playBaritaChimeSound = playBaritaChimeSound;
+
+  function playComicPageTurnSound() {
+    if (!gameState || !gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      playTone(320, 0.08, "triangle", 0.3);
+      setTimeout(() => playTone(480, 0.06, "sine", 0.25), 35);
+    } catch (_) {}
+  }
+  window.playComicPageTurnSound = playComicPageTurnSound;
+
+  function playComicImpactSound() {
+    if (!gameState || !gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      playTone(180, 0.12, "square", 0.4);
+      setTimeout(() => playTone(90, 0.18, "sawtooth", 0.35), 20);
+    } catch (_) {}
+  }
+  window.playComicImpactSound = playComicImpactSound;
+
+  function playCoinLandSound() {
+    if (!gameState || !gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      playTone(640, 0.06, "triangle", 0.4);
+      setTimeout(() => playTone(820, 0.09, "sine", 0.35), 35);
+      setTimeout(() => playTone(1200, 0.12, "sine", 0.25), 70);
+    } catch (_) {}
+  }
+  window.playCoinLandSound = playCoinLandSound;
+
+  function playSealStampSound() {
+    if (!gameState || !gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      playTone(240, 0.1, "triangle", 0.45);
+      setTimeout(() => playTone(480, 0.14, "sine", 0.4), 30);
+    } catch (_) {}
+  }
+  window.playSealStampSound = playSealStampSound;
+
+  function playTacticalAbilitySound() {
+    if (!gameState || !gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      playTone(360, 0.09, "sawtooth", 0.35);
+      setTimeout(() => playTone(720, 0.16, "sine", 0.4), 45);
+    } catch (_) {}
+  }
+  window.playTacticalAbilitySound = playTacticalAbilitySound;
+
   function playDamageSound() {
     if (!gameState.audioEnabled) return;
     ensureAudio();
@@ -2664,27 +2734,27 @@
      CATÁLOGO DE CARTAS DINÁMICAS (FASE E)
      ============================================================ */
   const SPECIAL_DYNAMIC_CARDS = [
-    { specialId: "double_jack", rank: "J", suit: "♦", value: 10, name: "Jota Doble", icon: "🃏", rarity: "rare", cost: 70, desc: "Vale 10 u 11; si alcanzas 21 con ella, ganas +10 EXP permanente." },
-    { specialId: "versatile_queen", rank: "Q", suit: "♥", value: 10, name: "Reina Versátil", icon: "👑", rarity: "epic", cost: 85, desc: "Copia el valor de su carta vecina (o 10 si está sola)." },
-    { specialId: "shifting_king", rank: "K", suit: "♠", value: 10, name: "Rey Cambiante", icon: "🎭", rarity: "legendary", cost: 110, desc: "Se adapta como 10, 7 o 2 para optimizar tu mano y evitar BUST." },
-    { specialId: "dark_ten", rank: "10", suit: "♣", value: 10, name: "Diez Umbrío", icon: "🌑", rarity: "common", cost: 45, desc: "Vale 10 para ti. Si el rival la roba, resta -3 a su puntuación." },
-    { specialId: "twin_ace", rank: "A", suit: "♠", value: 11, isAce: true, name: "As Gemelo", icon: "✨", rarity: "rare", cost: 65, desc: "Si tienes 2 o más Ases en mano: suma +1 a la puntuación total." },
-    { specialId: "cursed_seven", rank: "7", suit: "♦", value: 7, name: "7 Maldito", icon: "🩸", rarity: "rare", cost: 60, desc: "Vale -2 si te pasarías de 21; otorga +8 de daño extra al ganar la mano." },
-    { specialId: "joker_party", rank: "★", suit: "★", slot: "♣_K", value: 0, name: "Comodín Festivo", icon: "🎉", rarity: "epic", cost: 90, desc: "Ajuste dinámico: suma +3 o resta -3 según tu conveniencia. Ocupa el lugar del K♣." },
-    { specialId: "wild_eight_mirror", rank: "8", suit: "♠", value: 8, name: "8 Espejo Arcano", icon: "🪞", rarity: "rare", cost: 65, desc: "Clona el valor del naipe más alto que tengas en mano para potenciar la suma." },
-    { specialId: "golden_ace_vault", rank: "A", suit: "♦", value: 11, isAce: true, name: "As Áureo del Tesoro", icon: "🪙", rarity: "legendary", cost: 120, desc: "Cuenta como As (1/11) y otorga +15 de Oro al plantarte sin pasarte de 21." },
-    { specialId: "crimson_nine_bleed", rank: "9", suit: "♥", value: 9, name: "9 Carmesí Voraz", icon: "🩸", rarity: "rare", cost: 70, desc: "Al jugarla, infunde filo sangriento aplicando +2 de Veneno al contrincante." },
-    { specialId: "frozen_six_barrier", rank: "6", suit: "♣", value: 6, name: "6 Glacial Protector", icon: "❄️", rarity: "common", cost: 40, desc: "Otorga +6 de Escudo automático si te plantas con 18 o menos." },
-    { specialId: "arcane_five_surge", rank: "5", suit: "♦", value: 5, name: "5 Impulso Arcano", icon: "⚡", rarity: "common", cost: 45, desc: "Si la suma de tu mano es impar, canaliza energía sumando +2 puntos extra." },
-    { specialId: "phantom_four_dodge", rank: "4", suit: "♠", value: 4, name: "4 Fantasmal Evasivo", icon: "👻", rarity: "common", cost: 50, desc: "Al plantarte con él, amortigua 5 puntos del próximo ataque recibido." },
-    { specialId: "overload_three_spark", rank: "3", suit: "♥", value: 3, name: "3 Sobrecarga de Chispas", icon: "💥", rarity: "rare", cost: 65, desc: "Desata +12 de daño crítico adicional si logras Blackjack o 21 exacto." },
-    { specialId: "balance_two_anchor", rank: "2", suit: "♣", value: 2, name: "2 Ancla de Equilibrio", icon: "⚓", rarity: "common", cost: 40, desc: "Si tu mano va a superar 21, muta su valor a 0 anulando el exceso." },
-    { specialId: "trinity_hologram", rank: "★", suit: "♦", value: 3, dynamicValues: [3, 6, 9], name: "Trinidad Holográfica", icon: "✨", rarity: "legendary", cost: 110, desc: "Se ajusta automáticamente a 3, 6 o 9 para optimizar tu puntuación." },
-    { specialId: "diamond_ace_guard", rank: "A", suit: "♦", value: 11, isAce: true, name: "As de Diamantes Baluarte", icon: "🛡️", rarity: "epic", cost: 60, desc: "Inicia cualquier mano con +4 de Escudo protector." },
-    { specialId: "spade_king_execute", rank: "K", suit: "♠", value: 10, name: "Rey de Picas Verdugo", icon: "⚔️", rarity: "legendary", cost: 90, desc: "Tus Blackjacks asestan daño crítico devastador (x3)." },
-    { specialId: "heart_queen_vampire", rank: "Q", suit: "♥", value: 10, name: "Reina de Corazones Sangrienta", icon: "🩸", rarity: "epic", cost: 80, desc: "Al jugarse en una mano ganadora, restaura +8 HP a tu duelista." },
-    { specialId: "club_jack_thief", rank: "J", suit: "♣", value: 10, name: "Jota de Tréboles de Fortuna", icon: "🪙", rarity: "rare", cost: 50, desc: "Te recompensa con +15 Monedas de Cripta adicionales al vencer el duelo." },
-    { specialId: "lucky_seven_astral", rank: "7", suit: "⭐", value: 7, name: "7 Astral del Tahúr", icon: "🔮", rarity: "legendary", cost: 120, desc: "Permite mutar su valor a 11 si evita que hagas BUST al pedir carta." }
+    { specialId: "double_jack", rank: "J", suit: "♦", value: 10, name: "Jota Doble", icon: "🃏", rarity: "rare", cost: 70, cardType: "ability", sealTheme: "gold", abilityAction: "adaptive_value", source: "pvp_market", desc: "Vale 10 u 11; si alcanzas 21 con ella, ganas +10 EXP permanente." },
+    { specialId: "versatile_queen", rank: "Q", suit: "♥", value: 10, name: "Reina Versátil", icon: "👑", rarity: "epic", cost: 85, cardType: "ability", sealTheme: "arcane", abilityAction: "clone_neighbor", source: "pvp_market", desc: "Copia el valor de su carta vecina (o 10 si está sola)." },
+    { specialId: "shifting_king", rank: "K", suit: "♠", value: 10, name: "Rey Cambiante", icon: "🎭", rarity: "legendary", cost: 110, cardType: "ability", sealTheme: "arcane", abilityAction: "adaptive_trio", source: "pvp_market", desc: "Se adapta como 10, 7 o 2 para optimizar tu mano y evitar BUST." },
+    { specialId: "dark_ten", rank: "10", suit: "♣", value: 10, name: "Diez Umbrío", icon: "🌑", rarity: "common", cost: 45, cardType: "seal", sealTheme: "crimson", sealEffect: "weaken_enemy", source: "pvp_market", desc: "Vale 10 para ti. Si el rival la roba, resta -3 a su puntuación." },
+    { specialId: "twin_ace", rank: "A", suit: "♠", value: 11, isAce: true, name: "As Gemelo", icon: "✨", rarity: "rare", cost: 65, cardType: "seal", sealTheme: "gold", sealEffect: "synergy_aces", source: "pvp_market", desc: "Si tienes 2 o más Ases en mano: suma +1 a la puntuación total." },
+    { specialId: "cursed_seven", rank: "7", suit: "♦", value: 7, name: "7 Maldito", icon: "🩸", rarity: "rare", cost: 60, cardType: "seal", sealTheme: "crimson", sealEffect: "bonus_damage", source: "pvp_market", desc: "Vale -2 si te pasarías de 21; otorga +8 de daño extra al ganar la mano." },
+    { specialId: "joker_party", rank: "★", suit: "★", slot: "♣_K", value: 0, name: "Comodín Festivo", icon: "🎉", rarity: "epic", cost: 90, cardType: "ability", sealTheme: "arcane", abilityAction: "mutate", source: "pvp_market", desc: "Ajuste dinámico: suma +3 o resta -3 según tu conveniencia. Ocupa el lugar del K♣." },
+    { specialId: "wild_eight_mirror", rank: "8", suit: "♠", value: 8, name: "8 Espejo Arcano", icon: "🪞", rarity: "rare", cost: 65, cardType: "ability", sealTheme: "arcane", abilityAction: "mirror_highest", source: "pvp_market", desc: "Clona el valor del naipe más alto que tengas en mano para potenciar la suma." },
+    { specialId: "golden_ace_vault", rank: "A", suit: "♦", value: 11, isAce: true, name: "As Áureo del Tesoro", icon: "🪙", rarity: "legendary", cost: 120, cardType: "seal", sealTheme: "gold", sealEffect: "bonus_gold", source: "pvp_market", desc: "Cuenta como As (1/11) y otorga +15 de Oro al plantarte sin pasarte de 21." },
+    { specialId: "crimson_nine_bleed", rank: "9", suit: "♥", value: 9, name: "9 Carmesí Voraz", icon: "🩸", rarity: "rare", cost: 70, cardType: "seal", sealTheme: "crimson", sealEffect: "poison_bleed", source: "pvp_market", desc: "Al jugarla, infunde filo sangriento aplicando +2 de Veneno al contrincante." },
+    { specialId: "frozen_six_barrier", rank: "6", suit: "♣", value: 6, name: "6 Glacial Protector", icon: "❄️", rarity: "common", cost: 40, cardType: "seal", sealTheme: "emerald", sealEffect: "auto_shield", source: "pvp_market", desc: "Otorga +6 de Escudo automático si te plantas con 18 o menos." },
+    { specialId: "arcane_five_surge", rank: "5", suit: "♦", value: 5, name: "5 Impulso Arcano", icon: "⚡", rarity: "common", cost: 45, cardType: "seal", sealTheme: "arcane", sealEffect: "odd_bonus", source: "pvp_market", desc: "Si la suma de tu mano es impar, canaliza energía sumando +2 puntos extra." },
+    { specialId: "phantom_four_dodge", rank: "4", suit: "♠", value: 4, name: "4 Fantasmal Evasivo", icon: "👻", rarity: "common", cost: 50, cardType: "seal", sealTheme: "emerald", sealEffect: "damage_cushion", source: "pvp_market", desc: "Al plantarte con él, amortigua 5 puntos del próximo ataque recibido." },
+    { specialId: "overload_three_spark", rank: "3", suit: "♥", value: 3, name: "3 Sobrecarga de Chispas", icon: "💥", rarity: "rare", cost: 65, cardType: "seal", sealTheme: "crimson", sealEffect: "critical_overload", source: "pvp_market", desc: "Desata +12 de daño crítico adicional si logras Blackjack o 21 exacto." },
+    { specialId: "balance_two_anchor", rank: "2", suit: "♣", value: 2, name: "2 Ancla de Equilibrio", icon: "⚓", rarity: "common", cost: 40, cardType: "ability", sealTheme: "emerald", abilityAction: "anti_bust", source: "pvp_market", desc: "Si tu mano va a superar 21, muta su valor a 0 anulando el exceso." },
+    { specialId: "trinity_hologram", rank: "★", suit: "♦", value: 3, dynamicValues: [3, 6, 9], name: "Trinidad Holográfica", icon: "✨", rarity: "legendary", cost: 110, cardType: "ability", sealTheme: "arcane", abilityAction: "adaptive_trio", source: "pvp_market", desc: "Se ajusta automáticamente a 3, 6 o 9 para optimizar tu puntuación." },
+    { specialId: "diamond_ace_guard", rank: "A", suit: "♦", value: 11, isAce: true, name: "As de Diamantes Baluarte", icon: "🛡️", rarity: "epic", cost: 60, cardType: "seal", sealTheme: "emerald", sealEffect: "start_shield", source: "pvp_market", desc: "Inicia cualquier mano con +4 de Escudo protector." },
+    { specialId: "spade_king_execute", rank: "K", suit: "♠", value: 10, name: "Rey de Picas Verdugo", icon: "⚔️", rarity: "legendary", cost: 90, cardType: "seal", sealTheme: "crimson", sealEffect: "crit_execute", source: "pvp_market", desc: "Tus Blackjacks asestan daño crítico devastador (x3)." },
+    { specialId: "heart_queen_vampire", rank: "Q", suit: "♥", value: 10, name: "Reina de Corazones Sangrienta", icon: "🩸", rarity: "epic", cost: 80, cardType: "seal", sealTheme: "crimson", sealEffect: "vampiric_heal", source: "pvp_market", desc: "Al jugarse en una mano ganadora, restaura +8 HP a tu duelista." },
+    { specialId: "club_jack_thief", rank: "J", suit: "♣", value: 10, name: "Jota de Tréboles de Fortuna", icon: "🪙", rarity: "rare", cost: 50, cardType: "seal", sealTheme: "gold", sealEffect: "extra_crypt_coins", source: "pvp_market", desc: "Te recompensa con +15 Monedas de Cripta adicionales al vencer el duelo." },
+    { specialId: "lucky_seven_astral", rank: "7", suit: "⭐", value: 7, name: "7 Astral del Tahúr", icon: "🔮", rarity: "legendary", cost: 120, cardType: "ability", sealTheme: "arcane", abilityAction: "astral_morph", source: "pvp_market", desc: "Permite mutar su valor a 11 si evita que hagas BUST al pedir carta." }
   ];
   window.SPECIAL_DYNAMIC_CARDS = SPECIAL_DYNAMIC_CARDS;
 
@@ -5487,6 +5557,13 @@
       if (isLoot) el.classList.add("won-loot-card");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
       else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId) el.classList.add("card-holographic");
+      if (card.cardType === "ability" || card.abilityAction || card.fusion) {
+        el.classList.add("card-has-ability");
+      }
+      if (card.cardType === "seal" || card.sealEffect || card.enchantment) {
+        const sTheme = card.sealTheme || (card.enchantment ? (card.enchantment.element || "gold") : "gold");
+        el.classList.add("card-has-seal", `seal-${sTheme}`);
+      }
       if (card.enchantment) {
         const elType = card.enchantment.element || card.enchantment.type || "arcane";
         el.classList.add("enchanted", `seal-${card.enchantment.type || card.enchantment.id}`, `element-${elType}`);
@@ -14379,7 +14456,108 @@
   }
   window.dismissIntroGoldBanner = dismissIntroGoldBanner;
 
+  /* ============================================================
+     SPLASH SCREEN (BARITA) Y PRÓLOGO TIPO CÓMIC DINÁMICO
+     ============================================================ */
+  let _splashTimer = null;
+  let currentComicPanel = 1;
+  const TOTAL_COMIC_PANELS = 4;
+
+  function dismissSplashStudio() {
+    if (_splashTimer) {
+      clearTimeout(_splashTimer);
+      _splashTimer = null;
+    }
+    const splash = document.getElementById("screen-splash-studio");
+    if (!splash) return;
+    splash.classList.add("fade-out");
+    setTimeout(() => {
+      splash.classList.add("hidden");
+      try {
+        if (typeof ensureAudio === "function") ensureAudio();
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      } catch (_) {}
+
+      const seen = localStorage.getItem("torre21_prologue_seen");
+      if (seen !== "true") {
+        openComicPrologue();
+      }
+    }, 450);
+  }
+  window.dismissSplashStudio = dismissSplashStudio;
+
+  function openComicPrologue() {
+    const comicScreen = document.getElementById("screen-comic-prologue");
+    if (!comicScreen) return;
+    currentComicPanel = 1;
+    renderComicPanel(1);
+    comicScreen.classList.remove("hidden");
+    try { playComicPageTurnSound(); } catch (_) {}
+  }
+  window.openComicPrologue = openComicPrologue;
+
+  function renderComicPanel(panelNum) {
+    const panels = document.querySelectorAll("#comic-viewport .comic-panel");
+    panels.forEach(p => {
+      const idx = parseInt(p.getAttribute("data-panel"), 10);
+      if (idx === panelNum) {
+        p.classList.add("active");
+      } else {
+        p.classList.remove("active");
+      }
+    });
+
+    const dots = document.querySelectorAll("#comic-progress-dots .comic-dot");
+    dots.forEach((dot, idx) => {
+      if (idx + 1 === panelNum) dot.classList.add("active");
+      else dot.classList.remove("active");
+    });
+
+    const nextBtn = document.getElementById("comic-next-btn");
+    if (nextBtn) {
+      nextBtn.innerText = (panelNum >= TOTAL_COMIC_PANELS) ? "¡A JUGAR! ⚔️" : "SIGUIENTE ➔";
+    }
+  }
+
+  function advanceComicPanel() {
+    if (currentComicPanel < TOTAL_COMIC_PANELS) {
+      currentComicPanel++;
+      renderComicPanel(currentComicPanel);
+      try { playComicPageTurnSound(); } catch (_) {}
+    } else {
+      finishComicPrologue();
+    }
+  }
+  window.advanceComicPanel = advanceComicPanel;
+
+  function skipComicPrologue(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    finishComicPrologue();
+  }
+  window.skipComicPrologue = skipComicPrologue;
+
+  function finishComicPrologue() {
+    try {
+      localStorage.setItem("torre21_prologue_seen", "true");
+    } catch (_) {}
+    const comicScreen = document.getElementById("screen-comic-prologue");
+    if (comicScreen) comicScreen.classList.add("hidden");
+    try {
+      if (typeof playButtonClickSound === "function") playButtonClickSound();
+    } catch (_) {}
+  }
+  window.finishComicPrologue = finishComicPrologue;
+
   function initIntro() {
+    const splash = document.getElementById("screen-splash-studio");
+    if (splash && !splash.classList.contains("hidden")) {
+      try { playBaritaChimeSound(); } catch (_) {}
+      if (_splashTimer) clearTimeout(_splashTimer);
+      _splashTimer = setTimeout(() => {
+        dismissSplashStudio();
+      }, 2000);
+    }
+
     const btn = document.getElementById("intro-start-btn");
     const hint = document.getElementById("intro-hint");
 
@@ -14398,6 +14576,11 @@
 
   // Exportar funciones interactivas a window para garantizar funcionamiento de todos los onclick en HTML
   window.startFromIntro = startFromIntro;
+  window.dismissSplashStudio = dismissSplashStudio;
+  window.openComicPrologue = openComicPrologue;
+  window.advanceComicPanel = advanceComicPanel;
+  window.skipComicPrologue = skipComicPrologue;
+  window.finishComicPrologue = finishComicPrologue;
   window.startGame = startGame;
   window.openTutorial = openTutorial;
   window.closeTutorial = closeTutorial;
@@ -14983,6 +15166,11 @@
           specialId: cSpecialId,
           slot: c.slot || null,
           rarity: c.rarity || null,
+          cardType: c.cardType || (c.fusion || c.dynamicValues || c.abilityAction ? "ability" : (c.enchantment || c.operator || c.sealEffect ? "seal" : "standard")),
+          sealTheme: c.sealTheme || (c.badgeClass === "mult" ? "crimson" : (c.rarity === "legendary" ? "gold" : (c.badgeClass === "fusion" ? "emerald" : "arcane"))),
+          sealEffect: c.sealEffect || null,
+          abilityAction: c.abilityAction || null,
+          source: c.source || "tower_completion",
           fusion: c.fusion || null,
           modifier: c.modifier || null,
           operator: c.operator || null,
@@ -15782,7 +15970,7 @@
     };
 
     // FASE: MONEDA AL AIRE INTERACTIVA (CON PARADA GARANTIZADA Y SALTO MANUAL)
-    clearArenaCoinTimers();
+    clearArenaCoinTimers(true);
     const coinBox = document.getElementById("arena-coin-box");
     const coinIcon = document.getElementById("arena-coin-icon");
     const coinStatus = document.getElementById("arena-coin-status");
@@ -15795,47 +15983,48 @@
         coinIcon.classList.add("spinning");
       }
       if (coinStatus) coinStatus.innerText = "¡LANZANDO MONEDA AL AIRE!";
-      if (coinSub) coinSub.innerText = "Sorteando quién tiene el primer turno... (Toca para continuar)";
+      if (coinSub) coinSub.innerText = "Sorteando iniciativa de ronda... (Toca para continuar)";
       try {
         if (typeof playCoinSound === "function") playCoinSound();
         if (typeof triggerHaptic === "function") triggerHaptic("coin");
       } catch (_) {}
 
-      // Resolver resultado de la moneda a los 750ms
+      // Resolver resultado de la moneda a los 700ms
       arenaCoinTimer1 = setTimeout(() => {
-        const playerStarts = Math.random() < 0.5;
-        if (arenaMatch) arenaMatch.firstTurn = playerStarts ? "player" : "rival";
-        if (coinIcon) {
-          coinIcon.classList.remove("spinning");
-          coinIcon.classList.add("landed");
-        }
-        if (coinStatus) {
-          coinStatus.innerText = playerStarts ? "🪙 ¡CARA! INICIAS TÚ" : "🪙 ¡CRUZ! INICIA EL RIVAL";
-        }
-        if (coinSub) {
-          coinSub.innerText = playerStarts
-            ? "Tienes la iniciativa en este enfrentamiento táctico."
-            : `${rival.name} toma la iniciativa de la ronda.`;
-        }
         try {
+          const playerStarts = Math.random() < 0.5;
+          if (arenaMatch) arenaMatch.firstTurn = playerStarts ? "player" : "rival";
+          if (coinIcon) {
+            coinIcon.classList.remove("spinning");
+            coinIcon.classList.add("landed");
+          }
+          if (coinStatus) {
+            coinStatus.innerText = playerStarts ? "🪙 ¡CARA! INICIAS TÚ" : "🪙 ¡CRUZ! INICIA EL RIVAL";
+          }
+          if (coinSub) {
+            coinSub.innerText = playerStarts
+              ? "Tienes la iniciativa en este enfrentamiento táctico."
+              : `${rival.name} toma la iniciativa de la ronda.`;
+          }
           if (typeof triggerHaptic === "function") triggerHaptic("button_click");
+          if (typeof playCoinLandSound === "function") playCoinLandSound();
         } catch (_) {}
 
-        // Ocultar caja e iniciar combate a los 750ms posteriores
+        // Ocultar caja e iniciar combate a los 600ms posteriores
         arenaCoinTimer2 = setTimeout(() => {
-          if (coinBox) coinBox.classList.add("hidden");
+          clearArenaCoinTimers(true);
           initArenaRound();
-        }, 750);
-      }, 750);
+        }, 600);
+      }, 700);
 
       // Failsafe de seguridad absoluto por si algún evento de pantalla interrumpe el timeout
       arenaCoinTimerFailsafe = setTimeout(() => {
         skipArenaCoinFlip();
-      }, 2200);
+      }, 1600);
     } else {
       setTimeout(() => {
         initArenaRound();
-      }, 400);
+      }, 200);
     }
   }
   window.startArenaMatch = startArenaMatch;
@@ -15844,21 +16033,25 @@
   let arenaCoinTimer2 = null;
   let arenaCoinTimerFailsafe = null;
 
-  function clearArenaCoinTimers() {
+  function clearArenaCoinTimers(hideBox = false) {
     if (arenaCoinTimer1) { clearTimeout(arenaCoinTimer1); arenaCoinTimer1 = null; }
     if (arenaCoinTimer2) { clearTimeout(arenaCoinTimer2); arenaCoinTimer2 = null; }
     if (arenaCoinTimerFailsafe) { clearTimeout(arenaCoinTimerFailsafe); arenaCoinTimerFailsafe = null; }
+    if (hideBox) {
+      const coinBox = document.getElementById("arena-coin-box");
+      if (coinBox) coinBox.classList.add("hidden");
+      const coinIcon = document.getElementById("arena-coin-icon");
+      if (coinIcon) {
+        coinIcon.classList.remove("spinning");
+        coinIcon.classList.add("landed");
+      }
+    }
   }
+  window.clearArenaCoinTimers = clearArenaCoinTimers;
 
   function skipArenaCoinFlip() {
-    clearArenaCoinTimers();
-    const coinBox = document.getElementById("arena-coin-box");
-    const coinIcon = document.getElementById("arena-coin-icon");
-    if (coinIcon) {
-      coinIcon.classList.remove("spinning");
-      coinIcon.classList.add("landed");
-    }
-    if (coinBox) coinBox.classList.add("hidden");
+    clearArenaCoinTimers(true);
+    if (typeof playCoinLandSound === "function") playCoinLandSound();
     if (arenaMatch && !arenaMatch.firstTurn) {
       arenaMatch.firstTurn = (Math.random() < 0.5) ? "player" : "rival";
     }
@@ -15867,83 +16060,117 @@
   window.skipArenaCoinFlip = skipArenaCoinFlip;
 
   function initArenaRound() {
-    clearArenaCoinTimers();
-    if (arenaMatch) arenaMatch._settling = false;
+    clearArenaCoinTimers(true);
     const coinBox = document.getElementById("arena-coin-box");
-    if (coinBox) coinBox.classList.add("hidden");
     const actionsBox = document.getElementById("arena-actions");
-    if (actionsBox) actionsBox.classList.remove("hidden");
-    if (!arenaMatch) return;
-    document.getElementById("arena-round-result")?.classList.add("hidden");
     
-    // Configurar Habilidades de PvP por nivel
-    arenaMatch.skillsUsed = arenaMatch.skillsUsed || { spy: false, swap: false, steal: false };
-    const rawHKey = localStorage.getItem("bj_equipped_hero") || "knight";
-    const hKey = (rawHKey === "necro") ? "necromancer" : rawHKey;
-    const pLevel = (typeof getHeroMeta === "function") ? (getHeroMeta()[hKey]?.masteryLevel || 0) : 0;
-    
-    const btnSpy = document.getElementById("btn-arena-spy");
-    const btnSwap = document.getElementById("btn-arena-swap");
-    const btnSteal = document.getElementById("btn-arena-steal");
-    
-    if (btnSpy) {
-      if (pLevel >= 2) {
-        btnSpy.classList.remove("hidden");
-        if (arenaMatch.skillsUsed.spy) btnSpy.classList.add("used");
-        else btnSpy.classList.remove("used");
-      } else {
-        btnSpy.classList.add("hidden");
+    try {
+      if (arenaMatch) arenaMatch._settling = false;
+      if (!arenaMatch) return;
+      document.getElementById("arena-round-result")?.classList.add("hidden");
+      
+      // Configurar Habilidades de PvP por nivel defensivamente
+      arenaMatch.skillsUsed = arenaMatch.skillsUsed || { spy: false, swap: false, steal: false };
+      const rawHKey = localStorage.getItem("bj_equipped_hero") || "knight";
+      const hKey = (rawHKey === "necro") ? "necromancer" : rawHKey;
+      let pLevel = 1;
+      try {
+        const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : null;
+        if (meta && meta[hKey] && typeof meta[hKey].masteryLevel === "number") {
+          pLevel = meta[hKey].masteryLevel;
+        }
+      } catch (_) { pLevel = 1; }
+      
+      const btnSpy = document.getElementById("btn-arena-spy");
+      const btnSwap = document.getElementById("btn-arena-swap");
+      const btnSteal = document.getElementById("btn-arena-steal");
+      
+      if (btnSpy) {
+        if (pLevel >= 2) {
+          btnSpy.classList.remove("hidden");
+          if (arenaMatch.skillsUsed.spy) btnSpy.classList.add("used");
+          else btnSpy.classList.remove("used");
+        } else {
+          btnSpy.classList.add("hidden");
+        }
       }
-    }
-    if (btnSwap) {
-      if (pLevel >= 4) {
-        btnSwap.classList.remove("hidden");
-        if (arenaMatch.skillsUsed.swap) btnSwap.classList.add("used");
-        else btnSwap.classList.remove("used");
-      } else {
-        btnSwap.classList.add("hidden");
+      if (btnSwap) {
+        if (pLevel >= 4) {
+          btnSwap.classList.remove("hidden");
+          if (arenaMatch.skillsUsed.swap) btnSwap.classList.add("used");
+          else btnSwap.classList.remove("used");
+        } else {
+          btnSwap.classList.add("hidden");
+        }
       }
-    }
-    if (btnSteal) {
-      if (pLevel >= 6) {
-        btnSteal.classList.remove("hidden");
-        if (arenaMatch.skillsUsed.steal) btnSteal.classList.add("used");
-        else btnSteal.classList.remove("used");
-      } else {
-        btnSteal.classList.add("hidden");
+      if (btnSteal) {
+        if (pLevel >= 6) {
+          btnSteal.classList.remove("hidden");
+          if (arenaMatch.skillsUsed.steal) btnSteal.classList.add("used");
+          else btnSteal.classList.remove("used");
+        } else {
+          btnSteal.classList.add("hidden");
+        }
       }
-    }
 
-    // Repartir 2 cartas a cada duelista
-    if (arenaMatch.deck.length < 10) {
-      arenaMatch.deck = buildStandardDeck();
-      shuffleArray(arenaMatch.deck);
-    }
-    arenaMatch.playerHand = [arenaMatch.deck.pop(), arenaMatch.deck.pop()];
-    arenaMatch.rivalHand = [arenaMatch.deck.pop(), arenaMatch.deck.pop()];
-
-    // Actualizar marcadores de ronda
-    const roundPill = document.getElementById("arena-round-pill");
-    if (roundPill) {
-      if (arenaMatch.isSuddenDeath) {
-        roundPill.innerHTML = `<span style="color:#ff6b6b;font-weight:bold;">🔥 MUERTE SÚBITA</span>`;
-      } else {
-        roundPill.innerText = `RONDA ${arenaMatch.round} / ${arenaMatch.maxRounds}`;
+      // Repartir 2 cartas a cada duelista con sanitización defensiva
+      if (!arenaMatch.deck || arenaMatch.deck.length < 10) {
+        arenaMatch.deck = buildStandardDeck();
+        shuffleArray(arenaMatch.deck);
       }
+      const sanitizeCard = (c) => {
+        if (!c || typeof c !== "object") return { rank: "10", suit: "♠", value: 10, isAce: false };
+        return {
+          ...c,
+          rank: c.rank || (c.value ? String(c.value) : "10"),
+          suit: c.suit || "♠",
+          value: typeof c.value === "number" ? c.value : 10,
+          isAce: !!c.isAce
+        };
+      };
+      arenaMatch.playerHand = [sanitizeCard(arenaMatch.deck.pop()), sanitizeCard(arenaMatch.deck.pop())];
+      arenaMatch.rivalHand = [sanitizeCard(arenaMatch.deck.pop()), sanitizeCard(arenaMatch.deck.pop())];
+
+      // Actualizar marcadores de ronda
+      const roundPill = document.getElementById("arena-round-pill");
+      if (roundPill) {
+        if (arenaMatch.isSuddenDeath) {
+          roundPill.innerHTML = `<span style="color:#ff6b6b;font-weight:bold;">🔥 MUERTE SÚBITA</span>`;
+        } else {
+          roundPill.innerText = `RONDA ${arenaMatch.round} / ${arenaMatch.maxRounds}`;
+        }
+      }
+
+      const scPlayer = document.getElementById("arena-score-player");
+      const scRival = document.getElementById("arena-score-rival");
+      if (scPlayer) scPlayer.innerText = `TÚ: ${arenaMatch.playerWins}`;
+      if (scRival) scRival.innerText = `RIVAL: ${arenaMatch.rivalWins}`;
+      
+      const hpPlayer = document.getElementById("arena-score-player-hp");
+      const hpRival = document.getElementById("arena-score-rival-hp");
+      if (hpPlayer) hpPlayer.innerText = arenaMatch.playerStats ? arenaMatch.playerStats.hp : 90;
+      if (hpRival) hpRival.innerText = arenaMatch.rivalHp;
+
+      renderArenaHands(false);
+
+      // Notificación táctica de iniciativa
+      if (arenaMatch.firstTurn === "rival") {
+        if (typeof addLog === "function") {
+          addLog(`🪙 Cruz: ¡${arenaMatch.rival.name} tiene la iniciativa! Elige con cuidado.`, "warning");
+        }
+      } else {
+        if (typeof addLog === "function") {
+          addLog("🪙 Cara: ¡Tienes la iniciativa táctica de la ronda!", "magic");
+        }
+      }
+    } catch (err) {
+      console.error("[Arena] Error controlado en initArenaRound:", err);
+    } finally {
+      if (coinBox) coinBox.classList.add("hidden");
+      if (actionsBox) actionsBox.classList.remove("hidden");
     }
-
-    const scPlayer = document.getElementById("arena-score-player");
-    const scRival = document.getElementById("arena-score-rival");
-    if (scPlayer) scPlayer.innerText = `TÚ: ${arenaMatch.playerWins}`;
-    if (scRival) scRival.innerText = `RIVAL: ${arenaMatch.rivalWins}`;
-    
-    const hpPlayer = document.getElementById("arena-score-player-hp");
-    const hpRival = document.getElementById("arena-score-rival-hp");
-    if (hpPlayer) hpPlayer.innerText = arenaMatch.playerStats.hp;
-    if (hpRival) hpRival.innerText = arenaMatch.rivalHp;
-
-    renderArenaHands(false);
   }
+  window.initArenaRound = initArenaRound;
 
   function renderArenaHands(showAllRival = false) {
     if (!arenaMatch) return;
@@ -15956,13 +16183,20 @@
     const rScore = calculateHandScore(arenaMatch.rivalHand);
 
     if (pCardsEl) {
-      pCardsEl.innerHTML = arenaMatch.playerHand.map(c => `
-        <div class="card-face player-card ${c.isWonCard ? 'won-loot-card' : ''}">
-          <span class="card-value">${c.rank}</span>
-          <span class="suit">${c.suit}</span>
-          ${c.name ? `<span class="card-spec-name">${c.name}</span>` : ''}
-        </div>
-      `).join("");
+      pCardsEl.innerHTML = arenaMatch.playerHand.map(c => {
+        const isAbility = c.cardType === "ability" || c.abilityAction || c.fusion || c.dynamicValues;
+        const isSeal = c.cardType === "seal" || c.sealEffect || c.enchantment;
+        const sTheme = c.sealTheme || (c.rarity === "legendary" ? "gold" : (c.badgeClass === "mult" ? "crimson" : "emerald"));
+        const sealBadge = isSeal ? `<span class="card-seal-stamp ${sTheme}">${sTheme === 'crimson' ? '⚔️' : (sTheme === 'emerald' ? '🛡️' : '✨')}</span>` : (isAbility ? `<span class="card-seal-stamp arcane">⚡</span>` : '');
+        return `
+          <div class="card-face player-card ${c.isWonCard ? 'won-loot-card' : ''} ${isAbility ? 'card-has-ability' : ''} ${isSeal ? 'card-has-seal' : ''}">
+            ${sealBadge}
+            <span class="card-value">${c.rank}</span>
+            <span class="suit">${c.suit}</span>
+            ${c.name ? `<span class="card-spec-name">${c.name}</span>` : ''}
+          </div>
+        `;
+      }).join("");
     }
     if (pSumEl) pSumEl.innerText = pScore > 21 ? `${pScore} (BUST)` : pScore;
 
@@ -16010,6 +16244,7 @@
     arenaMatch.skillsUsed.spy = true;
     const btn = document.getElementById("btn-arena-spy");
     if (btn) btn.classList.add("used");
+    try { playTacticalAbilitySound(); } catch (_) {}
     
     // Revelar la mano del rival temporalmente renderizando de nuevo pero indicando 'true'
     renderArenaHands(true);
@@ -16024,6 +16259,7 @@
     arenaMatch.skillsUsed.swap = true;
     const btn = document.getElementById("btn-arena-swap");
     if (btn) btn.classList.add("used");
+    try { playTacticalAbilitySound(); } catch (_) {}
     
     // Descarta la última carta y roba otra
     arenaMatch.playerHand.pop();
@@ -16044,6 +16280,7 @@
     arenaMatch.skillsUsed.steal = true;
     const btn = document.getElementById("btn-arena-steal");
     if (btn) btn.classList.add("used");
+    try { playTacticalAbilitySound(); } catch (_) {}
     
     // Roba una carta aleatoria del rival
     const stealIndex = Math.floor(Math.random() * arenaMatch.rivalHand.length);
@@ -16287,7 +16524,10 @@
         icon: c.icon,
         cost: c.cost || 60,
         desc: c.desc,
-        rarity: c.rarity || "rare"
+        rarity: c.rarity || "rare",
+        cardType: c.cardType || "seal",
+        sealTheme: c.sealTheme || "gold",
+        abilityAction: c.abilityAction || null
       }));
 
       // Barajar y tomar 4 cartas únicas
@@ -16312,6 +16552,8 @@
       return;
     }
     localStorage.setItem("bj_crypt_coins", String(skulls - 40));
+    const ccEl = document.getElementById("ui-crypt-coins"); if (ccEl) ccEl.innerText = String(skulls - 40);
+    const accEl = document.getElementById("arena-skulls-val"); if (accEl) accEl.innerText = String(skulls - 40);
     localStorage.removeItem("bj_market_stock_v1");
     renderArenaMarket();
     showGameToast("¡Mercado rotado con éxito! (-40 Criptas)", "heal");
@@ -16345,6 +16587,9 @@
     html += stock.slots.map(c => {
       const isOwned = ownedArenaCards.includes(c.id);
       const canAfford = cryptCoins >= c.cost;
+      const tagHtml = c.cardType === "ability"
+        ? `<span class="amc-tag tag-ability">⚡ HABILIDAD ACTIVA</span>`
+        : `<span class="amc-tag tag-seal ${c.sealTheme || 'gold'}">🔮 SELLO ${(c.sealTheme || 'ORO').toUpperCase()}</span>`;
       return `
         <div class="arena-market-card ${isOwned ? 'owned' : ''}">
           <div class="amc-left">
@@ -16352,6 +16597,7 @@
             <div class="amc-info">
               <div class="amc-title">${c.icon} ${c.name}</div>
               <div class="amc-desc">${c.desc}</div>
+              <div>${tagHtml}</div>
             </div>
           </div>
           <div class="amc-right">
@@ -16413,11 +16659,14 @@
     }
 
     localStorage.setItem("bj_crypt_coins", String(cryptCoins - cost));
+    const ccEl = document.getElementById("ui-crypt-coins"); if (ccEl) ccEl.innerText = String(cryptCoins - cost);
+    const accEl = document.getElementById("arena-skulls-val"); if (accEl) accEl.innerText = String(cryptCoins - cost);
     
     // Se guarda en el mazo principal como override
     savePersistentExtraCard(cardDef);
     
     renderArenaMarket();
+    renderArenaRanking();
     showGameToast("¡Carta bendita agregada a tu baraja!", "heal");
     try { playCardDealSound(); } catch (_) {}
   }

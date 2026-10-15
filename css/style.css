@@ -10637,3 +10637,449 @@ body.sudden-death-active #stage {
   transform: translateY(1px);
 }
 
+/* ============================================================
+   SPLASH SCREEN DE ESTUDIO: BARITA
+   ============================================================ */
+.splash-studio-screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, #111422 0%, #07090e 85%, #030407 100%);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1), transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.splash-studio-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.05);
+}
+.splash-studio-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.splash-wand-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin-bottom: 12px;
+}
+.splash-wand-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 18px rgba(102, 252, 241, 0.45));
+}
+.wand-aura-pulse {
+  animation: wandAuraPulse 2.4s ease-in-out infinite alternate;
+  transform-origin: 120px 40px;
+}
+@keyframes wandAuraPulse {
+  0% { transform: scale(0.85); opacity: 0.45; }
+  100% { transform: scale(1.2); opacity: 0.95; }
+}
+.wand-star-spin {
+  animation: wandStarSpin 6s linear infinite;
+  transform-origin: 0px 0px;
+}
+@keyframes wandStarSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.wand-particle {
+  animation: wandParticleFloat 1.8s ease-in-out infinite alternate;
+}
+.wand-particle.p-1 { animation-delay: 0.2s; }
+.wand-particle.p-2 { animation-delay: 0.5s; }
+.wand-particle.p-3 { animation-delay: 0.8s; }
+.wand-particle.p-4 { animation-delay: 1.1s; }
+@keyframes wandParticleFloat {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0.5; }
+  100% { transform: translate(3px, -5px) scale(1.25); opacity: 1; }
+}
+.splash-studio-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.splash-developed-by {
+  font-family: var(--font-pixel, monospace);
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  color: #66fcf1;
+  text-shadow: 0 0 8px rgba(102, 252, 241, 0.4);
+}
+.splash-brand-title {
+  margin: 2px 0;
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 38px;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, #ffd166 20%, #f4a261 60%, #66fcf1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px rgba(255, 209, 102, 0.55));
+}
+.splash-tagline {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  color: #ffd166;
+  opacity: 0.85;
+}
+.splash-tap-hint {
+  margin-top: 24px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  color: #94a3b8;
+  animation: splashTapPulse 1.5s ease-in-out infinite;
+}
+@keyframes splashTapPulse {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(3px); }
+}
+
+/* ============================================================
+   PRÓLOGO NARRATIVO TIPO CÓMIC DINÁMICO
+   ============================================================ */
+.comic-prologue-screen {
+  position: fixed;
+  inset: 0;
+  background: #06080f;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  overflow: hidden;
+}
+.comic-container {
+  width: 100%;
+  max-width: 460px;
+  height: 100%;
+  max-height: 720px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 16px;
+  box-sizing: border-box;
+}
+.comic-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.comic-badge {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  color: #ffd166;
+  letter-spacing: 1px;
+}
+.comic-progress-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.comic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+}
+.comic-dot.active {
+  background: #66fcf1;
+  transform: scale(1.35);
+  box-shadow: 0 0 10px #66fcf1;
+}
+.comic-skip-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(102, 252, 241, 0.4);
+  color: #66fcf1;
+  border-radius: 8px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.comic-skip-btn:active {
+  transform: scale(0.96);
+  background: rgba(102, 252, 241, 0.2);
+}
+.comic-viewport {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
+  min-height: 380px;
+}
+.comic-panel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95) translateX(30px);
+  transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.3, 1), transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.comic-panel.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateX(0);
+}
+.comic-panel-frame {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0c1017;
+  border: 3px solid #1e283b;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+.comic-art-box {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 16px;
+}
+.comic-illustration {
+  max-height: 80%;
+  max-width: 85%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.8));
+  transition: transform 0.4s ease;
+}
+.comic-panel.active .comic-illustration {
+  animation: comicArtPop 0.5s ease-out;
+}
+@keyframes comicArtPop {
+  0% { transform: scale(0.88); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.comic-sfx-bubble {
+  position: absolute;
+  font-family: 'Fredoka', var(--font-pixel, monospace);
+  font-weight: 900;
+  font-size: 14px;
+  padding: 4px 12px;
+  background: #ffd166;
+  color: #0b0c10;
+  border: 2px solid #000;
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 #000;
+  transform: rotate(-7deg);
+  animation: comicSfxPulse 1.4s ease-in-out infinite alternate;
+}
+.comic-sfx-bubble.crack {
+  background: #e63946;
+  color: #fff;
+  transform: rotate(8deg);
+}
+.comic-sfx-bubble.sealed {
+  background: #45a29e;
+  color: #fff;
+}
+.comic-sfx-bubble.awake {
+  background: #ffd166;
+  color: #0b0c10;
+}
+@keyframes comicSfxPulse {
+  0% { transform: scale(0.96) rotate(-7deg); }
+  100% { transform: scale(1.06) rotate(-4deg); }
+}
+.comic-cards-trio {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+.comic-card-prop {
+  width: 58px;
+  height: 84px;
+  background: #ffffff;
+  border: 2.5px solid #0b0c10;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  font-weight: 900;
+  font-size: 16px;
+  color: #0b0c10;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.comic-card-prop.seal-crimson { border-color: #e63946; }
+.comic-card-prop.seal-gold { border-color: #ffd166; transform: translateY(-8px); }
+.comic-card-prop.seal-emerald { border-color: #2a9d8f; }
+.seal-stamp { font-size: 20px; }
+.comic-heroes-lineup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+.comic-hero-mini {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+}
+.comic-caption-box {
+  padding: 12px 16px;
+  background: #111724;
+  border-top: 2px solid #233148;
+}
+.comic-act-tag {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8.5px;
+  color: #48cae4;
+  letter-spacing: 1.5px;
+  display: block;
+  margin-bottom: 3px;
+}
+.comic-text {
+  font-size: 11px;
+  color: #f1f5f9;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+}
+.comic-footer {
+  padding: 10px 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.comic-tap-hint {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  color: #94a3b8;
+}
+.comic-next-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #2a9d8f, #264653);
+  color: #ffffff;
+  border: 1.5px solid #66fcf1;
+  border-radius: 8px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+  transition: transform 0.1s, filter 0.15s;
+}
+.comic-next-btn:active {
+  transform: translateY(2px);
+  filter: brightness(1.2);
+}
+
+/* ============================================================
+   SELLOS ARCANOS Y HABILIDADES ESPECIALES EN NAIPES
+   ============================================================ */
+.card-face.card-has-seal {
+  position: relative;
+  overflow: visible;
+}
+.card-seal-stamp {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  border: 1.5px solid #000;
+  box-shadow: 0 0 8px rgba(0,0,0,0.6);
+  z-index: 5;
+  pointer-events: none;
+}
+.card-seal-stamp.crimson {
+  background: radial-gradient(circle, #e63946, #7a0c18);
+  box-shadow: 0 0 10px rgba(230, 57, 70, 0.75);
+  color: #fff;
+}
+.card-seal-stamp.gold {
+  background: radial-gradient(circle, #ffd166, #d48b04);
+  box-shadow: 0 0 10px rgba(255, 209, 102, 0.8);
+  color: #0b0c10;
+}
+.card-seal-stamp.emerald {
+  background: radial-gradient(circle, #2a9d8f, #0f4c45);
+  box-shadow: 0 0 10px rgba(42, 157, 143, 0.75);
+  color: #fff;
+}
+.card-seal-stamp.arcane {
+  background: radial-gradient(circle, #8338ec, #3a0ca3);
+  box-shadow: 0 0 10px rgba(131, 56, 236, 0.75);
+  color: #fff;
+}
+.card-face.card-has-ability {
+  border-color: #66fcf1 !important;
+  box-shadow: 0 0 12px rgba(102, 252, 241, 0.5) !important;
+  animation: abilityBorderPulse 2s ease-in-out infinite alternate;
+}
+@keyframes abilityBorderPulse {
+  0% { box-shadow: 0 0 6px rgba(102, 252, 241, 0.35); }
+  100% { box-shadow: 0 0 14px rgba(102, 252, 241, 0.85); }
+}
+.amc-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 7.5px;
+  font-family: var(--font-pixel, monospace);
+  font-weight: bold;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+.amc-tag.tag-ability {
+  background: rgba(102, 252, 241, 0.15);
+  border: 1px solid #66fcf1;
+  color: #66fcf1;
+}
+.amc-tag.tag-seal.crimson {
+  background: rgba(230, 57, 70, 0.15);
+  border: 1px solid #e63946;
+  color: #ff6b6b;
+}
+.amc-tag.tag-seal.gold {
+  background: rgba(255, 209, 102, 0.15);
+  border: 1px solid #ffd166;
+  color: #ffd166;
+}
+.amc-tag.tag-seal.emerald {
+  background: rgba(42, 157, 143, 0.15);
+  border: 1px solid #2a9d8f;
+  color: #48cae4;
+}
+.amc-tag.tag-seal.arcane {
+  background: rgba(131, 56, 236, 0.15);
+  border: 1px solid #8338ec;
+  color: #c77dff;
+}
+
+
+
