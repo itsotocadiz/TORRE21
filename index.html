@@ -11,74 +11,36 @@
 <body>
 <div id="low-hp-vignette"></div>
 <div id="game-container">
-  <!-- ===== PANTALLA SPLASH DE ESTUDIO: BARITA ===== -->
+  <!-- ===== PANTALLA SPLASH DE ESTUDIO: BARITA (INSPIRADO EN HARRY POTTER) ===== -->
   <div id="screen-splash-studio" class="splash-studio-screen" onclick="dismissSplashStudio()" title="Toca para continuar">
     <div class="splash-studio-content">
       <div class="splash-wand-wrapper">
-        <svg class="splash-wand-svg" viewBox="0 0 160 160" aria-label="Varita mágica de BARITA">
-          <defs>
-            <linearGradient id="wandShaftGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#2d132c"/>
-              <stop offset="40%" stop-color="#801336"/>
-              <stop offset="80%" stop-color="#c72c41"/>
-              <stop offset="100%" stop-color="#ffd166"/>
-            </linearGradient>
-            <radialGradient id="starBurst" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ffffff"/>
-              <stop offset="40%" stop-color="#66fcf1" stop-opacity="0.9"/>
-              <stop offset="80%" stop-color="#ffd166" stop-opacity="0.4"/>
-              <stop offset="100%" stop-color="#05060b" stop-opacity="0"/>
-            </radialGradient>
-            <filter id="wandSparkleGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-
-          <!-- Halo místico pulsante -->
-          <circle cx="120" cy="40" r="35" fill="url(#starBurst)" class="wand-aura-pulse" />
-
-          <!-- Cuerpo de la varita mágica -->
-          <rect x="25" y="125" width="130" height="10" rx="5" transform="rotate(-45 25 125)" fill="url(#wandShaftGrad)" stroke="#110515" stroke-width="2"/>
-          <rect x="55" y="95" width="16" height="12" rx="3" transform="rotate(-45 55 95)" fill="#ffd166" stroke="#b38728" stroke-width="1"/>
-          <rect x="85" y="65" width="12" height="12" rx="3" transform="rotate(-45 85 65)" fill="#66fcf1" stroke="#25827c" stroke-width="1"/>
-
-          <!-- Estrella de energía en la punta -->
-          <g transform="translate(120,40)" class="wand-star-spin" filter="url(#wandSparkleGlow)">
-            <polygon points="0,-22 5,-6 22,0 5,6 0,22 -5,6 -22,0 -5,-6" fill="#ffffff" />
-            <polygon points="0,-15 3,-4 15,0 3,4 0,15 -3,4 -15,0 -3,-4" fill="#ffd166" />
-            <circle cx="0" cy="0" r="4" fill="#ffffff"/>
-          </g>
-
-          <!-- Partículas de destello estelar flotantes -->
-          <circle cx="140" cy="30" r="3" fill="#66fcf1" class="wand-particle p-1"/>
-          <circle cx="105" cy="22" r="2.5" fill="#ffd166" class="wand-particle p-2"/>
-          <circle cx="135" cy="60" r="2" fill="#ffffff" class="wand-particle p-3"/>
-          <circle cx="95" cy="50" r="1.5" fill="#66fcf1" class="wand-particle p-4"/>
-        </svg>
+        <div class="splash-hp-logo-container">
+          <img src="assets/barita_logo_hp.jpg" class="splash-barita-hp-img" alt="BARITA Estudio Arcano">
+          <div class="splash-spell-sparkle"></div>
+          <div class="splash-spell-ring"></div>
+        </div>
       </div>
 
       <div class="splash-studio-text">
         <span class="splash-developed-by">DESARROLLADO POR</span>
-        <h2 class="splash-brand-title">BARITA</h2>
-        <span class="splash-tagline">✦ GAME STUDIO ✦</span>
+        <h2 class="splash-brand-title barita-hp-title">
+          <span class="hp-lightning-bolt">⚡</span>BARITA<span class="hp-lightning-bolt">⚡</span>
+        </h2>
+        <span class="splash-tagline">✦ ESTUDIO ARCANO • TORRE DEL 21 ✦</span>
       </div>
-      <div class="splash-tap-hint">Toca para continuar ▸</div>
+      <div class="splash-tap-hint">⚡ Toca la pantalla para conjurar ▸</div>
     </div>
   </div>
 
   <!-- ===== PRÓLOGO NARRATIVO TIPO CÓMIC DINÁMICO ===== -->
   <div id="screen-comic-prologue" class="comic-prologue-screen hidden" onclick="advanceComicPanel()">
-    <div class="comic-container">
+    <div class="comic-container" id="screen-prologue-comic">
       <!-- Barra superior con botón de saltar y progreso -->
       <div class="comic-topbar">
         <div class="comic-badge">📖 HISTORIA DEL 21</div>
         <div class="comic-progress-dots" id="comic-progress-dots">
           <span class="comic-dot active"></span>
-          <span class="comic-dot"></span>
           <span class="comic-dot"></span>
           <span class="comic-dot"></span>
         </div>
@@ -89,67 +51,44 @@
 
       <!-- Área de viñetas dinámicas -->
       <div class="comic-viewport" id="comic-viewport">
-        <!-- Viñeta 1: El Origen -->
+        <!-- Viñeta 1: El Pacto de Black -->
         <div class="comic-panel active" data-panel="1">
-          <div class="comic-panel-frame">
-            <div class="comic-art-box" style="background: radial-gradient(circle at 50% 30%, #1a2639 0%, #060911 100%);">
-              <img src="assets/svg/bg_tower.svg" class="comic-illustration comic-img-tower" alt="Torre del 21">
-              <div class="comic-sfx-bubble pulse" style="top:18%; right:14%;">¡21!</div>
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_1.jpg" class="comic-illustration comic-img-panel" alt="El Pacto de Black">
+              <div class="comic-sfx-bubble pulse" style="top:12%; right:14%;">¡21!</div>
             </div>
             <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO I: EL ORIGEN</span>
-              <p class="comic-text">En la cúspide del reino se alzó la <b>Torre del 21</b>, donde el destino de los reyes se decidía con naipes forjados en el fuego del azar.</p>
+              <span class="comic-act-tag">ACTO I: EL PACTO DE BLACK</span>
+              <p class="comic-text">«Quien suba los 21 pisos reclamará su alma.» El pacto sagrado ha sido forjado en las sombras de la Torre.</p>
             </div>
           </div>
         </div>
 
-        <!-- Viñeta 2: La Corrupción de BLACK -->
+        <!-- Viñeta 2: Domina los Sellos Arcanos -->
         <div class="comic-panel" data-panel="2">
-          <div class="comic-panel-frame">
-            <div class="comic-art-box" style="background: radial-gradient(circle at 50% 40%, #3a0d17 0%, #080306 100%);">
-              <img src="assets/svg/enemy_black.svg" class="comic-illustration comic-img-boss" alt="Black Jack">
-              <div class="comic-sfx-bubble crack" style="top:25%; left:12%;">¡CRACK!</div>
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_2.jpg" class="comic-illustration comic-img-panel" alt="Domina los Sellos Arcanos">
+              <div class="comic-sfx-bubble crack" style="top:14%; left:10%;">¡CRACK!</div>
             </div>
             <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO II: LA CORRUPCIÓN</span>
-              <p class="comic-text">Pero <b>BLACK</b>, el Jack Supremo, selló el piso 21. Envenenó las reglas sagradas y encerró a las almas errantes en un bucle eterno de castigos.</p>
+              <span class="comic-act-tag">ACTO II: SELLOS ARCANOS</span>
+              <p class="comic-text">«¡Domina los sellos arcanos o cae en la sombra!» Solo un Blackjack de fuego y acero puede quebrar la maldición de Black.</p>
             </div>
           </div>
         </div>
 
-        <!-- Viñeta 3: Los Sellos Arcanos -->
+        <!-- Viñeta 3: Desafía la Torre del 21 -->
         <div class="comic-panel" data-panel="3">
-          <div class="comic-panel-frame">
-            <div class="comic-art-box" style="background: radial-gradient(circle at 50% 30%, #0f2e2e 0%, #040d0e 100%);">
-              <div class="comic-cards-trio">
-                <div class="comic-card-prop seal-crimson"><span>A♠</span><span class="seal-stamp">⚔️</span></div>
-                <div class="comic-card-prop seal-gold"><span>7♥</span><span class="seal-stamp">✨</span></div>
-                <div class="comic-card-prop seal-emerald"><span>K♦</span><span class="seal-stamp">🛡️</span></div>
-              </div>
-              <div class="comic-sfx-bubble sealed" style="top:18%; right:10%;">¡SELLADO!</div>
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_3.jpg" class="comic-illustration comic-img-panel" alt="Desafía la Torre del 21">
+              <div class="comic-sfx-bubble awake" style="top:18%; right:12%;">¡A LA TORRE!</div>
             </div>
             <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO III: LOS SELLOS ARCANOS</span>
-              <p class="comic-text">Para romper la maldición, forjaron <b>Sellos de Maestría</b> y <b>Habilidades Especiales</b>: armas arcanas ocultas en la Torre y en el Mercado.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Viñeta 4: El Desafío de los Heraldos -->
-        <div class="comic-panel" data-panel="4">
-          <div class="comic-panel-frame">
-            <div class="comic-art-box" style="background: radial-gradient(circle at 50% 40%, #1e1b4b 0%, #060515 100%);">
-              <div class="comic-heroes-lineup">
-                <img src="assets/svg/knight_idle.svg" class="comic-hero-mini" alt="Caballero">
-                <img src="assets/svg/rogue_idle.svg" class="comic-hero-mini" alt="Pícara">
-                <img src="assets/svg/monk_idle.svg" class="comic-hero-mini" alt="Monje">
-                <img src="assets/svg/necro_idle.svg" class="comic-hero-mini" alt="Nigromante">
-              </div>
-              <div class="comic-sfx-bubble awake" style="top:22%; left:16%;">¡A LAS CARTAS!</div>
-            </div>
-            <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO IV: TU TURNO</span>
-              <p class="comic-text">Cuatro heraldos han respondido al llamado. Elige a tu campeón, desafía la baraja y conquista la cúspide de la Torre.</p>
+              <span class="comic-act-tag">ACTO III: LA CONQUISTA SUPREMA</span>
+              <p class="comic-text">«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos, oro y gloria aguarda al campeón que cruce el umbral.</p>
             </div>
           </div>
         </div>
@@ -180,11 +119,15 @@
         </div>
       </div>
 
-      <!-- Indicador elegante de oro acumulado (ubicado debajo del título, libre de cámaras/notch) -->
+      <!-- Indicador elegante de oro acumulado y lanzamientos -->
       <div class="intro-minigame-hud" id="intro-minigame-hud" style="margin-top:14px;">
         <div class="intro-gold-badge" id="intro-gold-badge">
           <span class="gold-icon">🪙</span>
           <span class="gold-val" id="intro-gold-val">0 ORO</span>
+        </div>
+        <div class="intro-throws-badge" id="intro-throws-badge" title="Lanzamientos disponibles del personaje (10 máx)">
+          <span class="throws-icon">🎯</span>
+          <span class="throws-val" id="intro-throws-val">10/10</span>
         </div>
         <button class="intro-frenzy-btn" id="intro-frenzy-btn" onclick="triggerIntroFrenzy(event)" title="Activa lluvia de cartas y oro x3">
           ⚡ FRENESÍ x3
@@ -339,8 +282,10 @@
               <span class="diff-text">PESADILLA</span>
             </button>
           </div>
-          <div class="difficulty-desc-box" id="difficulty-desc-box">
-            🟢 <b>Torre del Novicio (7 Pisos):</b> Batallas fluidas. ¡Vence a BLACK en el Piso 7! (🏆 +1 Trofeo)
+          <div class="difficulty-desc-box ascension-diff-desc" id="difficulty-desc-box">
+            <div id="ascension-difficulty-desc" class="ascension-info-text">
+              <span class="ascension-modifier-tag">🟢 Torre del Novicio (7 Pisos):</span> Batallas fluidas. ¡Vence a BLACK en el Piso 7! (🏆 +1 Trofeo)
+            </div>
           </div>
         </div>
       </div>
@@ -1611,11 +1556,10 @@
       <!-- PANTALLA 2: COMBATE ARENA BO3 ACTIVO -->
       <div id="arena-stage-battle" class="arena-stage hidden">
         <!-- OVERLAY MONEDA AL AIRE -->
-        <div id="arena-coin-box" class="arena-coin-box hidden" onclick="skipArenaCoinFlip()" title="Toca para ingresar de inmediato">
+        <div id="arena-coin-box" class="arena-coin-box hidden" title="Sorteando iniciativa de ronda...">
           <div class="arena-coin spinning" id="arena-coin-icon">🪙</div>
           <div class="arena-coin-text" id="arena-coin-status">¡LANZANDO MONEDA AL AIRE!</div>
-          <div class="arena-coin-sub" id="arena-coin-result-sub" style="font-size:9px;color:#cbd5e1;margin-top:4px;">Sorteando iniciativa de ronda... (Toca para continuar)</div>
-          <button type="button" class="arena-coin-skip-btn" onclick="skipArenaCoinFlip(); event.stopPropagation();" style="margin-top:8px;padding:6px 14px;font-size:10px;background:rgba(255,255,255,0.12);border:1px solid #66fcf1;color:#66fcf1;border-radius:6px;cursor:pointer;min-height:44px;min-width:44px;">SALTAR ⏭</button>
+          <div class="arena-coin-sub" id="arena-coin-result-sub" style="font-size:9px;color:#cbd5e1;margin-top:4px;">Sorteando iniciativa de ronda...</div>
         </div>
         
         <!-- ZONA DEL RIVAL -->

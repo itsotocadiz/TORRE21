@@ -2428,16 +2428,14 @@
   function buildStandardDeck() {
     const extraCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards() : [];
     const extraCardsMap = {};
-    const standaloneCards = [];
     if (Array.isArray(extraCards)) {
       extraCards.forEach(c => {
+        if (!c) return;
         const enriched = Object.assign({ isWonCard: true }, c);
         if (c.slot) {
           extraCardsMap[c.slot] = enriched;
-        } else if (SUITS.includes(c.suit) && CARD_RANKS.some(r => r.rank === c.rank)) {
+        } else if (c.suit && c.rank) {
           extraCardsMap[`${c.suit}_${c.rank}`] = enriched;
-        } else {
-          standaloneCards.push(enriched);
         }
       });
     }
@@ -2453,8 +2451,9 @@
         }
       }
     }
-    if (standaloneCards.length > 0) {
-      deck.push(...standaloneCards);
+    // Mantener siempre exactamente 52 cartas sin cartas extra excedentes
+    if (deck.length > 52) {
+      deck.length = 52;
     }
     return deck;
   }
@@ -3528,7 +3527,7 @@
     if (descEl && DIFFICULTY_CONFIGS[cur]) {
       const cfg = DIFFICULTY_CONFIGS[cur];
       const loreHtml = cfg.lore ? `<div class="diff-lore-box" style="margin-top:4px;font-size:8.5px;color:#94a3b8;font-style:italic;line-height:1.3;border-left:2px solid #ffd166;padding-left:6px;background:rgba(255,255,255,0.02);border-radius:0 4px 4px 0;"><span style="color:#ffd166;font-style:normal;font-weight:bold;font-family:var(--font-pixel,monospace);font-size:8.5px;">📜 ${cfg.loreTitle || 'CRÓNICA'}:</span> "${cfg.lore}"</div>` : '';
-      descEl.innerHTML = cfg.desc + loreHtml;
+      descEl.innerHTML = `<div id="ascension-difficulty-desc" class="ascension-diff-desc ascension-info-text"><span class="ascension-modifier-tag">${cfg.desc}</span>${loreHtml}</div>`;
 
       if (typeof document.querySelector === "function") {
         const playBtn = document.querySelector(".hero-book-action-btn.play");
@@ -5321,7 +5320,8 @@
     gameState.diff = (typeof getGameDifficulty === "function") ? getGameDifficulty() : "normal";
     gameState.floor = 1;
     const minigameGold = window.introMinigameGold || 0;
-    gameState.gold = (masteryBonuses.gold || 0) + minigameGold;
+    const frenzyBonus = (window.introFrenzyMultiplier > 1 || window._frenzyTowerBenefit) ? 50 : 0;
+    gameState.gold = (masteryBonuses.gold || 0) + minigameGold + frenzyBonus;
     gameState.isRolling = false;
     gameState.killCount = 0;
     gameState.revivesUsed = 0;
@@ -14009,7 +14009,10 @@
     dragHistory: [],
     isFlying: false,
     lastTime: 0,
-    initialized: false
+    initialized: false,
+    maxThrows: 10,
+    throwsLeft: 10,
+    comboStreak: 0
   };
 
   const requestFrame = (typeof requestAnimationFrame === "function") ? requestAnimationFrame : (fn => setTimeout(fn, 16));
@@ -14034,6 +14037,21 @@
     el.textContent = `+${goldVal} ORO`;
     fx.appendChild(el);
     setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 950);
+  }
+
+  function spawnIntroFloatingSkull(x, y, cryptCount) {
+    const fx = document.getElementById("intro-fx-container");
+    if (!fx) return;
+    const el = document.createElement("div");
+    el.className = "intro-gold-float";
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.color = "#ffd166";
+    el.style.borderColor = "#ffd166";
+    el.style.textShadow = "0 0 12px #ff6b6b, 0 0 20px #ffd166";
+    el.textContent = `💀 +${cryptCount} CRIPTA${cryptCount > 1 ? 'S' : ''}!`;
+    fx.appendChild(el);
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1400);
   }
 
   function spawnIntroHitRing(x, y) {
@@ -14062,8 +14080,24 @@
     const mult = (window.introFrenzyMultiplier && window.introFrenzyMultiplier > 1) ? window.introFrenzyMultiplier : 1;
     const goldVal = (isNaN(parsedGold) ? 1 : parsedGold) * mult;
 
-    // Sumar oro al acumulador del héroe
+    // Sumar oro al acumulador del héroe y persistirlo al saldo real
     window.introMinigameGold = (window.introMinigameGold || 0) + goldVal;
+    if (typeof gameState !== "undefined" && gameState) {
+      gameState.gold = (gameState.gold || 0) + goldVal;
+    }
+
+    // Moneda de Calavera: al atrapar 7 monedas juntas en el minijuego, otorga 1 Moneda de Calavera (x3 si en Frenesí)
+    introMinigameState.comboStreak = (introMinigameState.comboStreak || 0) + 1;
+    if (introMinigameState.comboStreak % 7 === 0) {
+      const isFrenzy = (window.introFrenzyMultiplier && window.introFrenzyMultiplier > 1);
+      const cryptReward = isFrenzy ? 3 : 1;
+      if (typeof addPlayerCryptCoins === "function") {
+        addPlayerCryptCoins(cryptReward);
+      }
+      spawnIntroFloatingSkull(cardCx, cardCy - 18, cryptReward);
+      try { playWinFanfareSound(); } catch (_) {}
+      if (typeof triggerHaptic === "function") triggerHaptic("blackjack");
+    }
 
     // Actualizar HUD con animación
     const goldValEl = document.getElementById("intro-gold-val");
@@ -14130,6 +14164,11 @@
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
+    const throwsInitEl = document.getElementById("intro-throws-val");
+    if (throwsInitEl) {
+      throwsInitEl.textContent = `${introMinigameState.throwsLeft}/${introMinigameState.maxThrows}`;
+    }
+
     // Dibujar elástico del tirachinas y trayectoria de vuelo
     function drawSlingshot() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -14184,7 +14223,13 @@
     let pointerId = null;
 
     function onPointerDown(e) {
-      if (e.target.closest("#intro-start-btn") || e.target.closest("#intro-hint")) return;
+      if (e.target.closest("#intro-start-btn") || e.target.closest("#intro-hint") || e.target.closest("#intro-frenzy-btn")) return;
+      if (introMinigameState.throwsLeft <= 0) {
+        if (typeof showGameToast === "function") {
+          showGameToast("¡Límite de 10 lanzamientos alcanzado! Entra a la Torre.", "info");
+        }
+        return;
+      }
       const sceneRect = scene.getBoundingClientRect();
       const px = e.clientX - sceneRect.left;
       const py = e.clientY - sceneRect.top;
@@ -14284,6 +14329,23 @@
         }
         introMinigameState.isFlying = true;
         medallion.classList.add("flying");
+
+        // Descontar exactamente 1 lanzamiento y actualizar contador 10/10
+        if (introMinigameState.throwsLeft > 0) {
+          introMinigameState.throwsLeft--;
+          const throwsEl = document.getElementById("intro-throws-val");
+          if (throwsEl) {
+            throwsEl.textContent = `${introMinigameState.throwsLeft}/${introMinigameState.maxThrows}`;
+          }
+          const throwsBadge = document.getElementById("intro-throws-badge");
+          if (throwsBadge) {
+            throwsBadge.classList.remove("bump");
+            void throwsBadge.offsetWidth;
+            throwsBadge.classList.add("bump");
+            setTimeout(() => throwsBadge.classList.remove("bump"), 250);
+          }
+        }
+
         playLaunchSound();
         triggerHaptic("button_click");
       } else {
@@ -14459,9 +14521,37 @@
   /* ============================================================
      SPLASH SCREEN (BARITA) Y PRÓLOGO TIPO CÓMIC DINÁMICO
      ============================================================ */
+  const PROLOGUE_PAGES = [
+    {
+      id: 1,
+      image: "assets/comic_panel_1.jpg",
+      act: "ACTO I: EL PACTO DE BLACK",
+      title: "EL PACTO DE BLACK",
+      text: "«Quien suba los 21 pisos reclamará su alma.» El pacto sagrado ha sido forjado en las sombras de la Torre.",
+      sfx: "¡21!"
+    },
+    {
+      id: 2,
+      image: "assets/comic_panel_2.jpg",
+      act: "ACTO II: SELLOS ARCANOS",
+      title: "DUELO DE SOMBRAS",
+      text: "«¡Domina los sellos arcanos o cae en la sombra!» Solo un Blackjack de fuego y acero puede quebrar la maldición de Black.",
+      sfx: "¡CRACK!"
+    },
+    {
+      id: 3,
+      image: "assets/comic_panel_3.jpg",
+      act: "ACTO III: LA CONQUISTA SUPREMA",
+      title: "ASCENSIÓN FINAL",
+      text: "«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos, oro y gloria aguarda al campeón que cruce el umbral.",
+      sfx: "¡A LA TORRE!"
+    }
+  ];
+  window.PROLOGUE_PAGES = PROLOGUE_PAGES;
+
   let _splashTimer = null;
   let currentComicPanel = 1;
-  const TOTAL_COMIC_PANELS = 4;
+  const TOTAL_COMIC_PANELS = 3;
 
   function dismissSplashStudio() {
     if (_splashTimer) {
@@ -14470,6 +14560,7 @@
     }
     const splash = document.getElementById("screen-splash-studio");
     if (!splash) return;
+    try { playBaritaChimeSound(); } catch (_) {}
     splash.classList.add("fade-out");
     setTimeout(() => {
       splash.classList.add("hidden");
@@ -14478,16 +14569,14 @@
         if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
       } catch (_) {}
 
-      const seen = localStorage.getItem("torre21_prologue_seen");
-      if (seen !== "true") {
-        openComicPrologue();
-      }
+      // El cómic aparece SIEMPRE que se inicie el juego (sin restricción de visto)
+      openComicPrologue();
     }, 450);
   }
   window.dismissSplashStudio = dismissSplashStudio;
 
   function openComicPrologue() {
-    const comicScreen = document.getElementById("screen-comic-prologue");
+    const comicScreen = document.getElementById("screen-comic-prologue") || document.getElementById("screen-prologue-comic");
     if (!comicScreen) return;
     currentComicPanel = 1;
     renderComicPanel(1);
@@ -14538,10 +14627,15 @@
 
   function finishComicPrologue() {
     try {
-      localStorage.setItem("torre21_prologue_seen", "true");
+      localStorage.removeItem("torre21_prologue_seen");
     } catch (_) {}
-    const comicScreen = document.getElementById("screen-comic-prologue");
+    const comicScreen = document.getElementById("screen-comic-prologue") || document.getElementById("screen-prologue-comic");
     if (comicScreen) comicScreen.classList.add("hidden");
+    const introScreen = document.getElementById("screen-intro");
+    if (introScreen) introScreen.classList.remove("hidden");
+    try {
+      if (typeof initIntroMinigame === "function") initIntroMinigame();
+    } catch (_) {}
     try {
       if (typeof playButtonClickSound === "function") playButtonClickSound();
     } catch (_) {}
@@ -15671,6 +15765,7 @@
 
     function startFrenzyCountdown() {
       window.introFrenzyMultiplier = 3;
+      window._frenzyTowerBenefit = true;
       try { playWinFanfareSound(); } catch (_) {}
       triggerHaptic("blackjack");
 
@@ -15993,34 +16088,46 @@
       arenaCoinTimer1 = setTimeout(() => {
         try {
           const playerStarts = Math.random() < 0.5;
-          if (arenaMatch) arenaMatch.firstTurn = playerStarts ? "player" : "rival";
+          if (arenaMatch) {
+            arenaMatch.firstTurn = playerStarts ? "player" : "rival";
+            arenaMatch.settling = true;
+          }
           if (coinIcon) {
             coinIcon.classList.remove("spinning");
             coinIcon.classList.add("landed");
           }
           if (coinStatus) {
-            coinStatus.innerText = playerStarts ? "🪙 ¡CARA! INICIAS TÚ" : "🪙 ¡CRUZ! INICIA EL RIVAL";
+            coinStatus.classList.add("commence-active");
+            coinStatus.innerText = "COMIENZA";
           }
           if (coinSub) {
             coinSub.innerText = playerStarts
-              ? "Tienes la iniciativa en este enfrentamiento táctico."
-              : `${rival.name} toma la iniciativa de la ronda.`;
+              ? "🪙 INICIAS TÚ (Iniciativa táctica)"
+              : `🪙 INICIA ${rival.name.toUpperCase()}`;
           }
           if (typeof triggerHaptic === "function") triggerHaptic("button_click");
           if (typeof playCoinLandSound === "function") playCoinLandSound();
         } catch (_) {}
 
-        // Ocultar caja e iniciar combate a los 600ms posteriores
+        // Ocultar caja e iniciar combate tras 900ms
         arenaCoinTimer2 = setTimeout(() => {
           clearArenaCoinTimers(true);
+          if (arenaMatch) {
+            arenaMatch.settling = false;
+            arenaMatch._settling = false;
+          }
+          const coinBox = document.getElementById("arena-coin-box");
+          if (coinBox) coinBox.classList.add("hidden");
+          const actionsBox = document.getElementById("arena-actions");
+          if (actionsBox) actionsBox.classList.remove("hidden");
           initArenaRound();
-        }, 600);
+        }, 900);
       }, 700);
 
       // Failsafe de seguridad absoluto por si algún evento de pantalla interrumpe el timeout
       arenaCoinTimerFailsafe = setTimeout(() => {
         skipArenaCoinFlip();
-      }, 1600);
+      }, 2500);
     } else {
       setTimeout(() => {
         initArenaRound();
@@ -16052,9 +16159,17 @@
   function skipArenaCoinFlip() {
     clearArenaCoinTimers(true);
     if (typeof playCoinLandSound === "function") playCoinLandSound();
-    if (arenaMatch && !arenaMatch.firstTurn) {
-      arenaMatch.firstTurn = (Math.random() < 0.5) ? "player" : "rival";
+    if (arenaMatch) {
+      if (!arenaMatch.firstTurn) {
+        arenaMatch.firstTurn = (Math.random() < 0.5) ? "player" : "rival";
+      }
+      arenaMatch.settling = false;
+      arenaMatch._settling = false;
     }
+    const coinBox = document.getElementById("arena-coin-box");
+    if (coinBox) coinBox.classList.add("hidden");
+    const actionsBox = document.getElementById("arena-actions");
+    if (actionsBox) actionsBox.classList.remove("hidden");
     initArenaRound();
   }
   window.skipArenaCoinFlip = skipArenaCoinFlip;
@@ -16062,10 +16177,15 @@
   function initArenaRound() {
     clearArenaCoinTimers(true);
     const coinBox = document.getElementById("arena-coin-box");
+    if (coinBox) coinBox.classList.add("hidden");
     const actionsBox = document.getElementById("arena-actions");
+    if (actionsBox) actionsBox.classList.remove("hidden");
     
     try {
-      if (arenaMatch) arenaMatch._settling = false;
+      if (arenaMatch) {
+        arenaMatch.settling = false;
+        arenaMatch._settling = false;
+      }
       if (!arenaMatch) return;
       document.getElementById("arena-round-result")?.classList.add("hidden");
       
