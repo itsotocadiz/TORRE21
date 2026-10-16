@@ -14566,6 +14566,9 @@
     const splash = document.getElementById("screen-splash-studio");
     if (!splash) return;
     try { playBaritaChimeSound(); } catch (_) {}
+    // Garantizar que screen-intro nunca sea visible entre el splash y el cómic
+    const introScreen = document.getElementById("screen-intro");
+    if (introScreen) introScreen.classList.add("hidden");
     splash.classList.add("fade-out");
     setTimeout(() => {
       splash.classList.add("hidden");
@@ -14581,6 +14584,8 @@
   window.dismissSplashStudio = dismissSplashStudio;
 
   function openComicPrologue() {
+    const introScreen = document.getElementById("screen-intro");
+    if (introScreen) introScreen.classList.add("hidden");
     const comicScreen = document.getElementById("screen-comic-prologue") || document.getElementById("screen-prologue-comic");
     if (!comicScreen) return;
     currentComicPanel = 1;
@@ -14654,7 +14659,7 @@
       if (_splashTimer) clearTimeout(_splashTimer);
       _splashTimer = setTimeout(() => {
         dismissSplashStudio();
-      }, 2000);
+      }, 3500);
     }
 
     const btn = document.getElementById("intro-start-btn");
@@ -16078,6 +16083,7 @@
 
     if (coinBox) {
       coinBox.classList.remove("hidden");
+      coinBox.style.display = "block";
       if (coinIcon) {
         coinIcon.classList.remove("landed");
         coinIcon.classList.add("spinning");
@@ -16089,13 +16095,14 @@
         if (typeof triggerHaptic === "function") triggerHaptic("coin");
       } catch (_) {}
 
-      // Resolver resultado de la moneda a los 700ms
+      // Resolver resultado de la moneda a los 600ms
       arenaCoinTimer1 = setTimeout(() => {
         try {
           const playerStarts = Math.random() < 0.5;
           if (arenaMatch) {
             arenaMatch.firstTurn = playerStarts ? "player" : "rival";
-            arenaMatch.settling = true;
+            arenaMatch.settling = false;
+            arenaMatch._settling = false;
           }
           if (coinIcon) {
             coinIcon.classList.remove("spinning");
@@ -16114,29 +16121,35 @@
           if (typeof playCoinLandSound === "function") playCoinLandSound();
         } catch (_) {}
 
-        // Ocultar caja e iniciar combate tras 900ms
+        // Ocultar caja e iniciar combate de inmediato a los 550ms
         arenaCoinTimer2 = setTimeout(() => {
           clearArenaCoinTimers(true);
           if (arenaMatch) {
             arenaMatch.settling = false;
             arenaMatch._settling = false;
           }
-          const coinBox = document.getElementById("arena-coin-box");
-          if (coinBox) coinBox.classList.add("hidden");
-          const actionsBox = document.getElementById("arena-actions");
-          if (actionsBox) actionsBox.classList.remove("hidden");
+          const cBox = document.getElementById("arena-coin-box");
+          if (cBox) {
+            cBox.classList.add("hidden");
+            cBox.style.display = "none";
+          }
+          const actBox = document.getElementById("arena-actions");
+          if (actBox) {
+            actBox.classList.remove("hidden");
+            actBox.style.display = "flex";
+          }
           initArenaRound();
-        }, 900);
-      }, 700);
+        }, 550);
+      }, 600);
 
       // Failsafe de seguridad absoluto por si algún evento de pantalla interrumpe el timeout
       arenaCoinTimerFailsafe = setTimeout(() => {
         skipArenaCoinFlip();
-      }, 2500);
+      }, 1600);
     } else {
       setTimeout(() => {
         initArenaRound();
-      }, 200);
+      }, 150);
     }
   }
   window.startArenaMatch = startArenaMatch;
@@ -16151,7 +16164,10 @@
     if (arenaCoinTimerFailsafe) { clearTimeout(arenaCoinTimerFailsafe); arenaCoinTimerFailsafe = null; }
     if (hideBox) {
       const coinBox = document.getElementById("arena-coin-box");
-      if (coinBox) coinBox.classList.add("hidden");
+      if (coinBox) {
+        coinBox.classList.add("hidden");
+        coinBox.style.display = "none";
+      }
       const coinIcon = document.getElementById("arena-coin-icon");
       if (coinIcon) {
         coinIcon.classList.remove("spinning");
@@ -16172,9 +16188,15 @@
       arenaMatch._settling = false;
     }
     const coinBox = document.getElementById("arena-coin-box");
-    if (coinBox) coinBox.classList.add("hidden");
+    if (coinBox) {
+      coinBox.classList.add("hidden");
+      coinBox.style.display = "none";
+    }
     const actionsBox = document.getElementById("arena-actions");
-    if (actionsBox) actionsBox.classList.remove("hidden");
+    if (actionsBox) {
+      actionsBox.classList.remove("hidden");
+      actionsBox.style.display = "flex";
+    }
     initArenaRound();
   }
   window.skipArenaCoinFlip = skipArenaCoinFlip;
@@ -16182,9 +16204,15 @@
   function initArenaRound() {
     clearArenaCoinTimers(true);
     const coinBox = document.getElementById("arena-coin-box");
-    if (coinBox) coinBox.classList.add("hidden");
+    if (coinBox) {
+      coinBox.classList.add("hidden");
+      coinBox.style.display = "none";
+    }
     const actionsBox = document.getElementById("arena-actions");
-    if (actionsBox) actionsBox.classList.remove("hidden");
+    if (actionsBox) {
+      actionsBox.classList.remove("hidden");
+      actionsBox.style.display = "flex";
+    }
     
     try {
       if (arenaMatch) {
@@ -16277,22 +16305,37 @@
       if (hpRival) hpRival.innerText = arenaMatch.rivalHp;
 
       renderArenaHands(false);
+      try {
+        if (typeof playCardDealSound === "function") playCardDealSound();
+      } catch (_) {}
 
       // Notificación táctica de iniciativa
       if (arenaMatch.firstTurn === "rival") {
         if (typeof addLog === "function") {
           addLog(`🪙 Cruz: ¡${arenaMatch.rival.name} tiene la iniciativa! Elige con cuidado.`, "warning");
         }
+        if (typeof showGameToast === "function") {
+          showGameToast(`🪙 ¡Inicia ${arenaMatch.rival.name}!`, "warning");
+        }
       } else {
         if (typeof addLog === "function") {
           addLog("🪙 Cara: ¡Tienes la iniciativa táctica de la ronda!", "magic");
+        }
+        if (typeof showGameToast === "function") {
+          showGameToast("🪙 ¡Inicias tú la ronda!", "gold");
         }
       }
     } catch (err) {
       console.error("[Arena] Error controlado en initArenaRound:", err);
     } finally {
-      if (coinBox) coinBox.classList.add("hidden");
-      if (actionsBox) actionsBox.classList.remove("hidden");
+      if (coinBox) {
+        coinBox.classList.add("hidden");
+        coinBox.style.display = "none";
+      }
+      if (actionsBox) {
+        actionsBox.classList.remove("hidden");
+        actionsBox.style.display = "flex";
+      }
     }
   }
   window.initArenaRound = initArenaRound;

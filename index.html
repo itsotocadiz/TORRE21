@@ -91,7 +91,7 @@
   </div>
 
   <!-- ===== CINEMÁTICA DE APERTURA CON FLOW: LA LEYENDA DE BLACK JACK ===== -->
-  <div id="screen-intro">
+  <div id="screen-intro" class="hidden">
     <div class="intro-scene" id="intro-scene">
       <div class="intro-backdrop" style="background-image: url('assets/svg/bg_tower.svg');"></div>
       <div class="intro-vignette"></div>
@@ -1542,7 +1542,7 @@
       <!-- PANTALLA 2: COMBATE ARENA BO3 ACTIVO -->
       <div id="arena-stage-battle" class="arena-stage hidden">
         <!-- OVERLAY MONEDA AL AIRE -->
-        <div id="arena-coin-box" class="arena-coin-box hidden" title="Sorteando iniciativa de ronda...">
+        <div id="arena-coin-box" class="arena-coin-box hidden" onclick="skipArenaCoinFlip()" title="Toca para continuar...">
           <div class="arena-coin spinning" id="arena-coin-icon">🪙</div>
           <div class="arena-coin-text" id="arena-coin-status">¡LANZANDO MONEDA AL AIRE!</div>
           <div class="arena-coin-sub" id="arena-coin-result-sub" style="font-size:9px;color:#cbd5e1;margin-top:4px;">Sorteando iniciativa de ronda...</div>

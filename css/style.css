@@ -7462,6 +7462,11 @@ body.sudden-death-active #stage {
   padding: 10px 0;
   cursor: pointer;
   user-select: none;
+  pointer-events: auto;
+}
+.arena-coin-box.hidden {
+  display: none !important;
+  pointer-events: none !important;
 }
 .arena-coin { font-size: 44px; display: inline-block; transition: transform 0.3s ease; }
 .arena-coin.spinning, .arena-coin:not(.landed) { animation: coinSpin 0.7s ease-in-out infinite; }
@@ -11589,15 +11594,16 @@ body.sudden-death-active #stage {
   user-select: none;
 }
 .comic-container {
-  max-width: 520px;
-  width: 95vw;
+  max-width: 500px;
+  width: 92vw;
   height: 94vh;
-  max-height: 820px;
+  max-height: 800px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  padding: 8px 6px;
+  padding: 10px 12px;
+  margin: 0 auto;
 }
 .comic-topbar {
   display: flex;
@@ -11652,9 +11658,11 @@ body.sudden-death-active #stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 6px 0;
+  margin: 8px 0;
+  padding: 4px 6px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  box-sizing: border-box;
 }
 .comic-panel {
   display: none;
@@ -11665,6 +11673,9 @@ body.sudden-death-active #stage {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   animation: comicPanelPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 @keyframes comicPanelPop {
@@ -11673,14 +11684,16 @@ body.sudden-death-active #stage {
 }
 .comic-panel-frame.inked-border {
   background: #0b0f19;
-  border: 3px solid #000;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 0 1.5px #ffd166;
+  border: 2.5px solid #ffd166;
+  border-radius: 12px;
+  box-shadow: 0 0 16px rgba(255, 209, 102, 0.4), 0 10px 30px rgba(0, 0, 0, 0.95);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-height: 100%;
+  width: calc(100% - 12px);
+  max-width: 460px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 .comic-art-box {
   position: relative;
