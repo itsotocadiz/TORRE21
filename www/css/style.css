@@ -11501,7 +11501,7 @@ body.sudden-death-active #stage {
 }
 
 /* ============================================================
-   SPLASH SCREEN: BARITA ESTUDIO ARCANO (ESTILO HARRY POTTER)
+   SPLASH SCREEN: BARITA ESTUDIO ARCANO (MINIMALISTA HARRY POTTER)
    ============================================================ */
 .splash-studio-screen {
   position: fixed;
@@ -11510,7 +11510,7 @@ body.sudden-death-active #stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, #181226 0%, #0c0817 55%, #030206 100%);
+  background: radial-gradient(circle at center, #100f1c 0%, #07060e 60%, #020105 100%);
   color: #fff;
   cursor: pointer;
   user-select: none;
@@ -11525,104 +11525,48 @@ body.sudden-death-active #stage {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 24px;
-  max-width: 420px;
-  width: 90vw;
-}
-.splash-wand-wrapper {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 20px;
-}
-.splash-hp-logo-container {
-  position: relative;
-  width: 136px;
-  height: 136px;
-  border-radius: 50%;
-  padding: 4px;
-  background: radial-gradient(circle, rgba(255, 209, 102, 0.4) 0%, rgba(102, 252, 241, 0.2) 60%, transparent 100%);
-  box-shadow: 0 0 32px rgba(255, 209, 102, 0.5), 0 0 60px rgba(102, 252, 241, 0.35);
-}
-.splash-barita-hp-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #ffd166;
-  box-shadow: 0 0 16px rgba(255, 209, 102, 0.8);
-  display: block;
-}
-.splash-spell-sparkle {
-  position: absolute;
-  inset: -14px;
-  border-radius: 50%;
-  border: 2px dashed rgba(102, 252, 241, 0.85);
-  animation: hpSpellSpin 9s linear infinite;
-  pointer-events: none;
-}
-.splash-spell-ring {
-  position: absolute;
-  inset: -22px;
-  border-radius: 50%;
-  border: 1.5px dotted rgba(255, 209, 102, 0.65);
-  animation: hpSpellSpinRev 14s linear infinite;
-  pointer-events: none;
-}
-@keyframes hpSpellSpin {
-  0% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 8px #66fcf1); }
-  50% { transform: rotate(180deg) scale(1.04); filter: drop-shadow(0 0 16px #ffd166); }
-  100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 8px #66fcf1); }
-}
-@keyframes hpSpellSpinRev {
-  0% { transform: rotate(360deg); }
-  100% { transform: rotate(0deg); }
+  padding: 16px;
+  max-width: 520px;
+  width: 94vw;
 }
 .splash-developed-by {
   font-family: var(--font-pixel, monospace);
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: #94a3b8;
+  font-size: 10.5px;
+  letter-spacing: 4px;
+  color: #ffd166;
+  opacity: 0.9;
   margin-bottom: 6px;
   display: block;
+  text-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
 }
-.barita-hp-title {
-  font-family: var(--font-pixel, serif);
-  font-size: 34px;
-  font-weight: 900;
-  letter-spacing: 5px;
-  margin: 4px 0 8px;
-  background: linear-gradient(180deg, #ffffff 0%, #ffe494 30%, #ffd166 60%, #b8860b 85%, #593e04 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 18px rgba(255, 209, 102, 0.75));
+.splash-logo-art-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  margin: 4px 0;
 }
-.hp-lightning-bolt {
-  font-size: 26px;
-  -webkit-text-fill-color: #ffd166;
-  filter: drop-shadow(0 0 8px #66fcf1);
-  animation: hpBoltPulse 1.8s ease-in-out infinite alternate;
-}
-@keyframes hpBoltPulse {
-  0% { transform: scale(1) rotate(-4deg); opacity: 0.85; }
-  100% { transform: scale(1.22) rotate(6deg); opacity: 1; filter: drop-shadow(0 0 14px #66fcf1); }
-}
-.splash-tagline {
-  font-family: var(--font-pixel, monospace);
-  font-size: 9px;
-  color: #66fcf1;
-  letter-spacing: 2px;
+.splash-barita-logo-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
   display: block;
-  text-shadow: 0 0 10px rgba(102, 252, 241, 0.7);
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.45)) drop-shadow(0 0 50px rgba(102, 252, 241, 0.25));
+  animation: hpLogoBreathing 3.2s ease-in-out infinite alternate;
+}
+@keyframes hpLogoBreathing {
+  0% { transform: scale(0.97); filter: drop-shadow(0 0 18px rgba(255, 209, 102, 0.35)); }
+  100% { transform: scale(1.02); filter: drop-shadow(0 0 32px rgba(255, 209, 102, 0.7)) drop-shadow(0 0 55px rgba(102, 252, 241, 0.4)); }
 }
 .splash-tap-hint {
-  margin-top: 28px;
+  margin-top: 16px;
   font-size: 11px;
   color: #cbd5e1;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   animation: splashPulseText 1.4s ease-in-out infinite alternate;
 }
 @keyframes splashPulseText {
@@ -11645,7 +11589,7 @@ body.sudden-death-active #stage {
   user-select: none;
 }
 .comic-container {
-  max-width: 460px;
+  max-width: 520px;
   width: 95vw;
   height: 94vh;
   max-height: 820px;
@@ -11653,13 +11597,13 @@ body.sudden-death-active #stage {
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  padding: 10px 8px;
+  padding: 8px 6px;
 }
 .comic-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 4px;
+  padding: 4px 6px;
 }
 .comic-badge {
   font-family: var(--font-pixel, monospace);
@@ -11708,7 +11652,7 @@ body.sudden-death-active #stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 10px 0;
+  margin: 6px 0;
   position: relative;
   overflow: hidden;
 }
@@ -11724,73 +11668,42 @@ body.sudden-death-active #stage {
   animation: comicPanelPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 @keyframes comicPanelPop {
-  0% { opacity: 0; transform: scale(0.94); }
+  0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
 }
 .comic-panel-frame.inked-border {
   background: #0b0f19;
-  border: 3.5px solid #000;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), inset 0 0 0 2px #ffd166;
+  border: 3px solid #000;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 0 1.5px #ffd166;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 580px;
+  width: 100%;
+  max-height: 100%;
 }
 .comic-art-box {
   position: relative;
-  flex: 1;
-  min-height: 220px;
+  width: 100%;
   background: #000;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .comic-illustration.comic-img-panel {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 52vh;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
   display: block;
-}
-.comic-sfx-bubble {
-  position: absolute;
-  background: #ffd166;
-  color: #000;
-  font-family: var(--font-pixel, fantasy);
-  font-weight: 900;
-  font-size: 14px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 2.5px solid #000;
-  box-shadow: 3px 3px 0 #000;
-  letter-spacing: 1px;
-  z-index: 2;
-  transform: rotate(-7deg);
-}
-.comic-sfx-bubble.pulse {
-  animation: sfxPulse 0.8s ease-in-out infinite alternate;
-}
-.comic-sfx-bubble.crack {
-  background: #ef4444;
-  color: #fff;
-  transform: rotate(8deg);
-  animation: sfxPulse 0.9s ease-in-out infinite alternate;
-}
-.comic-sfx-bubble.awake {
-  background: #66fcf1;
-  color: #0b0c10;
-  animation: sfxPulse 0.7s ease-in-out infinite alternate;
-}
-@keyframes sfxPulse {
-  0% { transform: scale(1) rotate(-6deg); }
-  100% { transform: scale(1.12) rotate(-3deg); }
 }
 .comic-caption-box {
   background: rgba(11, 15, 25, 0.97);
-  padding: 12px 14px;
-  border-top: 2.5px solid #1e293b;
+  padding: 8px 12px;
+  border-top: 2px solid #1e293b;
+  text-align: center;
 }
 .comic-act-tag {
   font-family: var(--font-pixel, monospace);
@@ -11799,11 +11712,11 @@ body.sudden-death-active #stage {
   letter-spacing: 1.5px;
   font-weight: bold;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .comic-text {
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11.5px;
+  line-height: 1.35;
   color: #e2e8f0;
   margin: 0;
 }
@@ -11811,7 +11724,7 @@ body.sudden-death-active #stage {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 4px;
+  padding: 4px 6px;
 }
 .comic-tap-hint {
   font-size: 10px;

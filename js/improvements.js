@@ -814,12 +814,14 @@
     const tryNotify = function (intentos) {
       const title = document.getElementById("screen-title");
       const intro = document.getElementById("screen-intro");
-      const visible = (title && !title.classList.contains("hidden")) || (intro && !intro.classList.contains("hidden"));
-      if (visible) { showGameAlert(message, "\u{1F381} RECOMPENSA DIARIA"); return; }
-      if (intentos > 0) { setTimeout(function () { tryNotify(intentos - 1); }, 900); return; }
-      showGameToast("\u{1F381} " + message);
+      const inMainMenu = title && !title.classList.contains("hidden") && (!intro || intro.classList.contains("hidden"));
+      if (inMainMenu) { showGameAlert(message, "\u{1F381} RECOMPENSA DIARIA"); return; }
+      if (intentos > 0) { setTimeout(function () { tryNotify(intentos - 1); }, 500); return; }
+      if (title && !title.classList.contains("hidden")) {
+        showGameToast("\u{1F381} " + message);
+      }
     };
-    setTimeout(function () { tryNotify(8); }, 1200);
+    setTimeout(function () { tryNotify(600); }, 1000);
   }
   window.notifyDailyLoginReward = notifyDailyLoginReward;
 
@@ -1879,6 +1881,6 @@
 })();// Mejoras Fases 1 a 5
 try { localStorage.removeItem("torre21_prologue_seen"); } catch(e){}
 window.PVP_CONFIG = { autoStart: true, coinMessage: "COMIENZA" };
-window.MINIGAME_CONFIG = { maxThrows: 10 };
+window.MINIGAME_CONFIG = { maxThrows: 5 };
 window.FRENZY_CONFIG = { duration: 15, conversionRate: 7, multiplier: 3 };
 window.DECK_CONFIG = { exactSize: 52, replaceTransmuted: true, ascensionAutoScroll: true };

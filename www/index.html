@@ -14,20 +14,9 @@
   <!-- ===== PANTALLA SPLASH DE ESTUDIO: BARITA (INSPIRADO EN HARRY POTTER) ===== -->
   <div id="screen-splash-studio" class="splash-studio-screen" onclick="dismissSplashStudio()" title="Toca para continuar">
     <div class="splash-studio-content">
-      <div class="splash-wand-wrapper">
-        <div class="splash-hp-logo-container">
-          <img src="assets/barita_logo_hp.jpg" class="splash-barita-hp-img" alt="BARITA Estudio Arcano">
-          <div class="splash-spell-sparkle"></div>
-          <div class="splash-spell-ring"></div>
-        </div>
-      </div>
-
-      <div class="splash-studio-text">
-        <span class="splash-developed-by">DESARROLLADO POR</span>
-        <h2 class="splash-brand-title barita-hp-title">
-          <span class="hp-lightning-bolt">⚡</span>BARITA<span class="hp-lightning-bolt">⚡</span>
-        </h2>
-        <span class="splash-tagline">✦ ESTUDIO ARCANO • TORRE DEL 21 ✦</span>
+      <span class="splash-developed-by">DESARROLLADO POR</span>
+      <div class="splash-logo-art-wrap">
+        <img src="assets/barita_logo_hp.jpg" class="splash-barita-logo-img" alt="BARITA Estudio Arcano">
       </div>
       <div class="splash-tap-hint">⚡ Toca la pantalla para conjurar ▸</div>
     </div>
@@ -56,11 +45,10 @@
           <div class="comic-panel-frame inked-border">
             <div class="comic-art-box">
               <img src="assets/comic_panel_1.jpg" class="comic-illustration comic-img-panel" alt="El Pacto de Black">
-              <div class="comic-sfx-bubble pulse" style="top:12%; right:14%;">¡21!</div>
             </div>
             <div class="comic-caption-box">
               <span class="comic-act-tag">ACTO I: EL PACTO DE BLACK</span>
-              <p class="comic-text">«Quien suba los 21 pisos reclamará su alma.» El pacto sagrado ha sido forjado en las sombras de la Torre.</p>
+              <p class="comic-text">«Quien suba los 21 pisos reclamará su alma.»</p>
             </div>
           </div>
         </div>
@@ -70,11 +58,10 @@
           <div class="comic-panel-frame inked-border">
             <div class="comic-art-box">
               <img src="assets/comic_panel_2.jpg" class="comic-illustration comic-img-panel" alt="Domina los Sellos Arcanos">
-              <div class="comic-sfx-bubble crack" style="top:14%; left:10%;">¡CRACK!</div>
             </div>
             <div class="comic-caption-box">
               <span class="comic-act-tag">ACTO II: SELLOS ARCANOS</span>
-              <p class="comic-text">«¡Domina los sellos arcanos o cae en la sombra!» Solo un Blackjack de fuego y acero puede quebrar la maldición de Black.</p>
+              <p class="comic-text">«¡Domina los sellos arcanos o cae en la sombra!»</p>
             </div>
           </div>
         </div>
@@ -84,11 +71,10 @@
           <div class="comic-panel-frame inked-border">
             <div class="comic-art-box">
               <img src="assets/comic_panel_3.jpg" class="comic-illustration comic-img-panel" alt="Desafía la Torre del 21">
-              <div class="comic-sfx-bubble awake" style="top:18%; right:12%;">¡A LA TORRE!</div>
             </div>
             <div class="comic-caption-box">
               <span class="comic-act-tag">ACTO III: LA CONQUISTA SUPREMA</span>
-              <p class="comic-text">«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos, oro y gloria aguarda al campeón que cruce el umbral.</p>
+              <p class="comic-text">«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos aguarda.</p>
             </div>
           </div>
         </div>
@@ -125,9 +111,9 @@
           <span class="gold-icon">🪙</span>
           <span class="gold-val" id="intro-gold-val">0 ORO</span>
         </div>
-        <div class="intro-throws-badge" id="intro-throws-badge" title="Lanzamientos disponibles del personaje (10 máx)">
+        <div class="intro-throws-badge" id="intro-throws-badge" title="Lanzamientos disponibles del personaje (5 máx)">
           <span class="throws-icon">🎯</span>
-          <span class="throws-val" id="intro-throws-val">10/10</span>
+          <span class="throws-val" id="intro-throws-val">5/5</span>
         </div>
         <button class="intro-frenzy-btn" id="intro-frenzy-btn" onclick="triggerIntroFrenzy(event)" title="Activa lluvia de cartas y oro x3">
           ⚡ FRENESÍ x3

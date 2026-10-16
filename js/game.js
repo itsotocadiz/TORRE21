@@ -14010,8 +14010,9 @@
     isFlying: false,
     lastTime: 0,
     initialized: false,
-    maxThrows: 10,
-    throwsLeft: 10,
+    maxThrows: 5,
+    throwsLeft: 5,
+    throwCardHits: 0,
     comboStreak: 0
   };
 
@@ -14086,9 +14087,12 @@
       gameState.gold = (gameState.gold || 0) + goldVal;
     }
 
-    // Moneda de Calavera: al atrapar 7 monedas juntas en el minijuego, otorga 1 Moneda de Calavera (x3 si en Frenesí)
+    // Contar cartas consecutivas atrapadas en el lanzamiento y racha global
+    introMinigameState.throwCardHits = (introMinigameState.throwCardHits || 0) + 1;
     introMinigameState.comboStreak = (introMinigameState.comboStreak || 0) + 1;
-    if (introMinigameState.comboStreak % 7 === 0) {
+
+    // Moneda de Calavera: al atrapar 7 cartas consecutivas en el lanzamiento (o combo de 7), otorga 1 Moneda de Cripta (x3 en Frenesí)
+    if (introMinigameState.throwCardHits === 7 || introMinigameState.comboStreak % 7 === 0) {
       const isFrenzy = (window.introFrenzyMultiplier && window.introFrenzyMultiplier > 1);
       const cryptReward = isFrenzy ? 3 : 1;
       if (typeof addPlayerCryptCoins === "function") {
@@ -14097,6 +14101,9 @@
       spawnIntroFloatingSkull(cardCx, cardCy - 18, cryptReward);
       try { playWinFanfareSound(); } catch (_) {}
       if (typeof triggerHaptic === "function") triggerHaptic("blackjack");
+      if (typeof showGameToast === "function") {
+        showGameToast(`💀 ¡BONO 7 CARTAS! +${cryptReward} Cripta${cryptReward > 1 ? 's' : ''}`, "gold");
+      }
     }
 
     // Actualizar HUD con animación
@@ -14226,7 +14233,7 @@
       if (e.target.closest("#intro-start-btn") || e.target.closest("#intro-hint") || e.target.closest("#intro-frenzy-btn")) return;
       if (introMinigameState.throwsLeft <= 0) {
         if (typeof showGameToast === "function") {
-          showGameToast("¡Límite de 10 lanzamientos alcanzado! Entra a la Torre.", "info");
+          showGameToast("¡Límite de 5 lanzamientos alcanzado! Entra a la Torre.", "info");
         }
         return;
       }
@@ -14330,9 +14337,10 @@
         introMinigameState.isFlying = true;
         medallion.classList.add("flying");
 
-        // Descontar exactamente 1 lanzamiento y actualizar contador 10/10
+        // Descontar exactamente 1 lanzamiento y actualizar contador 5/5
         if (introMinigameState.throwsLeft > 0) {
           introMinigameState.throwsLeft--;
+          introMinigameState.throwCardHits = 0; // Reiniciar racha de cartas consecutivas en este lanzamiento
           const throwsEl = document.getElementById("intro-throws-val");
           if (throwsEl) {
             throwsEl.textContent = `${introMinigameState.throwsLeft}/${introMinigameState.maxThrows}`;
@@ -14527,24 +14535,21 @@
       image: "assets/comic_panel_1.jpg",
       act: "ACTO I: EL PACTO DE BLACK",
       title: "EL PACTO DE BLACK",
-      text: "«Quien suba los 21 pisos reclamará su alma.» El pacto sagrado ha sido forjado en las sombras de la Torre.",
-      sfx: "¡21!"
+      text: "«Quien suba los 21 pisos reclamará su alma.»"
     },
     {
       id: 2,
       image: "assets/comic_panel_2.jpg",
       act: "ACTO II: SELLOS ARCANOS",
       title: "DUELO DE SOMBRAS",
-      text: "«¡Domina los sellos arcanos o cae en la sombra!» Solo un Blackjack de fuego y acero puede quebrar la maldición de Black.",
-      sfx: "¡CRACK!"
+      text: "«¡Domina los sellos arcanos o cae en la sombra!»"
     },
     {
       id: 3,
       image: "assets/comic_panel_3.jpg",
       act: "ACTO III: LA CONQUISTA SUPREMA",
       title: "ASCENSIÓN FINAL",
-      text: "«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos, oro y gloria aguarda al campeón que cruce el umbral.",
-      sfx: "¡A LA TORRE!"
+      text: "«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos aguarda."
     }
   ];
   window.PROLOGUE_PAGES = PROLOGUE_PAGES;
