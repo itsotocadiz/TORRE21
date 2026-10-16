@@ -2427,34 +2427,56 @@
 
   function buildStandardDeck() {
     const extraCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards() : [];
-    const extraCardsMap = {};
-    if (Array.isArray(extraCards)) {
-      extraCards.forEach(c => {
+    const persistentSeals = (typeof getPersistentDeckSeals === "function") ? getPersistentDeckSeals() : {};
+    const deck = [];
+
+    // 1. Baraja estándar de 52 cartas base
+    for (const suit of SUITS) {
+      for (const r of CARD_RANKS) {
+        deck.push({ rank: r.rank, suit, value: r.value, isAce: !!r.isAce });
+      }
+    }
+
+    // 2. Integrar cartas persistentes ganadas en Ascensos (BUG-02)
+    if (Array.isArray(extraCards) && extraCards.length > 0) {
+      extraCards.forEach((c, idx) => {
         if (!c) return;
-        const enriched = Object.assign({ isWonCard: true }, c);
-        if (c.slot) {
-          extraCardsMap[c.slot] = enriched;
-        } else if (c.suit && c.rank) {
-          extraCardsMap[`${c.suit}_${c.rank}`] = enriched;
+        const cSpecialId = c.specialId || c.id || `won_card_${idx}`;
+        const cardObj = Object.assign({
+          isWonCard: true,
+          specialId: cSpecialId,
+          slot: c.slot || null,
+          rank: c.rank || "10",
+          suit: c.suit || "♠",
+          value: (typeof c.value === "number") ? c.value : 10,
+          isAce: !!c.isAce,
+          rarity: c.rarity || "arcane",
+          name: c.name || `${c.rank || '10'}${c.suit || '♠'}`,
+          desc: c.desc || ""
+        }, c, { isWonCard: true, specialId: cSpecialId });
+
+        // Si la carta ganada posee un sello arcano persistente asignado por su ID o clave suit_rank
+        const cardSeal = persistentSeals[cSpecialId] || persistentSeals[c.id] || persistentSeals[c.slot] || persistentSeals[`${cardObj.suit}_${cardObj.rank}`];
+        if (cardSeal && !cardObj.enchantment) {
+          cardObj.enchantment = Object.assign({}, cardSeal);
         }
+
+        deck.push(cardObj);
       });
     }
 
-    const deck = [];
-    for (const suit of SUITS) {
-      for (const r of CARD_RANKS) {
-        const key = `${suit}_${r.rank}`;
-        if (extraCardsMap[key]) {
-          deck.push(extraCardsMap[key]);
-        } else {
-          deck.push({ rank: r.rank, suit, value: r.value, isAce: !!r.isAce });
+    // 3. Aplicar sellos persistentes correspondientes a cartas del mazo
+    deck.forEach(c => {
+      if (!c.enchantment) {
+        const sKey = c.specialId || c.id || c.slot || `${c.suit}_${c.rank}`;
+        const sKeySuitRank = (c.suit && c.rank) ? `${c.suit}_${c.rank}` : null;
+        const seal = persistentSeals[sKey] || (sKeySuitRank ? persistentSeals[sKeySuitRank] : null);
+        if (seal) {
+          c.enchantment = Object.assign({}, seal);
         }
       }
-    }
-    // Mantener siempre exactamente 52 cartas sin cartas extra excedentes
-    if (deck.length > 52) {
-      deck.length = 52;
-    }
+    });
+
     return deck;
   }
 
@@ -2479,9 +2501,11 @@
       if (idx !== -1) {
         const [clutchCard] = drawPile.splice(idx, 1);
         if (clutchCard && gameState.player && gameState.player.cardEnchantments) {
-          const cid = `${clutchCard.suit}_${clutchCard.rank}`;
-          if (gameState.player.cardEnchantments[cid]) {
-            clutchCard.enchantment = Object.assign({}, gameState.player.cardEnchantments[cid]);
+          const cid = clutchCard.specialId || clutchCard.id || clutchCard.slot || `${clutchCard.suit}_${clutchCard.rank}`;
+          const suitRankId = (clutchCard.suit && clutchCard.rank) ? `${clutchCard.suit}_${clutchCard.rank}` : null;
+          const ench = gameState.player.cardEnchantments[cid] || (suitRankId ? gameState.player.cardEnchantments[suitRankId] : null);
+          if (ench) {
+            clutchCard.enchantment = Object.assign({}, ench);
           }
         }
         return clutchCard;
@@ -2490,9 +2514,11 @@
 
     const card = drawPile.pop();
     if (card && gameState.player && gameState.player.cardEnchantments) {
-      const cid = `${card.suit}_${card.rank}`;
-      if (gameState.player.cardEnchantments[cid]) {
-        card.enchantment = Object.assign({}, gameState.player.cardEnchantments[cid]);
+      const cid = card.specialId || card.id || card.slot || `${card.suit}_${card.rank}`;
+      const suitRankId = (card.suit && card.rank) ? `${card.suit}_${card.rank}` : null;
+      const ench = gameState.player.cardEnchantments[cid] || (suitRankId ? gameState.player.cardEnchantments[suitRankId] : null);
+      if (ench) {
+        card.enchantment = Object.assign({}, ench);
       }
     }
     return card;
@@ -2579,31 +2605,83 @@
       clearTimeout(screenShakeTimer);
       screenShakeTimer = null;
     }
-    const cls = (type === "heavy") ? "screen-shake-heavy" : "screen-shake-light";
-    container.classList.remove("screen-shake-light", "screen-shake-heavy");
+    const isHeavy = (type === "heavy");
+    const cls = isHeavy ? "screen-shake-heavy" : "screen-shake-light";
+    const aliasCls = isHeavy ? "shake-heavy" : "shake-light";
+    container.classList.remove("screen-shake-light", "screen-shake-heavy", "shake-light", "shake-heavy");
     void container.offsetWidth; // Forzar reflow limpio
-    container.classList.add(cls);
+    container.classList.add(cls, aliasCls);
     screenShakeTimer = setTimeout(() => {
-      container.classList.remove(cls);
+      container.classList.remove("screen-shake-light", "screen-shake-heavy", "shake-light", "shake-heavy");
       screenShakeTimer = null;
-    }, (type === "heavy") ? 360 : 230);
+    }, isHeavy ? 360 : 230);
   }
+  window.triggerScreenShake = triggerScreenShake;
 
-  async function applyHitStop(ms = 90) {
+  async function applyHitStop(ms = 80, targetEl = null) {
     if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
     const stage = document.getElementById("stage");
     if (stage) stage.classList.add("hit-stop-frozen");
+    if (targetEl && targetEl.classList) targetEl.classList.add("hit-flash");
     await sleep(ms);
     if (stage) stage.classList.remove("hit-stop-frozen");
+    if (targetEl && targetEl.classList) targetEl.classList.remove("hit-flash");
   }
+  window.applyHitStop = applyHitStop;
+
+  function cleanupBattleRuntimeState() {
+    if (screenShakeTimer) {
+      clearTimeout(screenShakeTimer);
+      screenShakeTimer = null;
+    }
+    if (enemySpriteTimer) {
+      clearTimeout(enemySpriteTimer);
+      enemySpriteTimer = null;
+    }
+    if (playerSpriteTimer) {
+      clearTimeout(playerSpriteTimer);
+      playerSpriteTimer = null;
+    }
+    const container = document.getElementById("game-container");
+    if (container) {
+      container.classList.remove("screen-shake-light", "screen-shake-heavy", "shake-light", "shake-heavy");
+    }
+    const stage = document.getElementById("stage");
+    if (stage) {
+      stage.classList.remove("hit-stop-frozen");
+    }
+    const enemySprite = document.getElementById("enemy-sprite");
+    if (enemySprite) {
+      enemySprite.classList.remove("hit-flash", "sprite-strike-enemy", "sprite-windup-enemy", "enemy-attack");
+    }
+    const playerSprite = document.getElementById("player-sprite");
+    if (playerSprite) {
+      playerSprite.classList.remove("hit-flash", "sprite-strike-player", "sprite-windup-player", "sprite-attack");
+    }
+    const combatBanner = document.getElementById("combat-banner");
+    if (combatBanner) {
+      combatBanner.classList.add("hidden");
+    }
+    if (gameState && gameState.player) {
+      const p = gameState.player;
+      p.turnShieldBonus = 0;
+      p.turnDoubleDamage = false;
+      p.duplaDef = 0;
+      p.crimsonApplied = false;
+      p.frozenApplied = false;
+    }
+    _lastPlayerHpPct = null;
+    _lastEnemyHpPct = null;
+  }
+  window.cleanupBattleRuntimeState = cleanupBattleRuntimeState;
 
   /* ============================================================
      EFECTOS VISUALES Y FLOATING COMBAT TEXT
      ============================================================ */
-  function spawnFloatingText(targetId, text, type = "damage") {
-    const target = document.getElementById(targetId);
+  function spawnFloatingText(targetOrId, text, type = "damage") {
+    const target = (typeof targetOrId === "string") ? document.getElementById(targetOrId) : targetOrId;
     if (!target) return;
     const rect = target.getBoundingClientRect();
     const stage = document.getElementById("stage");
@@ -2620,6 +2698,7 @@
       if (el.parentNode) el.parentNode.removeChild(el);
     }, 1750);
   }
+  window.spawnFloatingText = spawnFloatingText;
 
   function explainCombatStatus(type, isEnemy = false) {
     try { playButtonClickSound(); } catch (_) {}
@@ -5545,11 +5624,19 @@
     const p = gameState.player;
     const e = gameState.enemy;
 
+    // Disposición responsiva de la mano en móvil (ARQ-01): abanico dinámico con 5 o más cartas
+    if (p.playerHand && p.playerHand.length >= 5) {
+      pHandEl.classList.add("hand-fanned", "player-cards-fanned");
+    } else {
+      pHandEl.classList.remove("hand-fanned", "player-cards-fanned");
+    }
+
     pHandEl.innerHTML = "";
-    for (const card of p.playerHand) {
+    p.playerHand.forEach((card, idx) => {
       const el = document.createElement("div");
       const suitClass = card.suit === "♥" ? "suit-red suit-hearts" : (card.suit === "♦" ? "suit-diamonds" : (card.suit === "♣" ? "suit-clubs" : "suit-spades"));
-      el.className = `card-face player-card interactive-card ${suitClass}`;
+      el.className = `card-face player-card interactive-card card-dealing ${suitClass}`;
+      el.style.animationDelay = `${idx * 90}ms`;
       if (p.bust) el.classList.add("bust");
       if (p.blackjack) el.classList.add("blackjack");
       const isLoot = !!card.isWonCard;
@@ -5591,7 +5678,7 @@
         });
       };
       pHandEl.appendChild(el);
-    }
+    });
 
     eHandEl.innerHTML = "";
     const showAll = (e.enemyRevealed || gameState.showEnemyCards || e.stand);
@@ -5602,7 +5689,8 @@
       const card = e.enemyHand[i];
       const el = document.createElement("div");
       const suitClass = card.suit === "♥" ? "suit-red suit-hearts" : (card.suit === "♦" ? "suit-diamonds" : (card.suit === "♣" ? "suit-clubs" : "suit-spades"));
-      el.className = `card-face enemy-card ${suitClass}`;
+      el.className = `card-face enemy-card card-dealing ${suitClass}`;
+      el.style.animationDelay = `${i * 90}ms`;
       if (e.bust) el.classList.add("bust");
       if (e.blackjack) el.classList.add("blackjack");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
@@ -5617,12 +5705,29 @@
       eHandEl.appendChild(el);
     }
 
+    // Tensión reactiva en el contador de suma hacia el 21 (UX-01)
+    let pTension = "";
+    if (p.bust) {
+      pTension = " bust sum-bust";
+    } else if (p.blackjack || p.playerScore === 21) {
+      pTension = " blackjack sum-blackjack";
+    } else if (p.playerScore >= 18 && p.playerScore <= 20) {
+      pTension = " sum-tension";
+    }
     pTotalEl.innerText = p.bust ? `BUST (${p.playerScore})` : (p.blackjack ? `BLACKJACK!!! (${p.playerScore})` : String(p.playerScore));
-    pTotalEl.className = "hand-total" + (p.bust ? " bust" : "") + (p.blackjack ? " blackjack" : "");
+    pTotalEl.className = "hand-total" + pTension;
 
     if (e.stand || e.enemyRevealed || gameState.showEnemyCards) {
+      let eTension = "";
+      if (e.bust) {
+        eTension = " bust sum-bust";
+      } else if (e.blackjack || e.enemyScore === 21) {
+        eTension = " blackjack sum-blackjack";
+      } else if (e.enemyScore >= 18 && e.enemyScore <= 20) {
+        eTension = " sum-tension";
+      }
       eTotalEl.innerText = e.bust ? `BUST (${e.enemyScore})` : (e.blackjack ? `BLACKJACK!!! (${e.enemyScore})` : String(e.enemyScore));
-      eTotalEl.className = "hand-total" + (e.bust ? " bust" : "") + (e.blackjack ? " blackjack" : "");
+      eTotalEl.className = "hand-total" + eTension;
       eInfoEl.innerText = "■ Cartas visibles";
       eInfoEl.className = "enemy-card-info revealed";
     } else {
@@ -10255,6 +10360,7 @@
 
   function exitToMainMenu() {
     clearMidRunState();
+    cleanupBattleRuntimeState();
     // La run termina: hay que silenciar la música de combate/alarma o quedaría
     // sonando sobre la pantalla de título (bug de audio reportado).
     try { stopCombatMusic(); } catch (_) {}
@@ -10957,6 +11063,9 @@
     if (modal) modal.classList.add("hidden");
   }
 
+  let _lastPlayerHpPct = null;
+  let _lastEnemyHpPct = null;
+
   function updateHud() {
     const p = gameState.player;
     const e = gameState.enemy;
@@ -10977,8 +11086,21 @@
     const pHpText = document.getElementById("player-hp-text");
     if (pHpText) pHpText.innerText = `${Math.max(0, p.hp)}/${p.maxHp}`;
 
+    // Barra de vida e interpolación de barra de daño diferido (Ghost Bar, UX-01)
+    const curPlayerHpPct = Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100));
     const pHpBar = document.getElementById("player-hp-bar");
-    if (pHpBar) pHpBar.style.width = `${(p.hp / p.maxHp) * 100}%`;
+    const pGhostBar = document.getElementById("player-hp-ghost-bar");
+    if (pHpBar) pHpBar.style.width = `${curPlayerHpPct}%`;
+    if (pGhostBar) {
+      if (_lastPlayerHpPct !== null && curPlayerHpPct < _lastPlayerHpPct) {
+        pGhostBar.classList.add("active");
+        setTimeout(() => { if (pGhostBar) pGhostBar.style.width = `${curPlayerHpPct}%`; }, 40);
+        setTimeout(() => { if (pGhostBar) pGhostBar.classList.remove("active"); }, 650);
+      } else {
+        pGhostBar.style.width = `${curPlayerHpPct}%`;
+      }
+    }
+    _lastPlayerHpPct = curPlayerHpPct;
 
     const lvlEl = document.getElementById("ui-player-lvl");
     if (lvlEl) lvlEl.innerText = p.level || 1;
@@ -11080,8 +11202,20 @@
       const eHpText = document.getElementById("enemy-hp-text");
       if (eHpText) eHpText.innerText = `${Math.max(0, e.hp)}/${e.maxHp}`;
 
+      const curEnemyHpPct = Math.max(0, Math.min(100, (e.hp / e.maxHp) * 100));
       const eHpBar = document.getElementById("enemy-hp-bar");
-      if (eHpBar) eHpBar.style.width = `${(e.hp / e.maxHp) * 100}%`;
+      const eGhostBar = document.getElementById("enemy-hp-ghost-bar");
+      if (eHpBar) eHpBar.style.width = `${curEnemyHpPct}%`;
+      if (eGhostBar) {
+        if (_lastEnemyHpPct !== null && curEnemyHpPct < _lastEnemyHpPct) {
+          eGhostBar.classList.add("active");
+          setTimeout(() => { if (eGhostBar) eGhostBar.style.width = `${curEnemyHpPct}%`; }, 40);
+          setTimeout(() => { if (eGhostBar) eGhostBar.classList.remove("active"); }, 650);
+        } else {
+          eGhostBar.style.width = `${curEnemyHpPct}%`;
+        }
+      }
+      _lastEnemyHpPct = curEnemyHpPct;
     }
 
     const pShield = gameState.status.playerShield || 0;
@@ -11287,6 +11421,7 @@
 
   function showGameOver() {
     clearMidRunState();
+    cleanupBattleRuntimeState();
     try {
       stopCombatMusic();
       stopSuddenDeathTension();
@@ -11365,6 +11500,7 @@
       startRewardMusic();
     } catch (_) {}
     clearMidRunState();
+    cleanupBattleRuntimeState();
     const p = gameState.player;
     playVictorySound();
 
@@ -12778,15 +12914,19 @@
         // Daño restante impacta en HP del rival
         if (dmg > 0) {
           const isCritHit = isNatural21 || dmg >= 20;
+          const eSpriteEl = document.getElementById("enemy-sprite");
           if (isCritHit) {
-            await applyHitStop(90);
+            await applyHitStop(90, eSpriteEl);
             triggerScreenShake("heavy");
             setEnemySpriteState("hit_crit");
             spawnFloatingText("enemy-sprite", `-${dmg} ¡CRÍTICO!`, "crit");
           } else if (dmg < 8) {
+            await applyHitStop(60, eSpriteEl);
             setEnemySpriteState("hit_weak");
             spawnFloatingText("enemy-sprite", `-${dmg}`, "damage-weak");
           } else {
+            await applyHitStop(75, eSpriteEl);
+            triggerScreenShake("light");
             setEnemySpriteState("hit_normal");
             spawnFloatingText("enemy-sprite", `-${dmg}`, "damage");
           }
@@ -12992,15 +13132,19 @@
         // Subfase 3: Daño que penetra a los Puntos de Vida (HP)
         if (incomingDmg > 0) {
           const isPlayerCritTaken = enemyHasBJ || incomingDmg >= 15;
+          const pSpriteEl = document.getElementById("player-sprite");
           if (isPlayerCritTaken) {
-            await applyHitStop(90);
+            await applyHitStop(90, pSpriteEl);
             triggerScreenShake("heavy");
             setPlayerSpriteState("hit_crit");
             spawnFloatingText("player-sprite", `-${incomingDmg} HP ¡CRÍTICO!`, "crit");
           } else if (incomingDmg < 8) {
+            await applyHitStop(60, pSpriteEl);
             setPlayerSpriteState("hit_weak");
             spawnFloatingText("player-sprite", `-${incomingDmg} HP`, "damage-weak");
           } else {
+            await applyHitStop(75, pSpriteEl);
+            triggerScreenShake("light");
             setPlayerSpriteState("hit_normal");
             spawnFloatingText("player-sprite", `-${incomingDmg} HP`, "damage");
           }
@@ -14566,9 +14710,10 @@
     const splash = document.getElementById("screen-splash-studio");
     if (!splash) return;
     try { playBaritaChimeSound(); } catch (_) {}
-    // Garantizar que screen-intro nunca sea visible entre el splash y el cómic
-    const introScreen = document.getElementById("screen-intro");
-    if (introScreen) introScreen.classList.add("hidden");
+
+    // El cómic se prepara y activa DEBAJO del splash antes del fade-out para eliminar todo parpadeo (BUG-01)
+    openComicPrologue();
+
     splash.classList.add("fade-out");
     setTimeout(() => {
       splash.classList.add("hidden");
@@ -14576,9 +14721,6 @@
         if (typeof ensureAudio === "function") ensureAudio();
         if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
       } catch (_) {}
-
-      // El cómic aparece SIEMPRE que se inicie el juego (sin restricción de visto)
-      openComicPrologue();
     }, 450);
   }
   window.dismissSplashStudio = dismissSplashStudio;
@@ -15669,6 +15811,7 @@
 
   function returnToMainMenuClean() {
     clearMidRunState();
+    cleanupBattleRuntimeState();
     try {
       if (typeof stopCombatMusic === "function") stopCombatMusic();
       if (typeof stopSuddenDeathTension === "function") stopSuddenDeathTension();
@@ -15748,6 +15891,7 @@
 
   function startNewAscensionRun() {
     clearMidRunState();
+    cleanupBattleRuntimeState();
     const modals = [
       "screen-event",
       "screen-mastery-forge-modal",

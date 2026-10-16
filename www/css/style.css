@@ -1,7 +1,15 @@
 
-/* OCULTAR ARENA Y CONTROLES DE COMBATE EN EL MENÚ INICIAL E INTRO */
+/* OCULTAR ARENA, HEADER Y CONTROLES DE COMBATE EN SPLASH, CÓMIC, INTRO Y TÍTULO (BUG-01) */
+#screen-splash-studio:not(.hidden) ~ header,
+#screen-splash-studio:not(.hidden) ~ #stage,
+#screen-splash-studio:not(.hidden) ~ #controls,
+#screen-comic-prologue:not(.hidden) ~ header,
+#screen-comic-prologue:not(.hidden) ~ #stage,
+#screen-comic-prologue:not(.hidden) ~ #controls,
+#screen-title:not(.hidden) ~ header,
 #screen-title:not(.hidden) ~ #stage,
 #screen-title:not(.hidden) ~ #controls,
+#screen-intro:not(.hidden) ~ header,
 #screen-intro:not(.hidden) ~ #stage,
 #screen-intro:not(.hidden) ~ #controls {
   display: none !important;
@@ -399,20 +407,107 @@
       65%{opacity:1;transform:translate(4px,0) rotate(3deg) scale(1.05)}
       100%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}
     }
+    /* Reparto escalonado 3D (UX-01) */
+    @keyframes cardDealFlyIn {
+      0% { opacity: 0; transform: translateY(-40px) scale(0.65) rotateY(180deg); }
+      60% { opacity: 1; transform: translateY(-6px) scale(1.04) rotateY(20deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotateY(0deg); }
+    }
+    .card-face.card-dealing {
+      animation: cardDealFlyIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    /* Micro-interacción en mano (UX-01) */
+    .card-face.interactive-card:hover, .card-face.interactive-card:focus-visible {
+      transform: translateY(-14px) scale(1.06);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.65), 0 0 14px rgba(69,162,158,0.45);
+      z-index: 12;
+    }
+    /* Pulso luminoso de activación de carta / sello (UX-01) */
+    @keyframes cardTriggerPulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      35% { transform: scale(1.14); filter: brightness(2.2) drop-shadow(0 0 16px #ffd166); }
+      70% { transform: scale(1.04); filter: brightness(1.5) drop-shadow(0 0 8px #ffb703); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    .card-face.card-triggering {
+      animation: cardTriggerPulse 0.45s ease-out;
+      z-index: 14;
+    }
+    /* Disposición responsiva de mano en abanico (ARQ-01) */
+    .cards-hand.hand-fanned,
+    .cards-hand.player-cards-fanned,
+    .hand-container.hand-fanned {
+      gap: 0 !important;
+      flex-wrap: nowrap !important;
+      justify-content: center !important;
+    }
+    .cards-hand.hand-fanned .card-face:not(:first-child),
+    .cards-hand.player-cards-fanned .card-face:not(:first-child),
+    .hand-container.hand-fanned .card-face:not(:first-child) {
+      margin-left: clamp(-28px, -4vw, -8px) !important;
+    }
+    .cards-hand.hand-fanned .card-face:nth-child(1) { transform: rotate(-5deg) translateY(4px); }
+    .cards-hand.hand-fanned .card-face:nth-child(2) { transform: rotate(-2.5deg) translateY(1px); }
+    .cards-hand.hand-fanned .card-face:nth-child(3) { transform: rotate(0deg) translateY(0); }
+    .cards-hand.hand-fanned .card-face:nth-child(4) { transform: rotate(2.5deg) translateY(1px); }
+    .cards-hand.hand-fanned .card-face:nth-child(5) { transform: rotate(5deg) translateY(4px); }
+    .cards-hand.hand-fanned .card-face:nth-child(6) { transform: rotate(7.5deg) translateY(7px); }
+    .cards-hand.hand-fanned .card-face:nth-child(7) { transform: rotate(10deg) translateY(10px); }
+    .cards-hand.hand-fanned .card-face:hover,
+    .cards-hand.hand-fanned .card-face:active,
+    .cards-hand.player-cards-fanned .card-face:hover,
+    .cards-hand.player-cards-fanned .card-face:active {
+      transform: translateY(-16px) scale(1.08) rotate(0deg) !important;
+      z-index: 20 !important;
+    }
     @keyframes cardHit{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
     .card-face.crit-anim{animation:cardCrit 0.4s ease-out}
     @keyframes cardCrit{0%{transform:scale(1) rotate(0)}30%{transform:scale(1.4) rotate(-5deg)}60%{transform:scale(1.15) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
     .card-face.bust{border-color:#e63946;background:#ffe6e6}
     .card-face.blackjack{border-color:#f4a261;background:#fff8e7}
-    .hand-total{font-size:9px;padding:3px 12px;background:rgba(0,0,0,0.5);border-radius:4px;min-width:70px;text-align:center;display:inline-block}
+    .hand-total{font-size:9px;padding:3px 12px;background:rgba(0,0,0,0.5);border-radius:4px;min-width:70px;text-align:center;display:inline-block;transition:all 0.25s ease;}
     .hand-total.blackjack{color:#f4a261;text-shadow:0 0 8px #f4a261;animation:totalGlow 0.6s ease-in-out}
     @keyframes totalGlow{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
     .hand-total.bust{color:#e63946;animation:bustShake 0.25s ease-out}
     @keyframes bustShake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}100%{transform:translateX(0)}}
-    .screen-shake-light{animation:screenShakeLight 0.22s ease-out}
+    /* Tensión reactiva del contador de 21 (UX-01) */
+    @keyframes tensionPulse {
+      0% { transform: scale(1); color: #ffd166; text-shadow: 0 0 6px rgba(255, 209, 102, 0.4); }
+      50% { transform: scale(1.15); color: #ff9f1c; text-shadow: 0 0 16px rgba(255, 159, 28, 0.95); }
+      100% { transform: scale(1); color: #ffd166; text-shadow: 0 0 6px rgba(255, 209, 102, 0.4); }
+    }
+    @keyframes blackjackExplosion {
+      0% { transform: scale(1); filter: brightness(1); }
+      35% { transform: scale(1.35) rotate(-3deg); filter: brightness(2.5) drop-shadow(0 0 24px #ffd166); }
+      70% { transform: scale(1.18) rotate(2deg); filter: brightness(1.8) drop-shadow(0 0 18px #ffb703); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    @keyframes bustFracture {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.1) translateX(-6px) rotate(-4deg); filter: grayscale(0.8) drop-shadow(0 0 12px #e63946); }
+      50% { transform: scale(0.95) translateX(6px) rotate(3deg); opacity: 0.8; }
+      75% { transform: scale(1.02) translateX(-2px); }
+      100% { transform: scale(1); filter: grayscale(1); opacity: 0.7; }
+    }
+    .hand-total.sum-tension {
+      animation: tensionPulse 0.9s infinite ease-in-out;
+      color: #ffd166 !important;
+    }
+    .hand-total.sum-blackjack {
+      animation: blackjackExplosion 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+      color: #ffd166 !important;
+      text-shadow: 0 0 18px #ffd166, 0 0 35px #ffb703 !important;
+    }
+    .hand-total.sum-bust {
+      animation: bustFracture 0.65s ease-out forwards;
+      color: #ff6b6b !important;
+      text-shadow: 0 0 14px rgba(230, 57, 70, 0.8) !important;
+    }
+    .screen-shake-light, .shake-light{animation:screenShakeLight 0.22s ease-out}
     @keyframes screenShakeLight{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(-3px,2px,0)}50%{transform:translate3d(3px,-2px,0)}75%{transform:translate3d(-2px,-1px,0)}100%{transform:translate3d(0,0,0)}}
-    .screen-shake-heavy{animation:screenShakeHeavy 0.35s ease-out}
+    .screen-shake-heavy, .shake-heavy{animation:screenShakeHeavy 0.35s ease-out}
     @keyframes screenShakeHeavy{0%{transform:translate3d(0,0,0) scale(1)}20%{transform:translate3d(-6px,4px,0) scale(1.01) rotate(-0.5deg)}40%{transform:translate3d(6px,-4px,0) scale(1.01) rotate(0.5deg)}60%{transform:translate3d(-4px,3px,0) scale(1.005)}80%{transform:translate3d(3px,-2px,0)}100%{transform:translate3d(0,0,0) scale(1)}}
+    .hit-flash { filter: brightness(2.2) drop-shadow(0 0 16px #ff4d4d) !important; transition: filter 0.06s ease; }
     .hand-label{font-size: 9px;margin-bottom:3px}
     .hand-label.player{color:#2a9d8f}
     .hand-label.enemy{color:#e63946}
@@ -7080,7 +7175,7 @@ body.sudden-death-active #stage {
   border-radius: 4px;
   pointer-events: none;
   opacity: 0;
-  transition: width 0.25s cubic-bezier(.2,.8,.4,1), left 0.25s cubic-bezier(.2,.8,.4,1), opacity 0.2s ease;
+  transition: width 0.55s ease-out, left 0.55s ease-out, opacity 0.25s ease;
   z-index: 2;
 }
 .bar-ghost.active {
@@ -11515,7 +11610,8 @@ body.sudden-death-active #stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, #100f1c 0%, #07060e 60%, #020105 100%);
+  background-color: #000000;
+  background: #000000 radial-gradient(circle at center, #100f1c 0%, #07060e 60%, #020105 100%);
   color: #fff;
   cursor: pointer;
   user-select: none;
