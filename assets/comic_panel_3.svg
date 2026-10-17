@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 460" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#140b24"/>
+      <stop offset="50%" stop-color="#1f1438"/>
+      <stop offset="100%" stop-color="#0a0512"/>
+    </linearGradient>
+    <filter id="glow3" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="340" height="460" fill="url(#bg3)"/>
+  <!-- Círculo astrológico/mágico central -->
+  <circle cx="170" cy="220" r="125" fill="none" stroke="#ffd166" stroke-width="2" stroke-dasharray="6 4" opacity="0.6"/>
+  <circle cx="170" cy="220" r="140" fill="none" stroke="#48cae4" stroke-width="1" opacity="0.4"/>
+  <circle cx="170" cy="220" r="45" fill="#0d0818" stroke="#ff4d4d" stroke-width="2"/>
+  <text x="170" y="228" fill="#ffd166" font-family="monospace" font-size="24" font-weight="bold" text-anchor="middle" filter="url(#glow3)">21</text>
+  
+  <!-- Sello 1: PICAS (Filo Crítico - Norte) -->
+  <g transform="translate(170, 95)">
+    <circle cx="0" cy="0" r="32" fill="#182338" stroke="#66fcf1" stroke-width="3" filter="url(#glow3)"/>
+    <text x="0" y="10" fill="#66fcf1" font-size="30" text-anchor="middle">♠</text>
+    <text x="0" y="44" fill="#a5f3fc" font-family="monospace" font-size="9" text-anchor="middle">FILO CRÍTICO</text>
+  </g>
+
+  <!-- Sello 2: CORAZONES (Vitalidad - Este) -->
+  <g transform="translate(265, 220)">
+    <circle cx="0" cy="0" r="32" fill="#2b111a" stroke="#ff4d6d" stroke-width="3" filter="url(#glow3)"/>
+    <text x="0" y="10" fill="#ff4d6d" font-size="28" text-anchor="middle">♥</text>
+    <text x="0" y="44" fill="#fda4af" font-family="monospace" font-size="9" text-anchor="middle">VITALIDAD</text>
+  </g>
+
+  <!-- Sello 3: DIAMANTES (Égida y Escudo - Sur) -->
+  <g transform="translate(170, 345)">
+    <circle cx="0" cy="0" r="32" fill="#262210" stroke="#ffd166" stroke-width="3" filter="url(#glow3)"/>
+    <text x="0" y="10" fill="#ffd166" font-size="28" text-anchor="middle">♦</text>
+    <text x="0" y="44" fill="#fef08a" font-family="monospace" font-size="9" text-anchor="middle">ESCUDO RÚNICO</text>
+  </g>
+
+  <!-- Sello 4: TRÉBOLES (Suerte y Maná - Oeste) -->
+  <g transform="translate(75, 220)">
+    <circle cx="0" cy="0" r="32" fill="#0d261e" stroke="#2ec4b6" stroke-width="3" filter="url(#glow3)"/>
+    <text x="0" y="10" fill="#2ec4b6" font-size="28" text-anchor="middle">♣</text>
+    <text x="0" y="44" fill="#99f6e4" font-family="monospace" font-size="9" text-anchor="middle">AZAR DIVINO</text>
+  </g>
+
+  <!-- Líneas de resonancia mística que unen los 4 palos -->
+  <line x1="170" y1="127" x2="235" y2="200" stroke="#ffd166" stroke-width="1.5" opacity="0.6"/>
+  <line x1="235" y1="240" x2="190" y2="315" stroke="#ff4d6d" stroke-width="1.5" opacity="0.6"/>
+  <line x1="150" y1="315" x2="105" y2="240" stroke="#2ec4b6" stroke-width="1.5" opacity="0.6"/>
+  <line x1="105" y1="200" x2="150" y2="127" stroke="#66fcf1" stroke-width="1.5" opacity="0.6"/>
+
+  <text x="170" y="445" fill="#e2e8f0" font-family="monospace" font-size="10" letter-spacing="2" text-anchor="middle">CADA PALO DESPIERTA UN PODER</text>
+</svg>

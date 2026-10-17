@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 220" width="460" height="220">
+  <defs>
+    <!-- Gradiente dorado satinado para la tipografía BARITA -->
+    <linearGradient id="baritaGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff275"/>
+      <stop offset="45%" stop-color="#ffd166"/>
+      <stop offset="80%" stop-color="#f77f00"/>
+      <stop offset="100%" stop-color="#d62828"/>
+    </linearGradient>
+
+    <!-- Gradiente de madera arcana de la varita -->
+    <linearGradient id="wandWoodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a2810"/>
+      <stop offset="40%" stop-color="#78350f"/>
+      <stop offset="70%" stop-color="#9a3412"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Brillo celestial en la punta de la varita -->
+    <radialGradient id="wandSparkGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="25%" stop-color="#66fcf1" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#ffd166" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Filtro de resplandor mágico -->
+    <filter id="magicGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ==================== VARITA MÁGICA CONJURADORA ==================== -->
+  <g id="magic-wand" filter="url(#magicGlow)">
+    <!-- Aura de fulgor cósmico en la punta de la varita -->
+    <circle cx="330" cy="56" r="38" fill="url(#wandSparkGrad)"/>
+
+    <!-- Cuerpo estilizado de la Varita Mágica de Saúco (diagonal elegante) -->
+    <!-- Mango torneado con nudos de poder -->
+    <path d="M 85 158 Q 90 152 97 146 Q 105 138 116 130" stroke="url(#wandWoodGrad)" stroke-width="8.5" stroke-linecap="round"/>
+    <!-- Nudos rúnicos en el mango -->
+    <ellipse cx="92" cy="150" rx="6" ry="4" fill="#ffd166" transform="rotate(-36, 92, 150)"/>
+    <ellipse cx="106" cy="138" rx="5.5" ry="3.5" fill="#f59e0b" transform="rotate(-36, 106, 138)"/>
+    <ellipse cx="120" cy="126" rx="5" ry="3" fill="#d97706" transform="rotate(-36, 120, 126)"/>
+    
+    <!-- Fuste alargado y afilado de la varita hacia la punta -->
+    <path d="M 120 126 L 328 58" stroke="url(#wandWoodGrad)" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M 122 124 L 328 58" stroke="#fef08a" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="329" cy="58" r="3.5" fill="#ffffff"/>
+
+    <!-- Destellos de estrellas y chispas arcanas emanando de la varita -->
+    <!-- Gran estrella de 4 puntas en el ápice -->
+    <path d="M 329 36 L 332 54 L 350 58 L 332 62 L 329 80 L 326 62 L 308 58 L 326 54 Z" fill="#ffffff"/>
+    <path d="M 329 44 L 331 56 L 343 58 L 331 60 L 329 72 L 327 60 L 315 58 L 327 56 Z" fill="#66fcf1"/>
+
+    <!-- Estrellas secundarias flotantes -->
+    <path d="M 362 38 L 364 46 L 372 48 L 364 50 L 362 58 L 360 50 L 352 48 L 360 46 Z" fill="#ffd166"/>
+    <path d="M 298 32 L 299 37 L 304 38 L 299 39 L 298 44 L 297 39 L 292 38 L 297 37 Z" fill="#ffd166" opacity="0.85"/>
+    <path d="M 358 84 L 359 88 L 363 89 L 359 90 L 358 94 L 357 90 L 353 89 L 357 88 Z" fill="#66fcf1" opacity="0.8"/>
+    
+    <!-- Puntos de luz mágica -->
+    <circle cx="346" cy="36" r="2.2" fill="#fff"/>
+    <circle cx="376" cy="62" r="2" fill="#ffd166"/>
+    <circle cx="316" cy="38" r="1.8" fill="#66fcf1"/>
+    <circle cx="340" cy="80" r="1.8" fill="#fff"/>
+    <circle cx="282" cy="54" r="1.5" fill="#ffd166" opacity="0.75"/>
+  </g>
+
+  <!-- ==================== TIPOGRAFÍA ARCANO: BARITA ==================== -->
+  <g id="brand-typography">
+    <!-- Texto principal BARITA en estilo Harry Potter / Fantasía oscura -->
+    <text x="230" y="162"
+          font-family="'Fredoka', 'Cinzel', 'Georgia', 'Outfit', serif"
+          font-size="52"
+          font-weight="900"
+          fill="url(#baritaGoldGrad)"
+          text-anchor="middle"
+          letter-spacing="5"
+          filter="url(#magicGlow)">
+      BARITA
+    </text>
+
+    <!-- Línea decorativa dorada con orbe central -->
+    <line x1="80" y1="178" x2="195" y2="178" stroke="#ffd166" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="230" cy="178" r="3" fill="#ffd166"/>
+    <circle cx="230" cy="178" r="1.5" fill="#fff"/>
+    <line x1="265" y1="178" x2="380" y2="178" stroke="#ffd166" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Subtítulo ESTUDIO ARCANO -->
+    <text x="230" y="198"
+          font-family="'Nunito', 'Arial', sans-serif"
+          font-size="12"
+          font-weight="800"
+          fill="#e2e8f0"
+          text-anchor="middle"
+          letter-spacing="7"
+          opacity="0.95">
+      ESTUDIO ARCANO
+    </text>
+  </g>
+</svg>

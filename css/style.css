@@ -1599,16 +1599,16 @@ header {
    ============================================================ */
 .combat-banner {
   position: absolute;
-  top: 8px;
-  left: 10px;
-  right: 10px;
-  background: rgba(13,20,30,0.95);
+  top: clamp(60px, 18%, 140px);
+  left: 12px;
+  right: 12px;
+  background: rgba(13,20,30,0.96);
   border: 2px solid #ffd166;
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 10px 14px;
   text-align: center;
-  z-index: 50;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.85);
+  z-index: 1500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.9), 0 0 16px rgba(255, 209, 102, 0.4);
   animation: bannerSlideIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
   pointer-events: none;
 }
@@ -4841,6 +4841,60 @@ body.sudden-death-active #stage {
   100% { transform: scale(1.12) translateY(-2px); }
 }
 
+/* Insignia y píldora táctica de cartas de botín de la Torre */
+.card-loot-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0d121c;
+  border: 1.5px solid #ffd166;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  z-index: 11;
+  box-shadow: 0 0 8px rgba(255, 209, 102, 0.7);
+  animation: sealIconBounce 2s ease-in-out infinite alternate;
+}
+.card-trait-pill {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 6.5px;
+  font-weight: 800;
+  font-family: var(--font-pixel, monospace);
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(13, 27, 42, 0.95);
+  border: 1px solid #ffd166;
+  color: #ffd166;
+  white-space: nowrap;
+  max-width: 38px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  letter-spacing: -0.3px;
+  pointer-events: none;
+}
+.card-trait-pill.mult {
+  border-color: #ef4444;
+  color: #fca5a5;
+  background: rgba(40, 10, 15, 0.95);
+}
+.card-trait-pill.adjust {
+  border-color: #06b6d4;
+  color: #a5f3fc;
+  background: rgba(8, 30, 45, 0.95);
+}
+.card-trait-pill.fusion {
+  border-color: #10b981;
+  color: #a7f3d0;
+  background: rgba(6, 40, 25, 0.95);
+}
+
 /* Variaciones temáticas por tipo de sello */
 .card-face.seal-vampiric {
   border-color: #e63946 !important;
@@ -6256,19 +6310,32 @@ body.sudden-death-active #stage {
 }
 .frt-btn-skip {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  background: transparent;
-  border: 1px solid rgba(197,198,199,0.25);
-  color: #64748b;
-  font-size: 9px;
-  padding: 3px 8px;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(197, 198, 199, 0.4);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
   border-radius: 20px;
   cursor: pointer;
   font-family: inherit;
-  transition: color 0.2s, border-color 0.2s;
+  transition: all 0.2s;
+  min-height: 44px;
+  min-width: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  touch-action: manipulation;
 }
-.frt-btn-skip:hover { color: #c5c6c7; border-color: #c5c6c7; }
+.frt-btn-skip:hover, .frt-btn-skip:active {
+  color: #ffd166;
+  border-color: #ffd166;
+  background: rgba(255, 209, 102, 0.15);
+  transform: scale(0.96);
+}
 .frt-icon-wrap { text-align: center; margin-bottom: 8px; }
 .frt-icon { font-size: 36px; line-height: 1; filter: drop-shadow(0 0 12px rgba(102,252,241,0.5)); }
 .frt-title {
@@ -7552,6 +7619,88 @@ body.sudden-death-active #stage {
   color: #ffd166;
   margin-bottom: 10px;
 }
+.arena-mutator-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, rgba(20, 26, 38, 0.95), rgba(11, 15, 23, 0.95));
+  border: 1.5px solid rgba(102, 252, 241, 0.4);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+.arena-mutator-badge.spinning {
+  border-color: #ffd166;
+  box-shadow: 0 0 16px rgba(255, 209, 102, 0.5);
+}
+.arena-mutator-badge.selected-flash {
+  animation: mutatorSelectFlash 0.6s ease-out;
+}
+@keyframes mutatorSelectFlash {
+  0% { transform: scale(0.96); filter: brightness(1.8); }
+  50% { transform: scale(1.04); filter: brightness(1.4); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.amb-spin-icon {
+  font-size: 22px;
+  min-width: 28px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+.arena-mutator-badge.spinning .amb-spin-icon {
+  animation: mutatorSpin 0.25s linear infinite;
+}
+@keyframes mutatorSpin {
+  0% { transform: rotate(0deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1.1); }
+}
+.amb-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.amb-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.amb-tag {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8px;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+.amb-title {
+  font-family: var(--font-pixel, monospace);
+  font-size: 10px;
+  font-weight: bold;
+  color: #ffd166;
+  letter-spacing: 0.5px;
+}
+.amb-desc {
+  font-size: 9.5px;
+  color: #e2e8f0;
+  line-height: 1.3;
+}
+.arena-mutator-badge.theme-gold { border-color: rgba(255, 209, 102, 0.6); box-shadow: 0 0 12px rgba(255, 209, 102, 0.25); }
+.arena-mutator-badge.theme-gold .amb-title { color: #ffd166; }
+.arena-mutator-badge.theme-cyan { border-color: rgba(102, 252, 241, 0.6); box-shadow: 0 0 12px rgba(102, 252, 241, 0.25); }
+.arena-mutator-badge.theme-cyan .amb-title { color: #66fcf1; }
+.arena-mutator-badge.theme-crimson { border-color: rgba(230, 57, 70, 0.6); box-shadow: 0 0 12px rgba(230, 57, 70, 0.25); }
+.arena-mutator-badge.theme-crimson .amb-title { color: #ff6b6b; }
+.arena-mutator-badge.theme-emerald { border-color: rgba(46, 196, 182, 0.6); box-shadow: 0 0 12px rgba(46, 196, 182, 0.25); }
+.arena-mutator-badge.theme-emerald .amb-title { color: #2ec4b6; }
+.arena-mutator-badge.theme-purple { border-color: rgba(181, 101, 244, 0.6); box-shadow: 0 0 12px rgba(181, 101, 244, 0.25); }
+.arena-mutator-badge.theme-purple .amb-title { color: #c084fc; }
+.arena-mutator-badge.theme-silver { border-color: rgba(148, 163, 184, 0.6); box-shadow: 0 0 12px rgba(148, 163, 184, 0.25); }
+.arena-mutator-badge.theme-silver .amb-title { color: #e2e8f0; }
+.arena-mutator-badge.theme-amber { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 12px rgba(245, 158, 11, 0.25); }
+.arena-mutator-badge.theme-amber .amb-title { color: #fbbf24; }
 .arena-coin-box {
   text-align: center;
   padding: 10px 0;
@@ -9092,10 +9241,10 @@ body.sudden-death-active #stage {
    ============================================================ */
 .tactical-perk-toast {
   position: absolute;
-  top: 16%;
+  top: clamp(80px, 24%, 180px);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1200;
+  z-index: 1550;
   background: linear-gradient(135deg, rgba(13, 20, 32, 0.96), rgba(26, 34, 51, 0.96));
   border: 2px solid #ffd166;
   border-radius: 10px;
@@ -9108,6 +9257,8 @@ body.sudden-death-active #stage {
   gap: 8px;
   animation: perkToastPop 2.4s ease forwards;
   pointer-events: none;
+  max-width: 90%;
+  width: max-content;
 }
 
 .tactical-perk-toast .tpt-name {
@@ -11019,11 +11170,13 @@ body.sudden-death-active #stage {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 16px;
+  padding: 6px 8px;
 }
 .comic-illustration {
-  max-height: 80%;
-  max-width: 85%;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  max-width: 100%;
   object-fit: contain;
   filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.8));
   transition: transform 0.4s ease;
@@ -11691,12 +11844,12 @@ body.sudden-death-active #stage {
 }
 .splash-barita-logo-img {
   width: 100%;
+  max-width: 440px;
   height: auto;
-  aspect-ratio: 16 / 9;
+  max-height: 240px;
   object-fit: contain;
   display: block;
-  mix-blend-mode: screen;
-  filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.45)) drop-shadow(0 0 50px rgba(102, 252, 241, 0.25));
+  filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.45)) drop-shadow(0 0 45px rgba(102, 252, 241, 0.25));
   animation: hpLogoBreathing 3.2s ease-in-out infinite alternate;
 }
 @keyframes hpLogoBreathing {

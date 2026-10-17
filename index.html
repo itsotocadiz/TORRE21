@@ -16,7 +16,7 @@
     <div class="splash-studio-content">
       <span class="splash-developed-by">DESARROLLADO POR</span>
       <div class="splash-logo-art-wrap">
-        <img src="assets/barita_logo_hp.jpg" class="splash-barita-logo-img" alt="BARITA Estudio Arcano">
+        <img src="assets/barita_logo.svg" class="splash-barita-logo-img" alt="BARITA Estudio Arcano">
       </div>
       <div class="splash-tap-hint">⚡ Toca la pantalla para conjurar ▸</div>
     </div>
@@ -32,6 +32,10 @@
           <span class="comic-dot active"></span>
           <span class="comic-dot"></span>
           <span class="comic-dot"></span>
+          <span class="comic-dot"></span>
+          <span class="comic-dot"></span>
+          <span class="comic-dot"></span>
+          <span class="comic-dot"></span>
         </div>
         <button type="button" class="comic-skip-btn" onclick="skipComicPrologue(event)" title="Saltar cómic al juego">
           SALTAR ⏭
@@ -40,41 +44,93 @@
 
       <!-- Área de viñetas dinámicas -->
       <div class="comic-viewport" id="comic-viewport">
-        <!-- Viñeta 1: El Pacto de Black -->
+        <!-- Viñeta 1: La Maldición del 21 -->
         <div class="comic-panel active" data-panel="1">
           <div class="comic-panel-frame inked-border">
             <div class="comic-art-box">
-              <img src="assets/comic_panel_1.jpg" class="comic-illustration comic-img-panel" alt="El Pacto de Black">
+              <img src="assets/comic_panel_1.svg" class="comic-illustration comic-img-panel" alt="La Maldición del 21">
             </div>
             <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO I: EL PACTO DE BLACK</span>
-              <p class="comic-text">«Quien suba los 21 pisos reclamará su alma.»</p>
+              <span class="comic-act-tag">ACTO I: LA MALDICIÓN DEL 21</span>
+              <p class="comic-text">«Quien suba los 21 pisos reclamará su alma... o perecerá en las sombras del Abismo.»</p>
             </div>
           </div>
         </div>
 
-        <!-- Viñeta 2: Domina los Sellos Arcanos -->
+        <!-- Viñeta 2: Los Cuatro Heraldos -->
         <div class="comic-panel" data-panel="2">
           <div class="comic-panel-frame inked-border">
             <div class="comic-art-box">
-              <img src="assets/comic_panel_2.jpg" class="comic-illustration comic-img-panel" alt="Domina los Sellos Arcanos">
+              <img src="assets/comic_panel_2.svg" class="comic-illustration comic-img-panel" alt="Los Heraldos de la Luz">
             </div>
             <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO II: SELLOS ARCANOS</span>
-              <p class="comic-text">«¡Domina los sellos arcanos o cae en la sombra!»</p>
+              <span class="comic-act-tag">ACTO II: EL LLAMADO DE LOS HERALDOS</span>
+              <p class="comic-text">«Cuatro almas elegidas con dones astrales acuden a quebrar el reinado de las sombras.»</p>
             </div>
           </div>
         </div>
 
-        <!-- Viñeta 3: Desafía la Torre del 21 -->
+        <!-- Viñeta 3: Los Sellos Arcanos -->
         <div class="comic-panel" data-panel="3">
           <div class="comic-panel-frame inked-border">
             <div class="comic-art-box">
-              <img src="assets/comic_panel_3.jpg" class="comic-illustration comic-img-panel" alt="Desafía la Torre del 21">
+              <img src="assets/comic_panel_3.svg" class="comic-illustration comic-img-panel" alt="Sellos Arcanos">
             </div>
             <div class="comic-caption-box">
-              <span class="comic-act-tag">ACTO III: LA CONQUISTA SUPREMA</span>
-              <p class="comic-text">«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos aguarda.</p>
+              <span class="comic-act-tag">ACTO III: LOS CUATRO SELLOS ARCANOS</span>
+              <p class="comic-text">«Picas de filo letal, Corazones de vida, Diamantes de égida y Tréboles del azar.»</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Viñeta 4: Guardianes del Abismo -->
+        <div class="comic-panel" data-panel="4">
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_4.svg" class="comic-illustration comic-img-panel" alt="Guardianes del Abismo">
+            </div>
+            <div class="comic-caption-box">
+              <span class="comic-act-tag">ACTO IV: GUARDIANES DEL ABISMO</span>
+              <p class="comic-text">«Bestias y espectros corrompidos custodian cada peldaño exigiendo tributo de sangre.»</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Viñeta 5: El Filo del 21 -->
+        <div class="comic-panel" data-panel="5">
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_5.svg" class="comic-illustration comic-img-panel" alt="El Filo del 21">
+            </div>
+            <div class="comic-caption-box">
+              <span class="comic-act-tag">ACTO V: EL FILO DEL 21</span>
+              <p class="comic-text">«Alcanza el 21 perfecto para desatar golpes celestiales. ¡Si te pasas, el BUST te destruirá!»</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Viñeta 6: Reliquias y Pactos -->
+        <div class="comic-panel" data-panel="6">
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_6.svg" class="comic-illustration comic-img-panel" alt="Reliquias y Pactos">
+            </div>
+            <div class="comic-caption-box">
+              <span class="comic-act-tag">ACTO VI: RELIQUIAS Y PACTOS</span>
+              <p class="comic-text">«En el bazar y la hoguera del vacío, sella pactos prohibidos y forja tu baraja.»</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Viñeta 7: El Trono de Black Jack -->
+        <div class="comic-panel" data-panel="7">
+          <div class="comic-panel-frame inked-border">
+            <div class="comic-art-box">
+              <img src="assets/comic_panel_7.svg" class="comic-illustration comic-img-panel" alt="El Trono de Black Jack">
+            </div>
+            <div class="comic-caption-box">
+              <span class="comic-act-tag">ACTO VII: EL TRONO DE BLACK JACK</span>
+              <p class="comic-text">«En la cúspide aguarda el amo de la baraja. ¿Quebrarás su pacto o serás su esclavo eterno?»</p>
             </div>
           </div>
         </div>
@@ -1232,7 +1288,7 @@
   <!-- ===== MODAL TUTORIAL DE PRIMERA RUN ===== -->
   <div id="screen-first-run-tutorial" class="overlay hidden frt-overlay">
     <div class="frt-card">
-      <button class="frt-btn-skip" onclick="_closeTutorialAndContinue()">Saltar ▸</button>
+      <button type="button" class="frt-btn-skip" onclick="_closeTutorialAndContinue(event)" title="Saltar tutorial" aria-label="Saltar tutorial">Saltar ▸</button>
 
       <div class="frt-icon-wrap">
         <div class="frt-icon">🃏</div>
@@ -1567,6 +1623,18 @@
           <div class="as-score" id="arena-score-player">TÚ: 0</div>
           <div class="as-round-pill" id="arena-round-pill">RONDA 1 / 3</div>
           <div class="as-score" id="arena-score-rival">RIVAL: 0</div>
+        </div>
+
+        <!-- MODIFICADOR CAÓTICO DE RONDA (PLAN D: RULETA TÁCTICA) -->
+        <div id="arena-mutator-badge" class="arena-mutator-badge">
+          <div class="amb-spin-icon" id="amb-icon">🎲</div>
+          <div class="amb-body">
+            <div class="amb-header">
+              <span class="amb-tag">REGLA DEL ASALTO:</span>
+              <span class="amb-title" id="amb-name">GIRANDO RULETA...</span>
+            </div>
+            <div class="amb-desc" id="amb-desc">Sorteando mutador caótico de la ronda...</div>
+          </div>
         </div>
 
         <!-- ZONA DEL JUGADOR -->

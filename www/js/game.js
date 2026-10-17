@@ -2365,8 +2365,21 @@
       const introEl = document.getElementById("screen-intro");
       const isAtIntro = (introEl && !introEl.classList.contains("hidden"));
       const isAtTitle = (titleEl && !titleEl.classList.contains("hidden"));
+      const stageEl = document.getElementById("stage");
+      const arenaBattleEl = document.getElementById("arena-stage-battle");
+      const isAtArena = (arenaBattleEl && !arenaBattleEl.classList.contains("hidden"));
+      const isAtStage = (stageEl && !stageEl.classList.contains("hidden") && gameState.enemy);
+      const isAtShop = (gameState.scene === "shop" || !document.getElementById("title-pane-shop")?.classList.contains("hidden"));
+      const isAtCampfire = (gameState.scene === "campfire");
+      const isAtAbyss = (!document.getElementById("screen-abyss-pact-modal")?.classList.contains("hidden"));
+
       if (isAtIntro) startIntroMusic();
       else if (isAtTitle) startMainMenuMusic();
+      else if (isAtArena || isAtStage) startCombatMusic();
+      else if (isAtShop) { if (typeof startTrackedSceneMusic === "function") startTrackedSceneMusic("bazaar"); }
+      else if (isAtCampfire) startCampfireMusic();
+      else if (isAtAbyss) startAbyssMusic();
+      else if (gameState.floor > 0) startCombatMusic();
     }
     const headerBtn = document.getElementById("btn-header-sound");
     if (headerBtn) {
@@ -2843,6 +2856,12 @@
     if (!Array.isArray(hand) || hand.length === 0) return 0;
     const isEnemy = isEnemyHand || (typeof gameState !== "undefined" && gameState.enemy && hand === gameState.enemy.enemyHand);
     const gauntlet = (!isEnemy && typeof gameState !== "undefined" && gameState.player && gameState.player.accessory === "lead_gauntlet");
+    let limit = BUST_LIMIT;
+    let aceVal = 11;
+    if (typeof arenaMatch !== "undefined" && arenaMatch && arenaMatch.currentMutator) {
+      if (arenaMatch.currentMutator.id === "bust_22") limit = 22;
+      if (arenaMatch.currentMutator.id === "overcharged_aces") aceVal = 12;
+    }
     let score = 0;
     let aces = 0;
 
@@ -2853,7 +2872,7 @@
 
       if (card.isAce) {
         aces++;
-        score += 11;
+        score += aceVal;
       } else if (sId === "dark_ten") {
         if (isEnemy) {
           score -= 3;
@@ -2882,20 +2901,20 @@
       }
     }
 
-    while (score > BUST_LIMIT && aces > 0) {
-      score -= 10;
+    while (score > limit && aces > 0) {
+      score -= (aceVal - 1);
       aces--;
     }
 
     // J Doble: si vale 10 pero valiendo 11 llega a 21 exacto
     const hasDoubleJack = hand.some(c => (c.specialId || c.id) === "double_jack");
-    if (hasDoubleJack && score === 20) {
-      score = 21;
+    if (hasDoubleJack && score === limit - 1) {
+      score = limit;
     }
 
     // 7 Astral del Tahúr (Arena): muta a 11 si no causa bust (suma +4 a los 7 ya calculados)
     const hasLuckySeven = hand.some(c => (c.specialId || c.id) === "lucky_seven_astral");
-    if (hasLuckySeven && score + 4 <= 21 && (score + 4 === 21 || score <= 17)) {
+    if (hasLuckySeven && score + 4 <= limit && (score + 4 === limit || score <= limit - 4)) {
       score += 4;
     }
 
@@ -2903,38 +2922,57 @@
     const dynCards = hand.filter(c => (c.specialId || c.id) === "joker_party" || (c.dynamicValues && Array.isArray(c.dynamicValues)));
     dynCards.forEach(c => {
       if ((c.specialId || c.id) === "joker_party") {
-        if (score + 3 <= BUST_LIMIT) score += 3;
-        else if (score - 3 > 0) score -= 3;
+        if (score + 3 <= limit) { score += 3; c.currentAdaptedValue = 3; }
+        else if (score - 3 > 0) { score -= 3; c.currentAdaptedValue = -3; }
       } else if (c.dynamicValues && Array.isArray(c.dynamicValues)) {
         let bestVal = c.dynamicValues[0];
         let bestScore = -1;
         for (const val of c.dynamicValues) {
-          if (score + val <= BUST_LIMIT && score + val > bestScore) {
+          if (score + val <= limit && score + val > bestScore) {
             bestScore = score + val;
             bestVal = val;
           }
         }
+        if (bestScore === -1 && aces > 0) {
+          while (aces > 0 && score > 0) {
+            score -= (aceVal - 1);
+            aces--;
+            for (const val of c.dynamicValues) {
+              if (score + val <= limit && score + val > bestScore) {
+                bestScore = score + val;
+                bestVal = val;
+              }
+            }
+            if (bestScore !== -1) break;
+          }
+        }
         if (bestScore === -1) {
-          // Si todos causan BUST, usa el valor mínimo
+          // Si todos causan BUST, usa el valor mínimo para mitigar
           bestVal = Math.min(...c.dynamicValues);
         }
+        c.currentAdaptedValue = bestVal;
         score += bestVal;
       }
     });
 
+    while (score > limit && aces > 0) {
+      score -= (aceVal - 1);
+      aces--;
+    }
+
     // K Cambiante: baja a 7 o 2 si evita BUST
     const hasShiftingKing = hand.some(c => (c.specialId || c.id) === "shifting_king");
-    if (hasShiftingKing && score > BUST_LIMIT) {
-      if (score - 3 <= BUST_LIMIT) {
+    if (hasShiftingKing && score > limit) {
+      if (score - 3 <= limit) {
         score -= 3;
-      } else if (score - 8 <= BUST_LIMIT) {
+      } else if (score - 8 <= limit) {
         score -= 8;
       }
     }
 
     // 7 Maldito: si causa BUST, muta a -2
     const hasCursedSeven = hand.some(c => (c.specialId || c.id) === "cursed_seven");
-    if (hasCursedSeven && score > BUST_LIMIT) {
+    if (hasCursedSeven && score > limit) {
       score -= 9;
     }
 
@@ -2944,7 +2982,7 @@
       const otherValues = hand.filter(c => (c.specialId || c.id) !== "wild_eight_mirror").map(c => c.value || 0);
       if (otherValues.length > 0) {
         const maxOther = Math.max(...otherValues);
-        if (maxOther > 8 && score - 8 + maxOther <= BUST_LIMIT) {
+        if (maxOther > 8 && score - 8 + maxOther <= limit) {
           score = score - 8 + maxOther;
         }
       }
@@ -2952,20 +2990,20 @@
 
     // 5 Arcano: suma +2 si la puntuación es impar
     const hasArcaneFive = hand.some(c => (c.specialId || c.id) === "arcane_five_surge");
-    if (hasArcaneFive && (score % 2 !== 0) && score + 2 <= BUST_LIMIT) {
+    if (hasArcaneFive && (score % 2 !== 0) && score + 2 <= limit) {
       score += 2;
     }
 
     // 2 Ancla: si causa BUST, muta a 0 salvando la mano
     const hasAnchorTwo = hand.some(c => (c.specialId || c.id) === "balance_two_anchor");
-    if (hasAnchorTwo && score > BUST_LIMIT) {
+    if (hasAnchorTwo && score > limit) {
       score -= 2;
     }
 
     // As Par: con 2 o más Ases en mano otorga +1
     const totalAces = hand.filter(c => c && (c.isAce || c.rank === "A")).length;
     const hasTwinAce = hand.some(c => (c.specialId || c.id) === "twin_ace");
-    if (hasTwinAce && totalAces >= 2 && score + 1 <= BUST_LIMIT) {
+    if (hasTwinAce && totalAces >= 2 && score + 1 <= limit) {
       score += 1;
     }
 
@@ -2973,12 +3011,12 @@
     const malleableCards = hand.filter(c => c && c.enchantment && (c.enchantment.id === "malleable" || c.enchantment.type === "malleable"));
     if (malleableCards.length > 0) {
       for (let i = 0; i < malleableCards.length; i++) {
-        if (score > BUST_LIMIT && (score - 1) <= BUST_LIMIT) {
+        if (score > limit && (score - 1) <= limit) {
           score -= 1;
         }
       }
-      if (score === 20) {
-        score = 21;
+      if (score === limit - 1) {
+        score = limit;
       }
     }
 
@@ -5543,6 +5581,22 @@
       if (goldBanner) goldBanner.classList.add("hidden");
     }
 
+    if (frenzyBonus > 0) {
+      addLog(`⚡ ¡Bono de Frenesí (+${frenzyBonus} Oro) aplicado para esta run!`, "gold");
+    }
+    // RESETEAR FRENESÍ: Solo aplica a la run actual y nunca queda permanente en pantalla
+    window._frenzyTowerBenefit = false;
+    window.introFrenzyMultiplier = 1;
+    if (typeof frenzyTimer !== "undefined" && frenzyTimer) {
+      clearInterval(frenzyTimer);
+      frenzyTimer = null;
+    }
+    const frenzyBtn = document.getElementById("intro-frenzy-btn");
+    if (frenzyBtn) {
+      frenzyBtn.classList.remove("active");
+      frenzyBtn.innerText = "⚡ FRENESÍ x3";
+    }
+
     // TUTORIAL DE PRIMERA PARTIDA: Solo en la primera run histórica del jugador
     const tutorialDone = localStorage.getItem("blackjack_tutorial_done_v1");
     if (!tutorialDone) {
@@ -5656,6 +5710,8 @@
         const sTheme = card.sealTheme || (card.enchantment ? (card.enchantment.element || "gold") : "gold");
         el.classList.add("card-has-seal", `seal-${sTheme}`);
       }
+      const effectiveVal = (typeof card.currentAdaptedValue === "number") ? card.currentAdaptedValue : card.value;
+      const lootPill = card.badgeText ? `<span class="card-trait-pill ${card.badgeClass || ''}">${card.badgeText}</span>` : '';
       if (card.enchantment) {
         const elType = card.enchantment.element || card.enchantment.type || "arcane";
         el.classList.add("enchanted", `seal-${card.enchantment.type || card.enchantment.id}`, `element-${elType}`);
@@ -5664,21 +5720,26 @@
           <span class="card-seal-icon">${card.enchantment.icon}</span>
           <span class="card-value">${card.rank}</span>
           <span class="suit" style="font-size:14px;opacity:0.85;">${card.suit}</span>
-          <span class="card-label">${card.value}</span>
+          <span class="card-label">${effectiveVal}</span>
+          ${lootPill}
         `;
       } else {
         el.innerHTML = `
           ${lootBadge}
           <span class="card-value">${card.rank}</span>
           <span class="suit" style="font-size:14px;opacity:0.85;">${card.suit}</span>
-          <span class="card-label">${card.value}</span>
+          <span class="card-label">${effectiveVal}</span>
+          ${lootPill}
         `;
       }
       el.onclick = () => {
         showCardDetailModal({
           rank: card.rank,
           suit: card.suit,
-          value: card.value,
+          value: card.currentAdaptedValue || card.value,
+          name: card.name || null,
+          desc: card.desc || null,
+          badgeText: card.badgeText || null,
           seal: card.enchantment || null
         });
       };
@@ -5930,6 +5991,15 @@
       }
       p.bust = p.playerScore > BUST_LIMIT;
       p.blackjack = (p.playerScore === 21 && p.playerHand.length === 2);
+
+      // Feedback proactivo de naipes de botín adaptativos
+      p.playerHand.forEach(c => {
+        if (c && c.isWonCard && c.currentAdaptedValue !== undefined && c.currentAdaptedValue !== c.value && !c._adaptedAnnounced) {
+          c._adaptedAnnounced = true;
+          addLog(`✨ [${c.name}]: Adapta su valor a ${c.currentAdaptedValue} para optimizar tu mano (${p.playerScore}).`, "heal");
+          spawnFloatingText("player-sprite", `${c.icon || '⭐'} ${c.currentAdaptedValue}`, "heal");
+        }
+      });
 
       if (p.blackjack) {
         setPlayerSpriteState("blackjack");
@@ -10367,7 +10437,19 @@
 
     if (nameEl) nameEl.innerText = `${rankName.toUpperCase()} DE ${suitName.toUpperCase()}`;
 
-    if (seal) {
+    if (data.name) {
+      if (nameEl) nameEl.innerText = data.name.toUpperCase();
+      if (sealIconEl) {
+        sealIconEl.innerText = "⭐";
+        sealIconEl.style.display = "";
+      }
+      if (sealBadgeEl) {
+        sealBadgeEl.innerText = `⭐ ${data.badgeText || 'NAIPE DE BOTÍN DE TORRE'}`;
+        sealBadgeEl.style.display = "";
+      }
+      if (descEl) descEl.innerText = data.desc || "Naipe legendario ganado al conquistar la Torre del 21.";
+      if (synergyEl) synergyEl.innerText = "Habilidad arcana permanente activa en combate.";
+    } else if (seal) {
       if (sealIconEl) {
         sealIconEl.innerText = seal.icon || "✨";
         sealIconEl.style.display = "";
@@ -12017,6 +12099,13 @@
   function changeVolume(val) {
     const v = parseInt(val, 10);
     gameState.audioVolume = Math.max(0, Math.min(100, isNaN(v) ? 50 : v)) / 100;
+    if (gameState.audioVolume > 0 && !gameState.audioEnabled) {
+      gameState.audioEnabled = true;
+      ensureAudio();
+    }
+    if (audioCtx && audioCtx.state === "suspended" && gameState.audioEnabled) {
+      try { audioCtx.resume(); } catch (_) {}
+    }
     updateMasterGain();
     saveAudioSettings();
     const volValEl = document.getElementById("vol-val");
@@ -14855,31 +14944,59 @@
   const PROLOGUE_PAGES = [
     {
       id: 1,
-      image: "assets/comic_panel_1.jpg",
-      act: "ACTO I: EL PACTO DE BLACK",
-      title: "EL PACTO DE BLACK",
-      text: "«Quien suba los 21 pisos reclamará su alma.»"
+      image: "assets/comic_panel_1.svg",
+      act: "ACTO I: LA MALDICIÓN DEL 21",
+      title: "LA MALDICIÓN DEL 21",
+      text: "«Quien suba los 21 pisos reclamará su alma... o perecerá en las sombras del Abismo.»"
     },
     {
       id: 2,
-      image: "assets/comic_panel_2.jpg",
-      act: "ACTO II: SELLOS ARCANOS",
-      title: "DUELO DE SOMBRAS",
-      text: "«¡Domina los sellos arcanos o cae en la sombra!»"
+      image: "assets/comic_panel_2.svg",
+      act: "ACTO II: EL LLAMADO DE LOS HERALDOS",
+      title: "LOS CUATRO HERALDOS",
+      text: "«Cuatro almas elegidas con dones astrales acuden a quebrar el reinado de las sombras.»"
     },
     {
       id: 3,
-      image: "assets/comic_panel_3.jpg",
-      act: "ACTO III: LA CONQUISTA SUPREMA",
-      title: "ASCENSIÓN FINAL",
-      text: "«¡Desafía la Torre del 21!» Un torbellino de naipes arcanos aguarda."
+      image: "assets/comic_panel_3.svg",
+      act: "ACTO III: LOS CUATRO SELLOS ARCANOS",
+      title: "LOS SELLOS ARCANOS",
+      text: "«Picas de filo letal, Corazones de vida, Diamantes de égida y Tréboles del azar.»"
+    },
+    {
+      id: 4,
+      image: "assets/comic_panel_4.svg",
+      act: "ACTO IV: GUARDIANES DEL ABISMO",
+      title: "GUARDIANES DEL ABISMO",
+      text: "«Bestias y espectros corrompidos custodian cada peldaño exigiendo tributo de sangre.»"
+    },
+    {
+      id: 5,
+      image: "assets/comic_panel_5.svg",
+      act: "ACTO V: EL FILO DEL 21",
+      title: "EL FILO DEL 21",
+      text: "«Alcanza el 21 perfecto para desatar golpes celestiales. ¡Si te pasas, el BUST te destruirá!»"
+    },
+    {
+      id: 6,
+      image: "assets/comic_panel_6.svg",
+      act: "ACTO VI: RELIQUIAS Y PACTOS",
+      title: "RELIQUIAS Y PACTOS",
+      text: "«En el bazar y la hoguera del vacío, sella pactos prohibidos y forja tu baraja.»"
+    },
+    {
+      id: 7,
+      image: "assets/comic_panel_7.svg",
+      act: "ACTO VII: EL TRONO DE BLACK JACK",
+      title: "EL TRONO DE BLACK JACK",
+      text: "«En la cúspide aguarda el amo de la baraja. ¿Quebrarás su pacto o serás su esclavo eterno?»"
     }
   ];
   window.PROLOGUE_PAGES = PROLOGUE_PAGES;
 
   let _splashTimer = null;
   let currentComicPanel = 1;
-  const TOTAL_COMIC_PANELS = 3;
+  const TOTAL_COMIC_PANELS = 7;
 
   function dismissSplashStudio() {
     if (_splashTimer) {
@@ -15204,13 +15321,17 @@
   }
   window._nextTutorialStep = _nextTutorialStep;
 
-  function _closeTutorialAndContinue() {
-    localStorage.setItem("blackjack_tutorial_done_v1", "true");
+  function _closeTutorialAndContinue(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    try {
+      localStorage.setItem("blackjack_tutorial_done_v1", "true");
+    } catch (_) {}
     const modal = document.getElementById("screen-first-run-tutorial");
     if (modal) modal.classList.add("hidden");
     if (typeof _tutorialCallback === "function") {
-      _tutorialCallback();
+      const cb = _tutorialCallback;
       _tutorialCallback = null;
+      cb();
     }
   }
   window._closeTutorialAndContinue = _closeTutorialAndContinue;
@@ -16563,6 +16684,148 @@
   }
   window.skipArenaCoinFlip = skipArenaCoinFlip;
 
+  /* ============================================================
+     PLAN D: MODIFICADORES CAÓTICOS POR RONDA (ARENA PVP)
+     ============================================================ */
+  const ARENA_MUTATORS = [
+    {
+      id: "bust_22",
+      name: "LÍMITE 22",
+      icon: "⚖️",
+      tag: "REGLA MODIFICADA",
+      desc: "El límite de Blackjack asciende a 22 puntos. ¡Arriesga más!",
+      theme: "gold",
+      limit: 22
+    },
+    {
+      id: "spade_slash",
+      name: "PICAS CORTANTES",
+      icon: "⚔️",
+      tag: "EFECTO AL ROBAR",
+      desc: "Cada Pica (♠) que robes asesta 4 de daño directo al rival.",
+      theme: "cyan"
+    },
+    {
+      id: "diamond_heal",
+      name: "DIAMANTES VITALES",
+      icon: "💎",
+      tag: "EFECTO AL ROBAR",
+      desc: "Cada Diamante (♦) que robes regenera +5 HP a tu duelista.",
+      theme: "emerald"
+    },
+    {
+      id: "overcharged_aces",
+      name: "ASES ASTRALES",
+      icon: "✨",
+      tag: "VALOR ALTERADO",
+      desc: "Los Ases adquieren valor astronómico: valen 1 o 12 puntos.",
+      theme: "purple"
+    },
+    {
+      id: "blood_carnage",
+      name: "FURIA CAÓTICA",
+      icon: "🔥",
+      tag: "DAÑO CRÍTICO",
+      desc: "¡Ronda letal! Todo el daño del asalto se multiplica x2.",
+      theme: "crimson",
+      damageMult: 2
+    },
+    {
+      id: "iron_bulwark",
+      name: "PIEL DE ACERO",
+      icon: "🛡️",
+      tag: "DEFENSA TEMPORAL",
+      desc: "Ambos duelistas obtienen +15 de Escudo amortiguador inicial.",
+      theme: "silver",
+      shieldBonus: 15
+    },
+    {
+      id: "mirror_hand",
+      name: "MANO ESPEJO",
+      icon: "🪞",
+      tag: "SIMETRÍA MÍSTICA",
+      desc: "El azar se equipara: ambos duelistas inician con la misma suma.",
+      theme: "amber"
+    }
+  ];
+  window.ARENA_MUTATORS = ARENA_MUTATORS;
+
+  let _arenaMutatorInterval = null;
+
+  function spinArenaMutator(callback) {
+    if (_arenaMutatorInterval) {
+      clearInterval(_arenaMutatorInterval);
+      _arenaMutatorInterval = null;
+    }
+    const badge = document.getElementById("arena-mutator-badge");
+    const iconEl = document.getElementById("amb-icon");
+    const nameEl = document.getElementById("amb-name");
+    const descEl = document.getElementById("amb-desc");
+
+    if (!badge || !iconEl || !nameEl || !descEl) {
+      const chosen = ARENA_MUTATORS[Math.floor(Math.random() * ARENA_MUTATORS.length)];
+      if (arenaMatch) arenaMatch.currentMutator = chosen;
+      if (typeof callback === "function") callback(chosen);
+      return;
+    }
+
+    badge.classList.remove("hidden");
+    badge.className = "arena-mutator-badge spinning";
+
+    let ticks = 0;
+    const maxTicks = 10;
+    _arenaMutatorInterval = setInterval(() => {
+      ticks++;
+      const randomM = ARENA_MUTATORS[Math.floor(Math.random() * ARENA_MUTATORS.length)];
+      iconEl.innerText = randomM.icon;
+      nameEl.innerText = randomM.name;
+      descEl.innerText = randomM.desc;
+
+      if (ticks >= maxTicks) {
+        clearInterval(_arenaMutatorInterval);
+        _arenaMutatorInterval = null;
+        const chosen = ARENA_MUTATORS[Math.floor(Math.random() * ARENA_MUTATORS.length)];
+        if (arenaMatch) arenaMatch.currentMutator = chosen;
+
+        badge.className = `arena-mutator-badge theme-${chosen.theme} selected-flash`;
+        iconEl.innerText = chosen.icon;
+        nameEl.innerText = chosen.name;
+        descEl.innerText = chosen.desc;
+
+        try {
+          if (typeof playTacticalAbilitySound === "function") playTacticalAbilitySound();
+        } catch (_) {}
+
+        if (typeof showGameToast === "function") {
+          showGameToast(`${chosen.icon} ¡${chosen.name}!: ${chosen.desc}`, chosen.theme === "crimson" ? "danger" : "gold");
+        }
+        if (typeof addLog === "function") {
+          addLog(`🎲 Regla de Asalto [${chosen.name}]: ${chosen.desc}`, "magic");
+        }
+
+        // Efectos inmediatos
+        if (chosen.id === "iron_bulwark" && arenaMatch) {
+          arenaMatch.playerShield = (arenaMatch.playerShield || 0) + chosen.shieldBonus;
+          arenaMatch.rivalShield = (arenaMatch.rivalShield || 0) + chosen.shieldBonus;
+          if (typeof spawnFloatingText === "function") {
+            spawnFloatingText("arena-combat-player-avatar", "+15 ESCUDO", "defense");
+            spawnFloatingText("arena-combat-enemy-avatar", "+15 ESCUDO", "defense");
+          }
+        } else if (chosen.id === "mirror_hand" && arenaMatch) {
+          if (arenaMatch.playerHand && arenaMatch.rivalHand && arenaMatch.playerHand.length >= 2 && arenaMatch.rivalHand.length >= 2) {
+            arenaMatch.rivalHand[0] = { ...arenaMatch.playerHand[0] };
+            arenaMatch.rivalHand[1] = { ...arenaMatch.playerHand[1] };
+          }
+        }
+
+        renderArenaHands(false);
+
+        if (typeof callback === "function") callback(chosen);
+      }
+    }, 70);
+  }
+  window.spinArenaMutator = spinArenaMutator;
+
   function initArenaRound() {
     clearArenaCoinTimers(true);
     const coinBox = document.getElementById("arena-coin-box");
@@ -16665,7 +16928,7 @@
       }
       const playerPwrEl = document.getElementById("arena-combat-player-power");
       if (playerPwrEl && arenaMatch.playerStats) {
-        playerPwrEl.innerHTML = `⚔️ PWR ${arenaMatch.playerStats.pwr} | 🛡️ DEF ${arenaMatch.playerStats.def}`;
+        playerPwrEl.innerHTML = `⚔️ PWR ${playerStats.pwr || 12} | 🛡️ DEF ${playerStats.def || 6}`;
       }
 
       const scPlayer = document.getElementById("arena-score-player");
@@ -16682,6 +16945,9 @@
       try {
         if (typeof playCardDealSound === "function") playCardDealSound();
       } catch (_) {}
+
+      // Girar ruleta táctica del Plan D en cada ronda
+      spinArenaMutator();
 
       // Notificación táctica de iniciativa
       if (arenaMatch.firstTurn === "rival") {
@@ -16723,6 +16989,7 @@
 
     const pScore = calculateHandScore(arenaMatch.playerHand);
     const rScore = calculateHandScore(arenaMatch.rivalHand);
+    const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
 
     if (pCardsEl) {
       pCardsEl.innerHTML = arenaMatch.playerHand.map(c => {
@@ -16740,7 +17007,7 @@
         `;
       }).join("");
     }
-    if (pSumEl) pSumEl.innerText = pScore > 21 ? `${pScore} (BUST)` : pScore;
+    if (pSumEl) pSumEl.innerText = pScore > maxLim ? `${pScore} (BUST)` : pScore;
 
     if (rCardsEl) {
       if (showAllRival) {
@@ -16750,7 +17017,7 @@
             <span class="suit">${c.suit}</span>
           </div>
         `).join("");
-        if (rSumEl) rSumEl.innerText = rScore > 21 ? `${rScore} (BUST)` : rScore;
+        if (rSumEl) rSumEl.innerText = rScore > maxLim ? `${rScore} (BUST)` : rScore;
       } else {
         rCardsEl.innerHTML = `
           <div class="card-face enemy-card">
@@ -16783,10 +17050,33 @@
       }
     }
 
+    // Efectos de Mutadores de la Arena al robar
+    if (arenaMatch.currentMutator && drawn) {
+      if (arenaMatch.currentMutator.id === "spade_slash" && drawn.suit === "♠") {
+        arenaMatch.rivalHp = Math.max(0, arenaMatch.rivalHp - 4);
+        const hpRival = document.getElementById("arena-score-rival-hp");
+        if (hpRival) hpRival.innerText = arenaMatch.rivalHp;
+        if (typeof spawnFloatingText === "function") {
+          spawnFloatingText("arena-combat-enemy-avatar", "⚔️ -4 PICAS", "damage");
+        }
+        if (typeof addLog === "function") addLog("⚔️ Picas Cortantes: ¡Tu robo de Pica causa 4 de daño directo!", "magic");
+      } else if (arenaMatch.currentMutator.id === "diamond_heal" && drawn.suit === "♦") {
+        const pMax = (arenaMatch.playerStats && arenaMatch.playerStats.maxHp) || 90;
+        arenaMatch.playerStats.hp = Math.min(pMax, (arenaMatch.playerStats.hp || 90) + 5);
+        const hpPlayer = document.getElementById("arena-score-player-hp");
+        if (hpPlayer) hpPlayer.innerText = arenaMatch.playerStats.hp;
+        if (typeof spawnFloatingText === "function") {
+          spawnFloatingText("arena-combat-player-avatar", "💎 +5 HP", "heal");
+        }
+        if (typeof addLog === "function") addLog("💎 Diamantes Vitales: ¡El Diamante te regenera +5 HP!", "gold");
+      }
+    }
+
     arenaMatch.playerHand.push(drawn);
     renderArenaHands(false);
     const pScore = calculateHandScore(arenaMatch.playerHand);
-    if (pScore > 21) {
+    const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
+    if (pScore > maxLim) {
       arenaPlayerStand();
     }
   }
@@ -16821,7 +17111,8 @@
     if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-player-avatar", "🔄 CAMBIAZO", "magic");
     addLog("🔄 Cambiazo: Has sustituido tu última carta por otra del mazo.", "magic");
     
-    if (calculateHandScore(arenaMatch.playerHand) > 21) {
+    const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
+    if (calculateHandScore(arenaMatch.playerHand) > maxLim) {
       arenaPlayerStand();
     }
   }
@@ -16847,7 +17138,8 @@
     }
     addLog(`🥷 Robo impecable: Le has arrebatado un [${stolen.value} de ${stolen.suit}] al rival.`, "magic");
     
-    if (calculateHandScore(arenaMatch.playerHand) > 21) {
+    const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
+    if (calculateHandScore(arenaMatch.playerHand) > maxLim) {
       arenaPlayerStand();
     }
   }
@@ -16857,9 +17149,16 @@
     if (!arenaMatch) return;
     document.getElementById("arena-actions")?.classList.add("hidden");
 
+    const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
+    let mult = arenaMatch.isSuddenDeath ? 2 : 1;
+    if (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "blood_carnage") {
+      mult *= 2;
+    }
+
     // El rival juega según su umbral de plantarse
     let rScore = calculateHandScore(arenaMatch.rivalHand);
-    const threshold = arenaMatch.rival.standThreshold || 17;
+    const baseThresh = arenaMatch.rival.standThreshold || 17;
+    const threshold = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? (baseThresh + 1) : baseThresh;
     while (rScore < threshold) {
       if (arenaMatch.deck.length === 0) {
         arenaMatch.deck = buildStandardDeck();
@@ -16872,52 +17171,87 @@
     renderArenaHands(true);
 
     const pScore = calculateHandScore(arenaMatch.playerHand);
-    const pNaturalBJ = (pScore === 21 && arenaMatch.playerHand.length === 2);
-    const rNaturalBJ = (rScore === 21 && arenaMatch.rivalHand.length === 2);
+    const pNaturalBJ = (pScore === maxLim && arenaMatch.playerHand.length === 2);
+    const rNaturalBJ = (rScore === maxLim && arenaMatch.rivalHand.length === 2);
     let playerWonRound = false;
     let isDraw = false;
     let title = "";
-    const mult = arenaMatch.isSuddenDeath ? 2 : 1;
 
-    if (pScore > 21 && rScore > 21) {
+    if (pScore > maxLim && rScore > maxLim) {
       title = `💥 AMBOS EN BUST (${pScore} vs ${rScore}). Empate de ronda.`;
       isDraw = true;
-    } else if (pScore > 21) {
-      const dmg = Math.max(10, (arenaMatch.rival.pwr || 14) - (arenaMatch.playerStats.def || 6)) * mult;
+    } else if (pScore > maxLim) {
+      let dmg = Math.max(10, (arenaMatch.rival.pwr || 14) - (arenaMatch.playerStats.def || 6)) * mult;
+      if (arenaMatch.playerShield && arenaMatch.playerShield > 0) {
+        const abs = Math.min(arenaMatch.playerShield, dmg);
+        dmg -= abs;
+        arenaMatch.playerShield -= abs;
+        if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-player-avatar", `🛡️ -${abs} ESCUDO`, "defense");
+      }
       arenaMatch.playerStats.hp = Math.max(0, arenaMatch.playerStats.hp - dmg);
-      title = `💥 BUST: Te pasaste de 21. El rival asesta ${dmg} daño.`;
+      title = `💥 BUST: Superaste los ${maxLim} puntos. El rival asesta ${dmg} daño.`;
       arenaMatch.rivalWins++;
-    } else if (rScore > 21) {
+    } else if (rScore > maxLim) {
       let dmg = Math.max(10, (arenaMatch.playerStats.pwr || 12) - (arenaMatch.rival.def || 6)) * mult;
       const multCard1 = arenaMatch.playerHand && arenaMatch.playerHand.find(c => c && c.operator === "mult");
       if (multCard1) { dmg = Math.round(dmg * 2); }
+      if (arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
+        const abs = Math.min(arenaMatch.rivalShield, dmg);
+        dmg -= abs;
+        arenaMatch.rivalShield -= abs;
+        if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-enemy-avatar", `🛡️ -${abs} ESCUDO`, "defense");
+      }
       arenaMatch.rivalHp = Math.max(0, arenaMatch.rivalHp - dmg);
-      title = `🎉 ¡${arenaMatch.rival.name} hizo BUST! Asestas ${dmg} daño.`;
+      title = `🎉 ¡${arenaMatch.rival.name} superó los ${maxLim}! Asestas ${dmg} daño.`;
       arenaMatch.playerWins++;
       playerWonRound = true;
     } else if (pNaturalBJ && !rNaturalBJ) {
       let dmg = Math.max(12, (arenaMatch.playerStats.pwr || 12) + 5 - (arenaMatch.rival.def || 6)) * mult;
       const multCard = arenaMatch.playerHand && arenaMatch.playerHand.find(c => c && c.operator === "mult");
       if (multCard) { dmg = Math.round(dmg * 2); }
+      if (arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
+        const abs = Math.min(arenaMatch.rivalShield, dmg);
+        dmg -= abs;
+        arenaMatch.rivalShield -= abs;
+        if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-enemy-avatar", `🛡️ -${abs} ESCUDO`, "defense");
+      }
       arenaMatch.rivalHp = Math.max(0, arenaMatch.rivalHp - dmg);
-      title = `❤️‍🔥 ¡BLACKJACK NATURAL! Superas a ${arenaMatch.rival.name}: -${dmg} HP.`;
+      title = `❤️‍🔥 ¡BLACKJACK NATURAL (${maxLim})! Superas a ${arenaMatch.rival.name}: -${dmg} HP.`;
       arenaMatch.playerWins++;
       playerWonRound = true;
     } else if (!pNaturalBJ && rNaturalBJ) {
-      const dmg = Math.max(12, (arenaMatch.rival.pwr || 14) + 5 - (arenaMatch.playerStats.def || 6)) * mult;
+      let dmg = Math.max(12, (arenaMatch.rival.pwr || 14) + 5 - (arenaMatch.playerStats.def || 6)) * mult;
+      if (arenaMatch.playerShield && arenaMatch.playerShield > 0) {
+        const abs = Math.min(arenaMatch.playerShield, dmg);
+        dmg -= abs;
+        arenaMatch.playerShield -= abs;
+        if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-player-avatar", `🛡️ -${abs} ESCUDO`, "defense");
+      }
       arenaMatch.playerStats.hp = Math.max(0, arenaMatch.playerStats.hp - dmg);
-      title = `💀 ¡${arenaMatch.rival.name} tiene Blackjack Natural!: recibes ${dmg} daño.`;
+      title = `💀 ¡${arenaMatch.rival.name} tiene Blackjack Natural (${maxLim})!: recibes ${dmg} daño.`;
       arenaMatch.rivalWins++;
     } else if (pScore > rScore) {
       let dmg = Math.max(8, (arenaMatch.playerStats.pwr || 12) + (pScore - rScore) - (arenaMatch.rival.def || 6)) * mult;
       const multCard2 = arenaMatch.playerHand && arenaMatch.playerHand.find(c => c && c.operator === "mult");
       if (multCard2) { dmg = Math.round(dmg * 2); }
+      if (arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
+        const abs = Math.min(arenaMatch.rivalShield, dmg);
+        dmg -= abs;
+        arenaMatch.rivalShield -= abs;
+        if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-enemy-avatar", `🛡️ -${abs} ESCUDO`, "defense");
+      }
       arenaMatch.rivalHp = Math.max(0, arenaMatch.rivalHp - dmg);
       title = `🎉 ¡${pScore} vs ${rScore}! Victoria de ronda: -${dmg} HP al rival.`;
       arenaMatch.playerWins++;
       playerWonRound = true;
     } else if (rScore > pScore) {
-      const dmg = Math.max(8, (arenaMatch.rival.pwr || 14) + (rScore - pScore) - (arenaMatch.playerStats.def || 6)) * mult;
+      let dmg = Math.max(8, (arenaMatch.rival.pwr || 14) + (rScore - pScore) - (arenaMatch.playerStats.def || 6)) * mult;
+      if (arenaMatch.playerShield && arenaMatch.playerShield > 0) {
+        const abs = Math.min(arenaMatch.playerShield, dmg);
+        dmg -= abs;
+        arenaMatch.playerShield -= abs;
+        if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-player-avatar", `🛡️ -${abs} ESCUDO`, "defense");
+      }
       arenaMatch.playerStats.hp = Math.max(0, arenaMatch.playerStats.hp - dmg);
       title = `❌ ${rScore} vs ${pScore}. Ronda para el rival: recibes ${dmg} daño.`;
       arenaMatch.rivalWins++;

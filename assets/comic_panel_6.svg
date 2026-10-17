@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 460" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg6" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1c1106"/>
+      <stop offset="50%" stop-color="#2b1a08"/>
+      <stop offset="100%" stop-color="#080402"/>
+    </linearGradient>
+    <radialGradient id="fireLight" cx="50%" cy="65%" r="45%">
+      <stop offset="0%" stop-color="#ff9f1c"/>
+      <stop offset="40%" stop-color="#e71d36" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fireGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feComposite in="SourceGraphic" in2="b" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="340" height="460" fill="url(#bg6)"/>
+  <!-- Resplandor cálido de la hoguera del descanso -->
+  <circle cx="170" cy="300" r="140" fill="url(#fireLight)"/>
+
+  <!-- Altar de Piedra con Reliquias -->
+  <polygon points="50,260 290,260 320,380 20,380" fill="#1f1813" stroke="#523a28" stroke-width="3"/>
+
+  <!-- Cáliz Maldito con Gema carmesí -->
+  <g transform="translate(100, 195)">
+    <path d="M10 20 Q25 45 40 20 L30 55 L38 65 L12 65 L20 55 Z" fill="#ffd166" stroke="#b45309" stroke-width="2"/>
+    <ellipse cx="25" cy="20" rx="14" ry="6" fill="#e63946" filter="url(#fireGlow)"/>
+  </g>
+
+  <!-- Pergamino de Pacto Prohibido con sello de cera -->
+  <g transform="translate(180, 185) rotate(8)">
+    <rect width="70" height="65" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+    <line x1="12" y1="18" x2="58" y2="18" stroke="#92400e" stroke-width="2"/>
+    <line x1="12" y1="28" x2="48" y2="28" stroke="#92400e" stroke-width="2"/>
+    <line x1="12" y1="38" x2="54" y2="38" stroke="#92400e" stroke-width="2"/>
+    <!-- Sello de sangre del Abismo -->
+    <circle cx="50" cy="50" r="10" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.5"/>
+    <text x="50" y="54" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">☠</text>
+  </g>
+
+  <!-- Llamas danzantes en primer plano -->
+  <path d="M140 370 Q170 280 180 340 Q195 290 205 370 Z" fill="#ff9f1c" filter="url(#fireGlow)"/>
+  <path d="M155 370 Q170 310 180 350 Q188 320 195 370 Z" fill="#ffffff"/>
+
+  <!-- Chispas ascendentes -->
+  <circle cx="150" cy="230" r="3" fill="#ffd166"/>
+  <circle cx="190" cy="210" r="2.5" fill="#ff4d4d"/>
+  <circle cx="165" cy="160" r="2" fill="#ffd166"/>
+  <circle cx="180" cy="130" r="2.5" fill="#ff9f1c"/>
+
+  <text x="170" y="420" fill="#fed7aa" font-family="monospace" font-size="11" letter-spacing="2" text-anchor="middle">EL BAZAR Y LA HOGUERA</text>
+  <text x="170" y="442" fill="#fdba74" font-family="monospace" font-size="9" text-anchor="middle">Compra reliquias o sella pactos que cambiarán tus cartas</text>
+</svg>
