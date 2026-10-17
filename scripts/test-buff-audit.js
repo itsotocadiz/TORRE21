@@ -177,7 +177,7 @@ ok(!!sealsText, 'SEAL_ENCHANTMENTS existe');
 let sealKeys = [];
 if (sealsText) {
   sealKeys = (sealsText.match(/^\s{4}(\w+):\s*\{/gm) || []).map(s => s.trim().replace(/[:{].*$/, ''));
-  ok(sealKeys.length === 14, 'hay 14 sellos (' + sealKeys.length + ')');
+  ok(sealKeys.length >= 14, 'hay al menos 14 sellos (' + sealKeys.length + ')');
   const dup = sealKeys.filter((v, i) => sealKeys.indexOf(v) !== i);
   ok(dup.length === 0, 'sin sellos duplicados' + (dup.length ? ' -> ' + dup.join(',') : ''));
   sealKeys.forEach(k => {

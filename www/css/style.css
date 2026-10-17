@@ -7618,18 +7618,58 @@ body.sudden-death-active #stage {
   border-radius: 8px;
 }
 .arr-title { font-family: var(--font-pixel, monospace); font-size: 11px; color: #7ae582; margin-bottom: 8px; }
-.arena-next-round-btn {
-  min-height: 44px;
-  min-width: 140px;
-  padding: 8px 16px;
-  background: #ffd166;
-  border: none;
-  border-radius: 6px;
-  color: #0b0c10;
+.arena-next-round-btn:active { transform: scale(0.96); filter: brightness(1.1); }
+
+/* ARENA PVP: TELÉGRAFO DE PODER, AURA DE RIVAL Y MUERTE SÚBITA */
+.actor-power-badge {
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 8px;
+  color: #ffd166;
+  background: rgba(255, 209, 102, 0.12);
+  border: 1px solid rgba(255, 209, 102, 0.35);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-top: 3px;
+  text-align: center;
+  white-space: nowrap;
+}
+.actor-power-badge .rival-trait-pill {
+  display: block;
+  font-size: 7.5px;
+  color: #66fcf1;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+.arena-rival-aura {
+  position: relative;
+  box-shadow: 0 0 16px rgba(230, 57, 70, 0.7), inset 0 0 8px rgba(255, 209, 102, 0.5);
+  border: 2px solid #ff6b6b !important;
+  animation: rivalAuraPulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes rivalAuraPulse {
+  0% { transform: scale(1); box-shadow: 0 0 10px rgba(230, 57, 70, 0.6); }
+  100% { transform: scale(1.06); box-shadow: 0 0 22px rgba(255, 107, 107, 0.95), 0 0 35px rgba(255, 209, 102, 0.4); }
+}
+.arena-stage.arena-sudden-death-active {
+  animation: arenaSuddenDeathFlash 1.5s ease-in-out infinite alternate !important;
+}
+@keyframes arenaSuddenDeathFlash {
+  0% { box-shadow: inset 0 0 20px rgba(230, 57, 70, 0.35); }
+  100% { box-shadow: inset 0 0 45px rgba(230, 57, 70, 0.75); }
+}
+.sd-pill-glow {
+  background: linear-gradient(135deg, #e63946, #b00020);
+  color: #fff !important;
   font-weight: bold;
-  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px #e63946;
+  display: inline-block;
+  animation: sdPillPulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes sdPillPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); filter: brightness(1.2); }
 }
 
 /* 7. Modal Detalle Códice */
@@ -11690,22 +11730,22 @@ body.sudden-death-active #stage {
   user-select: none;
 }
 .comic-container {
-  max-width: 500px;
-  width: 92vw;
-  height: 94vh;
-  max-height: 800px;
+  width: min(92vw, 400px);
+  max-width: 100%;
+  height: min(92vh, 760px);
+  max-height: 94dvh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 12px 14px;
   margin: 0 auto;
 }
 .comic-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 6px;
+  padding: 4px 2px;
 }
 .comic-badge {
   font-family: var(--font-pixel, monospace);
@@ -11755,10 +11795,11 @@ body.sudden-death-active #stage {
   align-items: center;
   justify-content: center;
   margin: 8px 0;
-  padding: 4px 6px;
+  padding: 0;
   position: relative;
   overflow: visible;
   box-sizing: border-box;
+  width: 100%;
 }
 .comic-panel {
   display: none;
@@ -11780,37 +11821,39 @@ body.sudden-death-active #stage {
 }
 .comic-panel-frame.inked-border {
   background: #0b0f19;
-  border: 2.5px solid #ffd166;
-  border-radius: 12px;
-  box-shadow: 0 0 16px rgba(255, 209, 102, 0.4), 0 10px 30px rgba(0, 0, 0, 0.95);
+  border: 3px solid #ffd166;
+  border-radius: 14px;
+  box-shadow: 0 0 18px rgba(255, 209, 102, 0.4), 0 10px 30px rgba(0, 0, 0, 0.95);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 12px);
-  max-width: 460px;
+  width: 100%;
+  max-width: 372px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 .comic-art-box {
   position: relative;
   width: 100%;
+  min-height: 200px;
+  max-height: 48vh;
   background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-bottom: 2px solid #000;
 }
 .comic-illustration.comic-img-panel {
   width: 100%;
   height: auto;
-  max-height: 52vh;
-  aspect-ratio: 16 / 9;
+  max-height: 46vh;
   object-fit: contain;
   display: block;
 }
 .comic-caption-box {
   background: rgba(11, 15, 25, 0.97);
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-top: 2px solid #1e293b;
   text-align: center;
 }
@@ -11821,11 +11864,11 @@ body.sudden-death-active #stage {
   letter-spacing: 1.5px;
   font-weight: bold;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .comic-text {
-  font-size: 11.5px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.4;
   color: #e2e8f0;
   margin: 0;
 }

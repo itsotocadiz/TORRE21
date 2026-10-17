@@ -5635,8 +5635,13 @@
     p.playerHand.forEach((card, idx) => {
       const el = document.createElement("div");
       const suitClass = card.suit === "♥" ? "suit-red suit-hearts" : (card.suit === "♦" ? "suit-diamonds" : (card.suit === "♣" ? "suit-clubs" : "suit-spades"));
-      el.className = `card-face player-card interactive-card card-dealing ${suitClass}`;
-      el.style.animationDelay = `${idx * 90}ms`;
+      const isNewCard = !card._animPlayed;
+      const dealClass = isNewCard ? "card-dealing" : "";
+      el.className = `card-face player-card interactive-card ${dealClass} ${suitClass}`.replace(/\s+/g, ' ').trim();
+      if (isNewCard) {
+        el.style.animationDelay = `${idx * 90}ms`;
+        card._animPlayed = true;
+      }
       if (p.bust) el.classList.add("bust");
       if (p.blackjack) el.classList.add("blackjack");
       const isLoot = !!card.isWonCard;
@@ -5681,16 +5686,22 @@
     });
 
     eHandEl.innerHTML = "";
-    const showAll = (e.enemyRevealed || gameState.showEnemyCards || e.stand);
-    const isStealth = (e.trait === "stealth" && !e.stand && !e.enemyRevealed && !gameState.showEnemyCards);
-    const fogged = (p.curse === "heavy_fog" && !e.stand && !e.enemyRevealed && !gameState.showEnemyCards) || isStealth;
+    const seerActive = (p && p.accessory === "seer_eye" && p.playerHand && calculateHandScore(p.playerHand) >= 14);
+    const showAll = (e.enemyRevealed || gameState.showEnemyCards || e.stand || seerActive);
+    const isStealth = (e.trait === "stealth" && !e.stand && !e.enemyRevealed && !gameState.showEnemyCards && !seerActive);
+    const fogged = (p.curse === "heavy_fog" && !e.stand && !e.enemyRevealed && !gameState.showEnemyCards && !seerActive) || isStealth;
 
     for (let i = 0; i < e.enemyHand.length; i++) {
       const card = e.enemyHand[i];
       const el = document.createElement("div");
       const suitClass = card.suit === "♥" ? "suit-red suit-hearts" : (card.suit === "♦" ? "suit-diamonds" : (card.suit === "♣" ? "suit-clubs" : "suit-spades"));
-      el.className = `card-face enemy-card card-dealing ${suitClass}`;
-      el.style.animationDelay = `${i * 90}ms`;
+      const isNewEnemyCard = !card._animPlayed;
+      const dealClass = isNewEnemyCard ? "card-dealing" : "";
+      el.className = `card-face enemy-card ${dealClass} ${suitClass}`.replace(/\s+/g, ' ').trim();
+      if (isNewEnemyCard) {
+        el.style.animationDelay = `${i * 90}ms`;
+        card._animPlayed = true;
+      }
       if (e.bust) el.classList.add("bust");
       if (e.blackjack) el.classList.add("blackjack");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
@@ -6443,6 +6454,34 @@
       apply: (p) => {
         p.bonusKillExp = (p.bonusKillExp || 0) + 35;
         addLog("Obtuviste Talismán del Conocimiento: +35 EXP adicional fija por baja.", "heal");
+      }
+    },
+    {
+      id: "crypt_goblet",
+      name: "Cáliz de la Cripta",
+      icon: "🏆",
+      type: "buff",
+      badge: "🟢 BENDICIÓN",
+      desc: "+15 HP Máximo permanente y aumenta tu PWR en +2.",
+      apply: (p) => {
+        p.maxHp += 15;
+        p.pwr += 2;
+        p.hp = Math.min(p.maxHp, p.hp + 15);
+        addLog("Obtuviste Cáliz de la Cripta: +15 HP Máx y PWR +2.", "heal");
+      }
+    },
+    {
+      id: "prism_shard",
+      name: "Fragmento de Prisma Astral",
+      icon: "✨",
+      type: "buff",
+      badge: "🟢 BENDICIÓN",
+      desc: "+2 DEF permanente y +10 de Escudo azul protector inmediato.",
+      apply: (p) => {
+        p.def += 2;
+        if (!gameState.status) gameState.status = { playerShield: 0 };
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + 10;
+        addLog("Obtuviste Fragmento de Prisma Astral: DEF +2 y +10 de Escudo azul.", "heal");
       }
     },
 
@@ -7804,6 +7843,46 @@
       price: 100,
       desc: "+2 PWR, +2 DEF, +30 HP Máx y +2 Rerolls en cada piso de la torre.",
       apply: (p) => { p.pwr += 2; p.def += 2; p.maxHp += 30; p.hp = Math.min(p.maxHp, p.hp + 30); }
+    },
+    {
+      id: "relic_hourglass",
+      name: "Reloj de Arena Arcano",
+      icon: "⏳",
+      tier: 2,
+      unlockLevel: 3,
+      price: 36,
+      desc: "+15 HP Máximo permanente y restaura +15 HP de salud inmediata.",
+      apply: (p) => { p.maxHp += 15; p.hp += 15; }
+    },
+    {
+      id: "gamblers_loaded_die",
+      name: "Dado Trucado de Mefisto",
+      icon: "🎲",
+      tier: 3,
+      unlockLevel: 5,
+      price: 45,
+      desc: "+2 PWR permanente de ataque directo en todos tus asaltos.",
+      apply: (p) => { p.pwr += 2; }
+    },
+    {
+      id: "aegis_plating",
+      name: "Blindaje Égida",
+      icon: "🛡️",
+      tier: 2,
+      unlockLevel: 4,
+      price: 34,
+      desc: "+2 DEF permanente de armadura pesada contra contragolpes.",
+      apply: (p) => { p.def += 2; }
+    },
+    {
+      id: "hermetic_vial",
+      name: "Vial Hermético de Vitalidad",
+      icon: "🧪",
+      tier: 1,
+      unlockLevel: 1,
+      price: 26,
+      desc: "+8 HP Máximo y restaura +12 HP de salud de inmediato.",
+      apply: (p) => { p.maxHp += 8; p.hp = Math.min(p.maxHp, p.hp + 12); }
     }
   ];
   window.SHOP_ARTIFACTS = SHOP_ARTIFACTS;
@@ -8162,6 +8241,58 @@
       tagClass: "void",
       unlockLevel: 9,
       desc: "Al entrar en mano: Distorsiona la realidad causando 4 daño sombrío directo e ignorando toda armadura.",
+      price: 30
+    },
+    void_mirror: {
+      id: "void_mirror",
+      name: "Sello del Espejo Abisal",
+      icon: "🪞",
+      element: "darkness",
+      type: "void_mirror",
+      rarity: "epic",
+      badge: "ESPEJO",
+      tagClass: "void",
+      unlockLevel: 5,
+      desc: "Al entrar en mano: Reflejo sombrío genera +6 Escudo y drena 3 HP del rival.",
+      price: 30
+    },
+    storm_surge: {
+      id: "storm_surge",
+      name: "Sello Tormenta Eléctrica",
+      icon: "⚡",
+      element: "storm",
+      type: "storm_surge",
+      rarity: "legendary",
+      badge: "SOBRECARGA",
+      tagClass: "thunder",
+      unlockLevel: 7,
+      desc: "Al entrar en mano: Descarga eléctrica añade +5 de daño directo a la mano e ignora 2 DEF.",
+      price: 30
+    },
+    chronos: {
+      id: "chronos",
+      name: "Sello de Cronos",
+      icon: "⏳",
+      element: "arcane",
+      type: "chronos",
+      rarity: "epic",
+      badge: "TIEMPO",
+      tagClass: "malleable",
+      unlockLevel: 5,
+      desc: "Al entrar en mano: Manipula el tiempo otorgando +1 Reroll gratuito en la ronda.",
+      price: 30
+    },
+    crystal_shield: {
+      id: "crystal_shield",
+      name: "Sello de Cristal Resonante",
+      icon: "🔮",
+      element: "shield",
+      type: "crystal_shield",
+      rarity: "common",
+      badge: "CRISTAL",
+      tagClass: "steel",
+      unlockLevel: 2,
+      desc: "Al entrar en mano: Genera +8 de Escudo protector azul y purga toxinas.",
       price: 30
     }
   };
@@ -9132,6 +9263,39 @@
             playVampiricSound();
             updateHud();
           }
+        } else if (sealId === "void_mirror") {
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerShield = (gameState.status.playerShield || 0) + 6;
+          if (gameState.enemy && gameState.enemy.hp > 0) {
+            gameState.enemy.hp = Math.max(0, gameState.enemy.hp - 3);
+            p.hp = Math.min(p.maxHp, p.hp + 3);
+            spawnFloatingText("enemy-sprite", "🪞 -3 HP ESPEJO", "damage");
+            spawnFloatingText("player-sprite", "🪞 +6 ESC +3 HP", "heal");
+            addLog(`🪞 Sello del Espejo Abisal (${card.rank}${card.suit}): Reflejo sombrío absorbe 3 HP y genera +6 de Escudo.`, "critical");
+            playSteelSound();
+            updateHud();
+          }
+        } else if (sealId === "storm_surge") {
+          p.cardBonusDamage = (p.cardBonusDamage || 0) + 5;
+          p.sharpArmorPierce = (p.sharpArmorPierce || 0) + 2;
+          spawnFloatingText("player-sprite", "⚡ +5 DAÑO RAYO", "crit");
+          addLog(`⚡ Sello Tormenta Eléctrica (${card.rank}${card.suit}): Sobrecarga añade +5 de daño e ignora 2 armadura rival.`, "critical");
+          playHitSound();
+        } else if (sealId === "chronos") {
+          p.rerollsAvailable = (p.rerollsAvailable || 0) + 1;
+          spawnFloatingText("player-sprite", "⏳ +1 REROLL TIEMPO", "gold");
+          addLog(`⏳ Sello de Cronos (${card.rank}${card.suit}): Manipulación temporal te concede +1 Reroll adicional.`, "info");
+          playEnchantChimeSound();
+        } else if (sealId === "crystal_shield") {
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerShield = (gameState.status.playerShield || 0) + 8;
+          if (gameState.status.playerPoison > 0) {
+            gameState.status.playerPoison = Math.max(0, gameState.status.playerPoison - 2);
+          }
+          spawnFloatingText("player-sprite", "🔮 +8 ESCUDO CRISTAL", "shield");
+          addLog(`🔮 Sello de Cristal Resonante (${card.rank}${card.suit}): Baluarte cristalino otorga +8 Escudo y purga 2 veneno.`, "heal");
+          playSteelSound();
+          updateHud();
         }
       }
 
@@ -9215,7 +9379,10 @@
     lucky_charm: 55,
     spiked_belt: 35,
     lead_gauntlet: 40,
-    steel_helm: 50
+    steel_helm: 50,
+    seer_eye: 45,
+    mercury_band: 50,
+    nebula_ring: 60
   };
   const AMULET_INFO = {
     amber_amulet: { icon: "💍", name: "AMULETO ÁMBAR", short: "ÁMBAR", desc: "+1 HP al inicio de cada piso", rarity: "common", tier: 1 },
@@ -9224,6 +9391,9 @@
     steel_helm: { icon: "⛑️", name: "CASCO DE ACERO", short: "CASCO", desc: "+1 de DEF permanente", rarity: "epic", tier: 3 },
     blood_amulet: { icon: "🩸", name: "AMULETO DE SANGRE", short: "SANGRE", desc: "+6 HP al liquidar rivales", rarity: "epic", tier: 3 },
     lucky_charm: { icon: "🍀", name: "AMULETO DE LA SUERTE", short: "SUERTE", desc: "25% de chance de evitar daño", rarity: "legendary", tier: 4 },
+    seer_eye: { icon: "👁️", name: "OJO DEL VIDENTE", short: "VIDENTE", desc: "Revela la carta oculta del rival si tu mano supera 14", rarity: "rare", tier: 2 },
+    mercury_band: { icon: "💫", name: "BRAZALETE DE MERCURIO", short: "MERCURIO", desc: "+1 PWR y +1 DEF continuos en combate", rarity: "epic", tier: 3 },
+    nebula_ring: { icon: "🌌", name: "ANILLO DE LA NEBULOSA", short: "NEBULOSA", desc: "Al empatar una mano, absorbes 5 HP y ganas iniciativa", rarity: "legendary", tier: 4 },
   };
   window.AMULET_INFO = AMULET_INFO;
 
@@ -12563,6 +12733,14 @@
         addLog("💍 Amuleto de Cobre: +2 de Escudo azul protector tras empatar mano.", "heal");
         updateHud();
       }
+      if (p.accessory === "nebula_ring") {
+        p.hp = Math.min(p.maxHp, p.hp + 5);
+        if (e && e.hp > 0) e.hp = Math.max(0, e.hp - 5);
+        spawnFloatingText("player-sprite", "🌌 +5 HP NEBULOSA", "heal");
+        spawnFloatingText("enemy-sprite", "🌌 -5 HP NEBULOSA", "damage");
+        addLog("🌌 Anillo de la Nebulosa: En empate, absorbes 5 HP del rival.", "critical");
+        updateHud();
+      }
       await sleep(450);
 
     } else if (isPlayerWin) {
@@ -12674,6 +12852,7 @@
       }
 
       let bonus = 0;
+      if (p.accessory === "mercury_band") bonus += 2;
       if (p.gem === "ruby" && isEven(p.playerScore) === false) bonus += 2;
       if (p.gem === "topaz") bonus += 1;
       if (p.hasGoldenDie && p.playerHand.length > 2) bonus += 3;
@@ -12981,7 +13160,7 @@
       const _p = window.gameState && window.gameState.player; if (_p) _p._winStreak = 0;
       // FASE 2: CONTRA-ATAQUE DEL RIVAL (JERARQUÍA: DEF ARMADURA -> ESCUDO AZUL -> VIDA HP)
       // -------------------------------------------------------------
-      let totalDef = p.def + (p.turnShieldBonus || 0) + (p.duplaDef || 0);
+      let totalDef = p.def + (p.turnShieldBonus || 0) + (p.duplaDef || 0) + (p.accessory === "mercury_band" ? 1 : 0);
       // SPRINT 4 — Perk Táctico [Muralla de Hierro]: +3 DEF frente a este contraataque
       if (p._synergyBonusDef > 0) {
         totalDef += p._synergyBonusDef;
@@ -15612,8 +15791,37 @@
         name: "5 Balancín de Ajuste",
         icon: "🔮", badgeText: "AJUSTE (+3 / -2)", badgeClass: "adjust",
         desc: "Compensador: se transforma en 3, 5 u 8 según tu mano para asegurar la victoria."
+      },
+      {
+        rank: "10", value: 10, isAce: false,
+        fusion: "split_10", dynamicValues: [5, 10],
+        name: "10 Baluarte de Obsidiana",
+        icon: "🛡️", badgeText: "BALUARTE (5/10)", badgeClass: "fusion",
+        desc: "Baluarte: opera como 10 o se divide en 5 para evitar BUST y forzar 21."
+      },
+      {
+        rank: "9", value: 9, isAce: false,
+        modifier: { plus: 1, minus: 8 }, dynamicValues: [1, 9],
+        name: "9 Fénix Renaciente",
+        icon: "🔥", badgeText: "RENACER (1/9)", badgeClass: "adjust",
+        desc: "Renacer: si te pasas de 21, arde y reduce su valor a 1 salvando la mano."
+      },
+      {
+        rank: "4", value: 4, isAce: false,
+        fusion: "split_4", dynamicValues: [4, 8],
+        name: "4 Par Espejo de Sombras",
+        icon: "🪞", badgeText: "ESPEJO (4/8)", badgeClass: "fusion",
+        desc: "Espejo: opera como 4 o se desdobla en 8 según tu conveniencia táctica."
+      },
+      {
+        rank: "J", value: 10, isAce: false,
+        operator: "mult",
+        name: "Jota Segadora de Almas",
+        icon: "⚔️", badgeText: "POTENCIADOR x2", badgeClass: "mult",
+        desc: "Multiplicador x2: inflige el doble de daño de asedio al superar al rival."
       }
     ];
+    shuffleArray(highRanks);
     const chosenRanks = highRanks.slice(0, 6);
 
     const suitsCopy = [...SUITS];
@@ -16193,6 +16401,7 @@
     const rivalAvatarEl = document.getElementById("arena-combat-enemy-avatar");
     const rivalNameEl = document.getElementById("arena-combat-enemy-name");
     if (rivalAvatarEl) {
+      rivalAvatarEl.classList.add("arena-rival-aura");
       if (rival.img) {
         rivalAvatarEl.innerHTML = `<img src="${rival.img}" class="sprite-img arena-avatar-img" alt="${rival.name}" onerror="this.outerHTML='${rival.avatar || "💀"}'">`;
       } else {
@@ -16200,6 +16409,15 @@
       }
     }
     if (rivalNameEl) rivalNameEl.innerText = (rival.name || "RIVAL").toUpperCase();
+
+    const rivalPwrEl = document.getElementById("arena-combat-enemy-power");
+    if (rivalPwrEl) {
+      rivalPwrEl.innerHTML = `⚔️ PWR ${rival.pwr} | 🛡️ DEF ${rival.def} <span class="rival-trait-pill">${rival.title || "RIVAL"}</span>`;
+    }
+    const playerPwrEl = document.getElementById("arena-combat-player-power");
+    if (playerPwrEl) {
+      playerPwrEl.innerHTML = `⚔️ PWR ${playerStats.pwr} | 🛡️ DEF ${playerStats.def}`;
+    }
 
     arenaMatch = {
       round: 1,
@@ -16430,12 +16648,24 @@
 
       // Actualizar marcadores de ronda
       const roundPill = document.getElementById("arena-round-pill");
+      const stageBattle = document.getElementById("arena-stage-battle");
       if (roundPill) {
         if (arenaMatch.isSuddenDeath) {
-          roundPill.innerHTML = `<span style="color:#ff6b6b;font-weight:bold;">🔥 MUERTE SÚBITA</span>`;
+          roundPill.innerHTML = `<span class="sd-pill-glow">⚡ MUERTE SÚBITA - ASALTO ${arenaMatch.round}</span>`;
+          if (stageBattle) stageBattle.classList.add("arena-sudden-death-active");
         } else {
           roundPill.innerText = `RONDA ${arenaMatch.round} / ${arenaMatch.maxRounds}`;
+          if (stageBattle) stageBattle.classList.remove("arena-sudden-death-active");
         }
+      }
+
+      const rivalPwrEl = document.getElementById("arena-combat-enemy-power");
+      if (rivalPwrEl && arenaMatch.rival) {
+        rivalPwrEl.innerHTML = `⚔️ PWR ${arenaMatch.rival.pwr} | 🛡️ DEF ${arenaMatch.rival.def} <span class="rival-trait-pill">${arenaMatch.rival.title || "RIVAL"}</span>`;
+      }
+      const playerPwrEl = document.getElementById("arena-combat-player-power");
+      if (playerPwrEl && arenaMatch.playerStats) {
+        playerPwrEl.innerHTML = `⚔️ PWR ${arenaMatch.playerStats.pwr} | 🛡️ DEF ${arenaMatch.playerStats.def}`;
       }
 
       const scPlayer = document.getElementById("arena-score-player");
@@ -16542,7 +16772,18 @@
       arenaMatch.deck = buildStandardDeck();
       shuffleArray(arenaMatch.deck);
     }
-    arenaMatch.playerHand.push(arenaMatch.deck.pop());
+    const drawn = arenaMatch.deck.pop();
+
+    // Sobrecarga de Muerte Súbita: 35% de probabilidad de robo crítico potenciado
+    if (arenaMatch.isSuddenDeath && Math.random() < 0.35 && drawn) {
+      drawn.bonusPower = 2;
+      try { playTacticalAbilitySound(); } catch (_) {}
+      if (typeof spawnFloatingText === "function") {
+        spawnFloatingText("arena-combat-player-avatar", "⚡ ¡SOBRECARGA!", "magic");
+      }
+    }
+
+    arenaMatch.playerHand.push(drawn);
     renderArenaHands(false);
     const pScore = calculateHandScore(arenaMatch.playerHand);
     if (pScore > 21) {
@@ -16685,6 +16926,25 @@
       isDraw = true;
     }
 
+    // Mecánica de Duelo de Pulso (Robo Vampírico del 25%) en Muerte Súbita
+    if (arenaMatch.isSuddenDeath) {
+      if (playerWonRound) {
+        const drain = Math.max(4, Math.round(14 * 0.25));
+        arenaMatch.playerStats.hp = Math.min(arenaMatch.playerStats.maxHp, arenaMatch.playerStats.hp + drain);
+        title += ` 🩸 (Drenas +${drain} HP)`;
+        if (typeof spawnFloatingText === "function") {
+          spawnFloatingText("arena-combat-player-avatar", `+${drain} HP DRENAJE`, "heal");
+        }
+      } else if (!isDraw) {
+        const rDrain = Math.max(4, Math.round(14 * 0.25));
+        arenaMatch.rivalHp = Math.min(arenaMatch.rivalMaxHp, arenaMatch.rivalHp + rDrain);
+        title += ` 💀 (${arenaMatch.rival.name} drena +${rDrain} HP)`;
+        if (typeof spawnFloatingText === "function") {
+          spawnFloatingText("arena-combat-enemy-avatar", `+${rDrain} HP DRENAJE`, "magic");
+        }
+      }
+    }
+
     if (isDraw) {
       arenaMatch.isDrawRound = true;
     } else {
@@ -16718,11 +16978,11 @@
     const nextBtn = document.querySelector(".arena-next-round-btn") || document.getElementById("btn-arena-next-round");
     if (nextBtn) nextBtn.disabled = true;
 
-    // Verificar si el combate concluyó por victorias (BO3) o por HP
-    const isPlayerWin = arenaMatch.playerWins >= 2 || arenaMatch.rivalHp <= 0;
-    const isRivalWin = arenaMatch.rivalWins >= 2 || arenaMatch.playerStats.hp <= 0;
+    // Verificar si el combate concluyó por K.O. total de HP o por desempate extremo
+    const isPlayerWin = arenaMatch.rivalHp <= 0 || (arenaMatch.isSuddenDeath && arenaMatch.round > 6 && arenaMatch.playerWins > arenaMatch.rivalWins);
+    const isRivalWin = arenaMatch.playerStats.hp <= 0 || (arenaMatch.isSuddenDeath && arenaMatch.round > 6 && arenaMatch.rivalWins > arenaMatch.playerWins);
 
-    if (isPlayerWin || (arenaMatch.isSuddenDeath && arenaMatch.playerWins > arenaMatch.rivalWins)) {
+    if (isPlayerWin || (arenaMatch.isSuddenDeath && arenaMatch.playerWins > arenaMatch.rivalWins && arenaMatch.rivalHp <= 0)) {
       // VICTORIA FINAL DEL DUELO
       const trophies = parseInt(localStorage.getItem("blackjack_arena_trophies") || "1250", 10) + 35;
       const extraArenaCoins = getPersistentExtraCards().some(c => (c.specialId || c.id) === "club_jack_thief") ? 15 : 0;
@@ -16739,11 +16999,11 @@
       });
 
       const bonusMsg = extraArenaCoins > 0 ? ` (¡+15 por Jota de Fortuna!)` : "";
-      showGameAlert(`Has derrotado a ${arenaMatch.rival.name}.
+      showGameAlert(`Has derrotado a ${arenaMatch.rival.name} por K.O.
 +35 Trofeos de Ranking (Total: ${trophies})
 +20 Monedas de Cripta 💀${bonusMsg}`, "🏆 VICTORIA EN LA ARENA", openArenaPvpModal);
       return;
-    } else if (isRivalWin || (arenaMatch.isSuddenDeath && arenaMatch.rivalWins > arenaMatch.playerWins)) {
+    } else if (isRivalWin || (arenaMatch.isSuddenDeath && arenaMatch.rivalWins > arenaMatch.playerWins && arenaMatch.playerStats.hp <= 0)) {
       // DERROTA FINAL DEL DUELO
       const trophies = Math.max(1000, parseInt(localStorage.getItem("blackjack_arena_trophies") || "1250", 10) - 15);
       localStorage.setItem("blackjack_arena_trophies", trophies.toString());
@@ -16755,7 +17015,7 @@
         timestamp: Date.now()
       });
 
-      showGameAlert(`${arenaMatch.rival.name} se llevó el duelo.
+      showGameAlert(`${arenaMatch.rival.name} agotó toda tu salud en el duelo.
 -15 Trofeos (Total: ${trophies})`, "☠️ DERROTA EN LA ARENA", openArenaPvpModal);
       return;
     }
@@ -16767,9 +17027,16 @@
       return;
     }
 
-    // Si completaron la ronda 3 y siguen empatados, activar MUERTE SÚBITA
-    if (arenaMatch.round >= 3 && arenaMatch.playerWins === arenaMatch.rivalWins) {
+    // Si completaron la ronda 3 y no se acabó con la energía del rival, ¡comienza MUERTE SÚBITA!
+    if (arenaMatch.round >= 3 && (arenaMatch.playerWins === arenaMatch.rivalWins || (arenaMatch.rivalHp > 0 && arenaMatch.playerStats.hp > 0))) {
       arenaMatch.isSuddenDeath = true;
+      arenaMatch.round++;
+      try {
+        if (typeof showGameToast === "function") {
+          showGameToast(`⚡ ¡MUERTE SÚBITA - ASALTO ${arenaMatch.round}! Daño x2 y Drenaje de Vida`, "warning");
+        }
+        if (typeof playTacticalAbilitySound === "function") playTacticalAbilitySound();
+      } catch (_) {}
       initArenaRound();
       return;
     }

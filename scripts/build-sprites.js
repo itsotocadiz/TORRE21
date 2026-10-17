@@ -485,34 +485,25 @@ function towerParts(p) {
   return s;
 }
 
-/* Icono de la App (Cartas 21 y Corona Paper Mario sobre Acuarela) */
+/* Icono de la App Minimalista (Pica Imperial, Corona de la Torre y Grabado 21) */
 function iconParts(p) {
   let s = '';
-  // fondo tapete de casino / noche de la torre
-  s += rr(12, 12, 136, 136, 28, p.bg || '#0d1b2a');
-  // borde dorado recortado
-  s += `<rect x="18" y="18" width="124" height="124" rx="22" fill="none" stroke="${p.gold || '#f6c445'}" stroke-width="5"/>`;
-  // carta 1 (As de Picas marfil)
-  s += `<g transform="translate(44,46) rotate(-12)">` +
-       rr(0, 0, 46, 66, 6, '#fbf7ee') +
-       `<rect x="0" y="0" width="46" height="66" rx="6" fill="none" stroke="#17110c" stroke-width="3"/>` +
-       pt('M23 22 C19 16 13 22 19 28 L23 34 L27 28 C33 22 27 16 23 22 Z M21 34 L25 34 L26 40 L20 40 Z', '#17110c') +
-       `<text x="9" y="18" font-family="sans-serif" font-weight="900" font-size="12" fill="#17110c">A</text>` +
-       `</g>`;
-  // carta 2 (Rey/Jack de Corazones marfil)
-  s += `<g transform="translate(72,44) rotate(14)">` +
-       rr(0, 0, 46, 66, 6, '#fbf7ee') +
-       `<rect x="0" y="0" width="46" height="66" rx="6" fill="none" stroke="#17110c" stroke-width="3"/>` +
-       pt('M23 38 C17 32 11 24 17 18 C23 12 23 22 23 22 C23 22 23 12 29 18 C35 24 29 32 23 38 Z', '#d94336') +
-       `<text x="9" y="18" font-family="sans-serif" font-weight="900" font-size="12" fill="#d94336">J</text>` +
-       `</g>`;
-  // corona dorada Paper Mario encima
-  s += pt('M54 44 L58 26 L69 36 L80 20 L91 36 L102 26 L106 44 Z', p.gold || '#f6c445');
-  s += ci(80, 24, 4, '#d94336');
-  // insignia 21
-  s += rr(48, 102, 64, 26, 8, p.gold || '#f6c445');
-  s += `<rect x="48" y="102" width="64" height="26" rx="8" fill="none" stroke="#17110c" stroke-width="3"/>`;
-  s += `<text x="80" y="121" font-family="sans-serif" font-weight="900" font-size="17" fill="#17110c" text-anchor="middle">21</text>`;
+  // 1. Squircle obsidiana profundo
+  s += rr(10, 10, 140, 140, 32, p.bg || '#0b132b');
+  // 2. Filete dorado satinado interior
+  s += `<rect x="16" y="16" width="128" height="128" rx="26" fill="none" stroke="${p.gold || '#ffd166'}" stroke-width="2" opacity="0.6"/>`;
+  // 3. Destellos arcanos minimalistas en esquinas
+  s += pt('M124 30 L125 34 L129 35 L125 36 L124 40 L123 36 L119 35 L123 34 Z', p.gold || '#ffd166');
+  s += pt('M34 120 L35 123 L38 124 L35 125 L34 128 L33 125 L30 124 L33 123 Z', p.gold || '#ffd166');
+  // 4. Corona de tres puntas de la Torre del 21
+  s += pt('M68 34 L71 22 L76 27 L80 18 L84 27 L89 22 L92 34 Z', p.gold || '#ffd166');
+  s += ci(80, 27, 2.5, '#ef233c');
+  // 5. Pica Imperial minimalista de oro
+  s += pt('M80 40 C66 56 38 72 38 88 C38 102 54 108 66 101 C73 97 77 91 78 85 C76 96 72 108 64 116 L96 116 C88 108 84 96 82 85 C83 91 87 97 94 101 C106 108 122 102 122 88 C122 72 94 56 80 40 Z', p.gold || '#ffd166');
+  // 6. Faceta derecha sombreada (efecto 3D pulido y minimalista)
+  s += `<path d="M80 40 L80 116 L96 116 C88 108 84 96 82 85 C83 91 87 97 94 101 C106 108 122 102 122 88 C122 72 94 56 80 40 Z" fill="#b45309" opacity="0.22" stroke="none"/>`;
+  // 7. Grabado arcano "21" en negativo obsidiana
+  s += `<text x="80" y="88" font-family="'Fredoka', 'Nunito', sans-serif" font-weight="900" font-size="24" fill="${p.bg || '#0b132b'}" text-anchor="middle" stroke="none" letter-spacing="-0.5">21</text>`;
   return s;
 }
 
