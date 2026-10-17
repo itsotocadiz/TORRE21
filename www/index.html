@@ -1587,12 +1587,46 @@
             <div class="af-status" style="color:#ffd166;">Nvl 8 • ELO 1280</div>
           </div>
         </div>
-        <div class="arena-rules-card">
-          <div>🪙 <b>1. Moneda al Aire:</b> Sortea el primer turno de juego.</div>
-          <div>🙈 <b>2. Apuesta Ciega:</b> Ninguno ve la apuesta del otro hasta revelarse.</div>
-          <div>🏆 <b>3. Al Mejor de 3:</b> El primer duelista con 2 victorias se lleva el botín.</div>
+        <!-- SELECTOR DE CATEGORÍA DE APUESTA (PLAN E) -->
+        <div class="arena-wager-picker" id="arena-wager-picker">
+          <div class="awp-header">
+            <span class="awp-title">🪙 CATEGORÍA DE APUESTA DEL COLISEO</span>
+            <span class="awp-subtitle">Elige el riesgo: el vencedor se lleva el bote íntegro</span>
+          </div>
+          <div class="awp-grid">
+            <button type="button" class="awp-tier-card active" data-wager="bronze" onclick="selectArenaWager('bronze')">
+              <span class="awp-icon">🥉</span>
+              <span class="awp-tier">BRONCE</span>
+              <span class="awp-fee">Entrada: 25 🪙</span>
+              <span class="awp-pot">BOTE: 50 🪙</span>
+            </button>
+            <button type="button" class="awp-tier-card" data-wager="silver" onclick="selectArenaWager('silver')">
+              <span class="awp-icon">🥈</span>
+              <span class="awp-tier">PLATA</span>
+              <span class="awp-fee">Entrada: 75 🪙</span>
+              <span class="awp-pot">BOTE: 150 🪙</span>
+            </button>
+            <button type="button" class="awp-tier-card" data-wager="gold" onclick="selectArenaWager('gold')">
+              <span class="awp-icon">🥇</span>
+              <span class="awp-tier">ORO</span>
+              <span class="awp-fee">Entrada: 200 🪙</span>
+              <span class="awp-pot">BOTE: 400 🪙</span>
+            </button>
+            <button type="button" class="awp-tier-card crypt" data-wager="abyss" onclick="selectArenaWager('abyss')">
+              <span class="awp-icon">💀</span>
+              <span class="awp-tier">ABISMO</span>
+              <span class="awp-fee">Entrada: 15 💀</span>
+              <span class="awp-pot">BOTE: 30 💀</span>
+            </button>
+          </div>
         </div>
-        <button class="arena-start-btn" onclick="startArenaMatch()">⚔️ BUSCAR RIVAL Y LANZAR MONEDA</button>
+
+        <div class="arena-rules-card">
+          <div>⚡ <b>1. Reflejos & Doblar:</b> Decide antes de 1.8s para +20% daño. ¡Usa <b>DOBLAR</b> para daño x2!</div>
+          <div>🔥 <b>2. Trance Arcano (Overdrive):</b> Llena la barra y desata 3 poderes definitivos de remontada.</div>
+          <div>🎭 <b>3. Duelo Psicológico:</b> Plántate con audacia para inducir al rival a cometer BUST (Daño de Humillación).</div>
+        </div>
+        <button class="arena-start-btn" onclick="startArenaMatch()">⚔️ ENTRAR A LA ARENA Y LANZAR MONEDA</button>
       </div>
 
       <!-- PANTALLA 2: COMBATE ARENA BO3 ACTIVO -->
@@ -1604,6 +1638,18 @@
           <div class="arena-coin-sub" id="arena-coin-result-sub" style="font-size:9px;color:#cbd5e1;margin-top:4px;">Sorteando iniciativa de ronda...</div>
         </div>
         
+        <!-- BOTE EN MESA Y RACHA (PLAN E) -->
+        <div class="arena-center-hud">
+          <div class="arena-pot-badge" id="arena-pot-badge" title="Bote acumulado en disputa">
+            <span class="apb-icon">💰</span>
+            <span class="apb-val" id="arena-pot-value">BOTE: 50 🪙</span>
+          </div>
+          <div class="arena-streak-badge" id="arena-streak-badge" title="Racha de victorias consecutivas">
+            <span class="asb-flame">🔥</span>
+            <span class="asb-val" id="arena-streak-val">RACHA: 0</span>
+          </div>
+        </div>
+
         <!-- ZONA DEL RIVAL -->
         <div class="arena-combat-zone enemy-zone">
           <div class="combat-actor-box">
@@ -1613,6 +1659,10 @@
             <div id="arena-combat-enemy-power" class="actor-power-badge">⚔️ PWR -- | 🛡️ DEF --</div>
           </div>
           <div class="arena-hand-block">
+            <!-- GLOBO DE DIÁLOGO PSICOLÓGICO DEL RIVAL (PLAN B) -->
+            <div id="arena-rival-speech-bubble" class="arena-speech-bubble hidden">
+              <span class="asb-text" id="arena-rival-speech-text">«¡El miedo es para los débiles!»</span>
+            </div>
             <div class="ah-title">PUNTOS: <span id="arena-rival-sum">?</span></div>
             <div class="ah-cards" id="arena-rival-cards"></div>
           </div>
@@ -1637,6 +1687,14 @@
           </div>
         </div>
 
+        <!-- TEMPORIZADOR DE REFLEJOS ARCANOS (PLAN A) -->
+        <div class="arena-timer-container" id="arena-timer-container">
+          <div class="arena-timer-bar-wrap">
+            <div class="arena-timer-bar" id="arena-turn-timer-bar"></div>
+          </div>
+          <div class="arena-timer-caption" id="arena-timer-caption">⚡ DECISIÓN: 5.0s (¡Reflejos rápidos = +20% Daño!)</div>
+        </div>
+
         <!-- ZONA DEL JUGADOR -->
         <div class="arena-combat-zone player-zone">
           <div class="arena-hand-block">
@@ -1651,18 +1709,63 @@
           </div>
         </div>
 
+        <!-- BARRA DE TRANCE OVERDRIVE DEL JUGADOR (PLAN C) -->
+        <div class="arena-overdrive-hud" id="arena-overdrive-hud">
+          <div class="aoh-header">
+            <span class="aoh-label">⚡ TRANCE ARCANO (OVERDRIVE)</span>
+            <span class="aoh-pct" id="arena-overdrive-pct">0%</span>
+          </div>
+          <div class="aoh-bar-track">
+            <div class="aoh-bar-fill" id="arena-overdrive-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- BANDEJA DE PODERES DEFINITIVOS OVERDRIVE (PLAN C) -->
+        <div class="arena-overdrive-powers-grid hidden" id="arena-overdrive-powers">
+          <button type="button" class="aoh-power-btn surge" id="btn-overdrive-surge" onclick="triggerOverdrivePower('surge')" title="Elige la carta exacta entre 3 opciones">
+            <span class="opb-icon">👁️</span>
+            <span class="opb-name">EXTRACCIÓN</span>
+            <span class="opb-sub">Elige 1 de 3</span>
+          </button>
+          <button type="button" class="aoh-power-btn execute" id="btn-overdrive-execute" onclick="triggerOverdrivePower('execute')" title="Ignora la defensa rival y suma +10 de daño directo">
+            <span class="opb-icon">💥</span>
+            <span class="opb-name">DEMOLICIÓN</span>
+            <span class="opb-sub">+10 Dmg Puro</span>
+          </button>
+          <button type="button" class="aoh-power-btn drain" id="btn-overdrive-drain" onclick="triggerOverdrivePower('drain')" title="El daño que inflijas te cura un 60%">
+            <span class="opb-icon">🩸</span>
+            <span class="opb-name">DRENAJE</span>
+            <span class="opb-sub">Cura 60%</span>
+          </button>
+        </div>
+
+        <!-- BOTONERA DE ACCIONES DE COMBATE (CON BOTÓN DOBLAR - PLAN A) -->
         <div class="arena-actions-grid" id="arena-actions">
-          <button class="arena-act-btn hit" onclick="arenaPlayerHit()">🂠 PEDIR CARTA</button>
-          <button class="arena-act-btn stand" onclick="arenaPlayerStand()">✋ PLANTARSE</button>
+          <button type="button" class="arena-act-btn hit" onclick="arenaPlayerHit()">🂠 PEDIR CARTA</button>
+          <button type="button" class="arena-act-btn double" id="btn-arena-double" onclick="arenaPlayerDouble()">
+            <span class="aab-mult">x2 DMG</span>
+            ⚡ ¡DOBLAR!
+          </button>
+          <button type="button" class="arena-act-btn stand" onclick="arenaPlayerStand()">✋ PLANTARSE</button>
         </div>
         <div class="arena-skills-grid" id="arena-skills">
-          <button class="arena-act-btn skill hidden" id="btn-arena-spy" onclick="arenaPlayerSpy()">👁️ ESPIAR</button>
-          <button class="arena-act-btn skill hidden" id="btn-arena-swap" onclick="arenaPlayerSwap()">🔄 CAMBIAR</button>
-          <button class="arena-act-btn skill hidden" id="btn-arena-steal" onclick="arenaPlayerSteal()">🥷 ROBO</button>
+          <button type="button" class="arena-act-btn skill hidden" id="btn-arena-spy" onclick="arenaPlayerSpy()">👁️ ESPIAR</button>
+          <button type="button" class="arena-act-btn skill hidden" id="btn-arena-swap" onclick="arenaPlayerSwap()">🔄 CAMBIAR</button>
+          <button type="button" class="arena-act-btn skill hidden" id="btn-arena-steal" onclick="arenaPlayerSteal()">🥷 ROBO</button>
         </div>
         <div id="arena-round-result" class="arena-round-result hidden">
           <div class="arr-title" id="arr-title">¡GANASTE LA RONDA!</div>
-          <button id="btn-arena-next-round" class="arena-next-round-btn" onclick="arenaNextRound()">SIGUIENTE RONDA ➔</button>
+          <button type="button" id="btn-arena-next-round" class="arena-next-round-btn" onclick="arenaNextRound()">SIGUIENTE RONDA ➔</button>
+        </div>
+
+        <!-- MODAL OVERDRIVE: EXTRACCIÓN QUIRÚRGICA (1 DE 3 CARTAS) -->
+        <div id="modal-overdrive-picker" class="overdrive-picker-overlay hidden">
+          <div class="overdrive-picker-card">
+            <div class="opc-title">⚡ TRANCE: EXTRACCIÓN QUIRÚRGICA</div>
+            <div class="opc-sub">Elige cuál de estos 3 naipes sumar a tu mano para asegurar la victoria:</div>
+            <div class="opc-cards-row" id="overdrive-picker-cards"></div>
+            <button type="button" class="opc-cancel-btn" onclick="closeOverdrivePicker()">Cancelar</button>
+          </div>
         </div>
       </div>
     </div>

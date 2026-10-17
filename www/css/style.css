@@ -7701,6 +7701,440 @@ body.sudden-death-active #stage {
 .arena-mutator-badge.theme-silver .amb-title { color: #e2e8f0; }
 .arena-mutator-badge.theme-amber { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 12px rgba(245, 158, 11, 0.25); }
 .arena-mutator-badge.theme-amber .amb-title { color: #fbbf24; }
+
+/* ===== SELECTOR DE CATEGORÍA DE APUESTAS (PLAN E) ===== */
+.arena-wager-picker {
+  margin: 10px 0 12px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1.5px solid rgba(255, 209, 102, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.awp-header {
+  margin-bottom: 8px;
+  text-align: center;
+}
+.awp-title {
+  display: block;
+  font-family: var(--font-pixel, monospace);
+  font-size: 9.5px;
+  color: #ffd166;
+  letter-spacing: 0.8px;
+  font-weight: bold;
+}
+.awp-subtitle {
+  display: block;
+  font-size: 8.5px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+.awp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.awp-tier-card {
+  min-height: 52px;
+  padding: 6px 8px;
+  background: rgba(11, 15, 23, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.awp-tier-card:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 209, 102, 0.4);
+}
+.awp-tier-card:active {
+  transform: scale(0.97);
+}
+.awp-tier-card.active {
+  border-color: #ffd166;
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.18), rgba(20, 26, 38, 0.95));
+  box-shadow: 0 0 12px rgba(255, 209, 102, 0.35);
+}
+.awp-tier-card.crypt.active {
+  border-color: #e63946;
+  background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(20, 26, 38, 0.95));
+  box-shadow: 0 0 12px rgba(230, 57, 70, 0.4);
+}
+.awp-icon { font-size: 14px; }
+.awp-tier {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  font-weight: bold;
+  color: #f1f5f9;
+}
+.awp-tier-card.active .awp-tier { color: #ffd166; }
+.awp-tier-card.crypt.active .awp-tier { color: #ff758f; }
+.awp-fee {
+  font-size: 8px;
+  color: #cbd5e1;
+}
+.awp-pot {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8.5px;
+  color: #ffd166;
+  font-weight: bold;
+}
+.awp-tier-card.crypt .awp-pot { color: #ff4d6d; }
+
+/* ===== BOTE EN MESA Y RACHA (PLAN E) ===== */
+.arena-center-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.arena-pot-badge {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.15), rgba(15, 23, 42, 0.85));
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  border-radius: 8px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  color: #ffd166;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.arena-pot-badge.pot-burst {
+  animation: potBurstAnim 0.8s ease-out;
+}
+@keyframes potBurstAnim {
+  0% { transform: scale(1); filter: brightness(1); }
+  40% { transform: scale(1.15); filter: brightness(2) drop-shadow(0 0 16px #ffd166); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.arena-streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(230, 57, 70, 0.4);
+  border-radius: 8px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+.arena-streak-badge.active-fire {
+  border-color: #ff4d00;
+  box-shadow: 0 0 12px rgba(255, 77, 0, 0.5);
+  animation: streakFlamePulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes streakFlamePulse {
+  0% { filter: drop-shadow(0 0 4px #ff4d00); transform: scale(0.98); }
+  100% { filter: drop-shadow(0 0 12px #ffd166); transform: scale(1.03); }
+}
+
+/* ===== GLOBO DE DIÁLOGO DEL RIVAL (PLAN B) ===== */
+.arena-speech-bubble {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  border: 1.5px solid #ffd166;
+  color: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-family: 'Fredoka', var(--font-pixel, monospace);
+  font-size: 9.5px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 25;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  animation: speechPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.arena-speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0;
+  border-style: solid;
+  border-color: #ffd166 transparent transparent;
+  display: block;
+  width: 0;
+}
+@keyframes speechPop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.85); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* ===== TEMPORIZADOR DE REFLEJOS ARCANOS (PLAN A) ===== */
+.arena-timer-container {
+  margin: 6px 0 10px 0;
+}
+.arena-timer-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.arena-timer-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #66fcf1);
+  transition: width 0.1s linear, background 0.3s ease;
+}
+.arena-timer-bar.warning {
+  background: linear-gradient(90deg, #f59e0b, #ffd166);
+}
+.arena-timer-bar.critical {
+  background: linear-gradient(90deg, #ef4444, #ff4d6d);
+  animation: timerPanic 0.3s ease-in-out infinite alternate;
+}
+@keyframes timerPanic {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+.arena-timer-caption {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* ===== BARRA DE TRANCE OVERDRIVE (PLAN C) ===== */
+.arena-overdrive-hud {
+  margin: 8px 0 6px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(102, 252, 241, 0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.aoh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.aoh-label {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8.5px;
+  color: #66fcf1;
+  letter-spacing: 0.8px;
+  font-weight: bold;
+}
+.aoh-pct {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  color: #ffd166;
+  font-weight: bold;
+}
+.aoh-bar-track {
+  width: 100%;
+  height: 8px;
+  background: #090d16;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(102, 252, 241, 0.2);
+}
+.aoh-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3a86ff, #66fcf1, #ffd166);
+  border-radius: 4px;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.arena-overdrive-hud.charged {
+  border-color: #ffd166;
+  box-shadow: 0 0 16px rgba(255, 209, 102, 0.4);
+  animation: overdrivePulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes overdrivePulse {
+  0% { box-shadow: 0 0 8px rgba(102, 252, 241, 0.4); }
+  100% { box-shadow: 0 0 20px rgba(255, 209, 102, 0.8); }
+}
+
+/* ===== BANDEJA DE PODERES DEFINITIVOS (PLAN C) ===== */
+.arena-overdrive-powers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+  animation: powersAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes powersAppear {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.aoh-power-btn {
+  min-height: 48px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.aoh-power-btn:active {
+  transform: scale(0.96);
+}
+.aoh-power-btn.surge {
+  background: linear-gradient(135deg, rgba(102, 252, 241, 0.25), rgba(11, 15, 23, 0.95));
+  border: 1.5px solid #66fcf1;
+  box-shadow: 0 0 10px rgba(102, 252, 241, 0.35);
+}
+.aoh-power-btn.execute {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.25), rgba(11, 15, 23, 0.95));
+  border: 1.5px solid #ffd166;
+  box-shadow: 0 0 10px rgba(255, 209, 102, 0.35);
+}
+.aoh-power-btn.drain {
+  background: linear-gradient(135deg, rgba(230, 57, 70, 0.25), rgba(11, 15, 23, 0.95));
+  border: 1.5px solid #e63946;
+  box-shadow: 0 0 10px rgba(230, 57, 70, 0.35);
+}
+.opb-icon { font-size: 14px; }
+.opb-name {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8.5px;
+  font-weight: bold;
+  color: #f1f5f9;
+}
+.opb-sub {
+  font-size: 7.5px;
+  color: #cbd5e1;
+}
+
+/* ===== BOTÓN DOBLAR (PLAN A) ===== */
+.arena-act-btn.double {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: 1.5px solid #ffd166;
+  color: #0b0c10;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+.arena-act-btn.double:active {
+  transform: scale(0.96);
+  background: #d97706;
+}
+.aab-mult {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 7px;
+  padding: 1px 4px;
+  background: #000;
+  color: #ffd166;
+  border-radius: 4px;
+  font-weight: 900;
+}
+
+/* ===== MODAL OVERDRIVE: EXTRACCIÓN QUIRÚRGICA ===== */
+.overdrive-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.overdrive-picker-card {
+  width: 100%;
+  max-width: 380px;
+  background: #0b0f19;
+  border: 2px solid #66fcf1;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(102, 252, 241, 0.3);
+  text-align: center;
+}
+.opc-title {
+  font-family: var(--font-pixel, monospace);
+  font-size: 11px;
+  color: #66fcf1;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.opc-sub {
+  font-size: 9.5px;
+  color: #cbd5e1;
+  margin-bottom: 14px;
+}
+.opc-cards-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.opc-card-item {
+  width: 72px;
+  height: 102px;
+  background: #ffffff;
+  border: 2.5px solid #0b0c10;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  user-select: none;
+}
+.opc-card-item:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 8px 18px rgba(102, 252, 241, 0.6);
+  border-color: #66fcf1;
+}
+.opc-card-item:active {
+  transform: scale(0.96);
+}
+.opc-cancel-btn {
+  min-height: 44px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  border-radius: 8px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+/* ===== TEMBLOR DE PANTALLA EN GOLPES CRÍTICOS ===== */
+.arena-screen-shake {
+  animation: arenaShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes arenaShake {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(3px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+  40%, 60% { transform: translate3d(5px, 0, 0); }
+}
+
 .arena-coin-box {
   text-align: center;
   padding: 10px 0;

@@ -16367,7 +16367,11 @@
       pwr: 14,
       def: 6,
       standThreshold: 17,
-      quote: "Mi acero no titubea ante los heraldos."
+      quote: "Mi acero no titubea ante los heraldos.",
+      taunts: ["«¡Mi espada juzgará tu insolencia!»", "«¡Prepara tu guardia!»"],
+      bluffReact: "«¿Te plantas con tan poco? ¡Puedo superarte con una estocada!»",
+      bustReact: "«¡Maldito filo ciego! ¡Caí en tu finta!»",
+      doubleReact: "«¿Doblas la apuesta? ¡Tu temeridad te costará la sangre!»"
     },
     {
       id: "valkyrie_diamonds",
@@ -16380,7 +16384,11 @@
       pwr: 11,
       def: 10,
       standThreshold: 16,
-      quote: "Ningún golpe quebrajará mi bastión."
+      quote: "Ningún golpe quebrajará mi bastión.",
+      taunts: ["«Mi escudo resplandecerá sobre tus cartas.»", "«La paciencia gana guerras.»"],
+      bluffReact: "«¿Te acobardas tan pronto? Mi bastión avanzará sin piedad.»",
+      bustReact: "«¡Imposible! ¡Mi fortaleza no debió ceder!»",
+      doubleReact: "«¿Doblar? Mi coraza aguantará el doble de tu furia.»"
     },
     {
       id: "archmage_clubs",
@@ -16393,7 +16401,11 @@
       pwr: 18,
       def: 4,
       standThreshold: 18,
-      quote: "Los naipes susurran tu destino."
+      quote: "Los naipes susurran tu destino.",
+      taunts: ["«El éter calcula cada una de tus derrotas.»", "«No puedes esconderte del destino.»"],
+      bluffReact: "«¿Crees engañar a la omnisciencia? Pediré una más y te aniquilaré.»",
+      bustReact: "«¡El flujo mágico colapsó! ¡Leíste mal mis presagios!»",
+      doubleReact: "«¿Multiplicar la apuesta? ¡La magia del caos devorará tu alma!»"
     },
     {
       id: "necro_void",
@@ -16406,7 +16418,11 @@
       pwr: 16,
       def: 7,
       standThreshold: 17,
-      quote: "Tus victorias alimentarán la tumba."
+      quote: "Tus victorias alimentarán la tumba.",
+      taunts: ["«Siento el frío de tus huesos temblar.»", "«La cripta reclama su peaje.»"],
+      bluffReact: "«¿Un plantón cobarde? La muerte no teme robar una carta más.»",
+      bustReact: "«¡Agh! ¡El vacío me traicionó! ¡Disfruta tu farsa!»",
+      doubleReact: "«¿Doblas tu propia tumba? ¡Será un banquete eterno!»"
     },
     {
       id: "shadow_joker",
@@ -16419,17 +16435,363 @@
       pwr: 20,
       def: 5,
       standThreshold: 18,
-      quote: "Juego al borde del abismo... ¿y tú?"
+      quote: "Juego al borde del abismo... ¿y tú?",
+      taunts: ["«El 21 perfecto ya me pertenece.»", "«¿Tienes agallas para sostener la mirada?»"],
+      bluffReact: "«¿Te plantas ahí? ¡Qué farol más patético! Mira cómo te aplasto.»",
+      bustReact: "«¡Noooo! ¡Me hiciste arriesgar de más, maldito genio!»",
+      doubleReact: "«¡JAJAJA! ¡Me encanta cuando arriesgan el pellejo al doble!»"
     }
   ];
   window.ARENA_RIVALS = ARENA_RIVALS;
+
+  /* ============================================================
+     SISTEMA DE APUESTAS Y BOTE DE LA ARENA (PLAN E)
+     ============================================================ */
+  const ARENA_WAGER_TIERS = {
+    bronze: { key: "bronze", name: "Bronce", feeType: "gold", fee: 25, pot: 50, potLabel: "50 🪙", trophyGain: 20 },
+    silver: { key: "silver", name: "Plata", feeType: "gold", fee: 75, pot: 150, potLabel: "150 🪙", trophyGain: 35 },
+    gold:   { key: "gold",   name: "Oro",   feeType: "gold", fee: 200, pot: 400, potLabel: "400 🪙", trophyGain: 60 },
+    abyss:  { key: "abyss",  name: "Abismo", feeType: "crypt", fee: 15, pot: 30, potLabel: "30 💀", trophyGain: 80 }
+  };
+  window.ARENA_WAGER_TIERS = ARENA_WAGER_TIERS;
+
+  let _selectedArenaWager = "bronze";
+
+  function selectArenaWager(tierKey) {
+    if (!ARENA_WAGER_TIERS[tierKey]) tierKey = "bronze";
+    _selectedArenaWager = tierKey;
+    try {
+      const cards = document.querySelectorAll(".awp-tier-card");
+      cards.forEach(card => {
+        if (card.getAttribute("data-wager") === tierKey) {
+          card.classList.add("active");
+        } else {
+          card.classList.remove("active");
+        }
+      });
+      if (typeof playButtonClickSound === "function") playButtonClickSound();
+    } catch (_) {}
+  }
+  window.selectArenaWager = selectArenaWager;
+
+  function deductArenaEntryFee(tier) {
+    if (!tier) return true;
+    if (tier.feeType === "crypt") {
+      const curCrypt = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : 0;
+      if (curCrypt < tier.fee) return false;
+      if (typeof spendPlayerCryptCoins === "function") {
+        return spendPlayerCryptCoins(tier.fee);
+      } else {
+        const next = Math.max(0, curCrypt - tier.fee);
+        localStorage.setItem("bj_crypt_coins", String(next));
+        return true;
+      }
+    } else {
+      let curGold = (typeof gameState !== "undefined" && typeof gameState.gold === "number") ? gameState.gold : parseInt(localStorage.getItem("bj_player_gold") || "100", 10);
+      if (curGold < tier.fee) return false;
+      curGold -= tier.fee;
+      if (typeof gameState !== "undefined" && typeof gameState.gold === "number") {
+        gameState.gold = curGold;
+      }
+      localStorage.setItem("bj_player_gold", String(curGold));
+      if (typeof updateUI === "function") {
+        try { updateUI(); } catch (_) {}
+      }
+      return true;
+    }
+  }
+
+  function awardArenaPot(tier) {
+    if (!tier) return;
+    if (tier.feeType === "crypt") {
+      if (typeof addPlayerCryptCoins === "function") {
+        addPlayerCryptCoins(tier.pot);
+      } else {
+        const curCrypt = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : 0;
+        localStorage.setItem("bj_crypt_coins", String(curCrypt + tier.pot));
+      }
+    } else {
+      let curGold = (typeof gameState !== "undefined" && typeof gameState.gold === "number") ? gameState.gold : parseInt(localStorage.getItem("bj_player_gold") || "100", 10);
+      curGold += tier.pot;
+      if (typeof gameState !== "undefined" && typeof gameState.gold === "number") {
+        gameState.gold = curGold;
+      }
+      localStorage.setItem("bj_player_gold", String(curGold));
+      if (typeof updateUI === "function") {
+        try { updateUI(); } catch (_) {}
+      }
+    }
+  }
+
+  /* ============================================================
+     DIÁLOGOS PSICOLÓGICOS DEL RIVAL (PLAN B)
+     ============================================================ */
+  let _rivalSpeechTimeout = null;
+  function triggerRivalSpeech(text, duration = 2500) {
+    const bubble = document.getElementById("arena-rival-speech-bubble");
+    const textEl = document.getElementById("arena-rival-speech-text");
+    if (!bubble || !textEl || !text) return;
+    if (_rivalSpeechTimeout) clearTimeout(_rivalSpeechTimeout);
+    textEl.innerText = text;
+    bubble.classList.remove("hidden");
+    _rivalSpeechTimeout = setTimeout(() => {
+      bubble.classList.add("hidden");
+      _rivalSpeechTimeout = null;
+    }, duration);
+  }
+  window.triggerRivalSpeech = triggerRivalSpeech;
+
+  /* ============================================================
+     TEMPORIZADOR DE REFLEJOS ARCANOS (PLAN A)
+     ============================================================ */
+  let _arenaTimerInterval = null;
+  let _arenaTimerStartTime = 0;
+  const ARENA_TURN_TIME_MS = 5000;
+  const ARENA_REFLEX_LIMIT_MS = 1800;
+
+  function startArenaTurnTimer() {
+    stopArenaTurnTimer();
+    const container = document.getElementById("arena-timer-container");
+    const bar = document.getElementById("arena-turn-timer-bar");
+    const caption = document.getElementById("arena-timer-caption");
+    if (!container || !bar) return;
+
+    container.classList.remove("hidden");
+    bar.classList.remove("warning", "danger");
+    bar.style.width = "100%";
+    _arenaTimerStartTime = Date.now();
+
+    _arenaTimerInterval = setInterval(() => {
+      const elapsed = Date.now() - _arenaTimerStartTime;
+      const remaining = Math.max(0, ARENA_TURN_TIME_MS - elapsed);
+      const pct = Math.max(0, (remaining / ARENA_TURN_TIME_MS) * 100);
+      bar.style.width = `${pct}%`;
+
+      if (remaining <= 1500) {
+        bar.classList.remove("warning");
+        bar.classList.add("danger");
+      } else if (remaining <= 2800) {
+        bar.classList.add("warning");
+      }
+
+      if (caption) {
+        const sec = (remaining / 1000).toFixed(1);
+        if (elapsed <= ARENA_REFLEX_LIMIT_MS) {
+          caption.innerHTML = `⚡ DECISIÓN: ${sec}s (¡Reflejos rápidos = +20% Daño!)`;
+        } else {
+          caption.innerHTML = `⏳ DECISIÓN: ${sec}s (Decide tu jugada)`;
+        }
+      }
+
+      if (remaining <= 0) {
+        stopArenaTurnTimer();
+        if (typeof showGameToast === "function") {
+          showGameToast("⏱️ ¡Tiempo agotado! Te plantas automáticamente", "warning");
+        }
+        arenaPlayerStand();
+      }
+    }, 100);
+  }
+
+  function stopArenaTurnTimer() {
+    if (_arenaTimerInterval) {
+      clearInterval(_arenaTimerInterval);
+      _arenaTimerInterval = null;
+    }
+  }
+  window.startArenaTurnTimer = startArenaTurnTimer;
+  window.stopArenaTurnTimer = stopArenaTurnTimer;
+
+  function checkReflexBonus() {
+    if (_arenaTimerStartTime > 0) {
+      const elapsed = Date.now() - _arenaTimerStartTime;
+      if (elapsed <= ARENA_REFLEX_LIMIT_MS && arenaMatch && !arenaMatch.quickReflexBonus) {
+        arenaMatch.quickReflexBonus = true;
+        addArenaOverdrive(10);
+        if (typeof spawnFloatingText === "function") {
+          spawnFloatingText("arena-combat-player-avatar", "⚡ REFLEJOS +20%", "magic");
+        }
+      }
+    }
+    stopArenaTurnTimer();
+  }
+
+  /* ============================================================
+     TRANCE ARCANO (OVERDRIVE - PLAN C)
+     ============================================================ */
+  function addArenaOverdrive(amount) {
+    if (!arenaMatch) return;
+    arenaMatch.overdrive = Math.min(100, Math.max(0, (arenaMatch.overdrive || 0) + amount));
+    const fill = document.getElementById("arena-overdrive-fill");
+    const pctEl = document.getElementById("arena-overdrive-pct");
+    const hud = document.getElementById("arena-overdrive-hud");
+    const powers = document.getElementById("arena-overdrive-powers");
+
+    if (fill) fill.style.width = `${arenaMatch.overdrive}%`;
+    if (pctEl) pctEl.innerText = `${Math.round(arenaMatch.overdrive)}%`;
+
+    if (arenaMatch.overdrive >= 100) {
+      if (hud) hud.classList.add("charged");
+      if (powers) powers.classList.remove("hidden");
+    } else {
+      if (hud) hud.classList.remove("charged");
+      if (powers) powers.classList.add("hidden");
+    }
+  }
+  window.addArenaOverdrive = addArenaOverdrive;
+
+  function triggerOverdrivePower(powerId) {
+    if (!arenaMatch || (arenaMatch.overdrive || 0) < 100) return;
+
+    if (powerId === "surge") {
+      openOverdrivePicker();
+    } else if (powerId === "execute") {
+      arenaMatch.overdrive = 0;
+      addArenaOverdrive(0);
+      arenaMatch.overdriveExecute = true;
+      try {
+        if (typeof playTacticalAbilitySound === "function") playTacticalAbilitySound();
+      } catch (_) {}
+      if (typeof spawnFloatingText === "function") {
+        spawnFloatingText("arena-combat-player-avatar", "💥 DEMOLICIÓN", "damage");
+      }
+      if (typeof showGameToast === "function") {
+        showGameToast("💥 ¡Demolición activada!: +10 daño puro e ignora blindaje rival", "gold");
+      }
+    } else if (powerId === "drain") {
+      arenaMatch.overdrive = 0;
+      addArenaOverdrive(0);
+      arenaMatch.overdriveDrain = true;
+      try {
+        if (typeof playTacticalAbilitySound === "function") playTacticalAbilitySound();
+      } catch (_) {}
+      if (typeof spawnFloatingText === "function") {
+        spawnFloatingText("arena-combat-player-avatar", "🩸 DRENAJE VITAL", "heal");
+      }
+      if (typeof showGameToast === "function") {
+        showGameToast("🩸 ¡Drenaje activado!: Te curarás un 60% del daño infligido", "crimson");
+      }
+    }
+  }
+  window.triggerOverdrivePower = triggerOverdrivePower;
+
+  let _overdriveChoices = [];
+  function openOverdrivePicker() {
+    if (!arenaMatch) return;
+    if (!arenaMatch.deck || arenaMatch.deck.length < 3) {
+      arenaMatch.deck = buildStandardDeck();
+      shuffleArray(arenaMatch.deck);
+    }
+    _overdriveChoices = [arenaMatch.deck.pop(), arenaMatch.deck.pop(), arenaMatch.deck.pop()];
+    const modal = document.getElementById("modal-overdrive-picker");
+    const container = document.getElementById("overdrive-picker-cards");
+    if (!modal || !container) return;
+
+    container.innerHTML = _overdriveChoices.map((c, idx) => `
+      <div class="card-face player-card opc-card-item" onclick="chooseOverdriveCard(${idx})" style="cursor:pointer;">
+        <span class="card-value">${c.rank || c.value}</span>
+        <span class="suit">${c.suit}</span>
+      </div>
+    `).join("");
+
+    modal.classList.remove("hidden");
+  }
+  window.openOverdrivePicker = openOverdrivePicker;
+
+  function closeOverdrivePicker() {
+    const modal = document.getElementById("modal-overdrive-picker");
+    if (modal) modal.classList.add("hidden");
+    if (_overdriveChoices && _overdriveChoices.length > 0 && arenaMatch && arenaMatch.deck) {
+      _overdriveChoices.forEach(c => arenaMatch.deck.push(c));
+      _overdriveChoices = [];
+    }
+  }
+  window.closeOverdrivePicker = closeOverdrivePicker;
+
+  function chooseOverdriveCard(index) {
+    if (!_overdriveChoices || !_overdriveChoices[index] || !arenaMatch) return;
+    const chosen = _overdriveChoices.splice(index, 1)[0];
+    if (arenaMatch.deck) {
+      _overdriveChoices.forEach(c => arenaMatch.deck.push(c));
+    }
+    _overdriveChoices = [];
+
+    arenaMatch.overdrive = 0;
+    addArenaOverdrive(0);
+
+    const modal = document.getElementById("modal-overdrive-picker");
+    if (modal) modal.classList.add("hidden");
+
+    arenaMatch.playerHand.push(chosen);
+    renderArenaHands(false);
+
+    try {
+      if (typeof playCardDealSound === "function") playCardDealSound();
+    } catch (_) {}
+
+    if (typeof spawnFloatingText === "function") {
+      spawnFloatingText("arena-combat-player-avatar", `👁️ +${chosen.rank}`, "magic");
+    }
+
+    const pScore = calculateHandScore(arenaMatch.playerHand);
+    const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
+    if (pScore > maxLim) {
+      arenaPlayerStand();
+    }
+  }
+  window.chooseOverdriveCard = chooseOverdriveCard;
+
+  /* ============================================================
+     BOTÓN ¡DOBLAR! (DOUBLE DOWN - PLAN A)
+     ============================================================ */
+  function arenaPlayerDouble() {
+    if (!arenaMatch || arenaMatch.settling || arenaMatch._settling) return;
+    if (!arenaMatch.playerHand || arenaMatch.playerHand.length !== 2) {
+      if (typeof showGameToast === "function") showGameToast("Solo puedes doblar con las 2 primeras cartas", "warning");
+      return;
+    }
+    checkReflexBonus();
+
+    arenaMatch.isDoubled = true;
+    try {
+      if (typeof playTacticalAbilitySound === "function") playTacticalAbilitySound();
+      if (typeof triggerHaptic === "function") triggerHaptic("button_click");
+    } catch (_) {}
+
+    const stageBattle = document.getElementById("arena-stage-battle");
+    if (stageBattle) {
+      stageBattle.classList.add("arena-screen-shake");
+      setTimeout(() => stageBattle.classList.remove("arena-screen-shake"), 500);
+    }
+
+    if (typeof spawnFloatingText === "function") {
+      spawnFloatingText("arena-combat-player-avatar", "⚡ ¡DOBLAR x2!", "magic");
+    }
+
+    if (arenaMatch.rival && arenaMatch.rival.doubleReact) {
+      triggerRivalSpeech(arenaMatch.rival.doubleReact);
+    }
+
+    if (!arenaMatch.deck || arenaMatch.deck.length === 0) {
+      arenaMatch.deck = buildStandardDeck();
+      shuffleArray(arenaMatch.deck);
+    }
+    const drawn = arenaMatch.deck.pop();
+    if (drawn) {
+      arenaMatch.playerHand.push(drawn);
+    }
+    renderArenaHands(false);
+
+    arenaPlayerStand();
+  }
+  window.arenaPlayerDouble = arenaPlayerDouble;
 
   let arenaMatch = null;
 
   function openArenaPvpModal() {
     const modal = document.getElementById("screen-arena-pvp-modal");
     const trophies = parseInt(localStorage.getItem("blackjack_arena_trophies") || "1250", 10);
-    const skulls = getPlayerCryptCoins();
+    const skulls = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : 0;
     const trophEl = document.getElementById("arena-trophies-val");
     const skullEl = document.getElementById("arena-skulls-val");
     if (trophEl) trophEl.innerText = trophies.toLocaleString();
@@ -16460,6 +16822,9 @@
       pAvatarEl.innerHTML = `<img src="${heroSkinSvg}" class="sprite-img arena-avatar-img" alt="${heroInfo.name}" onerror="this.outerHTML='${heroInfo.sprite || "🛡️"}'">`;
     }
 
+    // Inicializar selector de apuesta en el lobby
+    selectArenaWager(_selectedArenaWager);
+
     switchArenaTab('battles');
 
     if (modal) modal.classList.remove("hidden");
@@ -16469,6 +16834,8 @@
   window.openArenaPvp = openArenaPvpModal;
 
   function closeArenaPvpModal() {
+    stopArenaTurnTimer();
+    clearArenaCoinTimers(true);
     const modal = document.getElementById("screen-arena-pvp-modal");
     if (modal) modal.classList.add("hidden");
     document.getElementById("arena-stage-lobby")?.classList.remove("hidden");
@@ -16486,6 +16853,17 @@
   window.closeArenaPvpModal = closeArenaPvpModal;
 
   function startArenaMatch() {
+    const tier = ARENA_WAGER_TIERS[_selectedArenaWager] || ARENA_WAGER_TIERS.bronze;
+
+    // Verificar y descontar tarifa de entrada
+    if (!deductArenaEntryFee(tier)) {
+      const currencyName = tier.feeType === "crypt" ? "Monedas de Cripta 💀" : "Oro 🪙";
+      if (typeof showGameToast === "function") {
+        showGameToast(`Saldo insuficiente. Necesitas ${tier.fee} ${currencyName}`, "danger");
+      }
+      return;
+    }
+
     document.getElementById("arena-stage-lobby")?.classList.add("hidden");
     document.getElementById("arena-stage-battle")?.classList.remove("hidden");
     try {
@@ -16506,7 +16884,7 @@
       def: heroInfo.def || 6
     };
 
-    // Construir mazo combinado: baraja estándar con overrides persistentes ya aplicados (getPersistentExtraCards())
+    // Construir mazo combinado: baraja estándar con overrides persistentes ya aplicados
     const fullArenaDeck = buildStandardDeck();
     shuffleArray(fullArenaDeck);
     
@@ -16540,6 +16918,19 @@
       playerPwrEl.innerHTML = `⚔️ PWR ${playerStats.pwr} | 🛡️ DEF ${playerStats.def}`;
     }
 
+    // Inicializar HUD de Bote y Racha
+    const potValEl = document.getElementById("arena-pot-value");
+    if (potValEl) potValEl.innerText = `BOTE: ${tier.potLabel}`;
+
+    const streakBadge = document.getElementById("arena-streak-badge");
+    const streakValEl = document.getElementById("arena-streak-val");
+    const curStreak = parseInt(localStorage.getItem("blackjack_arena_streak") || "0", 10);
+    if (streakValEl) streakValEl.innerText = `RACHA: ${curStreak}`;
+    if (streakBadge) {
+      if (curStreak > 0) streakBadge.classList.add("active-fire");
+      else streakBadge.classList.remove("active-fire");
+    }
+
     arenaMatch = {
       round: 1,
       maxRounds: 3,
@@ -16554,8 +16945,23 @@
       playerHand: [],
       rivalHand: [],
       deck: fullArenaDeck,
-      firstTurn: "player"
+      firstTurn: "player",
+      wagerTier: tier,
+      overdrive: 0,
+      isDoubled: false,
+      quickReflexBonus: false,
+      bluffSuccess: false,
+      overdriveExecute: false,
+      overdriveDrain: false
     };
+
+    addArenaOverdrive(0);
+
+    // Diálogo introductorio del rival
+    if (rival.taunts && rival.taunts.length > 0) {
+      const t = rival.taunts[Math.floor(Math.random() * rival.taunts.length)];
+      setTimeout(() => triggerRivalSpeech(t, 2600), 400);
+    }
 
     // FASE: MONEDA AL AIRE INTERACTIVA (CON PARADA GARANTIZADA Y SALTO MANUAL)
     clearArenaCoinTimers(true);
@@ -16820,6 +17226,9 @@
 
         renderArenaHands(false);
 
+        // Iniciar temporizador de decisión de turno
+        startArenaTurnTimer();
+
         if (typeof callback === "function") callback(chosen);
       }
     }, 70);
@@ -16843,9 +17252,22 @@
       if (arenaMatch) {
         arenaMatch.settling = false;
         arenaMatch._settling = false;
+        arenaMatch.isDoubled = false;
+        arenaMatch.quickReflexBonus = false;
+        arenaMatch.bluffSuccess = false;
+        arenaMatch.overdriveExecute = false;
+        arenaMatch.overdriveDrain = false;
       }
       if (!arenaMatch) return;
       document.getElementById("arena-round-result")?.classList.add("hidden");
+
+      // Habilitar botón Doblar para la nueva mano de 2 cartas
+      const btnDouble = document.getElementById("btn-arena-double");
+      if (btnDouble) {
+        btnDouble.disabled = false;
+        btnDouble.style.opacity = "1";
+        btnDouble.style.pointerEvents = "auto";
+      }
       
       // Configurar Habilidades de PvP por nivel defensivamente
       arenaMatch.skillsUsed = arenaMatch.skillsUsed || { spy: false, swap: false, steal: false };
@@ -16928,7 +17350,7 @@
       }
       const playerPwrEl = document.getElementById("arena-combat-player-power");
       if (playerPwrEl && arenaMatch.playerStats) {
-        playerPwrEl.innerHTML = `⚔️ PWR ${playerStats.pwr || 12} | 🛡️ DEF ${playerStats.def || 6}`;
+        playerPwrEl.innerHTML = `⚔️ PWR ${arenaMatch.playerStats.pwr || 12} | 🛡️ DEF ${arenaMatch.playerStats.def || 6}`;
       }
 
       const scPlayer = document.getElementById("arena-score-player");
@@ -17035,11 +17457,24 @@
 
   function arenaPlayerHit() {
     if (!arenaMatch) return;
+    checkReflexBonus();
+
+    // Si ya pide carta, deshabilitar Doblar
+    const btnDouble = document.getElementById("btn-arena-double");
+    if (btnDouble) {
+      btnDouble.disabled = true;
+      btnDouble.style.opacity = "0.4";
+      btnDouble.style.pointerEvents = "none";
+    }
+
     if (arenaMatch.deck.length === 0) {
       arenaMatch.deck = buildStandardDeck();
       shuffleArray(arenaMatch.deck);
     }
     const drawn = arenaMatch.deck.pop();
+
+    // Carga de Overdrive por robar
+    addArenaOverdrive(12);
 
     // Sobrecarga de Muerte Súbita: 35% de probabilidad de robo crítico potenciado
     if (arenaMatch.isSuddenDeath && Math.random() < 0.35 && drawn) {
@@ -17076,14 +17511,23 @@
     renderArenaHands(false);
     const pScore = calculateHandScore(arenaMatch.playerHand);
     const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
+
+    if (pScore === 20 || pScore === 21) {
+      addArenaOverdrive(35);
+    }
+
     if (pScore > maxLim) {
       arenaPlayerStand();
+    } else {
+      // Reiniciar temporizador para la siguiente decisión
+      startArenaTurnTimer();
     }
   }
   window.arenaPlayerHit = arenaPlayerHit;
 
   function arenaPlayerSpy() {
     if (!arenaMatch || !arenaMatch.skillsUsed || arenaMatch.skillsUsed.spy) return;
+    checkReflexBonus();
     arenaMatch.skillsUsed.spy = true;
     const btn = document.getElementById("btn-arena-spy");
     if (btn) btn.classList.add("used");
@@ -17093,12 +17537,14 @@
     renderArenaHands(true);
     if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-enemy-avatar", "👁️ ¡REVELADO!", "magic");
     addLog("👁️ Espionaje activo: Has revelado la carta oculta del rival.", "magic");
+    startArenaTurnTimer();
   }
   window.arenaPlayerSpy = arenaPlayerSpy;
 
   function arenaPlayerSwap() {
     if (!arenaMatch || !arenaMatch.skillsUsed || arenaMatch.skillsUsed.swap) return;
     if (arenaMatch.playerHand.length === 0 || arenaMatch.deck.length === 0) return;
+    checkReflexBonus();
     arenaMatch.skillsUsed.swap = true;
     const btn = document.getElementById("btn-arena-swap");
     if (btn) btn.classList.add("used");
@@ -17114,6 +17560,8 @@
     const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
     if (calculateHandScore(arenaMatch.playerHand) > maxLim) {
       arenaPlayerStand();
+    } else {
+      startArenaTurnTimer();
     }
   }
   window.arenaPlayerSwap = arenaPlayerSwap;
@@ -17121,6 +17569,7 @@
   function arenaPlayerSteal() {
     if (!arenaMatch || !arenaMatch.skillsUsed || arenaMatch.skillsUsed.steal) return;
     if (arenaMatch.rivalHand.length === 0) return;
+    checkReflexBonus();
     arenaMatch.skillsUsed.steal = true;
     const btn = document.getElementById("btn-arena-steal");
     if (btn) btn.classList.add("used");
@@ -17141,18 +17590,24 @@
     const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
     if (calculateHandScore(arenaMatch.playerHand) > maxLim) {
       arenaPlayerStand();
+    } else {
+      startArenaTurnTimer();
     }
   }
   window.arenaPlayerSteal = arenaPlayerSteal;
 
   function arenaPlayerStand() {
     if (!arenaMatch) return;
+    checkReflexBonus();
     document.getElementById("arena-actions")?.classList.add("hidden");
 
     const maxLim = (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "bust_22") ? 22 : 21;
-    let mult = arenaMatch.isSuddenDeath ? 2 : 1;
-    if (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "blood_carnage") {
-      mult *= 2;
+    const pScore = calculateHandScore(arenaMatch.playerHand);
+
+    // Duelo psicológico y detección de Farol (Plan B)
+    const isBluffing = (pScore >= 14 && pScore <= 16 && !arenaMatch.isDoubled);
+    if (isBluffing && arenaMatch.rival && arenaMatch.rival.bluffReact) {
+      triggerRivalSpeech(arenaMatch.rival.bluffReact);
     }
 
     // El rival juega según su umbral de plantarse
@@ -17168,20 +17623,42 @@
       rScore = calculateHandScore(arenaMatch.rivalHand);
     }
 
+    // Si el rival comete BUST y el jugador se plantó con farol, ¡Daño de Humillación!
+    if (rScore > maxLim && isBluffing) {
+      arenaMatch.bluffSuccess = true;
+      if (arenaMatch.rival && arenaMatch.rival.bustReact) {
+        setTimeout(() => triggerRivalSpeech(arenaMatch.rival.bustReact), 400);
+      }
+    }
+
     renderArenaHands(true);
 
-    const pScore = calculateHandScore(arenaMatch.playerHand);
     const pNaturalBJ = (pScore === maxLim && arenaMatch.playerHand.length === 2);
     const rNaturalBJ = (rScore === maxLim && arenaMatch.rivalHand.length === 2);
     let playerWonRound = false;
     let isDraw = false;
     let title = "";
 
+    // Multiplicadores de daño combinados (Planes A, B y D)
+    let mult = arenaMatch.isSuddenDeath ? 2 : 1;
+    if (arenaMatch.currentMutator && arenaMatch.currentMutator.id === "blood_carnage") {
+      mult *= 2;
+    }
+    if (arenaMatch.isDoubled) {
+      mult *= 2;
+    }
+    if (arenaMatch.quickReflexBonus) {
+      mult *= 1.2;
+    }
+    if (arenaMatch.bluffSuccess) {
+      mult *= 1.5;
+    }
+
     if (pScore > maxLim && rScore > maxLim) {
       title = `💥 AMBOS EN BUST (${pScore} vs ${rScore}). Empate de ronda.`;
       isDraw = true;
     } else if (pScore > maxLim) {
-      let dmg = Math.max(10, (arenaMatch.rival.pwr || 14) - (arenaMatch.playerStats.def || 6)) * mult;
+      let dmg = Math.round(Math.max(10, (arenaMatch.rival.pwr || 14) - (arenaMatch.playerStats.def || 6)) * mult);
       if (arenaMatch.playerShield && arenaMatch.playerShield > 0) {
         const abs = Math.min(arenaMatch.playerShield, dmg);
         dmg -= abs;
@@ -17191,25 +17668,32 @@
       arenaMatch.playerStats.hp = Math.max(0, arenaMatch.playerStats.hp - dmg);
       title = `💥 BUST: Superaste los ${maxLim} puntos. El rival asesta ${dmg} daño.`;
       arenaMatch.rivalWins++;
+      addArenaOverdrive(20); // Recibir daño carga Overdrive
     } else if (rScore > maxLim) {
-      let dmg = Math.max(10, (arenaMatch.playerStats.pwr || 12) - (arenaMatch.rival.def || 6)) * mult;
+      const pDefRival = arenaMatch.overdriveExecute ? 0 : (arenaMatch.rival.def || 6);
+      let dmg = Math.round(Math.max(10, (arenaMatch.playerStats.pwr || 12) - pDefRival) * mult);
+      if (arenaMatch.overdriveExecute) dmg += 10;
       const multCard1 = arenaMatch.playerHand && arenaMatch.playerHand.find(c => c && c.operator === "mult");
       if (multCard1) { dmg = Math.round(dmg * 2); }
-      if (arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
+      if (!arenaMatch.overdriveExecute && arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
         const abs = Math.min(arenaMatch.rivalShield, dmg);
         dmg -= abs;
         arenaMatch.rivalShield -= abs;
         if (typeof spawnFloatingText === "function") spawnFloatingText("arena-combat-enemy-avatar", `🛡️ -${abs} ESCUDO`, "defense");
       }
       arenaMatch.rivalHp = Math.max(0, arenaMatch.rivalHp - dmg);
-      title = `🎉 ¡${arenaMatch.rival.name} superó los ${maxLim}! Asestas ${dmg} daño.`;
+      const humilBonus = arenaMatch.bluffSuccess ? " 🎭 ¡FAROL EXITOSO (+50% DAÑO)!" : "";
+      title = `🎉 ¡${arenaMatch.rival.name} superó los ${maxLim}! Asestas ${dmg} daño.${humilBonus}`;
       arenaMatch.playerWins++;
       playerWonRound = true;
+      addArenaOverdrive(15);
     } else if (pNaturalBJ && !rNaturalBJ) {
-      let dmg = Math.max(12, (arenaMatch.playerStats.pwr || 12) + 5 - (arenaMatch.rival.def || 6)) * mult;
+      const pDefRival = arenaMatch.overdriveExecute ? 0 : (arenaMatch.rival.def || 6);
+      let dmg = Math.round(Math.max(12, (arenaMatch.playerStats.pwr || 12) + 5 - pDefRival) * mult);
+      if (arenaMatch.overdriveExecute) dmg += 10;
       const multCard = arenaMatch.playerHand && arenaMatch.playerHand.find(c => c && c.operator === "mult");
       if (multCard) { dmg = Math.round(dmg * 2); }
-      if (arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
+      if (!arenaMatch.overdriveExecute && arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
         const abs = Math.min(arenaMatch.rivalShield, dmg);
         dmg -= abs;
         arenaMatch.rivalShield -= abs;
@@ -17219,8 +17703,9 @@
       title = `❤️‍🔥 ¡BLACKJACK NATURAL (${maxLim})! Superas a ${arenaMatch.rival.name}: -${dmg} HP.`;
       arenaMatch.playerWins++;
       playerWonRound = true;
+      addArenaOverdrive(40);
     } else if (!pNaturalBJ && rNaturalBJ) {
-      let dmg = Math.max(12, (arenaMatch.rival.pwr || 14) + 5 - (arenaMatch.playerStats.def || 6)) * mult;
+      let dmg = Math.round(Math.max(12, (arenaMatch.rival.pwr || 14) + 5 - (arenaMatch.playerStats.def || 6)) * mult);
       if (arenaMatch.playerShield && arenaMatch.playerShield > 0) {
         const abs = Math.min(arenaMatch.playerShield, dmg);
         dmg -= abs;
@@ -17230,11 +17715,14 @@
       arenaMatch.playerStats.hp = Math.max(0, arenaMatch.playerStats.hp - dmg);
       title = `💀 ¡${arenaMatch.rival.name} tiene Blackjack Natural (${maxLim})!: recibes ${dmg} daño.`;
       arenaMatch.rivalWins++;
+      addArenaOverdrive(25);
     } else if (pScore > rScore) {
-      let dmg = Math.max(8, (arenaMatch.playerStats.pwr || 12) + (pScore - rScore) - (arenaMatch.rival.def || 6)) * mult;
+      const pDefRival = arenaMatch.overdriveExecute ? 0 : (arenaMatch.rival.def || 6);
+      let dmg = Math.round(Math.max(8, (arenaMatch.playerStats.pwr || 12) + (pScore - rScore) - pDefRival) * mult);
+      if (arenaMatch.overdriveExecute) dmg += 10;
       const multCard2 = arenaMatch.playerHand && arenaMatch.playerHand.find(c => c && c.operator === "mult");
       if (multCard2) { dmg = Math.round(dmg * 2); }
-      if (arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
+      if (!arenaMatch.overdriveExecute && arenaMatch.rivalShield && arenaMatch.rivalShield > 0) {
         const abs = Math.min(arenaMatch.rivalShield, dmg);
         dmg -= abs;
         arenaMatch.rivalShield -= abs;
@@ -17244,8 +17732,9 @@
       title = `🎉 ¡${pScore} vs ${rScore}! Victoria de ronda: -${dmg} HP al rival.`;
       arenaMatch.playerWins++;
       playerWonRound = true;
+      addArenaOverdrive(15);
     } else if (rScore > pScore) {
-      let dmg = Math.max(8, (arenaMatch.rival.pwr || 14) + (rScore - pScore) - (arenaMatch.playerStats.def || 6)) * mult;
+      let dmg = Math.round(Math.max(8, (arenaMatch.rival.pwr || 14) + (rScore - pScore) - (arenaMatch.playerStats.def || 6)) * mult);
       if (arenaMatch.playerShield && arenaMatch.playerShield > 0) {
         const abs = Math.min(arenaMatch.playerShield, dmg);
         dmg -= abs;
@@ -17255,9 +17744,20 @@
       arenaMatch.playerStats.hp = Math.max(0, arenaMatch.playerStats.hp - dmg);
       title = `❌ ${rScore} vs ${pScore}. Ronda para el rival: recibes ${dmg} daño.`;
       arenaMatch.rivalWins++;
+      addArenaOverdrive(20);
     } else {
       title = `🤝 Empate exacto (${pScore} vs ${rScore}). Se repite la ronda.`;
       isDraw = true;
+    }
+
+    // Drenaje Vampírico de Overdrive (Plan C)
+    if (playerWonRound && arenaMatch.overdriveDrain) {
+      const healAmt = Math.max(8, Math.round(18 * 0.6));
+      arenaMatch.playerStats.hp = Math.min(arenaMatch.playerStats.maxHp, arenaMatch.playerStats.hp + healAmt);
+      title += ` 🩸 (Drenas +${healAmt} HP por Trance)`;
+      if (typeof spawnFloatingText === "function") {
+        spawnFloatingText("arena-combat-player-avatar", `+${healAmt} HP DRENAJE`, "heal");
+      }
     }
 
     // Mecánica de Duelo de Pulso (Robo Vampírico del 25%) en Muerte Súbita
@@ -17317,39 +17817,59 @@
     const isRivalWin = arenaMatch.playerStats.hp <= 0 || (arenaMatch.isSuddenDeath && arenaMatch.round > 6 && arenaMatch.rivalWins > arenaMatch.playerWins);
 
     if (isPlayerWin || (arenaMatch.isSuddenDeath && arenaMatch.playerWins > arenaMatch.rivalWins && arenaMatch.rivalHp <= 0)) {
-      // VICTORIA FINAL DEL DUELO
-      const trophies = parseInt(localStorage.getItem("blackjack_arena_trophies") || "1250", 10) + 35;
-      const extraArenaCoins = getPersistentExtraCards().some(c => (c.specialId || c.id) === "club_jack_thief") ? 15 : 0;
-      const skulls = getPlayerCryptCoins() + 20 + extraArenaCoins;
+      // VICTORIA FINAL DEL DUELO: ENTREGA DEL BOTE Y PROGRESIÓN DE RACHAS (PLAN E)
+      const tier = arenaMatch.wagerTier || ARENA_WAGER_TIERS.bronze;
+      awardArenaPot(tier);
+
+      // Actualizar racha gladiadora
+      let curStreak = parseInt(localStorage.getItem("blackjack_arena_streak") || "0", 10) + 1;
+      localStorage.setItem("blackjack_arena_streak", curStreak.toString());
+
+      const streakBonusTrophies = Math.min(50, curStreak * 5);
+      const baseTrophies = tier.trophyGain || 35;
+      const totalTrophiesWon = baseTrophies + streakBonusTrophies;
+      const trophies = parseInt(localStorage.getItem("blackjack_arena_trophies") || "1250", 10) + totalTrophiesWon;
       localStorage.setItem("blackjack_arena_trophies", trophies.toString());
-      localStorage.setItem("bj_crypt_coins", skulls.toString());
+
+      // Animación de explosión del bote
+      const potBadge = document.getElementById("arena-pot-badge");
+      if (potBadge) {
+        potBadge.classList.add("pot-burst");
+        setTimeout(() => potBadge.classList.remove("pot-burst"), 1200);
+      }
 
       // Guardar en historial
       saveArenaMatchHistory({
         rival: arenaMatch.rival.name,
         result: "win",
-        trophiesDelta: +35,
+        wager: tier.name,
+        pot: tier.potLabel,
+        trophiesDelta: +totalTrophiesWon,
+        streak: curStreak,
         timestamp: Date.now()
       });
 
-      const bonusMsg = extraArenaCoins > 0 ? ` (¡+15 por Jota de Fortuna!)` : "";
-      showGameAlert(`Has derrotado a ${arenaMatch.rival.name} por K.O.
-+35 Trofeos de Ranking (Total: ${trophies})
-+20 Monedas de Cripta 💀${bonusMsg}`, "🏆 VICTORIA EN LA ARENA", openArenaPvpModal);
+      const streakTxt = curStreak >= 2 ? `\n🔥 ¡Racha de Victorias: ${curStreak}! (+${streakBonusTrophies} Trofeos)` : "";
+      showGameAlert(`¡Has derrotado a ${arenaMatch.rival.name} por K.O.!
+💰 Te llevas el BOTE: +${tier.potLabel}
+🏆 +${totalTrophiesWon} Trofeos de Ranking (Total: ${trophies})${streakTxt}`, "🏆 ¡VICTORIA EN LA ARENA!", openArenaPvpModal);
       return;
     } else if (isRivalWin || (arenaMatch.isSuddenDeath && arenaMatch.rivalWins > arenaMatch.playerWins && arenaMatch.playerStats.hp <= 0)) {
-      // DERROTA FINAL DEL DUELO
+      // DERROTA FINAL DEL DUELO: RESET DE RACHA
+      localStorage.setItem("blackjack_arena_streak", "0");
       const trophies = Math.max(1000, parseInt(localStorage.getItem("blackjack_arena_trophies") || "1250", 10) - 15);
       localStorage.setItem("blackjack_arena_trophies", trophies.toString());
 
       saveArenaMatchHistory({
         rival: arenaMatch.rival.name,
         result: "loss",
+        wager: arenaMatch.wagerTier ? arenaMatch.wagerTier.name : "Bronce",
         trophiesDelta: -15,
         timestamp: Date.now()
       });
 
       showGameAlert(`${arenaMatch.rival.name} agotó toda tu salud en el duelo.
+Has perdido la apuesta y la racha de victorias.
 -15 Trofeos (Total: ${trophies})`, "☠️ DERROTA EN LA ARENA", openArenaPvpModal);
       return;
     }

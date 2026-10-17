@@ -48,4 +48,30 @@ const dmgSudden = simulateArenaDamage(21, 18, 14, 6, true);
 // 11 * 2 = 22 de daño en muerte súbita
 assert.strictEqual(dmgSudden, 22, "El daño en muerte súbita debe duplicarse a 22");
 
-console.log("PASS: Todas las pruebas de Arena Rediseñada superadas con éxito (Fase 2).");
+// 7. Verificación del Coliseo Definitivo (Planes A, B, C, D y E)
+// Plan A: Reflejos rápidos y botón Doblar
+assert(gameSrc.includes('function arenaPlayerDouble'), 'Debe existir la función arenaPlayerDouble');
+assert(gameSrc.includes('startArenaTurnTimer'), 'Debe existir el temporizador de reflejos');
+assert(gameSrc.includes('ARENA_REFLEX_LIMIT_MS'), 'Debe existir la ventana de reflejos rápidos');
+
+// Plan B: Diálogos reactivos y farol
+assert(gameSrc.includes('triggerRivalSpeech'), 'Debe existir la función triggerRivalSpeech');
+assert(gameSrc.includes('bluffSuccess'), 'Debe existir la mecánica de farol');
+
+// Plan C: Trance Arcano (Overdrive) y 3 poderes
+assert(gameSrc.includes('addArenaOverdrive'), 'Debe existir la función addArenaOverdrive');
+assert(gameSrc.includes('triggerOverdrivePower'), 'Debe existir la función triggerOverdrivePower');
+assert(gameSrc.includes('openOverdrivePicker'), 'Debe existir el selector de naipes de Extracción');
+
+// Plan D: Modificadores Caóticos
+assert(gameSrc.includes('ARENA_MUTATORS'), 'Debe existir el catálogo de mutadores');
+assert(gameSrc.includes('spinArenaMutator'), 'Debe existir la ruleta de mutadores');
+
+// Plan E: Apuestas, Bote y Racha Gladiadora
+assert(gameSrc.includes('ARENA_WAGER_TIERS'), 'Debe existir el catálogo de apuestas');
+assert(gameSrc.includes('selectArenaWager'), 'Debe existir la función selectArenaWager');
+assert(gameSrc.includes('awardArenaPot'), 'Debe existir la función awardArenaPot');
+assert(gameSrc.includes('blackjack_arena_streak'), 'Debe persistir la racha en blackjack_arena_streak');
+
+console.log("PASS: Todas las pruebas de Arena Rediseñada y Coliseo Definitivo superadas con éxito (Planes A-E).");
+
