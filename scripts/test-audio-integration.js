@@ -221,4 +221,9 @@ if (api) {
 
 console.log('\n---------------------------------------');
 console.log(`RESULTADO: ${passed} pass / ${total - passed} fail\n`);
+if (api && typeof api.stopMainMenuMusic === 'function') {
+  try { api.stopMainMenuMusic(); } catch (_) {}
+}
 if (passed !== total) process.exit(1);
+process.exit(0);
+

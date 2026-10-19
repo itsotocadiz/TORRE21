@@ -323,11 +323,23 @@
               <span class="diff-icon">🟣</span>
               <span class="diff-text">PESADILLA</span>
             </button>
+            <button class="diff-btn" data-diff="hell" onclick="setGameDifficulty('hell')">
+              <span class="diff-icon">🔥</span>
+              <span class="diff-text">INFIERNO</span>
+            </button>
           </div>
           <div class="difficulty-desc-box ascension-diff-desc" id="difficulty-desc-box">
             <div id="ascension-difficulty-desc" class="ascension-info-text">
               <span class="ascension-modifier-tag">🟢 Torre del Novicio (7 Pisos):</span> Batallas fluidas. ¡Vence a BLACK en el Piso 7! (🏆 +1 Trofeo)
             </div>
+          </div>
+          <!-- CAMPAÑA DEL 21: 6 CAPÍTULOS CON WAYPOINTS PERSISTENTES -->
+          <div class="campaign-chapters-panel" id="campaign-chapters-panel">
+            <div class="campaign-chapters-header">
+              <span class="campaign-badge">🗺️ CAMPAÑA DEL 21 • ACTOS I AL VI</span>
+              <span class="campaign-sub">Puntos de control (Waypoints) persistentes</span>
+            </div>
+            <div class="campaign-chapters-grid" id="campaign-chapters-grid"></div>
           </div>
         </div>
       </div>
@@ -1026,6 +1038,13 @@
       <!-- SPRINT 2: CONTADOR DE MANOS TRASLÚCIDO EN EL CENTRO SUPERIOR DE LA MESA -->
       <div id="table-hand-pill" class="table-hand-pill" title="Mano actual de combate en la Torre">MANO 1/5</div>
 
+      <!-- VISOR TÁCTICO DE PROBABILIDADES D&D + 21 (HUD EN TIEMPO REAL) -->
+      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Probabilidades tácticas de robo y golpe crítico (D&D + 21)">
+        <span class="dnd-odds-pill safe" id="dnd-safe-odds">🎲 SEGURO: --%</span>
+        <span class="dnd-odds-pill crit" id="dnd-crit-odds">⚡ CRÍTICO: --%</span>
+        <span class="dnd-odds-pill dmg" id="dnd-projected-dmg">⚔️ PROY: --</span>
+      </div>
+
       <!-- FILA 1: manos -->
       <div class="hands-row">
         <div class="battle-player player-cards-col">
@@ -1693,6 +1712,13 @@
             <div class="arena-timer-bar" id="arena-turn-timer-bar"></div>
           </div>
           <div class="arena-timer-caption" id="arena-timer-caption">⚡ DECISIÓN: 5.0s (¡Reflejos rápidos = +20% Daño!)</div>
+        </div>
+
+        <!-- VISOR TÁCTICO EN ARENA D&D + 21 -->
+        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Probabilidades tácticas en la Arena (D&D + 21)">
+          <span class="dnd-odds-pill safe" id="arena-dnd-safe-odds">🎲 SEGURO: --%</span>
+          <span class="dnd-odds-pill crit" id="arena-dnd-crit-odds">⚡ CRÍTICO: --%</span>
+          <span class="dnd-odds-pill dmg" id="arena-dnd-projected-dmg">⚔️ PROY: --</span>
         </div>
 
         <!-- ZONA DEL JUGADOR -->
