@@ -63,7 +63,16 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.4.0] — Octubre 2026 (Actual)
+### [v1.5.0] — Octubre 2026 (Actual)
+* **Sistema de Campamento de Guardado (Pausar y Continuar):** Salir al menú principal desde la pausa in-game (`🏕️ SALIR AL CAMPAMENTO`) ya no destruye tu ascensión activa. El progreso en el piso, las cartas forjadas, la vida y el oro se almacenan de forma segura para reanudar la partida en cualquier momento con **"CONTINUAR ASCENSIÓN"**.
+* **Reliquias del Demonio (Draft Roguelike Diablo II):** Al derrotar al líder de cada Acto (pisos 3, 7, 11, 15 y 19), se despliega un draft de 3 cartas/reliquias demoníacas a elegir (Filo Sangriento de Dante, Baluarte de Diamantes, Ojo Arcano del Archimago, Cosecha de Malfas, etc.) para personalizar y potenciar la run.
+* **Rebalanceo Numérico Integral de los Actos II al VI:** Corrección del estancamiento donde un héroe con 11 DEF + 4 Escudo no recibía daño en pisos avanzados. Los rivales escalan agresivamente (Acto II PWR 6-7, Acto III PWR 9-11, Acto IV PWR 13-15, Acto V PWR 16-18, Acto VI PWR 20-22) y los Jefes de Acto fueron reforzados acorde a la maestría del jugador.
+* **21 / Blackjack Crítico del Rival:** Cuando el adversario consigue 21 o Blackjack, activa sacudida pesada de pantalla, perfora 4 puntos de DEF y desata impacto vorpal directo garantizado (mínimo 5 HP penetrante), evitando que un 21 enemigo sea amortiguado a cero.
+* **Corrección de Waypoints en Selección de Actos:** Corregido el salto involuntario al piso 1 al elegir Actos II o III. Incorporada confirmación interactiva con botón **`◀ VOLVER`** y asignación coherente de oro y recursos iniciales.
+* **HUD Táctico Interactivo y Daño Esperado:** El visor en combate ahora proyecta en vivo `⚔️ DAÑO: X HP (21: Y)` (y `⚡ DAÑO x2` al doblar). Las píldoras de `🎲 SEGURO`, `⚡ CRÍTICO` y `⚔️ DAÑO` ahora son botones interactivos que despliegan ventanas explicativas con fórmulas y consejos tácticos.
+* **Control Táctil Antifantasmas:** Debounce de 350ms en la acción "Pedir Carta" (`playerAction('hit')`) para evitar dobles pulsaciones accidentales o toques fantasma en pantallas móviles.
+
+### [v1.4.0] — Octubre 2026
 * **Corrección Crítica de ¡DOBLAR!:** Solucionado el congelamiento de combate tras pulsar "⚡ ¡DOBLAR!". Ahora ejecuta la jugada rival, evalúa el desenlace, aplica multiplicadores `x2` y muestra el botón de Siguiente Ronda.
 * **Fluidez en Batallas de Oleadas:** Solucionado el bug donde el segundo enemigo aparecía "sin energía" (0% HP fantasma) y con botones bloqueados. Limpieza total de clases de animación y reactivación inmediata de controles.
 * **Rebalanceo Numérico del Combate:**

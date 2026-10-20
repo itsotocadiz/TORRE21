@@ -22,6 +22,7 @@ node scripts\sync-all.js  # copia raíz -> www/ -> android/public
 - **Ciclo de vida móvil**: Gestionado nativamente con `@capacitor/app` (`App.addListener('backButton')`), cerrando modales en pila y menús antes de permitir salir al sistema.
 - **Cartas especiales y baraja**: `buildStandardDeck` preserva `specialId`, atributos y slots (`joker_party`, `lucky_seven_astral`, `trinity_hologram`) garantizando su unicidad en la Arena y su efecto dinámico.
 - **Ergonomía táctil**: Mínimo 44x44 px en todos los botones y áreas táctiles (WCAG 2.5.5 / Material Design).
+- **README.md siempre al día**: Actualizar el `README.md` (Changelog e historial de versiones) obligatoriamente en cada commit tras cualquier modificación de mecánicas, bugs o funcionalidades.
 - Responder y documentar siempre en **español**.
 - `js/game.js` no tiene IIFE (funciones top-level = globales). `js/improvements.js` SÍ usa IIFE y carga DESPUÉS, así que sus `window.x = …` pisan los de `game.js`.
 - **Mojibake**: en PowerShell `Get-Content`/`Select-String` salen mal los acentos. Antes de editar un tramo, usar SIEMPRE el tool `read`.
