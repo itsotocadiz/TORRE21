@@ -1443,6 +1443,7 @@
     <div class="action-grid" id="action-grid">
       <button id="btn-hit" onclick="playerAction('hit')" title="Pide una carta más de la baraja para acercarte a 21. Cuidado con pasarte (Bust)."><img src="assets/svg/ui/icon_card_draw.svg" class="btn-icon" alt=""> PEDIR CARTA</button>
       <button id="btn-stand" onclick="playerAction('stand')" title="Conserva tu puntuación actual y resuelve el enfrentamiento contra el rival."><img src="assets/svg/ui/icon_stand.svg" class="btn-icon" alt=""> PLANTARSE</button>
+      <button id="btn-double" class="btn-double" onclick="playerAction('double')" title="⚡ Dobla la apuesta de impacto: roba 1 única carta y te plantas. Daño x2 si ganas (¡o contraataque x2 si pierdes!)." disabled><span class="btn-badge-mult">x2</span> ⚡ ¡DOBLAR!</button>
       <button id="btn-reroll" onclick="playerAction('reroll')" title="Descarta tu mano actual y roba 2 naipes nuevos (consume 1 Reroll)." disabled><img src="assets/svg/ui/icon_reroll.svg" class="btn-icon" alt=""> REROLL (0)</button>
       <button id="btn-potion" onclick="playerAction('potion')" title="Consume una poción curativa para restaurar vida inmediatamente."><img src="assets/svg/ui/icon_potion.svg" class="btn-icon" alt=""> POCIÓN (<span id="ui-potions">2</span>)</button>
     </div>
@@ -1766,6 +1767,29 @@
             <div class="opc-sub">Elige cuál de estos 3 naipes sumar a tu mano para asegurar la victoria:</div>
             <div class="opc-cards-row" id="overdrive-picker-cards"></div>
             <button type="button" class="opc-cancel-btn" onclick="closeOverdrivePicker()">Cancelar</button>
+          </div>
+        <!-- MODAL ESPECTACULAR DE FIN DE DUELO (K.O.) -->
+        <div id="modal-arena-match-outcome" class="arena-match-outcome-overlay hidden">
+          <div class="arena-outcome-card" id="arena-outcome-card">
+            <div class="aoc-badge" id="aoc-badge">🏆 ¡VICTORIA EN LA ARENA!</div>
+            <div class="aoc-icon" id="aoc-icon">👑</div>
+            <div class="aoc-title" id="aoc-title">¡K.O. CONTUNDENTE!</div>
+            <div class="aoc-desc" id="aoc-desc">Has derrotado a tu rival en el Coliseo.</div>
+            <div class="aoc-rewards-box" id="aoc-rewards-box">
+              <div class="aoc-reward-row">
+                <span>💰 BOTE RECLAMADO:</span>
+                <b id="aoc-pot-val" style="color:#ffd166;">+100 🪙</b>
+              </div>
+              <div class="aoc-reward-row">
+                <span>🏆 PUNTOS DE LIGA:</span>
+                <b id="aoc-trophies-val" style="color:#66fcf1;">+35 Trofeos</b>
+              </div>
+              <div class="aoc-reward-row" id="aoc-streak-row">
+                <span>🔥 RACHA GLADIADORA:</span>
+                <b id="aoc-streak-val" style="color:#ff758f;">1 Victoria</b>
+              </div>
+            </div>
+            <button type="button" class="aoc-confirm-btn" onclick="closeArenaOutcomeModal()">CONTINUAR AL COLISEO</button>
           </div>
         </div>
       </div>

@@ -6449,37 +6449,42 @@
   function updateCombatState() {
     const hitBtn = document.getElementById("btn-hit");
     const standBtn = document.getElementById("btn-stand");
+    const doubleBtn = document.getElementById("btn-double");
     const rerollBtn = document.getElementById("btn-reroll");
     const potionBtn = document.getElementById("btn-potion");
     const p = gameState.player;
 
     if (gameState.isRolling) {
-      hitBtn.disabled = true;
-      standBtn.disabled = true;
-      rerollBtn.disabled = true;
-      potionBtn.disabled = true;
+      if (hitBtn) hitBtn.disabled = true;
+      if (standBtn) standBtn.disabled = true;
+      if (doubleBtn) doubleBtn.disabled = true;
+      if (rerollBtn) rerollBtn.disabled = true;
+      if (potionBtn) potionBtn.disabled = true;
       return;
     }
 
     if (p.bust) {
-      hitBtn.disabled = true;
-      standBtn.disabled = true;
-      rerollBtn.disabled = (p.rerollsAvailable <= 0);
-      potionBtn.disabled = (p.potions <= 0);
-      rerollBtn.innerText = `🔄 REROLL (${p.rerollsAvailable})`;
+      if (hitBtn) hitBtn.disabled = true;
+      if (standBtn) standBtn.disabled = true;
+      if (doubleBtn) doubleBtn.disabled = true;
+      if (rerollBtn) rerollBtn.disabled = (p.rerollsAvailable <= 0);
+      if (potionBtn) potionBtn.disabled = (p.potions <= 0);
+      if (rerollBtn) rerollBtn.innerText = `🔄 REROLL (${p.rerollsAvailable})`;
       return;
     }
 
-    hitBtn.disabled = false;
-    standBtn.disabled = false;
-    rerollBtn.disabled = (p.rerollsAvailable <= 0);
-    potionBtn.disabled = (p.potions <= 0);
+    if (hitBtn) hitBtn.disabled = false;
+    if (standBtn) standBtn.disabled = false;
+    if (doubleBtn) doubleBtn.disabled = p.stand || (p.playerHand && p.playerHand.length !== 2);
+    if (rerollBtn) rerollBtn.disabled = (p.rerollsAvailable <= 0);
+    if (potionBtn) potionBtn.disabled = (p.potions <= 0);
 
     if (p.blackjack && p.playerHand.length === 2) {
-      hitBtn.disabled = true;
+      if (hitBtn) hitBtn.disabled = true;
+      if (doubleBtn) doubleBtn.disabled = true;
     }
 
-    rerollBtn.innerText = `🔄 REROLL (${p.rerollsAvailable})`;
+    if (rerollBtn) rerollBtn.innerText = `🔄 REROLL (${p.rerollsAvailable})`;
   }
 
   /* ============================================================
@@ -6566,6 +6571,102 @@
         addLog("No tienes Rerolls disponibles.", "warning");
         return;
       }
+    }
+
+    if (action === "double") {
+      if (p.bust || p.stand || (p.playerHand && p.playerHand.length !== 2)) {
+        triggerHaptic("button_click");
+        addLog("Solo puedes Doblar la apuesta con tus 2 primeras cartas.", "warning");
+        return;
+      }
+
+      p.turnDoubleDamage = true;
+      triggerHaptic("blackjack");
+      try { playTacticalAbilitySound(); } catch (_) {}
+      triggerScreenShake("light");
+      spawnFloatingText("player-sprite", "⚡ ¡DOBLAR x2!", "crit");
+      addLog("⚡ ¡DOBLAS LA APUESTA! Robas exactamente 1 carta final y te plantas (¡Daño x2 si ganas, o contraataque x2 si pierdes!).", "critical");
+
+      gameState.isRolling = true;
+      setButtonsDisabled(true);
+      const pCardEl = document.getElementById("player-cards");
+      if (pCardEl) pCardEl.classList.add("rolling");
+      await sleep(300);
+      if (pCardEl) pCardEl.classList.remove("rolling");
+
+      const newCard = drawCard();
+      playCardSound();
+      p.playerHand.push(newCard);
+      applyDrawnCardUpgrades([newCard]);
+
+      p.playerScore = calculateHandScore(p.playerHand);
+      const phoenixCard = p.playerHand.find(c => c.enchantment && (c.enchantment.id === "phoenix" || c.enchantment.type === "phoenix") && c.value > 1);
+      if (p.playerScore > BUST_LIMIT && phoenixCard) {
+        phoenixCard.value = 1;
+        p.playerScore = calculateHandScore(p.playerHand);
+        spawnFloatingText("player-sprite", "🔥 ¡FÉNIX SALVADOR!", "crit");
+        addLog("🔥 ¡El Sello Fénix te salvó del BUST transmutando su valor a 1!", "critical");
+        playVictorySound();
+      } else if (p.playerScore > BUST_LIMIT && hasCardUpgrade("phoenix_card") && !p.phoenixUsedThisFloor) {
+        p.phoenixUsedThisFloor = true;
+        newCard.value = 1;
+        p.playerScore = calculateHandScore(p.playerHand);
+        spawnFloatingText("player-sprite", "🔥 ¡FÉNIX SALVADOR!", "crit");
+        addLog("🔥 ¡Bendición del Fénix! La carta transmuta a As (1) y te salva de pasarte.", "critical");
+        playVictorySound();
+      }
+
+      p.bust = p.playerScore > BUST_LIMIT;
+      p.blackjack = (p.playerScore === 21 && p.playerHand.length === 2);
+
+      if (p.blackjack) {
+        setPlayerSpriteState("blackjack");
+        spawnFloatingText("player-sprite", "¡BLACKJACK 21!", "crit");
+      } else if (p.bust) {
+        setPlayerSpriteState("bust");
+        spawnFloatingText("player-sprite", "¡BUST! > 21", "damage-weak");
+      }
+
+      detectClassPassives();
+      applyCurseOnDraw([newCard]);
+
+      renderCards();
+      updateHud();
+
+      const newCardEl = document.getElementById("player-cards") ? document.getElementById("player-cards").lastElementChild : null;
+      if (newCardEl) {
+        newCardEl.classList.add("deal-anim");
+        await sleep(350);
+        newCardEl.classList.remove("deal-anim");
+      }
+
+      if (p.hp <= 0) {
+        gameState.isRolling = false;
+        setButtonsDisabled(true);
+        addLog("💀 ¡HP agotado! Muerte súbita...", "damage");
+        await sleep(400);
+        showFateWheel("death");
+        return;
+      }
+
+      if (p.bust) {
+        gameState.isRolling = true;
+        setButtonsDisabled(true);
+        triggerHaptic("bust");
+        triggerScreenShake("light");
+        try { playBustSound(); } catch (_) {}
+        p._runBustCount = (p._runBustCount || 0) + 1;
+        addLog("💥 ¡BUST al Doblar! El contraataque rival será devastador (x2).", "damage");
+        await sleep(900);
+        await resolveHandResult(false);
+      } else {
+        p.stand = true;
+        gameState.isRolling = true;
+        setButtonsDisabled(true);
+        await sleep(300);
+        await enemyPlayAuto(e);
+      }
+      return;
     }
 
     if (action === "hit") {
@@ -6836,6 +6937,27 @@
     const boostNote = mult > 1 ? ` (x${mult.toFixed(2)} por Artefactos)` : "";
     addLog(`🎓 ¡Eliminaste a ${e.name}! Ganaste +${finalKillExp} EXP${boostNote}.`, "critical");
     await gainExp(finalKillExp);
+
+    // Comprobar si el piso cuenta con oleadas múltiples pendientes
+    if (gameState.floorEnemies && gameState.floorEnemies.length > 1 && gameState.currentEnemyIndex < gameState.floorEnemies.length - 1) {
+      gameState.currentEnemyIndex++;
+      const nextT = gameState.floorEnemies[gameState.currentEnemyIndex];
+      addLog(`⚔️ ¡Oleada superada! Entra ${nextT.name} (Oleada ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}).`, "critical");
+      if (typeof showCombatBanner === "function") {
+        showCombatBanner(`⚔️ ¡OLEADA ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}!`, `¡${nextT.name} desciende al combate!`, "crit");
+      }
+      p.hp = Math.min(p.maxHp, p.hp + 6);
+      if (!gameState.status) gameState.status = {};
+      gameState.status.playerShield = (gameState.status.playerShield || 0) + 4;
+      spawnFloatingText("player-sprite", "+6 HP SEGUNDO ALIENTO", "heal");
+
+      initEnemyForCombat(nextT);
+      updateHud();
+      p.handNumber = 0;
+      await sleep(1000);
+      await startNewHand();
+      return;
+    }
 
     // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto en modo Campaña
     if (gameState.isCampaignMode) {
@@ -11984,7 +12106,21 @@
 
     const maxF = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
     const uiFloor = document.getElementById("ui-floor");
-    if (uiFloor) uiFloor.innerText = `PISO ${gameState.floor} / ${maxF}`;
+    if (uiFloor) {
+      if (gameState.isCampaignMode) {
+        const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
+        const curChapter = (typeof CAMPAIGN_CHAPTERS !== "undefined") ? (CAMPAIGN_CHAPTERS.find(c => c.number === curAct) || CAMPAIGN_CHAPTERS[0]) : null;
+        const startF = curChapter?.startFloor || 1;
+        const endF = curChapter?.endFloor || 3;
+        const floorInAct = gameState.floor - startF + 1;
+        const totalInAct = endF - startF + 1;
+        const waveTxt = (gameState.floorEnemies && gameState.floorEnemies.length > 1) ? ` • ⚔️ OLEADA ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}` : "";
+        uiFloor.innerText = `${curChapter?.suit || "🗡️"} ACTO ${curAct} • P.${floorInAct}/${totalInAct}${waveTxt}`;
+      } else {
+        const waveTxt = (gameState.floorEnemies && gameState.floorEnemies.length > 1) ? ` • ⚔️ OLEADA ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}` : "";
+        uiFloor.innerText = `🏰 PISO ${gameState.floor} / ${maxF}${waveTxt}`;
+      }
+    }
 
     const uiGold = document.getElementById("ui-gold");
     if (uiGold) uiGold.innerHTML = `<img src="assets/svg/ui/icon_gold.svg" class="hud-icon" alt=""> ${gameState.gold}`;
@@ -12992,7 +13128,7 @@
   const BET_LABELS = ["1 HP (prudente)", "5 HP (poco riesgo)", "10 HP (riesgo medio)", "15 HP (arriesgado)", "25 HP (máximo riesgo)"];
   const BET_COLORS = ["#45a29e", "#e63946", "#f4a261", "#a8dadc", "#ff6b6b"];
 
-  function showBetScreen() {
+  function showBetScreen(forceModal = false) {
     const p = gameState.player;
     const e = gameState.enemy;
     const desc = document.getElementById("bet-desc");
@@ -13005,18 +13141,18 @@
       document.body.classList.add("sudden-death-active");
       const suddenRound = p.handNumber - TURNS_PER_FLOOR + 1;
       const suddenMult = 1 + suddenRound;
-      desc.innerHTML = `<div class="sudden-death-badge">🔥 MUERTE SÚBITA — ASALTO ${suddenRound} (¡DAÑO x${suddenMult}!)</div><br>` +
+      if (desc) desc.innerHTML = `<div class="sudden-death-badge">🔥 MUERTE SÚBITA — ASALTO ${suddenRound} (¡DAÑO x${suddenMult}!)</div><br>` +
         `<span style="color:#ff758f;font-size: 9px;letter-spacing:0.5px;">⚡ ¡FRENESÍ ESCALABLE! Daño x${suddenMult} para ambos. ¡Cada asalto suma +1 al multiplicador!</span><br><br>` +
         `<span style="color:#2a9d8f;">🧑 Tu HP: ${p.hp}/${p.maxHp}${pShieldStr}</span> &nbsp;|&nbsp; ` +
         `<span style="color:#e63946;">👹 Rival: ${e.hp}/${e.maxHp}${eShieldStr}</span>`;
     } else {
       document.body.classList.remove("sudden-death-active");
-      desc.innerHTML = `<b style="color:#ffd166;font-size: 9px;">MANO ${p.handNumber + 1}/${TURNS_PER_FLOOR}</b><br>` +
+      if (desc) desc.innerHTML = `<b style="color:#ffd166;font-size: 9px;">MANO ${p.handNumber + 1}/${TURNS_PER_FLOOR}</b><br>` +
         `Elige cuánta vida apostar contra ${e.name}:<br><br>` +
         `<span style="color:#2a9d8f;">🧑 Tu HP: ${p.hp}/${p.maxHp}${pShieldStr}</span> &nbsp;|&nbsp; ` +
         `<span style="color:#e63946;">👹 Rival: ${e.hp}/${e.maxHp}${eShieldStr}</span>`;
     }
-    if (p && p.curse === "gambler_pact") {
+    if (p && p.curse === "gambler_pact" && desc) {
       desc.innerHTML += `<div style="margin-top:6px;font-size:9px;color:#ffd166;background:rgba(217,119,6,0.15);padding:4px 8px;border-radius:4px;border:1px solid #ffd166;">🎲 Juramento del Gran Tahúr activo: Apuesta mínima fijada en 10 HP (Blackjack x3.5).</div>`;
     }
     // update card styles
@@ -13038,6 +13174,20 @@
         card.removeAttribute("title");
       }
     });
+
+    // OPCIÓN A: Combate fluido directo sin interrupciones modales de apuesta previa
+    if (!forceModal) {
+      p.betAmount = (isGamblerPact && p.hp >= 10) ? 10 : 0;
+      p.turnDoubleDamage = false;
+      gameState.phase = "hand";
+      const sBet = document.getElementById("screen-bet");
+      if (sBet) sBet.classList.add("hidden");
+      const ctrl = document.getElementById("controls");
+      if (ctrl) ctrl.style.display = "flex";
+      startNewHand();
+      return;
+    }
+
     gameState.phase = "bet";
     document.getElementById("screen-bet").classList.remove("hidden");
     document.getElementById("controls").style.display = "none";
@@ -13818,6 +13968,13 @@
         addLog(`🎲 Juramento del Gran Tahúr: ¡Blackjack demoledor amplifica tu impacto x${mult}!`, "critical");
       }
 
+      if (p.turnDoubleDamage && dmg > 0) {
+        const doubleMult = (p.curse === "gambler_pact") ? 3.0 : 2.0;
+        dmg = Math.round(dmg * doubleMult);
+        spawnFloatingText("player-sprite", `⚡ x${doubleMult} DAÑO DOBLADO`, "crit");
+        addLog(`⚡ ¡Apuesta Doblada con éxito! Daño de impacto x${doubleMult} = ${dmg}.`, "critical");
+      }
+
       // Efectos de cartas dinámicas en ataque (Fase E)
       const hasDoubleJack = p.playerHand.some(c => (c.specialId || c.id) === "double_jack");
       if (hasDoubleJack && p.playerScore === 21) {
@@ -14013,6 +14170,11 @@
         p._synergyBonusDef = 0;
       }
       let rawDmg = e.pwr + bet;
+      if (p.turnDoubleDamage) {
+        rawDmg = Math.round(rawDmg * 2.0);
+        spawnFloatingText("player-sprite", "⚡ x2 CONTRAATAQUE", "damage");
+        addLog(`⚡ ¡Riesgo de Apuesta Doblada! El contraataque rival se multiplica x2 (${rawDmg} daño bruto).`, "warning");
+      }
       if (enemyHasBJ) rawDmg *= (e.trait === "dragon" ? 3 : 2);
 
       if (isSuddenDeath) {
@@ -14912,6 +15074,63 @@
   }
   window.enemyHpFor = enemyHpFor;
 
+  function initEnemyForCombat(t) {
+    const e = gameState.enemy;
+    const p = gameState.player;
+    const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
+    const cfg = (typeof DIFFICULTY_CONFIGS !== "undefined" && DIFFICULTY_CONFIGS[diffKey]) ? DIFFICULTY_CONFIGS[diffKey] : { pwrBonusFloorDiv: 4, levelPwrBonus: 0 };
+
+    e.maxHp = t.isActBoss ? Math.round(enemyHpFor(t) * 1.25) : enemyHpFor(t);
+    e.hp = e.maxHp;
+
+    const floorPwrBonus = Math.floor((gameState.floor - 1) / (cfg.pwrBonusFloorDiv || 4));
+    const levelPwrBonus = cfg.levelPwrBonus ? Math.floor(Math.max(0, (p.level || 1) - 1) / 3) * cfg.levelPwrBonus : 0;
+    e.pwr = t.pwr + floorPwrBonus + levelPwrBonus;
+
+    const floorDefBonus = Math.floor((gameState.floor - 1) / 4);
+    e.def = t.def + floorDefBonus;
+
+    let enemyStartShield = 0;
+    if (gameState.floor >= 4) {
+      const shieldMult = (diffKey === "normal") ? 2 : (diffKey === "hard" ? 3 : 4);
+      enemyStartShield = Math.min(30, (gameState.floor - 3) * shieldMult);
+    }
+    if (!gameState.status) gameState.status = {};
+    gameState.status.enemyShield = enemyStartShield;
+
+    e.name = t.name;
+    e.sprite = t.sprite;
+    e.img = t.img;
+    e.trait = t.trait;
+    e.traitShort = t.traitShort;
+    e.traitName = t.traitName;
+    e.isActBoss = !!t.isActBoss;
+    registerCodexDiscovery("enemies", t.name);
+    gameState.enemyFloor = gameState.floor;
+
+    e.enemyHand = [];
+    e.enemyScore = 0;
+    e.bust = false;
+    e.blackjack = false;
+    e.stand = false;
+    e.enemyRevealed = false;
+
+    const eSpriteEl = document.getElementById("enemy-sprite");
+    if (eSpriteEl) {
+      if (e.img) {
+        eSpriteEl.innerHTML = `<img src="${e.img}" class="enemy-sprite-img" alt="${e.name}">`;
+      } else {
+        eSpriteEl.innerText = e.sprite;
+      }
+      eSpriteEl.className = "character-sprite";
+    }
+    const eNameEl = document.getElementById("enemy-name");
+    if (eNameEl) eNameEl.innerText = e.name;
+    const eTraitEl = document.getElementById("enemy-trait");
+    if (eTraitEl) eTraitEl.innerText = e.traitShort || "";
+  }
+  window.initEnemyForCombat = initEnemyForCombat;
+
   async function initFloor() {
     document.body.classList.remove("sudden-death-active");
     try { updateBattleZoneAtmosphere(gameState.floor); } catch (_) {}
@@ -14924,10 +15143,10 @@
     // Mazo nuevo (barajado) al inicio de cada piso
     rebuildDrawPile();
 
-    // Cada piso genera un rival según el modo (Campaña por Actos o Torre Clásica)
+    // Cada piso genera rivales según el modo (Campaña por Actos o Torre Clásica)
     const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
     const cfg = (typeof DIFFICULTY_CONFIGS !== "undefined" && DIFFICULTY_CONFIGS[diffKey]) ? DIFFICULTY_CONFIGS[diffKey] : { pwrBonusFloorDiv: 4, levelPwrBonus: 0 };
-    let t;
+    let floorEnemies = [];
 
     if (gameState.isCampaignMode) {
       const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
@@ -14937,7 +15156,7 @@
 
       if (isBoss && curChapter && typeof CHAPTER_BOSSES !== "undefined" && CHAPTER_BOSSES[curChapter.bossId]) {
         const b = CHAPTER_BOSSES[curChapter.bossId];
-        t = {
+        floorEnemies = [{
           name: b.name,
           sprite: b.sprite,
           img: b.img,
@@ -14948,11 +15167,11 @@
           traitShort: b.traitShort,
           traitName: b.traitName,
           isActBoss: true
-        };
+        }];
         addLog(`👑 ¡JEFE DE ACTO ${curChapter.number}! ${b.name} te desafía.`, "critical");
       } else if (gameState.floor === 20) {
         // Sub-Jefe de Acto VI: Dragón de Ébano
-        t = {
+        floorEnemies = [{
           name: "Dragón de Ébano (Guardián del Sagrario)",
           sprite: "🐉",
           img: "assets/svg/enemy_dragon.svg",
@@ -14963,17 +15182,31 @@
           traitShort: "★ ALIENTO ÍGNEO",
           traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)",
           isActBoss: true
-        };
+        }];
         addLog("🐉 ¡SUB-JEFE SUPREMO! El Dragón de Ébano ruge en el Sagrario.", "critical");
       } else {
         const pool = (typeof ACT_ENEMY_POOLS !== "undefined" && ACT_ENEMY_POOLS[curAct]) ? ACT_ENEMY_POOLS[curAct] : ACT_ENEMY_POOLS[1];
         if (gameState.floor === 1) {
           // En piso 1, siempre el Duende Pilluelo para consistencia y equilibrio
-          t = pool[0];
+          floorEnemies = [pool[0]];
+        } else if (gameState.floor === 2) {
+          // Piso 2 (Acto I): ¡EMBOSCADA DE 2 RIVALES! (Alimaña de Cripta + Esqueleto Maldito)
+          floorEnemies = [pool[1] || pool[0], pool[2] || pool[0]];
+        } else if (gameState.floor === 5) {
+          // Piso 5 (Acto II): ¡2 RIVALES! (Escarabajo de Arena + Orco Berserker)
+          floorEnemies = [pool[0], pool[1] || pool[0]];
+        } else if (gameState.floor === 9) {
+          // Piso 9 (Acto III): ¡2 RIVALES! (Víbora del Pantano + Bestia de las Sombras)
+          floorEnemies = [pool[0], pool[1] || pool[0]];
+        } else if (gameState.floor === 13) {
+          // Piso 13 (Acto IV): ¡2 RIVALES! (Guardián de Obsidiana + Centurión Espectral)
+          floorEnemies = [pool[0], pool[1] || pool[0]];
+        } else if (gameState.floor === 17) {
+          // Piso 17 (Acto V): ¡2 RIVALES! (Asesino de la Escarcha + Bestia de las Sombras)
+          floorEnemies = [pool[0], pool[1] || pool[0]];
         } else {
-          // Selección aleatoria temática dentro del pool del acto
           const randIdx = Math.floor(Math.random() * pool.length);
-          t = pool[randIdx];
+          floorEnemies = [pool[randIdx]];
         }
       }
     } else {
@@ -14986,35 +15219,14 @@
         const progressRatio = (gameState.floor - 1) / Math.max(1, maxFloors - 1);
         enemyIdx = Math.min(Math.floor(progressRatio * (maxNonBoss + 1)), maxNonBoss);
       }
-      t = ENEMIES[enemyIdx];
+      floorEnemies = [ENEMIES[enemyIdx]];
     }
 
-    e.maxHp = t.isActBoss ? Math.round(enemyHpFor(t) * 1.25) : enemyHpFor(t);
-    e.hp = e.maxHp;
+    gameState.floorEnemies = floorEnemies;
+    gameState.currentEnemyIndex = 0;
+    const t = floorEnemies[0];
 
-    // Escalamiento dinámico de ataque (PWR) y defensa (DEF) del rival según dificultad
-    const floorPwrBonus = Math.floor((gameState.floor - 1) / (cfg.pwrBonusFloorDiv || 4));
-    const levelPwrBonus = cfg.levelPwrBonus ? Math.floor(Math.max(0, (p.level || 1) - 1) / 3) * cfg.levelPwrBonus : 0;
-    e.pwr = t.pwr + floorPwrBonus + levelPwrBonus;
-
-    const floorDefBonus = Math.floor((gameState.floor - 1) / 4);
-    e.def = t.def + floorDefBonus;
-
-    // Escudo rival creciente en pisos avanzados (según dificultad)
-    let enemyStartShield = 0;
-    if (gameState.floor >= 4) {
-      const shieldMult = (diffKey === "normal") ? 2 : (diffKey === "hard" ? 3 : 4);
-      enemyStartShield = Math.min(30, (gameState.floor - 3) * shieldMult);
-    }
-
-    e.name = t.name;
-    e.sprite = t.sprite;
-    e.img = t.img;
-    e.trait = t.trait;
-    e.traitShort = t.traitShort;
-    e.traitName = t.traitName;
-    registerCodexDiscovery("enemies", t.name);
-    gameState.enemyFloor = gameState.floor;
+    initEnemyForCombat(t);
 
     // Asignación de afijos de élite para Pesadilla, Infierno y Mítico
     e.affixes = [];
@@ -15126,7 +15338,20 @@
 
     const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
     const floorBadge = document.getElementById("cs-floor-badge");
-    if (floorBadge) floorBadge.innerText = `🏰 PISO ${gameState.floor} / ${maxFloors}`;
+    if (floorBadge) {
+      if (gameState.isCampaignMode) {
+        const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
+        const curChapter = (typeof CAMPAIGN_CHAPTERS !== "undefined") ? (CAMPAIGN_CHAPTERS.find(c => c.number === curAct) || CAMPAIGN_CHAPTERS[0]) : null;
+        const startF = curChapter?.startFloor || 1;
+        const endF = curChapter?.endFloor || 3;
+        const floorInAct = gameState.floor - startF + 1;
+        const totalInAct = endF - startF + 1;
+        const waveTxt = (gameState.floorEnemies && gameState.floorEnemies.length > 1) ? ` (OLEADA 1/${gameState.floorEnemies.length})` : "";
+        floorBadge.innerText = `${curChapter?.suit || "🗡️"} ACTO ${curAct}: ${(curChapter?.name || "CRIPTAS").toUpperCase()} • PISO ${floorInAct}/${totalInAct}${waveTxt}`;
+      } else {
+        floorBadge.innerText = `🏰 PISO ${gameState.floor} / ${maxFloors}`;
+      }
+    }
 
     const pAvatar = document.getElementById("cs-player-avatar");
     if (pAvatar) {
@@ -17383,12 +17608,20 @@
   window.triggerRivalSpeech = triggerRivalSpeech;
 
   /* ============================================================
-     TEMPORIZADOR DE REFLEJOS ARCANOS (PLAN A)
+     TEMPORIZADOR DE REFLEJOS ARCANOS (PLAN A - DINÁMICO PROGRESIVO)
      ============================================================ */
   let _arenaTimerInterval = null;
   let _arenaTimerStartTime = 0;
   const ARENA_TURN_TIME_MS = 5000;
   const ARENA_REFLEX_LIMIT_MS = 1800;
+
+  function getArenaTurnTimeForRound(round) {
+    if (round <= 1) return 12000; // 12s para asentarse y pensar la primera mano
+    if (round === 2) return 9000;  // 9s para la segunda mano
+    if (round === 3) return 7000;  // 7s para la tercera mano
+    return 5000;                   // 5s para rondas 4+ y Muerte Súbita
+  }
+  window.getArenaTurnTimeForRound = getArenaTurnTimeForRound;
 
   function startArenaTurnTimer() {
     stopArenaTurnTimer();
@@ -17397,6 +17630,10 @@
     const caption = document.getElementById("arena-timer-caption");
     if (!container || !bar) return;
 
+    const roundNum = (arenaMatch && arenaMatch.round) ? arenaMatch.round : 1;
+    const turnDuration = getArenaTurnTimeForRound(roundNum);
+    const reflexLimit = Math.round(turnDuration * 0.35);
+
     container.classList.remove("hidden");
     bar.classList.remove("warning", "danger");
     bar.style.width = "100%";
@@ -17404,20 +17641,20 @@
 
     _arenaTimerInterval = setInterval(() => {
       const elapsed = Date.now() - _arenaTimerStartTime;
-      const remaining = Math.max(0, ARENA_TURN_TIME_MS - elapsed);
-      const pct = Math.max(0, (remaining / ARENA_TURN_TIME_MS) * 100);
+      const remaining = Math.max(0, turnDuration - elapsed);
+      const pct = Math.max(0, (remaining / turnDuration) * 100);
       bar.style.width = `${pct}%`;
 
       if (remaining <= 1500) {
         bar.classList.remove("warning");
         bar.classList.add("danger");
-      } else if (remaining <= 2800) {
+      } else if (remaining <= 3000) {
         bar.classList.add("warning");
       }
 
       if (caption) {
         const sec = (remaining / 1000).toFixed(1);
-        if (elapsed <= ARENA_REFLEX_LIMIT_MS) {
+        if (elapsed <= reflexLimit) {
           caption.innerHTML = `⚡ DECISIÓN: ${sec}s (¡Reflejos rápidos = +20% Daño!)`;
         } else {
           caption.innerHTML = `⏳ DECISIÓN: ${sec}s (Decide tu jugada)`;
@@ -17446,7 +17683,9 @@
   function checkReflexBonus() {
     if (_arenaTimerStartTime > 0) {
       const elapsed = Date.now() - _arenaTimerStartTime;
-      if (elapsed <= ARENA_REFLEX_LIMIT_MS && arenaMatch && !arenaMatch.quickReflexBonus) {
+      const roundNum = (arenaMatch && arenaMatch.round) ? arenaMatch.round : 1;
+      const reflexLimit = Math.round(getArenaTurnTimeForRound(roundNum) * 0.35);
+      if (elapsed <= reflexLimit && arenaMatch && !arenaMatch.quickReflexBonus) {
         arenaMatch.quickReflexBonus = true;
         addArenaOverdrive(10);
         if (typeof spawnFloatingText === "function") {
@@ -18640,12 +18879,117 @@
     if (resEl) resEl.classList.remove("hidden");
 
     if (playerWonRound) {
+      const playerAvatar = document.getElementById("arena-combat-player-avatar");
+      const rivalAvatar = document.getElementById("arena-combat-enemy-avatar");
+      if (playerAvatar) {
+        playerAvatar.classList.remove("arena-strike-anim");
+        void playerAvatar.offsetWidth;
+        playerAvatar.classList.add("arena-strike-anim");
+      }
+      if (rivalAvatar) {
+        rivalAvatar.classList.remove("flash-damage");
+        void rivalAvatar.offsetWidth;
+        rivalAvatar.classList.add("flash-damage");
+      }
+      try { playSynergyComboSound(); } catch (_) {}
       try { playWinFanfareSound(); } catch (_) {}
     } else if (!isDraw) {
+      const playerAvatar = document.getElementById("arena-combat-player-avatar");
+      const rivalAvatar = document.getElementById("arena-combat-enemy-avatar");
+      if (rivalAvatar) {
+        rivalAvatar.classList.remove("arena-strike-anim");
+        void rivalAvatar.offsetWidth;
+        rivalAvatar.classList.add("arena-strike-anim");
+      }
+      if (playerAvatar) {
+        playerAvatar.classList.remove("flash-damage");
+        void playerAvatar.offsetWidth;
+        playerAvatar.classList.add("flash-damage");
+      }
+      try { playRitualKick(); } catch (_) {}
       try { playCardBustSound(); } catch (_) {}
     }
   }
   window.arenaPlayerStand = arenaPlayerStand;
+
+  function showArenaMatchOutcomeModal(data) {
+    const modal = document.getElementById("modal-arena-match-outcome");
+    const card = document.getElementById("arena-outcome-card");
+    const badge = document.getElementById("aoc-badge");
+    const icon = document.getElementById("aoc-icon");
+    const title = document.getElementById("aoc-title");
+    const desc = document.getElementById("aoc-desc");
+    const potVal = document.getElementById("aoc-pot-val");
+    const trofVal = document.getElementById("aoc-trophies-val");
+    const streakRow = document.getElementById("aoc-streak-row");
+    const streakVal = document.getElementById("aoc-streak-val");
+
+    if (!modal) {
+      if (data.win) {
+        showGameAlert(`¡Has derrotado a ${data.rivalName}! Bote: +${data.potLabel}. Trofeos: +${data.trophiesWon}`, "🏆 ¡VICTORIA!", openArenaPvpModal);
+      } else {
+        showGameAlert(`${data.rivalName} te ha vencido. -15 Trofeos`, "☠️ DERROTA", openArenaPvpModal);
+      }
+      return;
+    }
+
+    if (data.win) {
+      if (card) {
+        card.classList.remove("outcome-loss");
+        card.classList.add("outcome-win");
+      }
+      if (badge) {
+        badge.innerText = "🏆 ¡VICTORIA EN LA ARENA!";
+        badge.style.color = "#ffd166";
+        badge.style.borderColor = "#ffd166";
+      }
+      if (icon) icon.innerText = "👑";
+      if (title) title.innerText = "¡K.O. CONTUNDENTE!";
+      if (desc) desc.innerText = `Has aplastado a ${data.rivalName} en el Coliseo de la Torre.`;
+      if (potVal) potVal.innerText = `+${data.potLabel}`;
+      if (trofVal) trofVal.innerText = `+${data.trophiesWon} Trofeos (Total: ${data.totalTrophies})`;
+      if (streakRow) {
+        if (data.streak >= 2) {
+          streakRow.style.display = "flex";
+          if (streakVal) streakVal.innerText = `${data.streak} Seguidas (+${data.streakBonus} bonus)`;
+        } else {
+          streakRow.style.display = "none";
+        }
+      }
+      try { playSynergyComboSound(); } catch (_) {}
+    } else {
+      if (card) {
+        card.classList.remove("outcome-win");
+        card.classList.add("outcome-loss");
+      }
+      if (badge) {
+        badge.innerText = "☠️ DERROTA EN LA ARENA";
+        badge.style.color = "#ff6b6b";
+        badge.style.borderColor = "#ff6b6b";
+      }
+      if (icon) icon.innerText = "💀";
+      if (title) title.innerText = "CAÍSTE EN COMBATE";
+      if (desc) desc.innerText = `${data.rivalName} rompió tu defensa y te arrebató la victoria.`;
+      if (potVal) potVal.innerText = "0 🪙 (Perdido)";
+      if (trofVal) trofVal.innerText = `-15 Trofeos (Total: ${data.totalTrophies})`;
+      if (streakRow) {
+        streakRow.style.display = "none";
+      }
+      try { playGothicBell(); } catch (_) {}
+    }
+
+    modal.classList.remove("hidden");
+  }
+  window.showArenaMatchOutcomeModal = showArenaMatchOutcomeModal;
+
+  function closeArenaOutcomeModal() {
+    const modal = document.getElementById("modal-arena-match-outcome");
+    if (modal) modal.classList.add("hidden");
+    if (typeof openArenaPvpModal === "function") {
+      openArenaPvpModal();
+    }
+  }
+  window.closeArenaOutcomeModal = closeArenaOutcomeModal;
 
   function arenaNextRound() {
     if (!arenaMatch) return;
@@ -18691,10 +19035,15 @@
         timestamp: Date.now()
       });
 
-      const streakTxt = curStreak >= 2 ? `\n🔥 ¡Racha de Victorias: ${curStreak}! (+${streakBonusTrophies} Trofeos)` : "";
-      showGameAlert(`¡Has derrotado a ${arenaMatch.rival.name} por K.O.!
-💰 Te llevas el BOTE: +${tier.potLabel}
-🏆 +${totalTrophiesWon} Trofeos de Ranking (Total: ${trophies})${streakTxt}`, "🏆 ¡VICTORIA EN LA ARENA!", openArenaPvpModal);
+      showArenaMatchOutcomeModal({
+        win: true,
+        rivalName: arenaMatch.rival.name,
+        potLabel: tier.potLabel,
+        trophiesWon: totalTrophiesWon,
+        totalTrophies: trophies,
+        streak: curStreak,
+        streakBonus: streakBonusTrophies
+      });
       return;
     } else if (isRivalWin || (arenaMatch.isSuddenDeath && arenaMatch.rivalWins > arenaMatch.playerWins && arenaMatch.playerStats.hp <= 0)) {
       // DERROTA FINAL DEL DUELO: RESET DE RACHA
@@ -18710,9 +19059,14 @@
         timestamp: Date.now()
       });
 
-      showGameAlert(`${arenaMatch.rival.name} agotó toda tu salud en el duelo.
-Has perdido la apuesta y la racha de victorias.
--15 Trofeos (Total: ${trophies})`, "☠️ DERROTA EN LA ARENA", openArenaPvpModal);
+      showArenaMatchOutcomeModal({
+        win: false,
+        rivalName: arenaMatch.rival.name,
+        potLabel: "0",
+        trophiesDelta: -15,
+        totalTrophies: trophies,
+        streak: 0
+      });
       return;
     }
 

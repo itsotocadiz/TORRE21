@@ -12674,5 +12674,158 @@ body.sudden-death-active #stage {
   transform: scale(0.96);
 }
 
+/* ============================================================
+   BOTÓN ¡DOBLAR! EN COMBATE REGULAR (OPCIÓN A)
+   ============================================================ */
+.btn-double {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.28)) !important;
+  border: 2px solid #f59e0b !important;
+  color: #fbbf24 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25), 0 3px 0 #78350f !important;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-double:hover:not(:disabled) {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.45), 0 3px 0 #78350f !important;
+}
+.btn-double:active:not(:disabled) {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #78350f !important;
+}
+.btn-double:disabled {
+  opacity: 0.3 !important;
+  filter: grayscale(0.8);
+  pointer-events: none;
+}
+.btn-badge-mult {
+  background: #f59e0b;
+  color: #0c0a09;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   ANIMACIONES DE COMBATE EN LA ARENA PVP
+   ============================================================ */
+@keyframes arenaAvatarStrike {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22) translateX(14px); }
+  65% { transform: scale(1.15) translateX(8px); }
+  100% { transform: scale(1) translateX(0); }
+}
+.arena-strike-anim {
+  animation: arenaAvatarStrike 0.4s ease-out !important;
+}
+
+/* ============================================================
+   MODAL DE FIN DE DUELO PVP (K.O.)
+   ============================================================ */
+.arena-match-outcome-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 12, 16, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  animation: fadeInOverlay 0.3s ease-out;
+}
+.arena-outcome-card {
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  border: 2px solid #ffd166;
+  border-radius: 12px;
+  padding: 20px 16px;
+  max-width: 330px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(255, 209, 102, 0.3), 0 12px 24px rgba(0,0,0,0.8);
+}
+.arena-outcome-card.defeat {
+  border-color: #ef4444;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.3), 0 12px 24px rgba(0,0,0,0.8);
+}
+.aoc-badge {
+  display: inline-block;
+  background: rgba(255, 209, 102, 0.15);
+  border: 1px solid #ffd166;
+  color: #ffd166;
+  font-family: var(--font-pixel, monospace);
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+.arena-outcome-card.defeat .aoc-badge {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+.aoc-icon {
+  font-size: 42px;
+  margin: 6px 0;
+  filter: drop-shadow(0 0 10px rgba(255, 209, 102, 0.6));
+}
+.arena-outcome-card.defeat .aoc-icon {
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.6));
+}
+.aoc-title {
+  font-family: var(--font-pixel, monospace);
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.aoc-desc {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+.aoc-rewards-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aoc-reward-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #e2e8f0;
+}
+.aoc-confirm-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 2px solid #60a5fa;
+  color: #fff;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  min-height: 44px;
+}
+
+
 
 
