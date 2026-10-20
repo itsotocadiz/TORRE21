@@ -362,9 +362,9 @@
     <!-- PESTAÑA: ARENA MULTIJUGADOR PVP -->
     <div class="title-tab-pane" id="title-pane-pvp">
       <div class="pvp-teaser-card active-arena-card" style="margin:16px auto;max-width:440px;" onclick="openArenaPvpModal()">
-        <div class="pvp-teaser-badge" id="pvp-arena-badge">⚔️ ARENA DEL 21 (DUELOS BO3)</div>
-        <div class="pvp-teaser-title">🏆 DUELOS DE LA ARENA • AL MEJOR DE 3</div>
-        <div class="pvp-teaser-desc" id="pvp-arena-desc">Desafía a campeones y heraldos de la Torre con tu baraja forjada. ¡Combates tácticos al mejor de 3 rondas!</div>
+        <div class="pvp-teaser-badge" id="pvp-arena-badge">⚔️ ARENA DEL 21 (DUELOS A K.O.)</div>
+        <div class="pvp-teaser-title">🏆 DUELOS DE LA ARENA • COMBATE A K.O.</div>
+        <div class="pvp-teaser-desc" id="pvp-arena-desc">Desafía a campeones y heraldos de la Torre con tu baraja forjada. ¡Combates por asaltos hasta noquear al rival a 0 HP!</div>
         <button class="pvp-enter-btn" onclick="event.stopPropagation(); openArenaPvpModal()">ENTRAR A LA ARENA ➔</button>
       </div>
     </div>
@@ -1024,11 +1024,10 @@
       <!-- SPRINT 2: CONTADOR DE MANOS TRASLÚCIDO EN EL CENTRO SUPERIOR DE LA MESA -->
       <div id="table-hand-pill" class="table-hand-pill" title="Mano actual de combate en la Torre">MANO 1/5</div>
 
-      <!-- VISOR TÁCTICO DE PROBABILIDADES D&D + 21 (HUD EN TIEMPO REAL INTERACTIVO) -->
-      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Toca cualquier indicador para ver su explicación táctica detallada">
-        <span class="dnd-odds-pill safe interactive" id="dnd-safe-odds" onclick="explainTacticalOdds('safe')">🎲 SEGURO: --%</span>
+      <!-- VISOR TÁCTICO DE COMBATE: CRÍTICO Y ATAQUE ACTUAL -->
+      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Golpe Crítico y Daño">
         <span class="dnd-odds-pill crit interactive" id="dnd-crit-odds" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
-        <span class="dnd-odds-pill dmg interactive" id="dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ DAÑO: --</span>
+        <span class="dnd-odds-pill dmg interactive" id="dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ ATAQUE: -- HP</span>
       </div>
 
       <!-- FILA 1: manos -->
@@ -1701,11 +1700,10 @@
           <div class="arena-timer-caption" id="arena-timer-caption">⚡ DECISIÓN: 5.0s (¡Reflejos rápidos = +20% Daño!)</div>
         </div>
 
-        <!-- VISOR TÁCTICO EN ARENA D&D + 21 (INTERACTIVO) -->
-        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Toca cualquier indicador para ver su explicación táctica detallada">
-          <span class="dnd-odds-pill safe interactive" id="arena-dnd-safe-odds" onclick="explainTacticalOdds('safe')">🎲 SEGURO: --%</span>
+        <!-- VISOR TÁCTICO EN ARENA: CRÍTICO Y ATAQUE ACTUAL -->
+        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Golpe Crítico y Daño">
           <span class="dnd-odds-pill crit interactive" id="arena-dnd-crit-odds" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
-          <span class="dnd-odds-pill dmg interactive" id="arena-dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ DAÑO: --</span>
+          <span class="dnd-odds-pill dmg interactive" id="arena-dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ ATAQUE: -- HP</span>
         </div>
 
         <!-- ZONA DEL JUGADOR -->
@@ -1977,6 +1975,8 @@
     <!-- LISTA DE LOGROS -->
     <div class="achievements-list" id="achievements-list"></div>
   </div>
+</div>
+
 <!-- MODAL DE ÁRBOL DE TALENTOS PERMANENTE (FASE 5) -->
 <div id="modal-hero-talents" class="overlay hidden" onclick="closeHeroTalentsModal(event)">
   <div class="talent-tree-card" onclick="event.stopPropagation()">
@@ -2010,7 +2010,7 @@
     </div>
     <div class="tutorial-tabs-bar">
       <button type="button" class="tutorial-tab-btn active" id="tut-tab-campaign" onclick="switchTutorialTab('campaign')">🏰 CAMPAÑA DE LA TORRE</button>
-      <button type="button" class="tutorial-tab-btn" id="tut-tab-pvp" onclick="switchTutorialTab('pvp')">⚔️ ARENA DUELOS BO3</button>
+      <button type="button" class="tutorial-tab-btn" id="tut-tab-pvp" onclick="switchTutorialTab('pvp')">⚔️ ARENA DUELOS A K.O.</button>
     </div>
     <div id="tutorial-content-body">
       <!-- Contenido dinámico del tutorial -->

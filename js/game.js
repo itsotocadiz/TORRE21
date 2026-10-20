@@ -3597,32 +3597,23 @@
   window.calculateProjectedDamage = calculateProjectedDamage;
 
   function explainTacticalOdds(type) {
-    if (type === "safe") {
+    if (type === "crit") {
       showGameAlert(
-        "🎲 PROBABILIDAD SEGURA DE ROBO\n\n" +
-        "Indica el porcentaje exacto de cartas restantes en la baraja que NO te harán pasarte de 21 puntos (evitando BUST).\n\n" +
-        "• 75% o más: Es muy seguro pedir otra carta.\n" +
-        "• 40% a 70%: Zona de riesgo moderado.\n" +
-        "• Menos de 35%: Alto peligro de pasarte. ¡Se recomienda Plantarse!",
-        "TÁCTICA: PROBABILIDAD SEGURA"
-      );
-    } else if (type === "crit") {
-      showGameAlert(
-        "⚡ PROBABILIDAD DE GOLPE CRÍTICO (D&D 21)\n\n" +
-        "Probabilidad de que la siguiente carta extraída coloque tu mano en rango crítico (19, 20 o 21 puntos / Nat 20).\n\n" +
-        "¿CÓMO AUMENTAR TU CRÍTICO PERMANENTE?\n" +
-        "1. Incrementa tu atributo INTEL (Inteligencia).\n" +
-        "2. Equipa Sellos de Picas y Cartas Dinámicas como 'Rey de Picas Verdugo' o '3 Sobrecarga'.\n" +
-        "3. Aprovecha sinergias elementales y cartas astrales.",
+        "⚡ PROBABILIDAD DE GOLPE CRÍTICO\n\n" +
+        "Indica la probabilidad de asestar un Golpe Crítico demoledor (rango 19 a 21 puntos / Nat 20).\n\n" +
+        "¿CÓMO AUMENTAR TU CRÍTICO PROBABLE?\n" +
+        "1. 🌳 ÁRBOL DE TALENTOS: Invierte en la 'Rama del Filo' (Picas) para ganar probabilidad crítica y daño vorpal permanente.\n" +
+        "2. 🃏 COMBINACIÓN DE CARTAS: Los Ases y Figuras en tu mano aumentan tu acceso al rango crítico.\n" +
+        "3. 🔮 SELLOS ARCANOS: Graba Sellos de Picas y Sobrecarga para forzar impactos vorpales.",
         "TÁCTICA: GOLPE CRÍTICO"
       );
     } else if (type === "dmg") {
       showGameAlert(
-        "⚔️ DAÑO PROYECTADO DE COMBATE\n\n" +
-        "Muestra el daño neto que asestarás al rival si decides Plantarte ahora mismo con tu mano actual vs el daño demoledor si alcanzas 21.\n\n" +
-        "• Considera tu PWR, bonos elementales y resta la armadura rival.\n" +
-        "• Si activas '¡DOBLAR!', este daño se multiplicará x2 automáticamente.",
-        "TÁCTICA: ESTIMACIÓN DE DAÑO"
+        "⚔️ CÁLCULO DE ATAQUE DE COMBATE\n\n" +
+        "Muestra el daño neto que asestarás al rival con tu mano actual vs el daño masivo si alcanzas 21 exacto.\n\n" +
+        "• Considera tu PWR, afinidades de palos y penetración frente a la DEF enemiga.\n" +
+        "• Si activas '¡DOBLAR!', este ataque se multiplicará x2 automáticamente.",
+        "TÁCTICA: ATAQUE ACTUAL"
       );
     }
   }
@@ -3637,11 +3628,22 @@
         const e = (window.gameState && window.gameState.enemy);
         if (!p || !p.playerHand) return;
         const deck = (window.gameState && window.gameState.deck) || [];
-        const safe = calculateSafeHitChance(p.playerHand, deck);
-        const crit = calculateCritChance(p.playerHand, deck);
+        const baseCrit = calculateCritChance(p.playerHand, deck);
+        
+        // Bonificaciones de crítico del Árbol de Talentos y cartas en mano
+        let talentCritBonus = 0;
+        if (typeof getHeroTalentTree === "function") {
+          const tree = getHeroTalentTree(p.classKey || p.heroKey || "knight");
+          const ranks = (tree && tree.ranks) || {};
+          if (ranks["spades_1"]) talentCritBonus += ranks["spades_1"] * 5; // +5% por rango
+          if (ranks["spades_2"]) talentCritBonus += 15; // +15% vorpal
+        }
+        const hasSpadeInHand = p.playerHand.some(c => c && (c.suit === "♠" || c.suit === "spades"));
+        const cardCritBonus = hasSpadeInHand ? 5 : 0;
+        const totalCrit = Math.min(95, Math.max(5, baseCrit + talentCritBonus + cardCritBonus));
+
         const proj = calculateProjectedDamage(p.pwr || 2, e ? (e.def || 0) : 0, p.playerHand, deck);
 
-        const safeEl = document.getElementById("dnd-safe-odds");
         const critEl = document.getElementById("dnd-crit-odds");
         const dmgEl = document.getElementById("dnd-projected-dmg");
 
@@ -3649,13 +3651,12 @@
         const curDmg = proj.currentDmg * doubleFactor;
         const c21Dmg = proj.crit21Dmg * doubleFactor;
 
-        if (safeEl) safeEl.innerText = `🎲 SEGURO: ${safe}%`;
-        if (critEl) critEl.innerText = `⚡ CRÍTICO: ${crit}%`;
+        if (critEl) critEl.innerText = `⚡ CRÍTICO: ${totalCrit}%`;
         if (dmgEl) {
           if (p && p.turnDoubleDamage) {
-            dmgEl.innerText = `⚡ DAÑO x2: ${curDmg} HP (21: ${c21Dmg})`;
+            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmg} HP (21: ${c21Dmg})`;
           } else {
-            dmgEl.innerText = `⚔️ DAÑO: ${curDmg} HP (21: ${c21Dmg})`;
+            dmgEl.innerText = `⚔️ ATAQUE: ${curDmg} HP (21: ${c21Dmg})`;
           }
         }
       } else if (zone === "arena") {
@@ -3663,13 +3664,11 @@
         if (!hud || !window.arenaMatch) return;
         const hand = window.arenaMatch.playerHand || [];
         const deck = window.arenaMatch.deck || [];
-        const safe = calculateSafeHitChance(hand, deck);
-        const crit = calculateCritChance(hand, deck);
+        const baseCrit = calculateCritChance(hand, deck);
         const pwr = (window.arenaMatch.playerStats && window.arenaMatch.playerStats.pwr) || 12;
         const def = (window.arenaMatch.rival && window.arenaMatch.rival.def) || 6;
         const proj = calculateProjectedDamage(pwr, def, hand, deck);
 
-        const safeEl = document.getElementById("arena-dnd-safe-odds");
         const critEl = document.getElementById("arena-dnd-crit-odds");
         const dmgEl = document.getElementById("arena-dnd-projected-dmg");
 
@@ -3677,13 +3676,12 @@
         const curDmgArena = proj.currentDmg * doubleFactorArena;
         const c21DmgArena = proj.crit21Dmg * doubleFactorArena;
 
-        if (safeEl) safeEl.innerText = `🎲 SEGURO: ${safe}%`;
-        if (critEl) critEl.innerText = `⚡ CRÍTICO: ${crit}%`;
+        if (critEl) critEl.innerText = `⚡ CRÍTICO: ${baseCrit}%`;
         if (dmgEl) {
           if (doubleFactorArena > 1) {
-            dmgEl.innerText = `⚡ DAÑO x2: ${curDmgArena} HP (21: ${c21DmgArena})`;
+            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmgArena} HP (21: ${c21DmgArena})`;
           } else {
-            dmgEl.innerText = `⚔️ DAÑO: ${curDmgArena} HP (21: ${c21DmgArena})`;
+            dmgEl.innerText = `⚔️ ATAQUE: ${curDmgArena} HP (21: ${c21DmgArena})`;
           }
         }
       }
@@ -4323,7 +4321,7 @@
   window.TALENT_BRANCHES = TALENT_BRANCHES;
 
   function getHeroTalentTree(heroKey) {
-    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) || "knight";
+    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof currentHeroBookIndex === "number" && HERO_KEYS[currentHeroBookIndex]) || "knight";
     try {
       const raw = localStorage.getItem(TALENT_TREE_KEY);
       if (raw) {
@@ -4346,19 +4344,20 @@
   window.saveHeroTalentTree = saveHeroTalentTree;
 
   function getHeroAvailableTalentPoints(heroKey) {
-    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) || "knight";
+    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof currentHeroBookIndex === "number" && HERO_KEYS[currentHeroBookIndex]) || "knight";
     const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
     const heroMeta = meta[heroKey] || {};
     const heroLevel = heroMeta.level || heroMeta.masteryLevel || 1;
     const totalWins = (typeof getTotalTowerWins === "function") ? getTotalTowerWins() : 0;
-    const earned = Math.max(0, (heroLevel - 1) * 2 + totalWins * 3);
+    const bonusEarned = heroMeta.talentPoints || 0;
+    const earned = Math.max(0, (heroLevel - 1) + bonusEarned + totalWins * 2);
     const tree = getHeroTalentTree(heroKey);
     return Math.max(0, earned - (tree.pointsSpent || 0));
   }
   window.getHeroAvailableTalentPoints = getHeroAvailableTalentPoints;
 
   function openHeroTalentsModal(heroKey) {
-    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) || "knight";
+    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof currentHeroBookIndex === "number" && HERO_KEYS[currentHeroBookIndex]) || "knight";
     window._selectedTalentHeroKey = heroKey;
     const modal = document.getElementById("modal-hero-talents");
     if (!modal) return;
@@ -4527,11 +4526,10 @@
           </div>
         </div>
         <div class="tutorial-step-box">
-          <div class="tutorial-step-title"><span>🎲 4. Visor Táctico en Tiempo Real</span></div>
+          <div class="tutorial-step-title"><span>⚡ 4. Crítico y Cálculo de Ataque</span></div>
           <div class="tutorial-step-desc">
-            • <b>🎲 % Seguro:</b> Probabilidad de que la siguiente carta no te haga pasar de 21.<br>
-            • <b>⚡ % Crítico:</b> Probabilidad de sacar 19, 20 o 21.<br>
-            • <b>⚔️ DAÑO:</b> Te indica con precisión el daño proyectado que asestarás al rival si te plantas en este momento.
+            • <b>⚡ % Crítico:</b> Probabilidad de asestar Golpe Crítico (19–21). Súbelo invirtiendo en el Árbol de Talentos y jugando cartas de Picas.<br>
+            • <b>⚔️ ATAQUE:</b> Muestra el daño exacto que infligirás si decides plantarte en este turno, y el daño masivo si alcanzas 21.
           </div>
         </div>
         <div class="tutorial-step-box">
@@ -4546,8 +4544,8 @@
     } else {
       body.innerHTML = `
         <div class="tutorial-step-box">
-          <div class="tutorial-step-title"><span>🏆 1. Formato al Mejor de 3 (BO3)</span></div>
-          <div class="tutorial-step-desc">En la Arena te enfrentas a otros Heraldos y Campeones. El primer duelista en ganar 2 asaltos se alza con la victoria, los trofeos de liga y el bote de fichas.</div>
+          <div class="tutorial-step-title"><span>🏆 1. Duelo de Asaltos a K.O. de HP</span></div>
+          <div class="tutorial-step-desc">En la Arena te enfrentas a otros Heraldos y Campeones en combate continuo por asaltos. Cada mano ganada resta salud del contrincante. ¡El combate concluye cuando un duelista cae a 0 HP!</div>
         </div>
         <div class="tutorial-step-box">
           <div class="tutorial-step-title"><span>💰 2. Bote Progresivo de la Arena</span></div>
@@ -5740,13 +5738,12 @@
       </div>
     `).join("");
 
-    const statRow = (icon, label, base, leg) => `
+    const statRow = (icon, label, base) => `
       <div class="hero-sheet-stat-row">
         <span class="hss-icon">${icon}</span>
         <span class="hss-label">${label}</span>
         <span class="hss-base">Base ${base}</span>
-        <span class="hss-leg ${leg > 0 ? 'has' : ''}">Legado +${leg}</span>
-        <span class="hss-total">Total <b>${base + leg}</b></span>
+        <span class="hss-total">Total <b>${base}</b></span>
       </div>`;
 
     const titleEl = document.getElementById("hero-sheet-title");
@@ -5764,7 +5761,7 @@
         <div class="hero-sheet-tabs-nav">
           <button class="hero-sheet-tab-btn active" id="hst-tab-combat" onclick="switchHeroSheetTab('combat')">⚔️ ATRIBUTOS</button>
           <button class="hero-sheet-tab-btn" id="hst-tab-deck" onclick="switchHeroSheetTab('deck')">🃏 MI MAZO</button>
-          <button class="hero-sheet-tab-btn" id="hst-tab-legacy" onclick="switchHeroSheetTab('legacy')">🏛️ ALTAR LEGADO</button>
+          <button class="hero-sheet-tab-btn" id="hst-tab-legacy" onclick="switchHeroSheetTab('legacy')">🌳 TALENTOS</button>
           <button class="hero-sheet-tab-btn" id="hst-tab-lore" onclick="switchHeroSheetTab('lore')">📖 MEMORIAS</button>
         </div>
 
@@ -5884,50 +5881,21 @@
           </div>
         </div>
 
-        <!-- PANEL 2: ALTAR DEL LEGADO ANCESTRAL -->
+        <!-- PANEL 2: ÁRBOL DE TALENTOS ELEMENTALES -->
         <div class="hero-sheet-tab-panel" id="hst-panel-legacy">
-          <div class="hero-sheet-section hero-sheet-legacy-section">
-            <div class="hero-sheet-section-title">🏛️ ALTAR DEL LEGADO ANCESTRAL (PRESTIGIO DEL PISO 13)</div>
-            <div class="hero-sheet-legacy-desc" style="font-size: 9px;color:#cbd5e1;line-height:1.45;margin-bottom:6px;">
-              Los <b>Puntos de Legado Supremo</b> solo se forjan al <b>COMPLETAR LA TORRE</b> (derrotando a BLACK en el Piso 13 por primera vez en cada dificultad). Otorgan mejoras permanentes a las estadísticas de este Jack.
+          <div class="hero-sheet-section">
+            <div class="hero-sheet-section-title">🌳 ÁRBOL DE TALENTOS ELEMENTALES (${hero.name.toUpperCase()})</div>
+            <div style="font-size: 9px;color:#cbd5e1;line-height:1.45;margin-bottom:8px;">
+              Especialización permanente de clase en 4 ramas elementales (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna).
             </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size: 9px;color:#ffd166;font-family:var(--font-pixel,monospace);">🏆 Trofeos de Prestigio: ${trophies}</span>
-              <span class="legacy-points-badge ${(hMeta.legacyPoints || 0) > 0 ? 'has-points' : ''}">
-                ${hMeta.legacyPoints || 0} ${(hMeta.legacyPoints || 0) === 1 ? 'PTO' : 'PTOS'} DISPONIBLES
-              </span>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span class="talent-points-pill" style="font-size:10px;">✨ ${typeof getHeroAvailableTalentPoints === 'function' ? getHeroAvailableTalentPoints(heroKey) : 0} PUNTOS DISPONIBLES</span>
+              <button class="aoc-confirm-btn" style="padding:6px 12px; font-size:10px; min-height:34px; width:auto;" onclick="closeHeroSheet(); openHeroTalentsModal('${heroKey}');">
+                🌳 ABRIR ÁRBOL DE TALENTOS
+              </button>
             </div>
-            <div class="legacy-stats-grid">
-              <div class="legacy-stat-row">
-                <span class="ls-label">❤️ SALUD:</span>
-                <div class="ls-meter">
-                  <div class="ls-meter-bar" style="width:${Math.min(100, ((hMeta.legacyHp || 0) / 10) * 100)}%;"></div>
-                  <span class="ls-meter-text">+${legHp} / +30 HP (${hMeta.legacyHp || 0}/10)</span>
-                </div>
-                <button class="legacy-plus-btn" ${(hMeta.legacyPoints <= 0 || (hMeta.legacyHp || 0) >= 10) ? 'disabled' : ''} onclick="upgradeHeroLegacy('${heroKey}', 'hp'); openHeroSheet('${heroKey}'); switchHeroSheetTab('legacy');" title="Añadir +3 HP base">+</button>
-              </div>
-              <div class="legacy-stat-row">
-                <span class="ls-label">⚔️ PODER:</span>
-                <div class="ls-meter">
-                  <div class="ls-meter-bar" style="width:${Math.min(100, ((hMeta.legacyPwr || 0) / 5) * 100)}%;"></div>
-                  <span class="ls-meter-text">+${legPwr} / +5 PWR (${hMeta.legacyPwr || 0}/5)</span>
-                </div>
-                <button class="legacy-plus-btn" ${(hMeta.legacyPoints <= 0 || (hMeta.legacyPwr || 0) >= 5) ? 'disabled' : ''} onclick="upgradeHeroLegacy('${heroKey}', 'pwr'); openHeroSheet('${heroKey}'); switchHeroSheetTab('legacy');" title="Añadir +1 PWR base">+</button>
-              </div>
-              <div class="legacy-stat-row">
-                <span class="ls-label">🛡️ BASTIÓN:</span>
-                <div class="ls-meter">
-                  <div class="ls-meter-bar" style="width:${Math.min(100, ((hMeta.legacyDef || 0) / 5) * 100)}%;"></div>
-                  <span class="ls-meter-text">+${legDef} / +5 DEF (${hMeta.legacyDef || 0}/5)</span>
-                </div>
-                <button class="legacy-plus-btn" ${(hMeta.legacyPoints <= 0 || (hMeta.legacyDef || 0) >= 5) ? 'disabled' : ''} onclick="upgradeHeroLegacy('${heroKey}', 'def'); openHeroSheet('${heroKey}'); switchHeroSheetTab('legacy');" title="Añadir +1 DEF base">+</button>
-              </div>
-            </div>
-            ${totalSpent > 0 ? `
-              <div style="text-align:right;margin-top:6px;">
-                <button class="legacy-refund-btn" onclick="refundHeroLegacy('${heroKey}'); openHeroSheet('${heroKey}'); switchHeroSheetTab('legacy');" title="Reembolsar puntos asignados">↺ REINICIAR PUNTOS</button>
-              </div>
-            ` : ''}
+          </div>
+        </div>
           </div>
         </div>
 
@@ -13959,7 +13927,15 @@
       p.nextLevelExp = needed;
 
       if (!p.attributes) p.attributes = initHeroAttributes(p, p.class);
-      p.attributes.freePoints = (p.attributes.freePoints || 0) + 5;
+      p.talentPoints = (p.talentPoints || 0) + 1;
+      try {
+        const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
+        const heroKey = p.classKey || p.class || "knight";
+        if (meta[heroKey]) {
+          meta[heroKey].talentPoints = (meta[heroKey].talentPoints || 0) + 1;
+          saveHeroMeta(meta);
+        }
+      } catch (_) {}
 
       // Crecimiento base automático del personaje según su clase RPG
       const growth = CLASS_STAT_GROWTH[p.class] || CLASS_STAT_GROWTH.knight;
@@ -14005,18 +13981,7 @@
   }
 
   function updateAttrModalUI() {
-    const p = (window.gameState && window.gameState.player);
-    if (!p || !p.attributes) return;
-    const fpEl = document.getElementById("rpg-free-points");
-    const strEl = document.getElementById("rpg-val-str");
-    const dexEl = document.getElementById("rpg-val-dex");
-    const vitEl = document.getElementById("rpg-val-vit");
-    const intEl = document.getElementById("rpg-val-int");
-    if (fpEl) fpEl.innerText = p.attributes.freePoints || 0;
-    if (strEl) strEl.innerText = p.attributes.str;
-    if (dexEl) dexEl.innerText = p.attributes.dex;
-    if (vitEl) vitEl.innerText = p.attributes.vit;
-    if (intEl) intEl.innerText = p.attributes.int;
+    // Los puntos de atributos RPG han sido unificados en el Árbol de Talentos Permanente
   }
   window.updateAttrModalUI = updateAttrModalUI;
 
@@ -14051,41 +14016,17 @@
           <div style="font-size:9px;color:#94a3b8;margin-top:2px;">${growth.desc}</div>
         </div>
 
-        <!-- ASIGNADOR DE ATRIBUTOS RPG ESTILO DIABLO II -->
-        <div class="rpg-attr-allocator" style="background:rgba(11,12,16,0.85);border:1px solid rgba(255,215,0,0.3);border-radius:8px;padding:8px;margin-bottom:10px;">
-          <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:#ffd166;margin-bottom:6px;text-align:center;">
-            ⚡ PUNTOS DE ATRIBUTO DISPONIBLES: <span id="rpg-free-points" style="color:#66fcf1;font-size:13px;font-weight:bold;">${p.attributes.freePoints || 0}</span>
+        <!-- GANANCIA DE PUNTOS DE TALENTO ELEMENTAL -->
+        <div class="rpg-talent-award" style="background:rgba(11,12,16,0.85);border:1px solid #38bdf8;border-radius:8px;padding:10px;margin-bottom:10px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:4px;">
+            🌳 ¡HAS OBTENIDO 1 PUNTO DE TALENTO!
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:10px;font-weight:bold;color:#ff6b6b;">💪 STR: <span id="rpg-val-str">${p.attributes.str}</span></div>
-                <div style="font-size:8px;color:#94a3b8;">+Daño físico</div>
-              </div>
-              <button onclick="event.stopPropagation(); window.assignHeroAttribute('str', 1); window.updateAttrModalUI();" style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:4px;border:none;background:#2a9d8f;color:#fff;font-weight:bold;cursor:pointer;font-size:13px;">+1</button>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:10px;font-weight:bold;color:#48cae4;">🎯 DEX: <span id="rpg-val-dex">${p.attributes.dex}</span></div>
-                <div style="font-size:8px;color:#94a3b8;">+Crítico / Salvación</div>
-              </div>
-              <button onclick="event.stopPropagation(); window.assignHeroAttribute('dex', 1); window.updateAttrModalUI();" style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:4px;border:none;background:#2a9d8f;color:#fff;font-weight:bold;cursor:pointer;font-size:13px;">+1</button>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:10px;font-weight:bold;color:#06d6a0;">❤️ VIT: <span id="rpg-val-vit">${p.attributes.vit}</span></div>
-                <div style="font-size:8px;color:#94a3b8;">+4 HP por punto</div>
-              </div>
-              <button onclick="event.stopPropagation(); window.assignHeroAttribute('vit', 1); window.updateAttrModalUI();" style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:4px;border:none;background:#2a9d8f;color:#fff;font-weight:bold;cursor:pointer;font-size:13px;">+1</button>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 6px;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:10px;font-weight:bold;color:#c77dff;">🔮 INT: <span id="rpg-val-int">${p.attributes.int}</span></div>
-                <div style="font-size:8px;color:#94a3b8;">+Sellos / Overdrive</div>
-              </div>
-              <button onclick="event.stopPropagation(); window.assignHeroAttribute('int', 1); window.updateAttrModalUI();" style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:4px;border:none;background:#2a9d8f;color:#fff;font-weight:bold;cursor:pointer;font-size:13px;">+1</button>
-            </div>
+          <div style="font-size:9.5px;color:#cbd5e1;line-height:1.4;margin-bottom:8px;">
+            Especializa a tu Héroe en las 4 Ramas (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) en el Árbol de Talentos.
           </div>
+          <button type="button" class="aoc-confirm-btn" onclick="openHeroTalentsModal('${p.classKey || p.class || 'knight'}')" style="padding:6px 12px; font-size:10px; min-height:32px; width:auto; margin:0 auto; background:linear-gradient(135deg,#0284c7,#0369a1); border-color:#38bdf8;">
+            🌳 ABRIR ÁRBOL DE TALENTOS
+          </button>
         </div>
 
         <div class="levelup-sub" style="margin-bottom:8px;font-size:9px;color:#94a3b8;line-height:1.4;">
@@ -16826,54 +16767,52 @@
   const _TUTORIAL_STEPS = [
     {
       icon: "🃏",
-      title: "¿Qué es una Mano?",
-      body: `Recibes <b>2 cartas</b> al inicio de cada ronda. Su valor se suma:<br><br>
-        • Números <b>2–10</b>: valen su número<br>
-        • Figuras <b>J, Q, K</b>: valen <b>10 puntos</b><br>
-        • <b>As (A)</b>: vale 1 u 11 automáticamente<br><br>
-        <div class="tut-demo-hand">
-          <div class="tut-demo-card"><span>K</span><span>♠</span><span>10</span></div>
-          <div class="tut-demo-card"><span>7</span><span>♥</span><span>7</span></div>
-          <div class="tut-demo-total">= 17 pts</div>
-        </div>`,
-      hint: "Si tu suma supera la del rival, ¡tú atacas!"
+      title: "La Regla Sagrada del 21",
+      body: `Recibes <b>2 cartas</b> al comenzar cada asalto. Su valor se suma:<br><br>
+        • Números <b>2–10</b>: valen su número nominal.<br>
+        • Figuras <b>J, Q, K</b>: valen <b>10 puntos fijos</b>.<br>
+        • <b>As (A)</b>: computa como 1 u 11 puntos automáticamente a tu favor.<br><br>
+        <div class="tut-tip-box">🎯 Tu objetivo es acercarte a 21 sin pasarte (BUST). Si tu mano supera al rival, ¡le asestas tu daño de ataque!</div>`,
+      hint: "¡Cuanto más cerca de 21 te plantes, mayor será el impacto!"
     },
     {
-      icon: "💥",
-      title: "¿Qué es BUST?",
-      body: `Si sumas <b>más de 21 puntos</b> al pedir carta, haces <b>BUST</b>.<br><br>
-        <div style="color:#ff4d4d;font-size:12px;font-weight:bold;text-align:center;padding:8px 0;">21+ = 💥 BUST = ¡EL RIVAL TE ATACA!</div>
-        <br>Cuando hagas BUST, el rival te golpea con su poder total.<br>
-        Con <b>DEF alta</b> puedes absorber el golpe. Con DEF baja, duele mucho.<br><br>
-        <div class="tut-tip-box">💡 Si tienes 17–18 puntos, considera <b>Plantarte</b> antes de arriesgar un BUST.</div>`,
-      hint: "¡El BUST es la forma más común de morir en los primeros pisos!"
-    },
-    {
-      icon: "⚔️",
-      title: "Apuesta y Combate",
-      body: `Al inicio de cada mano puedes <b>apostar HP</b>:<br><br>
-        <div class="tut-bet-row">
-          <div class="tut-bet-card low">0 HP<div>Sin riesgo</div></div>
-          <div class="tut-bet-card mid">5 HP<div>Arriesgado</div></div>
-          <div class="tut-bet-card high">10-25 HP<div>Alto riesgo</div></div>
-        </div>
-        <br>🔴 Si <b>pierdes</b> la mano → el rival te ataca con su poder + tu apuesta<br>
-        🟢 Si <b>ganas</b> la mano → tú atacas con tu poder + tu apuesta<br><br>
-        <div class="tut-tip-box">💡 Más apuesta = más daño SI ganas. Pero también más dolor si pierdes.</div>`,
-      hint: "La apuesta es el corazón del combate — controla el riesgo."
+      icon: "⚡",
+      title: "La Acción ¡DOBLAR! (Double Down)",
+      body: `Con tus 2 primeras cartas puedes activar <b>¡DOBLAR!</b>:<br><br>
+        • Recibes exactamente <b>1 carta final</b> y te plantas de inmediato.<br>
+        • 🟢 Si ganas la mano: infliges <b>DAÑO x2</b> demoledor.<br>
+        • 🔴 Si pierdes o sufres BUST: ¡el contraataque rival se multiplica x2!<br><br>
+        <div class="tut-tip-box">💡 Úsalo cuando tu mano inicial sume 10 u 11 para maximizar tu opción de 20 o 21.</div>`,
+      hint: "¡Doblar duplica la gloria... o el castigo!"
     },
     {
       icon: "✨",
-      title: "Sellos y Artefactos",
-      body: `Tu aventura tiene dos capas de poder:<br><br>
-        <b>🔮 Sellos Arcanos</b> — Se graban en cartas de tu baraja.<br>
-        Toca una carta durante el combate para ver su sello y efecto.<br><br>
-        <b>🎴 Artefactos</b> — Se compran en la Tienda entre pisos.<br>
-        Dan bonificaciones pasivas permanentes para toda la run.<br><br>
-        <b>✨ Bendición de Inicio</b> — Al comenzar cada partida eliges<br>
-        1 de 3 bendiciones especiales que te acompañarán todo el ascenso.<br><br>
-        <div class="tut-tip-box">💡 Tu progreso de <b>Maestría</b> se guarda siempre. ¡Cada run te hace más fuerte!</div>`,
-      hint: "¡Ya estás listo para conquistar la Torre!"
+      title: "Afinidad de los 4 Palos",
+      body: `Cada carta en combate canaliza un poder elemental único:<br><br>
+        • <b>♠️ Picas:</b> Incrementa tu probabilidad de Golpe Crítico y daño cortante.<br>
+        • <b>♦️ Diamantes:</b> Genera Escudo azul protector que absorbe golpes rivales.<br>
+        • <b>♥️ Corazones:</b> Restaura tu salud (HP) al ganar la mano.<br>
+        • <b>♣️ Tréboles:</b> Carga la barra de Overdrive y multiplica el oro obtenido.`,
+      hint: "Combina palos para equilibrar ataque, defensa y salud."
+    },
+    {
+      icon: "⚔️",
+      title: "Crítico y Cálculo de Ataque",
+      body: `En la parte superior de tu tapete tienes tu Visor Táctico en vivo:<br><br>
+        • <b>⚡ CRÍTICO:</b> Probabilidad de asestar Golpe Crítico (19–21). Súbelo invirtiendo en el <b>Árbol de Talentos</b> y jugando naipes de Picas.<br>
+        • <b>⚔️ ATAQUE:</b> Muestra el daño exacto que asestarás al rival si decides plantarte con tu mano actual, y entre paréntesis el daño si alcanzas 21.<br><br>
+        <div class="tut-tip-box">💡 Consulta este indicador antes de pedir carta o plantarte.</div>`,
+      hint: "El visor te permite tomar decisiones estratégicas informadas."
+    },
+    {
+      icon: "👑",
+      title: "Muerte Súbita y Jefes de Acto",
+      body: `La Torre premia la osadía y castiga la duda:<br><br>
+        • <b>🔥 Muerte Súbita:</b> Si se agotan las manos del piso entra el Modo Furia (daño creciente y sin piedad).<br>
+        • <b>👹 Reliquias Demoníacas:</b> Al derrotar al Líder de cada Acto (Pisos 3, 7, 11, 15 y 19) desbloqueas su Waypoint y eliges 1 de 3 Reliquias permanentes.<br>
+        • <b>🌳 Árbol de Talentos:</b> Al subir de nivel ganas Puntos de Talento para especializar a tu Héroe en el menú.<br><br>
+        <div class="tut-tip-box">🚀 ¡Asciende por los 21 Pisos y quiebra el trono del Mandinga!</div>`,
+      hint: "¡La Torre te aguarda, noble tahúr!"
     }
   ];
 

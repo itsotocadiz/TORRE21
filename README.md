@@ -45,13 +45,13 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Pícaro:** Maestro del filo crítico, faroles de combate y generación acelerada de oro.
 * **Monje:** Especialista en concentración mental (+1 punto táctico con 18-19 de mano), esquiva y curación sostenida.
 * **Nigromante:** Cosechador de almas enemigas al liquidar rivales, transmutación de daño en salud y pactos prohibidos.
-* **Atributos de Personaje:** Distribución libre de puntos de Fuerza (PWR), Destreza (DEF/Esquiva), Inteligencia (Críticos/Salvación) y Vitalidad (HP Máx).
+* **Árbol de Talentos Elemental:** Progresión permanente en 4 ramas (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) con bonificaciones porcentuales acumulativas para cada héroe.
 * **Aspectos y Skins:** Vestiduras cosméticas (Clásica, Dorada, Sombra, Loto, Lich, etc.) con maestrías permanentes.
 
-### 🏟️ Coliseo Arena PvP (Mejor de 3 - BO3)
-* Duelos de alto voltaje contra campeones de la torre organizados por ligas de trofeos.
+### 🏟️ Coliseo Arena PvP (Duelos de Asaltos a K.O.)
+* Duelos de alto voltaje contra campeones de la torre por asaltos continuos hasta vaciar la barra de salud (HP) del adversario a 0.
 * **Bote de Fichas Progresivo:** Apuestas acumulables entre asaltos.
-* **Duelos Psicológicos de Farol:** Plantarse con manos engañosas (14-16) para forzar al rival a arriesgar de más y sufrir BUST.
+* **Duelos Psicológicos de Farol:** Plantarse con manos engañosas (14-16) para forzar al rival a arriesgar de más y sufrir BUST (+50% de daño).
 * **Barra de Overdrive & Mutadores:** Habilidades tácticas de clase al llenar la barra de impacto.
 
 ### 🎨 Arte Vectorial & Sonido
@@ -64,15 +64,16 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v1.5.0] — Octubre 2026 (Actual)
-* **Sistema de Campamento de Guardado (Pausar y Continuar):** Salir al menú principal desde la pausa in-game (`🏕️ SALIR AL CAMPAMENTO`) ya no destruye tu ascensión activa. El progreso en el piso, las cartas forjadas, la vida y el oro se almacenan de forma segura para reanudar la partida en cualquier momento con **"CONTINUAR ASCENSIÓN"**.
-* **Reliquias del Demonio (Draft Roguelike Diablo II):** Al derrotar al líder de cada Acto (pisos 3, 7, 11, 15 y 19), se despliega un draft de 3 cartas/reliquias demoníacas a elegir (Filo Sangriento de Dante, Baluarte de Diamantes, Ojo Arcano del Archimago, Cosecha de Malfas, etc.) para personalizar y potenciar la run.
-* **Rebalanceo Numérico Integral de los Actos II al VI:** Corrección del estancamiento donde un héroe con 11 DEF + 4 Escudo no recibía daño en pisos avanzados. Los rivales escalan agresivamente (Acto II PWR 6-7, Acto III PWR 9-11, Acto IV PWR 13-15, Acto V PWR 16-18, Acto VI PWR 20-22) y los Jefes de Acto fueron reforzados acorde a la maestría del jugador.
-* **21 / Blackjack Crítico del Rival:** Cuando el adversario consigue 21 o Blackjack, activa sacudida pesada de pantalla, perfora 4 puntos de DEF y desata impacto vorpal directo garantizado (mínimo 5 HP penetrante), evitando que un 21 enemigo sea amortiguado a cero.
-* **Corrección de Waypoints en Selección de Actos:** Corregido el salto involuntario al piso 1 al elegir Actos II o III. Incorporada confirmación interactiva con botón **`◀ VOLVER`** y asignación coherente de oro y recursos iniciales.
-* **HUD Táctico Interactivo y Daño Esperado:** El visor en combate ahora proyecta en vivo `⚔️ DAÑO: X HP (21: Y)` (y `⚡ DAÑO x2` al doblar). Las píldoras de `🎲 SEGURO`, `⚡ CRÍTICO` y `⚔️ DAÑO` ahora son botones interactivos que despliegan ventanas explicativas con fórmulas y consejos tácticos.
-* **Dinamismo & Animaciones en la Arena PvP (Combat Juice):** Proyectiles y tajos animados vuelan entre avatares según el palo de la carta definitoria (♠️ estocada, ♦️ haz sagrado, ♥️ esfera ígnea, ♣️ ráfaga de éter). Monedas doradas flotan hacia el bote y hacia el avatar vencedor; el rival suda y tiembla al ser engañado con un farol psicológico (`💧 ¡ENGAÑADO POR EL FAROL!`), y la barra de Overdrive pulsa en neón electrizante al 100%.
-* **Árbol de Talentos Permanente (Metaprogresión Diablo II / PoE):** Nuevo sistema de progresión persistente con 4 ramas elementales (♠️ Filo/Picas, ♦️ Baluarte/Diamantes, ♥️ Vitalidad/Corazones, ♣️ Fortuna/Tréboles) que otorgan bonificaciones porcentuales acumulativas (daño vorpal, mitigación de primer impacto, regeneración por baja y probabilidades de poción gratuita).
-* **Tutoriales Interactivos Paso a Paso (Manual del Tahúr):** Modal didáctico e interactivo accesible desde el menú principal con guías completas para la Campaña de la Torre (21 básico, acción ¡DOBLAR!, dados tácticos, palos elementales, muerte súbita y reliquias de acto) y la Arena PvP (formato BO3, bote progresivo, farol psicológico y poderes de Overdrive).
+* **Unificación en el Árbol de Talentos Permanente (Metaprogresión Diablo II / PoE):** Se eliminó el sistema arcaico del "Altar del Legado" y los 5 puntos planos de estadísticas por nivel. Ahora toda la progresión se canaliza en el Árbol de Talentos en 4 ramas elementales (♠️ Filo/Picas, ♦️ Baluarte/Diamantes, ♥️ Vitalidad/Corazones, ♣️ Fortuna/Tréboles), otorgando mejoras porcentuales acumulativas para cada héroe.
+* **Depuración del HUD de Combate (Fin del Dado):** Eliminado el dado `🎲 % Seguro` para limpiar la interfaz. El HUD ahora destaca exclusivamente dos indicadores tácticos contiguos:
+  * `[⚡ CRÍTICO: X%]`: Probabilidad de Golpe Crítico (19–21), potenciada en vivo por la Rama del Filo, afinidad de naipes y sellos.
+  * `[⚔️ ATAQUE: Y HP (21: Z)]`: Cálculo en tiempo real del daño neto que asestarás con tu mano actual vs impacto aplastante de 21 (y `⚡ ATAQUE x2` al doblar).
+* **Alineación de la Arena PvP (Combate a K.O., No BO3):** Corregidas todas las descripciones del juego y manuales que aludían incorrectamente a "al mejor de 3". La Arena es oficialmente un **Duelo de Asaltos Continuos a K.O. de HP** donde cada mano ganada inflige daño directo hasta noquear al rival a 0 HP.
+* **Reparación de Modales y Tutorial Inicial Modernizado:** Independizados los contenedores de los modales de Talentos y Tutoriales para garantizar apertura táctil instantánea. Actualizado el tutorial de inicio de primera partida (`showFirstRunTutorial`) con las mecánicas vigentes (Regla del 21, ¡DOBLAR! x2, los 4 Palos Arcanos, Crítico y Ataque, Muerte Súbita y Reliquias Demoníacas).
+* **Sistema de Campamento de Guardado (Pausar y Continuar):** Salir al menú principal desde la pausa in-game (`🏕️ SALIR AL CAMPAMENTO`) ya no destruye tu ascensión activa; guarda el piso y cartas para reanudar con **"CONTINUAR ASCENSIÓN"**.
+* **Reliquias del Demonio (Draft Roguelike Diablo II):** Al derrotar al líder de cada Acto (pisos 3, 7, 11, 15 y 19), se despliega un draft de 3 cartas/reliquias demoníacas a elegir.
+* **Rebalanceo Numérico Integral de los Actos II al VI:** Corrección del estancamiento defensivo. Los rivales escalan agresivamente (Acto II PWR 6-7, Acto III PWR 9-11, Acto IV PWR 13-15, Acto V PWR 16-18, Acto VI PWR 20-22).
+* **21 / Blackjack Crítico del Rival:** Perfora 4 puntos de DEF y desata impacto vorpal garantizado (mínimo 5 HP penetrante).
 * **Control Táctil y Navegación:** Botón `◀ VOLVER` en la selección de capítulos/waypoints de la Campaña y debounce táctil de 350ms en "Pedir Carta".
 
 ### [v1.4.0] — Octubre 2026
