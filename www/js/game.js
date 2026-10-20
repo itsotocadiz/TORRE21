@@ -13,12 +13,12 @@
       imgAttack: "assets/svg/knight_attack.svg",
       imgHurt: "assets/svg/knight_hurt.svg",
       imgDead: "assets/svg/knight_dead.svg",
-      maxHp: 90,
+      maxHp: 80,
       pwr: 2,
-      def: 3,
-      startingShield: 6,
+      def: 2,
+      startingShield: 4,
       styleClass: "shield-bio",
-      desc: "Baluarte de Diamantes: Comienza cada piso con 6 de Escudo protector. Trascendencia del 21: Lograr 21 con tus 2 primeras cartas otorga +15 de Escudo Sagrado."
+      desc: "Baluarte de Diamantes: Comienza cada piso con 4 de Escudo protector. Trascendencia del 21: Lograr 21 con tus 2 primeras cartas otorga +15 de Escudo Sagrado."
     },
     rogue: {
       name: "Pícaro",
@@ -46,7 +46,7 @@
       imgDead: "assets/svg/monk_dead.svg",
       maxHp: 75,
       pwr: 3,
-      def: 2,
+      def: 1,
       styleClass: "zen-bio",
       desc: "Trascendencia del 21: Lograr 21 con tus 2 primeras cartas restaura +20 HP y aturde al rival."
     },
@@ -164,8 +164,8 @@
   window.HERO_LORES = HERO_LORES;
 
   const ENEMIES = [
-    { name: "Duende Pilluelo",         sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 24, pwr: 1, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
-    { name: "Esqueleto Maldito",      sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 34, pwr: 2, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive una vez con 15 HP)" },
+    { name: "Duende Pilluelo",         sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 28, pwr: 4, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
+    { name: "Esqueleto Maldito",      sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 34, pwr: 5, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive una vez con 15 HP)" },
     { name: "Orco Berserker",         sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 44, pwr: 2, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
     { name: "Gárgola Pétrea",        sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 68, pwr: 3, def: 3, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes de ≤3 daño)" },
     { name: "Bestia de las Sombras",  sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 82, pwr: 4, def: 3, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas 100% ocultas)" },
@@ -204,10 +204,10 @@
       class: "knight",
       name: "Caballero",
       sprite: "🛡️",
-      maxHp: 90,
-      hp: 90,
+      maxHp: 80,
+      hp: 80,
       pwr: 2,
-      def: 3,
+      def: 2,
       potions: 2,
       rerollsAvailable: 0,
       gem: null,
@@ -3815,7 +3815,7 @@
       icon: "🟢",
       maxFloors: 7,
       reqWins: 0,
-      desc: "🟢 <b>Torre del Novicio (7 Pisos):</b> Batallas rápidas y fluidas (~7 min). ¡Vence a BLACK en el Piso 7 y desbloquea Heroico! (🏆 +1 Trofeo)",
+      desc: "🟢 <b>Torre del Novicio:</b> Batallas tácticas y fluidas. ¡Supera el Acto I (Pisos 1-3) y vence a Dante de Picas! (🏆 +1 Trofeo)",
       loreTitle: "La Fosa de los Condenados",
       lore: "Erigida sobre las cloacas del reino, esta aguja menor sirve como foso donde los señores del 21 arrojan a los rebeldes. Solo quienes dominan la prudencia y el valor logran abrirse paso hasta el primer avatar de BLACK.",
       multHp: 1.0,
@@ -4069,9 +4069,9 @@
      ============================================================ */
   const ACT_ENEMY_POOLS = {
     1: [
-      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 24, pwr: 1, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
-      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 22, pwr: 2, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+1 Veneno al impactar)" },
-      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 32, pwr: 2, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
+      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 28, pwr: 4, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
+      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 26, pwr: 4, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+1 Veneno al impactar)" },
+      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 34, pwr: 5, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
     ],
     2: [
       { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 42, pwr: 2, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
@@ -6063,6 +6063,8 @@
 
     gameState.diff = (typeof getGameDifficulty === "function") ? getGameDifficulty() : "normal";
     gameState.floor = 1;
+    gameState.isCampaignMode = true;
+    gameState.chapter = 1;
     const minigameGold = window.introMinigameGold || 0;
     const frenzyBonus = (window.introFrenzyMultiplier > 1 || window._frenzyTowerBenefit) ? 50 : 0;
     gameState.gold = (masteryBonuses.gold || 0) + minigameGold + frenzyBonus;
@@ -6951,10 +6953,28 @@
       gameState.status.playerShield = (gameState.status.playerShield || 0) + 4;
       spawnFloatingText("player-sprite", "+6 HP SEGUNDO ALIENTO", "heal");
 
+      // Restauración de controles y limpieza de estados residuales de la mano previa
+      _lastEnemyHpPct = null;
+      gameState.isRolling = false;
+      setButtonsDisabled(false);
+      p.stand = false;
+      p.bust = false;
+      p.blackjack = false;
+      p.turnDoubleDamage = false;
+
+      if (typeof setEnemySpriteState === "function") setEnemySpriteState("idle");
+      const eSpriteEl = document.getElementById("enemy-sprite");
+      if (eSpriteEl) eSpriteEl.classList.remove("flash-kill", "sprite-dead-enemy");
+
+      const nextRoundCont = document.getElementById("next-round-container");
+      if (nextRoundCont) nextRoundCont.classList.add("hidden");
+      const actionGrid = document.getElementById("action-grid");
+      if (actionGrid) actionGrid.classList.remove("hidden");
+
       initEnemyForCombat(nextT);
       updateHud();
       p.handNumber = 0;
-      await sleep(1000);
+      await sleep(700);
       await startNewHand();
       return;
     }
@@ -14169,7 +14189,9 @@
         addLog(`🛡️ Perk Táctico [Muralla de Hierro]: +${p._synergyBonusDef} DEF frente a este contraataque (DEF total ${totalDef}).`, "critical");
         p._synergyBonusDef = 0;
       }
-      let rawDmg = e.pwr + bet;
+      const enemyScoreMargin = Math.max(0, (e.bust ? 15 : e.enemyScore) - (p.bust ? 15 : p.playerScore));
+      const enemyMarginBonus = Math.floor(enemyScoreMargin * 0.75);
+      let rawDmg = e.pwr + enemyMarginBonus + bet;
       if (p.turnDoubleDamage) {
         rawDmg = Math.round(rawDmg * 2.0);
         spawnFloatingText("player-sprite", "⚡ x2 CONTRAATAQUE", "damage");
@@ -15132,6 +15154,8 @@
   window.initEnemyForCombat = initEnemyForCombat;
 
   async function initFloor() {
+    _lastEnemyHpPct = null;
+    gameState.isRolling = false;
     document.body.classList.remove("sudden-death-active");
     try { updateBattleZoneAtmosphere(gameState.floor); } catch (_) {}
     const p = gameState.player;
@@ -15277,6 +15301,7 @@
       addLog("🔔 Campana de Pascua: Purificaste todo Veneno y Quemadura.", "heal");
     }
     p.phoenixUsedThisFloor = false;
+    const enemyStartShield = (gameState.status && gameState.status.enemyShield) ? gameState.status.enemyShield : 0;
     gameState.status.enemyShield = enemyStartShield;
     gameState.status.enemyPoison = 0;
     gameState.status.enemyRevived = false;
@@ -15290,7 +15315,9 @@
       traitTag.style.cursor = "pointer";
     }
 
+    if (typeof setEnemySpriteState === "function") setEnemySpriteState("idle");
     const sprite = document.getElementById("enemy-sprite");
+    if (sprite) sprite.classList.remove("flash-kill", "sprite-dead-enemy");
     if (e.img) {
       sprite.innerHTML = `<img src="${e.img}" class="sprite-img" alt="${e.name}" onerror="this.outerHTML='${e.sprite}'">`;
     } else {
