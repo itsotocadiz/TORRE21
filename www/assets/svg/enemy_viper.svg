@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="147" rx="46" ry="8" fill="#000" opacity="0.25"/>
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="80" cy="120" rx="38" ry="18" fill="#17110c"/>
+    <path d="M60 120 Q50 90 70 70 Q90 50 80 35" fill="none" stroke="#17110c" stroke-width="22"/>
+    <polygon points="65,40 95,40 80,20" fill="#17110c"/>
+  </g>
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <ellipse cx="80" cy="120" rx="38" ry="18"/>
+    <path d="M60 120 Q50 90 70 70 Q90 50 80 35" fill="none" stroke-width="22"/>
+    <polygon points="65,40 95,40 80,20"/>
+  </g>
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Espirales del cuerpo de la serpiente -->
+    <ellipse cx="80" cy="120" rx="36" ry="16" fill="#2d6a4f"/>
+    <ellipse cx="80" cy="116" rx="26" ry="10" fill="#40916c"/>
+    <path d="M60 120 Q50 90 70 70 Q90 50 80 35" fill="none" stroke="#52b788" stroke-width="16"/>
+    <!-- Escamas romboides de veneno -->
+    <polygon points="68,80 72,85 68,90 64,85" fill="#d8f3dc" stroke="none"/>
+    <polygon points="76,60 80,65 76,70 72,65" fill="#d8f3dc" stroke="none"/>
+    <!-- Cabeza viperina -->
+    <polygon points="65,42 95,42 80,22" fill="#1b4332"/>
+    <!-- Ojos amarillos con hendidura -->
+    <circle cx="72" cy="36" r="3.5" fill="#ffd166" stroke="none"/>
+    <circle cx="88" cy="36" r="3.5" fill="#ffd166" stroke="none"/>
+    <line x1="72" y1="33" x2="72" y2="39" stroke="#17110c" stroke-width="1.5"/>
+    <line x1="88" y1="33" x2="88" y2="39" stroke="#17110c" stroke-width="1.5"/>
+    <!-- Lengua bífida carmesí -->
+    <path d="M80 20 L80 10 L75 5 M80 10 L85 5" fill="none" stroke="#e63946" stroke-width="2.5"/>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="147" rx="46" ry="8" fill="#000" opacity="0.25"/>
+  <!-- Sombra papel desplazada -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M50 45 Q80 15 110 45 L125 135 L35 135 Z" fill="#17110c"/>
+    <circle cx="80" cy="55" r="16" fill="#17110c"/>
+    <circle cx="35" cy="70" r="12" fill="#17110c"/>
+    <circle cx="125" cy="70" r="12" fill="#17110c"/>
+  </g>
+  <!-- Borde papel recortado grueso -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M50 45 Q80 15 110 45 L125 135 L35 135 Z"/>
+    <circle cx="80" cy="55" r="16"/>
+    <circle cx="35" cy="70" r="12"/>
+    <circle cx="125" cy="70" r="12"/>
+  </g>
+  <!-- Capa interna coloreada Paper Mario -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Manto del vacío deshilachado -->
+    <path d="M52 45 Q80 20 108 45 L120 135 L105 125 L90 135 L80 125 L70 135 L55 125 L40 135 Z" fill="#10002b"/>
+    <path d="M65 65 L80 125 L95 65 Z" fill="#240046"/>
+    <!-- Capucha oscura y rostro espectral -->
+    <path d="M58 45 Q80 28 102 45 Q108 65 98 75 Q80 82 62 75 Q52 65 58 45 Z" fill="#3c096c"/>
+    <ellipse cx="80" cy="58" rx="14" ry="12" fill="#050505"/>
+    <!-- Ojos abisales de alma violeta -->
+    <circle cx="74" cy="56" r="3.5" fill="#e0aaff" stroke="none"/>
+    <circle cx="86" cy="56" r="3.5" fill="#e0aaff" stroke="none"/>
+    <!-- Calaveras flotantes de las almas devoradas -->
+    <!-- Calavera izquierda -->
+    <circle cx="35" cy="72" r="9" fill="#e2eafc"/>
+    <rect x="31" y="78" width="8" height="6" rx="2" fill="#e2eafc"/>
+    <circle cx="32" cy="71" r="1.5" fill="#10002b" stroke="none"/>
+    <circle cx="38" cy="71" r="1.5" fill="#10002b" stroke="none"/>
+    <!-- Calavera derecha -->
+    <circle cx="125" cy="72" r="9" fill="#e2eafc"/>
+    <rect x="121" y="78" width="8" height="6" rx="2" fill="#e2eafc"/>
+    <circle cx="122" cy="71" r="1.5" fill="#10002b" stroke="none"/>
+    <circle cx="128" cy="71" r="1.5" fill="#10002b" stroke="none"/>
+  </g>
+</svg>

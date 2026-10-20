@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="147" rx="52" ry="9" fill="#000" opacity="0.25"/>
+  <!-- Sombra papel desplazada -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Cuernos y corona -->
+    <path d="M45 40 Q35 15 20 18 Q35 35 48 50 Z" fill="#17110c"/>
+    <path d="M115 40 Q125 15 140 18 Q125 35 112 50 Z" fill="#17110c"/>
+    <rect x="52" y="15" width="56" height="24" rx="4" fill="#17110c"/>
+    <circle cx="80" cy="55" r="22" fill="#17110c"/>
+    <path d="M48 68 L25 138 L135 138 L112 68 Z" fill="#17110c"/>
+  </g>
+  <!-- Borde papel recortado grueso -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M45 40 Q35 15 20 18 Q35 35 48 50 Z"/>
+    <path d="M115 40 Q125 15 140 18 Q125 35 112 50 Z"/>
+    <rect x="52" y="15" width="56" height="24" rx="4"/>
+    <circle cx="80" cy="55" r="22"/>
+    <path d="M48 68 L25 138 L135 138 L112 68 Z"/>
+  </g>
+  <!-- Capa interna coloreada Paper Mario -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Cuernos infernales de tahúr -->
+    <path d="M46 42 Q36 15 22 18 Q36 34 50 50 Z" fill="#d90429"/>
+    <path d="M114 42 Q124 15 138 18 Q124 34 110 50 Z" fill="#d90429"/>
+    <!-- Manto carmesí imperial -->
+    <path d="M50 70 L28 138 L132 138 L110 70 Z" fill="#6a040f"/>
+    <path d="M68 70 L80 138 L92 70 Z" fill="#9d0208"/>
+    <!-- Pecho con collar de dados de sangre -->
+    <rect x="62" y="72" width="36" height="38" rx="6" fill="#370617"/>
+    <rect x="73" y="80" width="14" height="14" rx="3" fill="#ffd166"/>
+    <circle cx="80" cy="87" r="2.5" fill="#d90429" stroke="none"/>
+    <!-- Cabeza y rostro del Mandinga -->
+    <circle cx="80" cy="55" r="20" fill="#d90429"/>
+    <!-- Ojos de fuego del 21 -->
+    <ellipse cx="72" cy="53" rx="4.5" ry="3.5" fill="#ffd166"/>
+    <ellipse cx="88" cy="53" rx="4.5" ry="3.5" fill="#ffd166"/>
+    <circle cx="72" cy="53" r="2" fill="#000" stroke="none"/>
+    <circle cx="88" cy="53" r="2" fill="#000" stroke="none"/>
+    <!-- Sonrisa burlona de tahúr -->
+    <path d="M72 65 Q80 72 88 65" fill="none" stroke="#fff" stroke-width="3"/>
+    <!-- Corona del 21 Supremo -->
+    <polygon points="50,30 58,15 68,26 80,10 92,26 102,15 110,30" fill="#ffd166"/>
+    <!-- Inscripción mística 21 -->
+    <text x="80" y="27" font-family="'Courier New', monospace" font-size="10" font-weight="900" fill="#6a040f" text-anchor="middle" stroke="none">21</text>
+  </g>
+</svg>

@@ -211,7 +211,7 @@
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
     <div class="lore-banner">
-      «En la cima de la torre aguarda <b>BLACK</b>, el Jack Supremo. Elige tu heraldo y quiebra la maldición del 21.»
+      «En el trono del piso 21 aguarda <b>El Mandinga</b>, Señor del 21. Elige tu heraldo, supera los 6 Actos y quiebra el pacto eterno del Blackjack.»
     </div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
@@ -482,78 +482,52 @@
   <div id="screen-tutorial" class="overlay hidden">
     <div class="tutorial-card">
       <div class="tutorial-header">
-        <h2>❓ GUÍA: CÓMO JUGAR Y ATACAR</h2>
+        <h2>❓ GUÍA: CÓMO JUGAR Y COMBATIR</h2>
         <button class="inspect-close-btn" onclick="closeTutorial()">✕</button>
       </div>
 
       <div class="tutorial-tabs">
-        <button class="tut-tab active" id="tab-btn-attacks" onclick="switchTutorialTab('attacks')">⚔️ ¿CÓMO SE ATACA?</button>
-        <button class="tut-tab" id="tab-btn-rules" onclick="switchTutorialTab('rules')">🃏 REGLAS DEL 21</button>
-        <button class="tut-tab" id="tab-btn-lore" onclick="switchTutorialTab('lore')">👑 LORE Y NIVELES</button>
+        <button class="tut-tab active" id="tab-btn-attacks" onclick="switchTutorialTab('attacks')">⚔️ COMBATE D&D Y HUD</button>
+        <button class="tut-tab" id="tab-btn-rules" onclick="switchTutorialTab('rules')">🃏 REGLAS Y PALOS</button>
+        <button class="tut-tab" id="tab-btn-lore" onclick="switchTutorialTab('lore')">👑 LOS 6 ACTOS Y EL MANDINGA</button>
       </div>
 
       <div class="tutorial-content" id="tut-content-attacks">
         <div class="tut-box highlight">
-          <div class="tut-title">🎯 EL COMBATE: GOLPEAR O DEFENDER</div>
-          <p>Cada mano es un duelo entre tú y el rival. El daño que infliges o recibes depende directamente del valor de las cartas:</p>
+          <div class="tut-title">🎯 COMBATE TÁCTICO: EL 21 COMO D20</div>
+          <p>Cada mano es un duelo directo de rol y cartas. Tu puntuación final determina la categoría de impacto en el asalto:</p>
         </div>
         
         <div class="tut-step">
           <div class="tut-step-num">1</div>
           <div class="tut-step-body">
-            <b>FASE DE APUESTA</b>: Al inicio de la mano apuestas poder (HP). Cuanto mayor sea tu apuesta, más devastador será tu impacto si ganas.
+            <b>TABLA DE RESOLUCIÓN DE IMPACTO (ESTILO D&D)</b>:<br>
+            • <b>&lt;15 Puntos (Golpe Amortiguado)</b>: Ataque tímido o apresurado; inflige solo el <b>50% de daño</b>.<br>
+            • <b>15 a 18 Puntos (Impacto Estándar)</b>: Golpe confirmado a plena potencia (<b>100% de daño</b>).<br>
+            • <b>19 a 20 Puntos (Ataque Perforante)</b>: Golpe con ventaja técnica; <b>135% de daño e ignora el 50% de la armadura</b> del rival.<br>
+            • <b>21 Exacto (Nat 20 Crítico)</b>: ¡Impacto letal perfecto! <b>Daño doble (x2.0) e ignora el 100% de la DEF</b> rival.<br>
+            • <b>Blackjack Natural (As + Figura/10)</b>: ¡Crítico Vorpal devastador! <b>Daño x2.5 o x3.0 + Aturdimiento garantizado</b>.<br>
+            • <b>Bust (&gt;21, Pifia Nat 1)</b>: Te pasas de la cuenta; pierdes tu turno y sufres estado <b>Expuesto</b> (+50% daño entrante).
           </div>
         </div>
 
         <div class="tut-step">
           <div class="tut-step-num">2</div>
           <div class="tut-step-body">
-            <b>¡SI GANAS LA MANO (TÚ ATACAS)!</b><br>
-            Si tu suma es mayor que la del rival (o el rival se pasa de 21):
-            <div class="formula-box">
-              💥 TU DAÑO = [ PWR + Apuesta + Margen de Mano ] Ã— Multiplicador de Nivel (+12%/nvl) - DEF Rival
-            </div>
-            ⭐ <b>Crecimiento por Nivel:</b> A mayor nivel, tu Jack golpea con un porcentaje multiplicador devastador (+12% por cada nivel de combate).<br>
-            🃏 <b>Margen de Mano:</b> Ganar con ventaja amplia (ej. 21 vs 16 = margen +5) amplifica el impacto.<br>
-            ⭐ <b>¡BLACKJACK NATURAL!</b> Si sumas 21 con tus 2 primeras cartas, ¡el daño se multiplica por <b>x3</b> (o <b>x4</b> con reliquia heredada)!
+            <b>📊 INDICADORES TÁCTICOS DEL HUD SUPERIOR</b>:<br>
+            • <b>🎲 SEGURO %</b>: Probabilidad porcentual exacta de robar una carta sin pasarte de 21, calculada en tiempo real según las cartas que aún quedan en la baraja.<br>
+            • <b>⚡ CRÍTICO %</b>: Probabilidad porcentual exacta de robar la carta justa y precisa que suma 21.<br>
+            • <b>⚔️ PROY</b>: Proyección matemática estimada del daño que asestarás si ganas la mano, considerando tu apuesta, PWR base y bonos de nivel.
           </div>
         </div>
 
         <div class="tut-step">
           <div class="tut-step-num">3</div>
           <div class="tut-step-body">
-            <b>¡SI PIERDES LA MANO (EL RIVAL ATACA)!</b><br>
-            Si el rival saca más que tú o tú te pasas de 21 (BUST):
-            <div class="formula-box def">
-              🛡️ DAÑO ENTRANTE = (PWR Rival + Tu Apuesta) - Tu DEF
-            </div>
-            <b>Jerarquía de Protección (3 Capas):</b><br>
-            1. <b>Armadura (DEF)</b>: Reduce directamente el golpe. Si tu DEF supera o iguala al ataque, ¡recibes <b>0 de daño (BLOQUEO TOTAL)</b>!<br>
-            2. <b>Escudo Azul</b>: Si el golpe supera tu DEF, el daño restante desgasta tu barra de Escudo Azul.<br>
-            3. <b>Vida (HP)</b>: Solo el daño que atraviese tu DEF y tu Escudo Azul restará puntos a tu vida real.
-          </div>
-        </div>
-
-        <div class="tut-step">
-          <div class="tut-step-num">4</div>
-          <div class="tut-step-body">
-            <b>EMPATE (PUSH)</b>: Si ambos obtienen exactamente la misma puntuación, ¡las armas chocan en el aire (CHOQUE) y <b>ninguno recibe daño directo</b>!
-          </div>
-        </div>
-
-        <div class="tut-step">
-          <div class="tut-step-num">5</div>
-          <div class="tut-step-body">
-            <b>🔥 MUERTE SÚBITA (MODO FURIA ESCALABLE)</b>:<br>
-            Si el combate supera las 7 manos (desde la <b>Mano 8</b>), la arena entra en frenesí letal:
-            <div class="formula-box" style="border-color:#ff4d4d;color:#ff758f;background:rgba(230,57,70,0.12);">
-              ⚡ ¡EL MULTIPLICADOR ESCALA CADA ASALTO!<br>
-              • Asalto 1 = <b>Daño x2</b><br>
-              • Asalto 2 = <b>Daño x3</b><br>
-              • Asalto 3 = <b>Daño x4</b> (+1x por asalto)<br>
-              🗡️ Además, los ataques rivales perforan armadura defensiva.
-            </div>
-            ¡Cada asalto sucesivo es exponencialmente más letal para liquidar el combate al instante!
+            <b>JERARQUÍA DE PROTECCIÓN (3 LÍNEAS DE DEFENSA)</b>:<br>
+            1. <b>Armadura (DEF)</b>: Reduce el golpe de forma plana. Si tu DEF supera el ataque, sufres <b>0 de daño</b>.<br>
+            2. <b>Escudo Azul</b>: Absorbe el exceso de daño que sobrepase tu armadura.<br>
+            3. <b>Vida (HP)</b>: Solo el daño que penetre tu DEF y agote tu Escudo restará tus puntos vitales reales.
           </div>
         </div>
       </div>
@@ -561,20 +535,20 @@
       <div class="tutorial-content hidden" id="tut-content-rules">
         <div class="tut-step">
           <div class="tut-step-body">
-            <b>VALORES DE LAS CARTAS</b>:<br>
-            • <b>Números 2 al 10</b>: Valen su número nominal.<br>
-            • <b>Figuras (J, Q, K)</b>: Valen 10 puntos cada una.<br>
-            • <b>As (A)</b>: Vale 1 u 11 automáticamente para favorecer tu jugada sin pasarte.<br>
-            • <b>21 con 2 cartas</b> = ¡BLACKJACK! (Daño x3 crítico).
+            <b>ESCUELAS ELEMENTALES DE LOS NAIPES (4 PALOS)</b>:<br>
+            • <b>♠️ PICAS (Fuerza / Filo)</b>: Potencia el daño físico directo y la penetración de defensas.<br>
+            • <b>♦️ DIAMANTES (Baluarte / Égida)</b>: Genera Escudo Azul protector al jugar manos diamantinas.<br>
+            • <b>♥️ CORAZONES (Vitalidad / Curación)</b>: Restaura puntos de vida y alivia estados alterados.<br>
+            • <b>♣️ TRÉBOLES (Arcano / Fortuna)</b>: Acelera la barra de Overdrive y multiplica las monedas de cripta.
           </div>
         </div>
         <div class="tut-step">
           <div class="tut-step-body">
-            <b>ACCIONES DE TU TURNO</b>:<br>
-            • <b>🃏 PEDIR CARTA</b>: Robas una carta del mazo. Si pasas de 21, ¡te pasas (BUST)!<br>
-            • <b>✋ PLANTARSE</b>: Te quedas con tu total. El rival jugará su turno.<br>
-            • <b>🔄 REROLL</b>: Cambia la última carta si posees dados de tirada.<br>
-            • <b>🧪 POCIÓN</b>: Restaura 30 HP inmediatamente en cualquier momento del combate.
+            <b>VALORES Y TIRADA DE SALVACIÓN</b>:<br>
+            • <b>Números 2 al 10</b>: Valen su número nominal.<br>
+            • <b>Figuras (J, Q, K)</b>: Valen 10 puntos cada una.<br>
+            • <b>As (A)</b>: Vale 1 u 11 automáticamente para optimizar tu mano.<br>
+            • <b>Tirada de Salvación (Saving Throw)</b>: Al pasarte de 21, si tu Destreza (DEX) o Inteligencia (INT) es alta, tienes la oportunidad de descartar la carta fatal y salvar tu mano.
           </div>
         </div>
       </div>
@@ -582,14 +556,15 @@
       <div class="tutorial-content hidden" id="tut-content-lore">
         <div class="tut-step">
           <div class="tut-step-body">
-            <b>EL LORE DE "BLACK JACK"</b>:<br>
-            En la cúspide de la torre gobierna <b>BLACK</b>, la entidad primigenia que corrompió la baraja. Para derrotarlo, cuatro héroes conocidos como los <b>Heraldos</b> han jurado escalar los pisos:<br>
-            • <b>Caballero</b>: Escudo pesado y resistencia inquebrantable.<br>
-            • <b>Pícaro</b>: Daño doble x2 con manos pares y evasión letal.<br>
-            • <b>Monje</b>: Revela las cartas ocultas del rival y medita el 21.<br>
-            • <b>Nigromante</b>: Inocula veneno mortal con Blackjack y roba almas.<br><br>
-            <b>SISTEMA DE EXPERIENCIA Y NIVELES (LEVEL UP)</b>:<br>
-            Cada rival que derrotes te otorgará <b>EXP</b>. ¡Al subir de nivel podrás elegir mejoras permanentes de Vida (+HP), Daño (+PWR) o Escudo (+DEF)!
+            <b>LOS 6 ACTOS DE LA TORRE DEL 21 (PROGRESIÓN DIABLO II)</b>:<br>
+            La Torre cuenta con <b>21 Pisos</b> distribuidos en 6 Actos temáticos secuenciales. Debes derrotar al Jefe de cada Acto para desbloquear el siguiente Waypoint permanente:<br>
+            • <b>Acto I: Las Criptas de Picas (Pisos 1-3)</b> — Jefe: Dante de Picas.<br>
+            • <b>Acto II: Las Arenas de Diamante (Pisos 4-7)</b> — Jefa: Valquiria de Diamantes.<br>
+            • <b>Acto III: El Pantano del Trébol (Pisos 8-11)</b> — Jefe: Archimago del Trébol.<br>
+            • <b>Acto IV: La Ciudadela del Vacío (Pisos 12-15)</b> — Jefe: Malfas del Vacío.<br>
+            • <b>Acto V: Las Cumbres de la Sombra (Pisos 16-19)</b> — Jefe: Sombra del 21.<br>
+            • <b>Acto VI: El Sagrario del Mandinga (Pisos 20-21)</b> — Subjefe: Dragón de Ébano (Piso 20); Jefe Final: <b>👑 El Mandinga, Señor del 21 (Piso 21)</b>.<br><br>
+            🏆 <b>Dificultades Superiores:</b> Al derrotar al Mandinga en Normal, desbloquearás <b>Pesadilla</b> (con afijos élite y mayor desafío) e <b>Infierno</b>.
           </div>
         </div>
       </div>

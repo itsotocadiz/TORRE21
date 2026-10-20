@@ -69,64 +69,96 @@
 
   const HERO_LORES = {
     knight: {
-      1: "Despierto en el fango de las celdas inferiores. Me despojaron de mi capa y mellaron mi escudo, pero mi juramento sigue intacto. Subiré esta maldita torre y haré pagar a los nobles que me traicionaron.",
-      2: "Los carceleros y rateros se apiñan en los pasillos húmedos. Creen que un caballero desarmado es presa fácil; aprenderán que el acero más fuerte es la voluntad inquebrantable.",
-      3: "Las catacumbas huelen a podredumbre y desesperación. Condenados de ojos vacíos deambulan buscando sangre. Mi deber como protector comienza liberando a estas almas de su tormento.",
-      4: "Muros de piedra negra manchados de azufre. Siento la mirada de los centinelas en las troneras. Mi espada no vacilará; cada peldaño que subo es una afrenta a los tiranos de arriba.",
-      5: "Alcanzo los cuarteles mercenarios. Traidores a sueldo que vendieron su lealtad por unas monedas de oro. Hoy conocerán la justicia que juré impartir.",
-      6: "Los escudos de mis antiguos camaradas cuelgan como trofeos en los muros. La furia arde en mi pecho. No descansaré hasta que el estandarte del honor vuelva a ondear aquí.",
-      7: "El sonido de los tambores de guerra retumba en las bóvedas. La élite mercenaria me espera con formación de falange. Que vengan; ningún muro de hierro resiste el embate de la verdad.",
-      8: "Salones alfombrados en terciopelo carmesí y candelabros de oro. Los nobles corruptos me miran con terror tras sus máscaras. Aquí comenzó la conspiración contra mi casa.",
-      9: "El aire está cargado de incienso y venenos sutiles. Los cortesanos intentan sobornarme con riquezas robadas. Su oro jamás limpiará la sangre derramada de inocentes.",
-      10: "Las puertas del salón del trono se abren. Los consejeros reales tiemblan mientras desenvaino. La torre entera se tambalea sobre sus propios cimientos de mentira.",
-      11: "El viento gélido de las alturas azota mi armadura. He dejado atrás los palacios de la corte. Solo los guardianes divinos custodian el paso final hacia la cima.",
-      12: "Las nubes quedan bajo mis pies. El firmamento se tiñe de un violeta crepuscular. Los campeones celestiales intentan disuadirme, pero mi destino aguarda más arriba.",
-      13: "La cúspide del 21. El rugido del Dragón Ancestral hace vibrar la piedra bajo mis botas. Es hora de cumplir el juramento supremo y liberar este reino para siempre."
+      1: "Despierto en el fango de las celdas inferiores. Me despojaron de mi capa y mellaron mi escudo, pero mi juramento sigue intacto. Subiré esta maldita torre y haré pagar a los tiranos que me traicionaron.",
+      2: "Los pasillos húmedos huelen a muerte y carroña. Alimañas y esqueletos de antiguos soldados se arrastran hacia mí. Mi acero no vacilará ante cáscaras vacías.",
+      3: "Ante las puertas de la cripta me aguarda Dante de Picas. Su filo veloz zumba buscando mi cuello, pero la rectitud de mi guardia quebrará su arrogancia. El Acto I concluye bajo mi bota.",
+      4: "El aire se torna árido y sofocante. Las Arenas de Diamante se extienden en bóvedas subterráneas infinitas. Escarabajos acorazados emergen de las dunas; mis golpes deberán ser quirúrgicos.",
+      5: "Alcanzo los cuarteles de mercenarios orcos entre pilares de roca diamantina. Creen que el músculo doblegará al honor. Mi escudo resistirá cada embate mientras el eco del dragón resuena a lo lejos.",
+      6: "Efigies de piedra y gárgolas milenarias cobran vida en los desfiladeros de cuarzo. Sus garras rayan mi cota de malla, pero mi avance es una marcha de justicia inexorable.",
+      7: "El baluarte diamantino de la Valquiria Sagrada. Sus alas de cristal y su escudo bendito ciegan la vista. Probaré que ningún blindaje protege al tirano ante la verdad del 21.",
+      8: "Las arenas doradas dan paso a un cenagal de aguas verdosas y vapores mefíticos. El Pantano del Trébol hierve con víboras ponzoñosas; el veneno quema, pero mi sangre noble resiste.",
+      9: "La espesura se cierra. Bestias de las sombras emergen de la bruma con cartas invisibles. Aprendo a escuchar el corte del viento antes de que ataquen; la penumbra no apagará mi coraje.",
+      10: "Ruinas de una orden de centuriones caídos en desgracia. Sus espíritus buscan venganza contra todo mortal. Les otorgaré la absolución y el descanso eterno con mi acero.",
+      11: "La torre alquímica del Archimago del Trébol. Círculos de transmutación y cartas trampa cubren el suelo. Ningún truco de magia ilusoria detendrá el filo de mi juramento.",
+      12: "Murallas ciclópeas de obsidiana negra que devoran la luz. La Ciudadela del Vacío se alza ante mí. Guardianes con espinas de cristal volcánico devuelven cada estocada con dolor.",
+      13: "Las bóvedas abisales vibran con la mirada de las sombras supremas. Centuriones espectrales y falanges del vacío me rodean; mi fe es el único faro en esta noche eterna.",
+      14: "Criptas flotantes sobre un abismo sin fondo. El frío del vacío intenta congelar mi sangre, pero el fuego de mi causa arde con más intensidad que nunca.",
+      15: "El salón del trono cadavérico. Malfas del Vacío me espera entre nieblas de muerte, drenando las almas de la torre. Es hora de purgar este nido profano.",
+      16: "El viento helado de las alturas azota con furia mortal. He alcanzado las Cumbres de la Sombra. Asesinos de la escarcha acechan entre riscos cubiertos de hielo rúnico.",
+      17: "Monolitos de nieve y forjas rúnicas ancestrales. Bestias sombrías aúllan en la ventisca. Cada paso exige una fuerza colosal en mis piernas entumecidas.",
+      18: "Las nubes quedan bajo mis pies. El firmamento se quiebra en auroras crepusculares. Los heraldos oscuros intentan cerrarme el paso hacia el santuario final.",
+      19: "La arena de los espejos en la cúspide helada. La Sombra del 21 se alza ante mí, una réplica tenebrosa de mis propios miedos. Destruiré la ilusión para alcanzar la verdad.",
+      20: "El Sagrario del Fuego Primigenio. El Dragón de Ébano, custodio milenario del trono supremo, desciende con alas que oscurecen los astros. Sus fauces rugen con llamas negras.",
+      21: "El Trono Absoluto del Mandinga. El Señor del 21 sostiene la baraja primordial entre sus garras. Por mi honor, por los caídos y por el destino de este mundo: ¡hoy cae la Torre del 21!"
     },
     rogue: {
       1: "Las cerraduras de estas celdas son un chiste de mal gusto. Una horquilla y dos segundos bastaron. Nadie encierra al mejor ladrón del bajo mundo. La torre tiene un tesoro en la cima, y va a ser mío.",
-      2: "Matones de poca monta patrullan el foso. Pobres diablos; ni siquiera me oyen pasar a sus espaldas. Una estocada precisa en la sombra y sigo avanzando con los bolsillos más pesados.",
-      3: "Túneles de contrabando y viejas cloacas. Me muevo como pez en el agua. Encuentro marcas dejadas por antiguos ladrones... la mayoría murieron aquí. Yo no cometeré sus errores.",
-      4: "Trampas de presión y ballestas en las esquinas. Desarmarlas es casi un arte que disfruto. Los criminales que habitan este sector son descuidados; les arrebataré hasta las botas.",
-      5: "Los mercenarios montaron un peaje aquí. Creen que el músculo supera al cerebro. Les daré una lección de juego limpio: quien no mira su espalda, no llega a ver el amanecer.",
-      6: "Filos envenenados y dados cargados. En estos cuarteles se respira trampa y codicia. Si quieren jugar sucio, yo inventé las reglas de este juego.",
-      7: "El capitán mercenario tiene una buena recompensa por mi cabeza. Qué halago. Veremos cuánto vale su cabeza cuando mi daga encuentre la comisura de su yelmo.",
-      8: "Vaya, vaya... tapices de seda y copas de plata. El botín empieza a ponerse interesante. Los señores de la torre celebran fiestas mientras el pueblo se pudre abajo. Qué pena que su fiesta termine hoy.",
-      9: "Cofres con cerraduras de triple pestillo. Pan comido. La nobleza gasta fortunas en seguridad inútil mientras conspiran unos contra otros. Me llevo sus secretos y sus vidas.",
-      10: "Pisos de mármol pulido tan brillante que refleja mi silueta entre las sombras. La guardia del barón está en alerta máxima. Lástima para ellos que yo ya esté detrás del trono.",
-      11: "El aire se vuelve tan fino que cuesta respirar. El balcón exterior cuelga sobre el abismo. Un paso en falso y son mil metros de caída. La adrenalina me mantiene más vivo que nunca.",
-      12: "Los guardianes de la cima brillan como faros en la niebla. Su luz los hace blancos fáciles para mis flechas de sombra. La corona de la torre está a un suspiro de mis dedos.",
-      13: "El nido del Dragón. El calor de sus llamas ilumina montañas de naipes de oro y gemas del 21. El mayor golpe de la historia está a punto de concretarse. Es todo o nada."
+      2: "Matones de poca monta y alimañas patrullan el foso. Pobres diablos; ni siquiera me oyen pasar a sus espaldas. Una estocada precisa en la sombra y sigo avanzando con los bolsillos más pesados.",
+      3: "Dante de Picas bloquea la salida de las criptas con su espada pesada. Demasiado lento para mis reflejos. Un par de dagas gemelas en las coyunturas de su armadura y el Acto I es historia.",
+      4: "Salgo a un desierto subterráneo brillante como un joyero. Las Arenas de Diamante esconden gemas bajo dunas doradas y escarabajos con corazas más duras que una caja fuerte.",
+      5: "Mercenarios orcos apostando en fogatas de azufre. Sus dados cargados no engañan a un maestro de los bajos fondos. Me deslizo entre sus tiendas vaciando cofres y cortando cuellos.",
+      6: "Desfiladeros laberínticos vigilados por gárgolas de piedra. Desactivar sus trampas rúnicas es casi un placer artístico. Quien no mira dónde pisa, se convierte en abono.",
+      7: "La Valquiria de Diamantes luce un blindaje que vale un imperio. Lástima que el oro no detenga una hoja envenenada en la nuca. Su baluarte cae y sus tesoros son míos.",
+      8: "El aire se vuelve húmedo y pegajoso. El Pantano del Trébol está plagado de víboras y hongos alucinógenos. Me pongo una máscara de cuero impregnada en mentol y sigo rastreando.",
+      9: "Bestias invisibles que juegan con naipes sombríos. Trucos baratos; yo crecí en los callejones donde las sombras muerden. Si quieren jugar sucio, inventé las reglas de este juego.",
+      10: "Patios de centuriones petrificados. El sonido de mis pasos es imperceptible sobre el musgo. Cada guardia que cae es una llave más hacia las cámaras secretas de arriba.",
+      11: "El laboratorio del Archimago. Pociones humeantes y grimorios prohibidos. Su magia es vistosa, pero ninguna bola de fuego supera la velocidad de una ballesta en la garganta.",
+      12: "Llego a la Ciudadela del Vacío. Muros de obsidiana negra pulida como espejos. Los guardianes tienen espinas reflejantes; habrá que atacar con astucia y veneno lento.",
+      13: "Sombras colosales vigilan los balcones abisales. La tensión se corta con un naipe. Me muevo por las cornisas sobre una caída de kilómetros; la adrenalina es mi mejor aliada.",
+      14: "Bóvedas del tesoro selladas con runas oscuras. Fuerzo los cerrojos mientras los espectros patrullan abajo. El botín que acumulo aquí compraría reinos enteros.",
+      15: "Malfas del Vacío cree que puede cosechar mi alma. Nadie le roba a un ladrón. Un pase mágico de cartas trampa y desvanezco su presencia en la nada.",
+      16: "Viento helado que corta como navajas de afeitar. Las Cumbres de la Sombra son terreno resbaladizo, pero mis botas de cuero con clavos no fallan un solo paso.",
+      17: "Asesinos de la nieve intentan emboscarme. Pobres novatos; un señuelo de humo y aparezco a sus espaldas antes de que toquen el suelo.",
+      18: "El precipicio final. Puentes de cuerda colgantes sobre la niebla infinita. Un mal cálculo y eres historia. Cruzo corriendo con una sonrisa de pura euforia.",
+      19: "La Sombra del 21 me desafía con mis propios trucos de juego. Pero una copia jamás superará al original. Apuesto el doble, revelo el Blackjack y cobro mi victoria.",
+      20: "El nido del Dragón de Ébano. Montañas de naipes dorados y gemas del 21 bajo el calor de sus llamas negras. El mayor golpe de la historia está a punto de caramelo.",
+      21: "El mismísimo Mandinga en su trono de azabache. Piensa que tiene todas las cartas marcadas. Qué lástima para él: guardé el As definitivo bajo mi manga. ¡Todo o nada!"
     },
     monk: {
-      1: "La oscuridad de esta fosa es densa, pero mi espíritu arde con serenidad. La Torre 21 es una herida abierta en la tierra que engulle a los hombres por su avaricia. Comienzo mi ascenso para sanarla.",
-      2: "Criaturas desdichadas atacan ciegas de rabia. Mi palma no busca destruir, sino calmar su sufrimiento con un golpe certero que apague su frenesí. La compasión también exige firmeza.",
-      3: "El dolor acumulado durante siglos impregna la piedra de las catacumbas. Cierro los ojos, medito entre la penumbra y canalizo el pulso del Corazón Sagrado. Mi fe me protege.",
-      4: "Las almas perdidas intentan aferrarse a mi túnica. Les ofrezco un mantra de despedida. El juego de cartas que domina este lugar es un laberinto mental; solo quien vacía su ego encuentra el 21.",
-      5: "Los soldados de fortuna empuñan lanzas oxidadas y corazones corruptos. No comprenden que la fuerza bruta es efímera como el rocío del alba. Mis palmas quebrarán sus lanzas.",
-      6: "Un templo profanado sirve ahora de armería para asesinos. Encenderé un incienso sobre sus escombros. La torre debe ser purificada peldaño a peldaño con la luz del espíritu.",
-      7: "La furia de los generales de la torre no turba mi aliento. Inhalo paz, exhalo resolución. Su ira será el combustible que devore su propia defensa.",
-      8: "El exceso de placeres mundanos ha entorpecido los sentidos de los señores de la torre. Viven en una jaula dorada creyéndose libres. Les mostraré la verdad del desapego.",
-      9: "Veneno en copas de oro y sonrisas fingidas. El karma es una ley ineludible: lo que sembraron en engaños, hoy lo cosecharán ante mis puños consagrados.",
-      10: "He alcanzado la cúspide de la vanidad humana. Los cortesanos suplican clemencia cuando sus trucos fallan. La clemencia empieza con la disolución de su tiranía.",
-      11: "El santuario de las alturas roza las estrellas. El silencio aquí es sobrecogedor, solo interrumpido por el eco del viento. Los guardianes celestes ponen a prueba mi templanza.",
-      12: "La prueba del espíritu. Mis chakras vibran en resonancia con la energía de la torre. No hay miedo en mi corazón, solo el deseo puro de restaurar la armonía cósmica.",
-      13: "Ante el Dragón Ancestral, el guardián de la llama primordial. No vengo a profanar tu nido, bestia sagrada, sino a romper la rueda del juego maldito y liberar tu fuego."
+      1: "La fosa es oscura, pero la serenidad interior ilumina mi sendero. La Torre del 21 es una llaga de avaricia en la tierra. Inicio mi ascenso descalzo para purificarla con paciencia y fe.",
+      2: "Almas desdichadas y alimañas me atacan con desesperación. Mi palma no busca destruir, sino calmar su sufrimiento con un golpe certero que disipe su angustia.",
+      3: "Dante de Picas empuña su acero con rencor ciego. Canalizo el pulso del Corazón Sagrado y desvío su filo con mi mano desnuda. La compasión también exige firmeza resoluta.",
+      4: "Las Arenas de Diamante reflejan la luz del espíritu. El desierto subterráneo me enseña la humildad de los granos de arena frente a la inmensidad del tiempo.",
+      5: "Orcos consumidos por el frenesí de la sangre. No comprenden que la fuerza bruta es efímera como el rocío matinal. Mis palmas quebrarán sus lanzas sin odio en el pecho.",
+      6: "Gárgolas guardianas esculpidas con mantras antiguos profanados. Coloco mis dedos en sus fisuras energéticas y restauro el flujo armónico de la piedra.",
+      7: "La Valquiria Sagrada de Diamantes confunde su armadura con virtud divina. Le muestro que la verdadera fortaleza reside en el espíritu despojado de vanidad.",
+      8: "El Pantano del Trébol pone a prueba mi respiración. Inhalo los vapores ponzoñosos y los transmuto en energía vital mediante la meditación del loto interior.",
+      9: "Criaturas de la penumbra intentan ocultar sus naipes. Cierro los ojos carnales y abro el tercer ojo; ningún engaño prospera ante la visión pura del alma.",
+      10: "Centuriones atrapados en el ciclo del rencor militar. Con un mantra de tres sílabas, disuelvo sus ataduras espectrales y les permito ascender a la paz.",
+      11: "El Archimago del Trébol se ahoga en su propia soberbia arcana. Sus cartas trampa se desintegran cuando hago vibrar la campana interior de mi disciplina.",
+      12: "La Ciudadela del Vacío es una ausencia total de luz espiritual. Enciendo la llama dorada de mis chakras; la oscuridad no puede vencer al fuego de la conciencia.",
+      13: "Guardianes de obsidiana cuyas espinas castigan el apego al dolor. No golpeo con ira; golpeo con la precisión del viento que no deja cicatriz.",
+      14: "Las bóvedas del abismo resuenan con llantos ancestrales. Rezo por cada apostador que perdió su alma en estas mesas malditas de juego.",
+      15: "Malfas intenta quebrar mi templanza con visiones de muerte. La muerte no es el fin, sino una puerta. Desintegro su niebla con una sola palmada trascendental.",
+      16: "En las Cumbres de la Sombra, el frío purifica mis pensamientos. Cada copo de nieve es un recordatorio de la fragilidad de la existencia terrenal.",
+      17: "Asesinos silenciosos que caminan sobre la escarcha. Escucho los latidos de sus corazones a cincuenta varas; la violencia engendra su propia caída.",
+      18: "El firmamento se abre sobre el mar de nubes. Siento la cercanía del principio y el fin. Mis manos están listas para la última entrega espiritual.",
+      19: "La Sombra del 21 refleja mi propio ego, la última ilusión a disolver antes de la iluminación. La abrazo en compasión y la devuelvo al vacío primordial.",
+      20: "Ante el Dragón de Ébano, noble bestia encadenada a la codicia de la torre. No vengo a profanar tu llama, hermano alado, sino a liberarte del yugo oscuro.",
+      21: "El Mandinga, arquitecto del tormento y las cartas malditas. Tu juego ha terminado. La rueda del sufrimiento se rompe hoy ante la paz inquebrantable del 21."
     },
     necromancer: {
-      1: "Me arrojaron aquí pensando que moriría en el lodo. Necios... la muerte es mi hogar y mi más leal sirvienta. Los huesos de los caídos bajo mis pies ya susurran mi nombre. La torre me pertenecerá.",
-      2: "La sangre de los primeros idiotas que intentaron emboscarme nutre las raíces de mi magia. Cada vida que apago enciende una flama verde en mi báculo. El ascenso recién comienza.",
-      3: "Las catacumbas son un festín para mis sentidos. Cientos de cadáveres olvidados esperan mi llamado. Extraigo su esencia espectral para fortalecer mi baraja con sellos prohibidos.",
-      4: "Sombras sin descanso intentan devorarme. Pobres espectros... no reconocen a su nuevo amo. Los subyugo y los convierto en escudos de tinieblas para mi viaje hacia arriba.",
-      5: "Los mercenarios temen a los vivos, pero aúllan de terror ante lo invisible. Su disciplina militar se desmorona cuando sus propios camaradas caídos se levantan a servirme.",
-      6: "El suelo está empapado en aceite de armas y sangre vieja. Dibujo un círculo arcano con cenizas. Cuanto más combato, más fuerte late el corazón oscuro de mi pacto.",
-      7: "Los oficiales enemigos traen talismanes para ahuyentarme. Cenizas en el viento. Ningún talismán puede detener la marea de la muerte cuando reclama su deuda.",
-      8: "Los nobles visten sedas para ocultar que huelen a tumba. Sus almas están marchitas por siglos de corrupción; serán el abono perfecto para mis rituales de invocación.",
-      9: "Los banquetes de la corte se convierten en funerales a mi paso. Sus riquezas no me interesan; solo busco el elixir de vitalidad que esconden en sus bodegas subterráneas.",
-      10: "El salón real cae en penumbras cuando cruzo el umbral. Los guardias huyen arrojando sus armas. Los reyes de este piso ahora me sirven de rodillas como sombras eternas.",
-      11: "Las alturas celestiales queman la piel de los débiles, pero mi magia oscura absorbe la luz helada del éter. Los heraldos alados de la cima intentan frenar mi tormenta.",
-      12: "Arranco las plumas plateadas de los centinelas celestes. Su magia divina es exquisita cuando se transmuta en fuego negro. El trono del 21 está a un solo piso de distancia.",
-      13: "El Dragón del 21. El origen de toda la magia de esta torre. Tu corazón de fuego negro alimentará mi nigromancia por milenios. Arrodíllate ante el Señor de la Muerte."
+      1: "Me arrojaron al lodo creyendo que moriría de hambre. Necios... la muerte es mi hogar y mi más leal aliada. Los huesos bajo el fango ya cantan mi nombre.",
+      2: "Alimañas y ladrones intentan robar mis talismanes. Sus almas mediocres apenas sirven para encender una chispa esmeralda en mi báculo de médula.",
+      3: "Dante de Picas cree que su filo de acero corta la magia de la noche. Arranco la sombra de su pecho y la coso a mi manto. El Acto I es mi primera cosecha.",
+      4: "Bajo las Arenas de Diamante yacen sepultados ejércitos enteros de una era olvidada. Toco el polvo dorado y siento el palpitar de mil legiones esperando mi orden.",
+      5: "Orcos sanguinarios que temen a lo invisible. Sus hachas no pueden herir a los espectros que levanto a sus espaldas. Su pánico alimenta mi reserva de maná.",
+      6: "Gárgolas centenarias atadas con magia rúnica decadente. Rompo los sellos de sus creadores y convierto la roca animada en polvo funerario para mis hechizos.",
+      7: "La Valquiria de Diamantes irradia una luz que me repugna. Concentro la podredumbre del vacío y empaño el brillo de sus alas de cristal hasta que se desploma.",
+      8: "El Pantano del Trébol es un paraíso de toxinas y miasmas cadavéricos. Extraigo el veneno de las víboras para bañar mi baraja en podredumbre nigromántica.",
+      9: "Bestias de la noche que se creen dueñas de la oscuridad. Pobres criaturas... yo nací en el corazón del vacío primordial. Mis sombras las devoran vivas.",
+      10: "Centuriones pretorianos cuyos espíritus aún buscan la gloria. Les arranco sus juramentos terrenales y los convierto en una falange esquelética sumisa a mi voluntad.",
+      11: "El Archimago del Trébol juega con alquimia barata. Dreno su estamina arcana y transmuto sus cartas trampa en sellos de agonía que consumen su carne.",
+      12: "La Ciudadela del Vacío. Aquí el velo entre los mundos es fino como papel. Cada paso que doy en esta obsidiana amplifica el poder de mis maleficios.",
+      13: "Guardianes cubiertos de espinas volcánicas. No necesito tocarlos para aniquilarlos; la necrosis corroe la piedra viva desde adentro hacia afuera.",
+      14: "Las fosas comunes del abismo. Cientos de almas me suplican que las reclame. Forjo una baraja espectral con sus lamentos más desgarradores.",
+      15: "Malfas del Vacío se cree señor de la muerte. Es un aficionado engreído. Le demuestro quién manda en los dominios del fin absoluto y absorbo su corona de sombras.",
+      16: "Las Cumbres heladas preservan los cadáveres intactos como si durmieran. Levanto a los exploradores congelados para que me abran camino en la ventisca.",
+      17: "Asesinos de la escarcha que se creen sigilosos. Los muertos que caminan bajo la nieve los atrapan por los tobillos y los arrastran a la fosa.",
+      18: "El éter de las alturas quema con fuego frío. Mi báculo brilla con un verde tan intenso que eclipsa las estrellas. El poder absoluto está a mi alcance.",
+      19: "La Sombra del 21 intenta personificar mi propia perdición. Qué halago tan dulce. Devoro la réplica y me corono como el auténtico espectro supremo.",
+      20: "El Dragón de Ébano. Tu fuego negro y tus escamas milenarias serán el trofeo más glorioso de mi mausoleo. Cae ante el señor de la podredumbre.",
+      21: "El Trono del Mandinga. Señor del 21... creías que este juego era tuyo, pero tú solo barajas cartas para alimentar mi reino de ultratumba. ¡Arrodíllate ante la Muerte!"
     }
   };
   window.HERO_LORES = HERO_LORES;
@@ -3872,7 +3904,7 @@
   window.DIFFICULTY_CONFIGS = DIFFICULTY_CONFIGS;
 
   /* ============================================================
-     CATÁLOGO DE CAMPAÑA ESTILO DIABLO II (6 CAPÍTULOS / ACTOS)
+     CATÁLOGO DE CAMPAÑA ESTILO DIABLO II (6 CAPÍTULOS / ACTOS - 21 PISOS)
      ============================================================ */
   const CAMPAIGN_CHAPTERS = [
     {
@@ -3883,8 +3915,10 @@
       icon: "🗡️",
       bossId: "dante_spades",
       bossName: "Dante de Picas",
-      floors: { normal: 5, hard: 5, mythic: 6, nightmare: 6, hell: 7 },
-      desc: "Criptas góticas ancestrales habitadas por no-muertos y falanges de espadas.",
+      startFloor: 1,
+      endFloor: 3,
+      floors: { normal: 3, hard: 3, mythic: 3, nightmare: 3, hell: 3 },
+      desc: "Criptas góticas ancestrales habitadas por no-muertos y falanges de espadas. Pisos 1 al 3.",
       bg: "assets/svg/bg_zone_1_dungeon.svg"
     },
     {
@@ -3895,8 +3929,10 @@
       icon: "🛡️",
       bossId: "valkyrie_diamonds",
       bossName: "Valquiria de Diamantes",
-      floors: { normal: 5, hard: 5, mythic: 6, nightmare: 6, hell: 7 },
-      desc: "Desierto arcano y fortalezas con centinelas de blindaje diamantino y espinas.",
+      startFloor: 4,
+      endFloor: 7,
+      floors: { normal: 4, hard: 4, mythic: 4, nightmare: 4, hell: 4 },
+      desc: "Desierto arcano y fortalezas con centinelas de blindaje diamantino y espinas. Pisos 4 al 7.",
       bg: "assets/svg/bg_zone_2_catacombs.svg"
     },
     {
@@ -3907,8 +3943,10 @@
       icon: "🔮",
       bossId: "archmage_clubs",
       bossName: "Archimago del Trébol",
-      floors: { normal: 5, hard: 5, mythic: 6, nightmare: 6, hell: 7 },
-      desc: "Selva alquímica con vapores ponzoñosos, cartas trampa y hechicería caótica.",
+      startFloor: 8,
+      endFloor: 11,
+      floors: { normal: 4, hard: 4, mythic: 4, nightmare: 4, hell: 4 },
+      desc: "Selva alquímica con vapores ponzoñosos, cartas trampa y hechicería caótica. Pisos 8 al 11.",
       bg: "assets/svg/bg_zone_3_barracks.svg"
     },
     {
@@ -3919,8 +3957,10 @@
       icon: "💀",
       bossId: "necro_void",
       bossName: "Malfas del Vacío",
-      floors: { normal: 5, hard: 5, mythic: 6, nightmare: 6, hell: 7 },
-      desc: "Bastión abisal donde los Pactos del Abismo exigen el alma de los apostadores.",
+      startFloor: 12,
+      endFloor: 15,
+      floors: { normal: 4, hard: 4, mythic: 4, nightmare: 4, hell: 4 },
+      desc: "Bastión abisal donde los Pactos del Abismo exigen el alma de los apostadores. Pisos 12 al 15.",
       bg: "assets/svg/bg_zone_4_palace.svg"
     },
     {
@@ -3931,8 +3971,10 @@
       icon: "🎭",
       bossId: "shadow_joker",
       bossName: "Sombra del 21",
-      floors: { normal: 5, hard: 5, mythic: 6, nightmare: 6, hell: 7 },
-      desc: "Picos nevados y forjas rúnicas donde la realidad del naipe se distorsiona.",
+      startFloor: 16,
+      endFloor: 19,
+      floors: { normal: 4, hard: 4, mythic: 4, nightmare: 4, hell: 4 },
+      desc: "Picos nevados y forjas rúnicas donde la realidad del naipe se distorsiona. Pisos 16 al 19.",
       bg: "assets/svg/bg_zone_5_peak.svg"
     },
     {
@@ -3943,8 +3985,10 @@
       icon: "👑",
       bossId: "mandinga_lord",
       bossName: "El Mandinga (Señor del 21)",
-      floors: { normal: 5, hard: 5, mythic: 6, nightmare: 6, hell: 7 },
-      desc: "Sagrario del 21 Absoluto. La batalla definitiva contra el Señor del 21.",
+      startFloor: 20,
+      endFloor: 21,
+      floors: { normal: 2, hard: 2, mythic: 2, nightmare: 2, hell: 2 },
+      desc: "Sagrario del 21 Absoluto. La batalla definitiva contra el Señor del 21. Pisos 20 y 21.",
       bg: "assets/svg/bg_zone_6_throne.svg"
     }
   ];
@@ -3954,7 +3998,7 @@
     dante_spades: {
       name: "Dante de Picas",
       sprite: "🗡️",
-      img: "assets/svg/enemy_centurion.svg",
+      img: "assets/svg/enemy_dante_spades.svg",
       hp: 120,
       pwr: 5,
       def: 3,
@@ -3965,7 +4009,7 @@
     valkyrie_diamonds: {
       name: "Valquiria de Diamantes",
       sprite: "🛡️",
-      img: "assets/svg/enemy_gargoyle.svg",
+      img: "assets/svg/enemy_valkyrie_diamonds.svg",
       hp: 150,
       pwr: 4,
       def: 6,
@@ -3976,7 +4020,7 @@
     archmage_clubs: {
       name: "Archimago del Trébol",
       sprite: "🔮",
-      img: "assets/svg/enemy_shadowbeast.svg",
+      img: "assets/svg/enemy_archmage_clubs.svg",
       hp: 135,
       pwr: 6,
       def: 3,
@@ -3987,7 +4031,7 @@
     necro_void: {
       name: "Malfas del Vacío",
       sprite: "💀",
-      img: "assets/svg/enemy_skeleton.svg",
+      img: "assets/svg/enemy_necro_void.svg",
       hp: 165,
       pwr: 6,
       def: 4,
@@ -4009,7 +4053,7 @@
     mandinga_lord: {
       name: "👑 El Mandinga (Señor del 21)",
       sprite: "👑",
-      img: "assets/svg/enemy_black.svg",
+      img: "assets/svg/enemy_mandinga.svg",
       hp: 220,
       pwr: 8,
       def: 6,
@@ -4019,6 +4063,56 @@
     }
   };
   window.CHAPTER_BOSSES = CHAPTER_BOSSES;
+
+  /* ============================================================
+     POOLS TEMÁTICOS DE RIVALES POR ACTO (PROGRESIÓN DIABLO II)
+     ============================================================ */
+  const ACT_ENEMY_POOLS = {
+    1: [
+      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 24, pwr: 1, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
+      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 22, pwr: 2, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+1 Veneno al impactar)" },
+      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 32, pwr: 2, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
+    ],
+    2: [
+      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 42, pwr: 2, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
+      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 46, pwr: 3, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
+      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 58, pwr: 3, def: 3, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes ≤3 daño)" }
+    ],
+    3: [
+      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 66, pwr: 3, def: 2, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+2 Veneno al impactar)" },
+      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 78, pwr: 4, def: 3, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas ocultas)" },
+      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 86, pwr: 4, def: 4, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
+    ],
+    4: [
+      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 96, pwr: 4, def: 5, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al recibir golpe)" },
+      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 104, pwr: 5, def: 4, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
+      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 98, pwr: 4, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 20 HP)" }
+    ],
+    5: [
+      { name: "Asesino de la Escarcha", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 115, pwr: 5, def: 4, trait: "frost", traitShort: "★ ESCARCHA", traitName: "Escarcha (drena 1 punto de aguante)" },
+      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 122, pwr: 5, def: 4, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (cartas ocultas)" },
+      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 130, pwr: 6, def: 5, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño)" }
+    ],
+    6: [
+      { name: "Dragón Guardián", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 180, pwr: 6, def: 5, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" }
+    ]
+  };
+  window.ACT_ENEMY_POOLS = ACT_ENEMY_POOLS;
+
+  function getActForFloor(floorNum) {
+    if (floorNum <= 3) return 1;
+    if (floorNum <= 7) return 2;
+    if (floorNum <= 11) return 3;
+    if (floorNum <= 15) return 4;
+    if (floorNum <= 19) return 5;
+    return 6;
+  }
+  window.getActForFloor = getActForFloor;
+
+  function isActBossFloor(floorNum) {
+    return floorNum === 3 || floorNum === 7 || floorNum === 11 || floorNum === 15 || floorNum === 19 || floorNum === 21;
+  }
+  window.isActBossFloor = isActBossFloor;
 
   const ELITE_AFFIXES = [
     { id: "fire_enchanted", name: "Ígneo", icon: "🔥", desc: "Aplica +2 Quemadura al impactar.", onHit: () => { if (gameState.status) gameState.status.playerBurn = (gameState.status.playerBurn || 0) + 2; } },
@@ -4056,7 +4150,7 @@
     const maxWp = wp[diffKey] || 1;
     if (chapterNum > maxWp) {
       if (typeof spawnFloatingText === "function") {
-        spawnFloatingText("hero-book-stage", `🔒 Capítulo ${chapterNum} bloqueado. Supera los anteriores.`, "crit");
+        spawnFloatingText("hero-book-stage", `🔒 Acto ${chapterNum} bloqueado. Supera los anteriores.`, "crit");
       }
       try { playBustSound(); } catch (_) {}
       return false;
@@ -4064,7 +4158,8 @@
     setGameDifficulty(diffKey);
     gameState.isCampaignMode = true;
     gameState.chapter = chapterNum;
-    const startFloor = (chapterNum - 1) * 5 + 1;
+    const curChapter = CAMPAIGN_CHAPTERS.find(c => c.number === chapterNum) || CAMPAIGN_CHAPTERS[0];
+    const startFloor = curChapter.startFloor || 1;
     gameState.floor = startFloor;
     const p = gameState.player || {};
     if (chapterNum > 1) {
@@ -4090,13 +4185,13 @@
       const isCompleted = ch.number < highestWp;
       const statusClass = isCompleted ? "completed" : (isUnlocked ? "unlocked" : "locked");
       const statusText = isCompleted ? "✔ VENCIDO" : (isUnlocked ? "⚡ ENTRANTE" : "🔒 BLOQUEADO");
-      const floorsCount = (ch.floors && ch.floors[curDiff]) ? ch.floors[curDiff] : 5;
+      const floorRange = (ch.startFloor && ch.endFloor) ? `P.${ch.startFloor}-${ch.endFloor}` : `Acto ${ch.number}`;
 
       return `
-        <div class="campaign-chapter-card ${statusClass}" onclick="startCampaignRun('${curDiff}', ${ch.number})" title="Acto ${ch.number}: ${ch.name}">
+        <div class="campaign-chapter-card ${statusClass}" onclick="startCampaignRun('${curDiff}', ${ch.number})" title="Acto ${ch.number}: ${ch.name} (${floorRange})">
           <div class="campaign-ch-num">${ch.suit} ACTO ${ch.number}</div>
           <div class="campaign-ch-name">${ch.name}</div>
-          <div class="campaign-ch-boss">Jefe: ${ch.bossName.split(' ')[0]} (${floorsCount}p)</div>
+          <div class="campaign-ch-boss">Jefe: ${ch.bossName.split(' ')[0]} (${floorRange})</div>
           <div class="campaign-ch-wp">${statusText}</div>
         </div>
       `;
@@ -4113,18 +4208,22 @@
     if (diffKey === "normal") return true;
     const wins = getTotalTowerWins();
     const hasWonAny = (localStorage.getItem("blackjack_has_won_run") === "true");
-    if (diffKey === "hard") return wins >= 1 || hasWonAny;
-    if (diffKey === "mythic") return wins >= 2;
-    if (diffKey === "nightmare") return wins >= 3;
-    if (diffKey === "hell") return wins >= 4 || (wins >= 3 && hasWonAny);
+    const campaignNormalWon = (localStorage.getItem("bj_campaign_completed_normal") === "true");
+    const campaignNightmareWon = (localStorage.getItem("bj_campaign_completed_nightmare") === "true");
+    if (diffKey === "hard") return wins >= 1 || hasWonAny || campaignNormalWon;
+    if (diffKey === "mythic") return wins >= 2 || campaignNormalWon;
+    if (diffKey === "nightmare") return wins >= 3 || campaignNormalWon;
+    if (diffKey === "hell") return wins >= 4 || (wins >= 3 && hasWonAny) || campaignNightmareWon;
     return false;
   }
   window.isDifficultyUnlocked = isDifficultyUnlocked;
 
   function getMaxFloorsForDifficulty(diffKey) {
+    if (typeof gameState !== "undefined" && gameState.isCampaignMode) return 21;
     const k = diffKey || (gameState && gameState.diff) || getGameDifficulty();
     return DIFFICULTY_CONFIGS[k]?.maxFloors || 7;
   }
+  window.getMaxFloorsForDifficulty = getMaxFloorsForDifficulty;
   window.getMaxFloorsForDifficulty = getMaxFloorsForDifficulty;
 
   function getGameDifficulty() {
@@ -6737,6 +6836,37 @@
     const boostNote = mult > 1 ? ` (x${mult.toFixed(2)} por Artefactos)` : "";
     addLog(`🎓 ¡Eliminaste a ${e.name}! Ganaste +${finalKillExp} EXP${boostNote}.`, "critical");
     await gainExp(finalKillExp);
+
+    // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto en modo Campaña
+    if (gameState.isCampaignMode) {
+      const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
+      if (gameState.floor === 3) {
+        unlockCampaignWaypoint(diffKey, 2);
+        addLog("🗺️ ¡ACTO I SUPERADO! Waypoint al Acto II desbloqueado.", "heal");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO I VENCIDO", "crit");
+      } else if (gameState.floor === 7) {
+        unlockCampaignWaypoint(diffKey, 3);
+        addLog("🗺️ ¡ACTO II SUPERADO! Waypoint al Acto III desbloqueado.", "heal");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO II VENCIDO", "crit");
+      } else if (gameState.floor === 11) {
+        unlockCampaignWaypoint(diffKey, 4);
+        addLog("🗺️ ¡ACTO III SUPERADO! Waypoint al Acto IV desbloqueado.", "heal");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO III VENCIDO", "crit");
+      } else if (gameState.floor === 15) {
+        unlockCampaignWaypoint(diffKey, 5);
+        addLog("🗺️ ¡ACTO IV SUPERADO! Waypoint al Acto V desbloqueado.", "heal");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO IV VENCIDO", "crit");
+      } else if (gameState.floor === 19) {
+        unlockCampaignWaypoint(diffKey, 6);
+        addLog("🗺️ ¡ACTO V SUPERADO! Waypoint al Acto VI desbloqueado.", "heal");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO V VENCIDO", "crit");
+      } else if (gameState.floor >= 21) {
+        localStorage.setItem("bj_campaign_completed_" + diffKey, "true");
+        addLog("👑 ¡EL MANDINGA HA SIDO DESTRUIDO! ¡LA TORRE DEL 21 HA SIDO LIBERADA!", "critical");
+        showVictory();
+        return;
+      }
+    }
 
     // Victoria directa en piso cumbre al vencer al rival final (según torre elegida)
     const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
@@ -14794,22 +14924,72 @@
     // Mazo nuevo (barajado) al inicio de cada piso
     rebuildDrawPile();
 
-    // Cada piso genera un rival nuevo escalado a la altura de la torre elegida
-    const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
-    let enemyIdx;
-    if (gameState.floor >= maxFloors) {
-      enemyIdx = ENEMIES.length - 1; // BLACK / Rival cumbre
-    } else {
-      const maxNonBoss = ENEMIES.length - 2;
-      const progressRatio = (gameState.floor - 1) / Math.max(1, maxFloors - 1);
-      enemyIdx = Math.min(Math.floor(progressRatio * (maxNonBoss + 1)), maxNonBoss);
-    }
-    const t = ENEMIES[enemyIdx];
-
+    // Cada piso genera un rival según el modo (Campaña por Actos o Torre Clásica)
     const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
     const cfg = (typeof DIFFICULTY_CONFIGS !== "undefined" && DIFFICULTY_CONFIGS[diffKey]) ? DIFFICULTY_CONFIGS[diffKey] : { pwrBonusFloorDiv: 4, levelPwrBonus: 0 };
+    let t;
 
-    e.maxHp = enemyHpFor(t);
+    if (gameState.isCampaignMode) {
+      const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
+      gameState.chapter = curAct;
+      const curChapter = (typeof CAMPAIGN_CHAPTERS !== "undefined") ? (CAMPAIGN_CHAPTERS.find(c => c.number === curAct) || CAMPAIGN_CHAPTERS[0]) : null;
+      const isBoss = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : false;
+
+      if (isBoss && curChapter && typeof CHAPTER_BOSSES !== "undefined" && CHAPTER_BOSSES[curChapter.bossId]) {
+        const b = CHAPTER_BOSSES[curChapter.bossId];
+        t = {
+          name: b.name,
+          sprite: b.sprite,
+          img: b.img,
+          hp: b.hp,
+          pwr: b.pwr,
+          def: b.def,
+          trait: b.trait,
+          traitShort: b.traitShort,
+          traitName: b.traitName,
+          isActBoss: true
+        };
+        addLog(`👑 ¡JEFE DE ACTO ${curChapter.number}! ${b.name} te desafía.`, "critical");
+      } else if (gameState.floor === 20) {
+        // Sub-Jefe de Acto VI: Dragón de Ébano
+        t = {
+          name: "Dragón de Ébano (Guardián del Sagrario)",
+          sprite: "🐉",
+          img: "assets/svg/enemy_dragon.svg",
+          hp: 175,
+          pwr: 6,
+          def: 5,
+          trait: "dragon",
+          traitShort: "★ ALIENTO ÍGNEO",
+          traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)",
+          isActBoss: true
+        };
+        addLog("🐉 ¡SUB-JEFE SUPREMO! El Dragón de Ébano ruge en el Sagrario.", "critical");
+      } else {
+        const pool = (typeof ACT_ENEMY_POOLS !== "undefined" && ACT_ENEMY_POOLS[curAct]) ? ACT_ENEMY_POOLS[curAct] : ACT_ENEMY_POOLS[1];
+        if (gameState.floor === 1) {
+          // En piso 1, siempre el Duende Pilluelo para consistencia y equilibrio
+          t = pool[0];
+        } else {
+          // Selección aleatoria temática dentro del pool del acto
+          const randIdx = Math.floor(Math.random() * pool.length);
+          t = pool[randIdx];
+        }
+      }
+    } else {
+      const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
+      let enemyIdx;
+      if (gameState.floor >= maxFloors) {
+        enemyIdx = ENEMIES.length - 1; // BLACK / Rival cumbre
+      } else {
+        const maxNonBoss = ENEMIES.length - 2;
+        const progressRatio = (gameState.floor - 1) / Math.max(1, maxFloors - 1);
+        enemyIdx = Math.min(Math.floor(progressRatio * (maxNonBoss + 1)), maxNonBoss);
+      }
+      t = ENEMIES[enemyIdx];
+    }
+
+    e.maxHp = t.isActBoss ? Math.round(enemyHpFor(t) * 1.25) : enemyHpFor(t);
     e.hp = e.maxHp;
 
     // Escalamiento dinámico de ataque (PWR) y defensa (DEF) del rival según dificultad
@@ -14850,27 +15030,6 @@
           const affixNames = e.affixes.map(a => a.name).join(" • ");
           addLog(`¡RIVAL ÉLITE! Afijos: ${affixNames}`, "warning");
         }
-      }
-    }
-
-    // Jefe de Acto en modo Campaña por Capítulos
-    if (gameState.isCampaignMode && typeof CAMPAIGN_CHAPTERS !== "undefined" && typeof CHAPTER_BOSSES !== "undefined") {
-      const curChapter = CAMPAIGN_CHAPTERS.find(c => c.number === gameState.chapter);
-      const chapterFloors = (curChapter && curChapter.floors && curChapter.floors[diffKey]) ? curChapter.floors[diffKey] : 5;
-      const isBossFloor = (gameState.floor % chapterFloors === 0);
-      if (isBossFloor && curChapter && CHAPTER_BOSSES[curChapter.bossId]) {
-        const b = CHAPTER_BOSSES[curChapter.bossId];
-        e.name = b.name;
-        e.sprite = b.sprite;
-        e.img = b.img;
-        e.maxHp = Math.round(enemyHpFor(b) * 1.25);
-        e.hp = e.maxHp;
-        e.pwr = b.pwr + Math.floor(gameState.floor / 3);
-        e.def = b.def;
-        e.trait = b.trait;
-        e.traitShort = b.traitShort;
-        e.traitName = b.traitName;
-        addLog(`👑 ¡JEFE DE ACTO ${curChapter.number}! ${b.name} te desafía.`, "critical");
       }
     }
 
@@ -17155,10 +17314,21 @@
         return true;
       }
     } else {
-      let curGold = (typeof gameState !== "undefined" && typeof gameState.gold === "number") ? gameState.gold : parseInt(localStorage.getItem("bj_player_gold") || "100", 10);
+      let curGold = parseInt(localStorage.getItem("bj_player_gold") || "100", 10);
+      if (typeof gameState !== "undefined" && typeof gameState.gold === "number" && gameState.gold > 0) {
+        curGold = Math.max(curGold, gameState.gold);
+      }
+      // Bono de cortesía de la casa para categoría Bronce si el duelista no tiene fondos
+      if (curGold < tier.fee && tier.key === "bronze") {
+        curGold = 50;
+        localStorage.setItem("bj_player_gold", "50");
+        if (typeof showGameToast === "function") {
+          showGameToast("🪙 ¡Bono de Bienvenida a la Arena! +50 de Oro de la Casa.", "gold");
+        }
+      }
       if (curGold < tier.fee) return false;
       curGold -= tier.fee;
-      if (typeof gameState !== "undefined" && typeof gameState.gold === "number") {
+      if (typeof gameState !== "undefined") {
         gameState.gold = curGold;
       }
       localStorage.setItem("bj_player_gold", String(curGold));
@@ -17179,9 +17349,12 @@
         localStorage.setItem("bj_crypt_coins", String(curCrypt + tier.pot));
       }
     } else {
-      let curGold = (typeof gameState !== "undefined" && typeof gameState.gold === "number") ? gameState.gold : parseInt(localStorage.getItem("bj_player_gold") || "100", 10);
-      curGold += tier.pot;
+      let curGold = parseInt(localStorage.getItem("bj_player_gold") || "100", 10);
       if (typeof gameState !== "undefined" && typeof gameState.gold === "number") {
+        curGold = Math.max(curGold, gameState.gold);
+      }
+      curGold += tier.pot;
+      if (typeof gameState !== "undefined") {
         gameState.gold = curGold;
       }
       localStorage.setItem("bj_player_gold", String(curGold));

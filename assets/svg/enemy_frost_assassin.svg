@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="147" rx="46" ry="8" fill="#000" opacity="0.25"/>
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M55 45 Q80 18 105 45 L115 130 L45 130 Z" fill="#17110c"/>
+    <circle cx="80" cy="50" r="18" fill="#17110c"/>
+    <line x1="35" y1="80" x2="25" y2="120" stroke="#17110c" stroke-width="12"/>
+    <line x1="125" y1="80" x2="135" y2="120" stroke="#17110c" stroke-width="12"/>
+  </g>
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M55 45 Q80 18 105 45 L115 130 L45 130 Z"/>
+    <circle cx="80" cy="50" r="18"/>
+    <line x1="35" y1="80" x2="25" y2="120" stroke-width="12"/>
+    <line x1="125" y1="80" x2="135" y2="120" stroke-width="12"/>
+  </g>
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Capa de nieve y cuero sombrío -->
+    <path d="M56 46 Q80 22 104 46 L112 130 L48 130 Z" fill="#1d3557"/>
+    <path d="M68 55 L80 130 L92 55 Z" fill="#457b9d"/>
+    <!-- Capucha helada y máscara de cristal -->
+    <path d="M62 42 Q80 30 98 42 Q105 65 94 72 Q80 78 66 72 Q55 65 62 42 Z" fill="#a8dadc"/>
+    <rect x="68" y="48" width="24" height="8" rx="3" fill="#03045e" stroke="none"/>
+    <circle cx="74" cy="52" r="2.5" fill="#66fcf1" stroke="none"/>
+    <circle cx="86" cy="52" r="2.5" fill="#66fcf1" stroke="none"/>
+    <!-- Dagas gemelas de hielo cian -->
+    <line x1="38" y1="75" x2="26" y2="125" stroke="#90e0ef" stroke-width="6"/>
+    <polygon points="24,128 30,120 20,122" fill="#0077b6" stroke="none"/>
+    <line x1="122" y1="75" x2="134" y2="125" stroke="#90e0ef" stroke-width="6"/>
+    <polygon points="136,128 130,120 140,122" fill="#0077b6" stroke="none"/>
+  </g>
+</svg>

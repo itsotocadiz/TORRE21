@@ -568,6 +568,21 @@
     "Dragón Guardián":             "Soberano ígneo subyugado hace 300 años por las cadenas arcanas de BLACK. Su aliento calcina las barajas y custodia el acceso a la cámara suprema.",
     "👑 BLACK (El Jack Supremo)": "El primer mortal corrompido por el Mazo Primigenio. Gobierna el destino de la Torre desde su trono del Piso 13, apostando las almas de los caídos por toda la eternidad.",
 
+    // Rivales y Jefes de Campaña por Actos (Diablo II / 21 Pisos)
+    "Alimaña de Cripta":           "Roedor infectado por miasmas de ultratumba. Sus mordeduras inoculan ponzoña pútrida que desgasta lentamente a los aventureros descuidados.",
+    "Dante de Picas":              "Comandante implacable de las falanges de espadas. Portador del Filo Veloz, sus estocadas de Picas perforan defensas con ferocidad aristocrática.",
+    "Escarabajo de Arena":         "Coloso quitinoso que habita las dunas subterráneas. Su caparazón diamantino repele impactos y convierte la arena en escudo protector.",
+    "Valquiria de Diamantes":      "Antigua guardiana celestial atrapada en el pacto de la Torre. Su Baluarte Sagrado crea escudos impenetrables al inicio de cada mano.",
+    "Víbora del Pantano":          "Ofidio colosal alimentado con efluvios alquímicos del Trébol. Su veneno corroe tanto la carne como la concentración del jugador.",
+    "Archimago del Trébol":        "Maestro de las artes prohibidas de transmutación y cartas trampa. Con su Ojo Arcano, drena la energía Overdrive y manipula el destino de las manos.",
+    "Malfas del Vacío":            "Nigromante supremo del abismo que gobierna la Ciudadela. Cosecha las almas de cada carta robada por su adversario para regenerar su vitalidad.",
+    "Asesino de la Escarcha":      "Fantasma silencioso de las cumbres nevadas. Sus dagas de hielo rúnico congelan la iniciativa del rival antes de asestar el golpe de gracia.",
+    "Sombra del 21":               "Entidad quimérica forjada con los fracasos y cartas perdidas de miles de apostadores. Oculta el valor de sus cartas y desata golpes críticos devastadores.",
+    "Dragón de Ébano (Guardián del Sagrario)": "Coloso milenario de escamas oscuras y aliento infernal. Custodio indiscutible del umbral que conduce al trono del Mandinga.",
+    "👑 El Mandinga (Señor del 21)": "El artífice supremo de la Torre del 21. Entidad infernal que convirtió la baraja en un juicio eterno de almas. Su Juicio Final castiga con críticos vorpales que anulan toda resurrección.",
+    "El Mandinga (Señor del 21)":  "El artífice supremo de la Torre del 21. Entidad infernal que convirtió la baraja en un juicio eterno de almas. Su Juicio Final castiga con críticos vorpales que anulan toda resurrección.",
+    "El Mandinga":                 "El artífice supremo de la Torre del 21. Entidad infernal que convirtió la baraja en un juicio eterno de almas. Su Juicio Final castiga con críticos vorpales que anulan toda resurrección.",
+
     // Claves históricas / sin acentos ni emojis para retrocompatibilidad
     "Gargola Petrea":              "Centinela de granito vivo esculpida por la Orden Arcana. Su piel de roca encantada deflecta golpes menores como si fuesen brisas de otoño.",
     "Centurion Espectral":         "Ectoplasma del comandante supremo de la guardia pretoriana. Mantiene intacta la disciplina de falange: jamás cede terreno ni se planta por debajo del 18.",

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="147" rx="46" ry="8" fill="#000" opacity="0.25"/>
+  <!-- Sombra papel desplazada -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M40 70 L15 45 L35 95 Z" fill="#17110c"/>
+    <path d="M120 70 L145 45 L125 95 Z" fill="#17110c"/>
+    <polygon points="80,15 95,35 80,55 65,35" fill="#17110c"/>
+    <rect x="62" y="60" width="36" height="52" rx="8" fill="#17110c"/>
+    <polygon points="45,75 70,60 70,115 45,130" fill="#17110c"/>
+    <circle cx="80" cy="45" r="16" fill="#17110c"/>
+  </g>
+  <!-- Borde papel recortado grueso -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M40 70 L15 45 L35 95 Z"/>
+    <path d="M120 70 L145 45 L125 95 Z"/>
+    <polygon points="80,15 95,35 80,55 65,35"/>
+    <rect x="62" y="60" width="36" height="52" rx="8"/>
+    <polygon points="45,75 70,60 70,115 45,130"/>
+    <circle cx="80" cy="45" r="16"/>
+  </g>
+  <!-- Capa interna coloreada Paper Mario -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Alas angélicas de papel -->
+    <path d="M42 68 L16 42 L34 94 Z" fill="#f8edeb"/>
+    <path d="M38 72 L24 55 L32 88 Z" fill="#ffd166"/>
+    <path d="M118 68 L144 42 L126 94 Z" fill="#f8edeb"/>
+    <path d="M122 72 L136 55 L128 88 Z" fill="#ffd166"/>
+    <!-- Cuerpo y coraza divina -->
+    <rect x="64" y="62" width="32" height="50" rx="7" fill="#e9ecef"/>
+    <!-- Cabeza y yelmo alado -->
+    <circle cx="80" cy="45" r="15" fill="#ffd166"/>
+    <path d="M68 40 Q80 32 92 40 L90 52 L70 52 Z" fill="#e9ecef"/>
+    <circle cx="75" cy="45" r="3" fill="#17110c" stroke="none"/>
+    <circle cx="85" cy="45" r="3" fill="#17110c" stroke="none"/>
+    <!-- Aureola en forma de Diamante ♦ -->
+    <polygon points="80,12 94,32 80,48 66,32" fill="#ffd166" stroke="#e0a96d" stroke-width="3"/>
+    <!-- Gran Escudo de Diamantes -->
+    <polygon points="42,75 68,60 68,118 42,132" fill="#48cae4"/>
+    <polygon points="48,82 62,72 62,110 48,120" fill="#00b4d8"/>
+    <polygon points="55,90 60,98 55,106 50,98" fill="#fff" stroke="none"/>
+    <!-- Lanza solar -->
+    <line x1="110" y1="135" x2="118" y2="20" stroke="#ffd166" stroke-width="6"/>
+    <polygon points="118,12 124,28 112,28" fill="#f72585" stroke="#17110c" stroke-width="2"/>
+  </g>
+</svg>
