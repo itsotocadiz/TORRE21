@@ -6652,7 +6652,7 @@
       }
 
       if (p.bust) {
-        gameState.isRolling = true;
+        gameState.isRolling = false;
         setButtonsDisabled(true);
         triggerHaptic("bust");
         triggerScreenShake("light");
@@ -6662,11 +6662,52 @@
         await sleep(900);
         await resolveHandResult(false);
       } else {
+        // Monje: Concentración (+1 punto si tiene 18 o 19)
+        if (p.class === "monk" && (p.playerScore === 18 || p.playerScore === 19)) {
+          p.playerScore += 1;
+          spawnFloatingText("player-sprite", "+1 CONCENTRACIÓN", "heal");
+          addLog(`¡Monje: Tu concentración mental ajusta tu puntuación a ${p.playerScore}!`, "heal");
+        }
+
         p.stand = true;
         gameState.isRolling = true;
         setButtonsDisabled(true);
+
+        const pCardEl = document.getElementById("player-cards");
+        if (pCardEl) pCardEl.classList.add("rolling");
         await sleep(300);
+        if (pCardEl) pCardEl.classList.remove("rolling");
+
         await enemyPlayAuto(e);
+
+        gameState.isRolling = false;
+        const playerScoreValid = !p.bust && p.playerScore <= BUST_LIMIT;
+        const enemyScoreValid = !e.bust && e.enemyScore <= BUST_LIMIT;
+
+        let outcome = "lose";
+        if (!playerScoreValid && !enemyScoreValid) {
+          outcome = "lose"; // Ambos BUST: la casa gana
+          addLog("💥 ¡Ambos se pasaron de 21! La torre gana la mano.", "damage");
+        } else if (!playerScoreValid) {
+          outcome = "lose";
+          addLog(`💥 ¡BUST! Te pasaste de 21 (${p.playerScore}). Pierdes la mano.`, "damage");
+        } else if (!enemyScoreValid) {
+          outcome = "win";
+          addLog(`💥 ¡${e.name} se pasó de 21 (${e.enemyScore})! Ganas la mano doblada.`, "heal");
+        } else if (p.playerScore > e.enemyScore) {
+          outcome = "win";
+          addLog(`⚔️ Ganaste la mano doblada: ${p.playerScore} vs ${e.enemyScore}.`, "heal");
+        } else if (e.enemyScore > p.playerScore) {
+          outcome = "lose";
+          addLog(`👹 Perdiste la mano doblada: ${p.playerScore} vs ${e.enemyScore}.`, "damage");
+        } else {
+          outcome = "push";
+          addLog(`🤝 ¡EMPATE (PUSH)! Puntuaciones iguales (${p.playerScore} vs ${e.enemyScore}). Nadie sufre daño directo.`, "info");
+        }
+
+        // Pausa táctica para comparar manos antes del impacto
+        await sleep(900);
+        await resolveHandResult(outcome);
       }
       return;
     }
@@ -14468,7 +14509,7 @@
     }
 
     if (clashIcon) clashIcon.classList.remove("clashing");
-
+    p.turnDoubleDamage = false;
     updateHud();
 
     // -------------------------------------------------------------
@@ -14554,6 +14595,7 @@
      CONTROL MANUAL DE RONDAS DE COMBATE (UX MEJORADA)
      ============================================================ */
   function showNextRoundButton() {
+    gameState.isRolling = false;
     const actionGrid = document.getElementById("action-grid");
     const nextRoundCont = document.getElementById("next-round-container");
     const btnNextRound = document.getElementById("btn-next-round");
@@ -14577,6 +14619,7 @@
   }
 
   function advanceToNextRound() {
+    gameState.isRolling = false;
     const btnNextRound = document.getElementById("btn-next-round");
     if (btnNextRound) {
       if (btnNextRound.disabled) return;
