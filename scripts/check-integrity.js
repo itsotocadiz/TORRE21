@@ -110,8 +110,49 @@ if (!hasPrivacy) fail('Sin política de privacidad referenciada en la app');
 const promoCode = /TALO123/.test(htmlSrc);
 if (promoCode) fail('Código promocional TALO123 visible en index.html (UI pública)');
 
-/* ---------- 8. Sincronización de copias ---------- */
-console.log('\n== 8. Copias sincronizadas ==');
+/* ---------- 8. Integridad estructural y balanceo DOM (index.html) ---------- */
+console.log('\n== 8. Balanceo de etiquetas HTML (index.html) ==');
+const htmlLines = htmlSrc.split('\n');
+const domStack = [];
+const voidElements = new Set(['img', 'br', 'hr', 'input', 'meta', 'link']);
+let domMismatchCount = 0;
+
+for (let i = 0; i < htmlLines.length; i++) {
+  const line = htmlLines[i];
+  const tagRegex = /<\/?([a-zA-Z0-9\-]+)(?:\s+[^>]*)?>/g;
+  let match;
+  while ((match = tagRegex.exec(line)) !== null) {
+    const fullTag = match[0];
+    const tagName = match[1].toLowerCase();
+    if (voidElements.has(tagName) || fullTag.endsWith('/>')) continue;
+    const isClosing = fullTag.startsWith('</');
+    if (isClosing) {
+      if (domStack.length === 0) {
+        fail(`Cierre huérfano </${tagName}> en index.html:${i + 1}`);
+        domMismatchCount++;
+      } else {
+        const top = domStack.pop();
+        if (top.tagName !== tagName) {
+          fail(`Etiqueta desbalanceada en index.html:${i + 1}: esperaba </${top.tagName}> (abierta en línea ${top.line} #${top.id || ''}), pero encontró </${tagName}>`);
+          domMismatchCount++;
+        }
+      }
+    } else {
+      const idMatch = fullTag.match(/id=["']([^"']+)["']/);
+      domStack.push({ tagName, line: i + 1, id: idMatch ? idMatch[1] : '' });
+    }
+  }
+}
+if (domStack.length > 0) {
+  for (const s of domStack) {
+    fail(`Etiqueta sin cerrar en index.html: <${s.tagName} id="${s.id}"> abierta en línea ${s.line}`);
+  }
+} else if (domMismatchCount === 0) {
+  ok('Estructura DOM de index.html 100% balanceada (0 etiquetas desfasadas ni huérfanas)');
+}
+
+/* ---------- 9. Sincronización de copias ---------- */
+console.log('\n== 9. Copias sincronizadas ==');
 const crypto = require('crypto');
 const md5 = (f) => crypto.createHash('md5').update(fs.readFileSync(f)).digest('hex');
 for (const rel of ['index.html', 'js/game.js', 'js/improvements.js', 'css/style.css']) {

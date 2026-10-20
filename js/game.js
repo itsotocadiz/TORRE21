@@ -5193,6 +5193,9 @@
 
   let currentSkinModalHero = "knight";
   function openHeroSkinModal(heroKey) {
+    if (!heroKey && typeof HERO_KEYS !== "undefined" && typeof currentHeroBookIndex === "number") {
+      heroKey = HERO_KEYS[currentHeroBookIndex];
+    }
     currentSkinModalHero = heroKey || "knight";
     const modal = document.getElementById("screen-hero-skin-modal");
     if (!modal) return;
@@ -5201,14 +5204,19 @@
     if (titleEl) titleEl.innerText = `${hero.name.toUpperCase()} • VESTIDURAS`;
     renderHeroSkinGrid(currentSkinModalHero);
     modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    modal.style.zIndex = "10050";
     try { playButtonClickSound(); } catch (_) {}
   }
   window.openHeroSkinModal = openHeroSkinModal;
 
   function closeHeroSkinModal() {
     const modal = document.getElementById("screen-hero-skin-modal");
-    if (modal) modal.classList.add("hidden");
-    renderHeroBook();
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+    if (typeof renderHeroBook === "function") renderHeroBook();
   }
   window.closeHeroSkinModal = closeHeroSkinModal;
 

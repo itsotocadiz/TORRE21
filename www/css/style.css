@@ -13354,8 +13354,9 @@ body.sudden-death-active #stage {
   color: #ffd166;
 }
 
-/* --- MODAL OVERLAY CENTRADO DE ALTO NIVEL (TALENTOS & TUTORIALES) --- */
-.modal-overlay-center {
+/* --- MODAL OVERLAY CENTRADO DE ALTO NIVEL (TALENTOS, TUTORIALES & ASPECTOS) --- */
+.modal-overlay-center,
+.skin-modal-overlay {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -13369,7 +13370,8 @@ body.sudden-death-active #stage {
   padding: 12px !important;
   box-sizing: border-box !important;
 }
-.modal-overlay-center.hidden {
+.modal-overlay-center.hidden,
+.skin-modal-overlay.hidden {
   display: none !important;
 }
 

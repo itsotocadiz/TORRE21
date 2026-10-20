@@ -72,7 +72,14 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Vestiduras Desbloqueables por Maestría:** La segunda vestidura de cada héroe se desbloquea automáticamente al alcanzar Nivel de Maestría 2 (y la tercera al Nivel 5) sin barreras monetarias iniciales.
 * **Navegación Móvil y Botón Atrás de Android:** Separado el panel de selección de capítulos de la dificultad de ascensión, incorporado el botón `◀ VOLVER AL MENÚ` de 44px de alto y enganchado al evento físico `backButton` de Capacitor.
 
-### [v1.6.1] — Octubre 2026 (Actual)
+### [v1.6.2] — Octubre 2026 (Actual)
+* **Aislamiento Estructural de la Arena PvP y Menús Principales:**
+  * Corregido el cierre omitido de `<div id="screen-arena-pvp-modal">` en `index.html`. Debido a este tag faltante, todos los modales subsiguientes (Árbol de Talentos, Manual del Tahúr/Tutoriales, Selector de Vestiduras/Skins, Salón de Logros y Cinemáticas) quedaban atrapados como elementos hijos de la Arena, provocando que no respondieran en el Menú Principal y aparecieran indebidamente dentro del Coliseo PvP.
+  * Selector de Vestiduras/Skins (`#screen-hero-skin-modal`) unificado con la clase `.modal-overlay-center` (`z-index: 10050`, centrado flex absoluto) y resolución automática del héroe activo en el libro.
+* **Salvaguarda y Linter DOM Automático (`scripts/check-integrity.js`):**
+  * Incorporada la validación automática de balanceo de etiquetas HTML en el pipeline de integridad (`check-integrity.js` y `npm run verify`). Todo cierre huérfano, tag desbalanceado o contenedor abierto sin cerrar bloquea inmediatamente el test impidiendo que este tipo de error estructural vuelva a ocurrir.
+
+### [v1.6.1] — Octubre 2026
 * **Árbol de Talentos y Tutoriales en Pantalla Principal (Fotos 1 & 5):**
   * Corregida la apertura de `#modal-hero-talents` y `#modal-interactive-tutorials` con clase `overlay hidden modal-overlay-center` y `z-index: 10050`.
   * Integración con `#screen-levelup` para abrir el árbol y asignar inmediatamente el punto elemental obtenido en la ascensión.
