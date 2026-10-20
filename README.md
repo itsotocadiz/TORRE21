@@ -72,7 +72,21 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Vestiduras Desbloqueables por Maestría:** La segunda vestidura de cada héroe se desbloquea automáticamente al alcanzar Nivel de Maestría 2 (y la tercera al Nivel 5) sin barreras monetarias iniciales.
 * **Navegación Móvil y Botón Atrás de Android:** Separado el panel de selección de capítulos de la dificultad de ascensión, incorporado el botón `◀ VOLVER AL MENÚ` de 44px de alto y enganchado al evento físico `backButton` de Capacitor.
 
-### [v1.5.0] — Octubre 2026 (Actual)
+### [v1.6.1] — Octubre 2026 (Actual)
+* **Árbol de Talentos y Tutoriales en Pantalla Principal (Fotos 1 & 5):**
+  * Corregida la apertura de `#modal-hero-talents` y `#modal-interactive-tutorials` con clase `overlay hidden modal-overlay-center` y `z-index: 10050`.
+  * Integración con `#screen-levelup` para abrir el árbol y asignar inmediatamente el punto elemental obtenido en la ascensión.
+* **Modo ENDLESS y Selector de Dificultades (Foto 2):**
+  * Cuatro dificultades clásicas (Normal, Heroico, Mítico, Pesadilla) y la quinta reconvertida en **♾️ ENDLESS (Modo Sin Fin)** con escalado ilimitado de pisos.
+  * Eliminado el botón redundante `◀ VOLVER AL MENÚ` dentro del panel de capítulos que provocaba inconsistencias de navegación.
+* **Cámara del Destino con Retorno al Menú (Foto 3):**
+  * Agregado el botón `◀ VOLVER AL MENÚ PRINCIPAL` (`cancelRunBeforeStart()`) en `#screen-starter-blessing` para abortar limpiamente la run antes de comenzar.
+  * Soporte de retroceso con el botón físico/atrás del sistema Android (`backButton`).
+* **Cálculo Predictivo Unificado de Ataque y Crítico (Foto 4):**
+  * Creada la función `calculateExactTacticalDamage(player, enemy, hand, isDouble)` compartida con idéntica matemática por el HUD y la resolución de combate.
+  * El HUD predice con precisión milimétrica el daño neto (incluyendo margen, nivel, armadura rival y crítico activo en 19-21) permitiendo al jugador tomar decisiones tácticas óptimas al pedir carta o plantarse.
+
+### [v1.5.0] — Octubre 2026
 * **Unificación en el Árbol de Talentos Permanente (Metaprogresión Diablo II / PoE):** Se eliminó el sistema arcaico del "Altar del Legado" y los 5 puntos planos de estadísticas por nivel. Ahora toda la progresión se canaliza en el Árbol de Talentos en 4 ramas elementales (♠️ Filo/Picas, ♦️ Baluarte/Diamantes, ♥️ Vitalidad/Corazones, ♣️ Fortuna/Tréboles), otorgando mejoras porcentuales acumulativas para cada héroe.
 * **Depuración del HUD de Combate (Fin del Dado):** Eliminado el dado `🎲 % Seguro` para limpiar la interfaz. El HUD ahora destaca exclusivamente dos indicadores tácticos contiguos:
   * `[⚡ CRÍTICO: X%]`: Probabilidad de Golpe Crítico (19–21), potenciada en vivo por la Rama del Filo, afinidad de naipes y sellos.

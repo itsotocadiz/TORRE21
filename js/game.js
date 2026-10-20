@@ -3584,14 +3584,68 @@
   }
   window.calculateCritChance = calculateCritChance;
 
+  function calculateExactTacticalDamage(player, enemy, playerHand = [], isDouble = false) {
+    if (!player) return { dmg: 0, isCrit: false, critMult: 1.0, score: 0 };
+    const score = calculateHandScore(playerHand);
+    if (score > 21) return { dmg: 0, isCrit: false, critMult: 1.0, score };
+
+    const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
+    const levelMult = 1 + ((player.level || 1) - 1) * 0.12;
+
+    // Bono de Atributo RPG de Fuerza (STR)
+    let bonus = 0;
+    const strMod = (player.attributes && player.attributes.str > 10) ? Math.floor((player.attributes.str - 10) / 2) : 0;
+    if (strMod > 0) bonus += strMod;
+
+    // Margen de mano estimado frente a la banca rival (17 o mano rival visible si tiene)
+    let enemyScore = 17;
+    if (enemy && enemy.hand && enemy.hand.length > 0) {
+      const eScore = calculateHandScore(enemy.hand);
+      if (eScore <= 21) enemyScore = eScore;
+    }
+    const scoreMargin = Math.max(0, score - enemyScore);
+    const marginBonus = Math.floor(scoreMargin * 0.75);
+
+    const bet = player.currentBet || 0;
+    let baseStrike = (player.pwr || 2) + bet + marginBonus + bonus + (player.cardBonusDamage || 0);
+    let rawPlayerDmg = Math.round(baseStrike * levelMult);
+    let dmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
+
+    // Guardia Táctica D&D (<15): Golpe amortiguado
+    if (score < 15) {
+      dmg = Math.max(1, Math.round(dmg * 0.50));
+    }
+
+    // Crítico predictivo RPG: Rango 19-21 garantiza Golpe Crítico (x1.5 o x2.0)
+    let isCrit = false;
+    let critMult = 1.0;
+    if (score >= 19 && score <= 21) {
+      isCrit = true;
+      critMult = (score === 21) ? 2.0 : 1.5;
+    }
+
+    if (isCrit && dmg > 0) {
+      dmg = Math.round(dmg * critMult);
+    }
+
+    // Multiplicador de Doblar
+    if (isDouble || player.turnDoubleDamage) {
+      dmg = Math.round(dmg * 2);
+    }
+
+    return { dmg, isCrit, critMult, score };
+  }
+  window.calculateExactTacticalDamage = calculateExactTacticalDamage;
+
   function calculateProjectedDamage(playerPwr, rivalDef, playerHand = [], deck = []) {
     const curScore = calculateHandScore(playerHand);
     if (curScore > 21) return { currentDmg: 0, crit21Dmg: 0 };
-    const curRes = resolveDnDBlackjackRound(curScore, 17, playerHand, [], { pwr: playerPwr, def: rivalDef });
-    const critRes = resolveDnDBlackjackRound(21, 17, playerHand, [], { pwr: playerPwr, def: rivalDef });
+    const mockP = { pwr: playerPwr, level: 1, currentBet: 0 };
+    const mockE = { def: rivalDef };
+    const exactCurrent = calculateExactTacticalDamage(mockP, mockE, playerHand, false);
     return {
-      currentDmg: curRes.finalDamage,
-      crit21Dmg: critRes.finalDamage
+      currentDmg: exactCurrent.dmg,
+      crit21Dmg: Math.round(exactCurrent.dmg * 1.5)
     };
   }
   window.calculateProjectedDamage = calculateProjectedDamage;
@@ -3609,9 +3663,9 @@
       );
     } else if (type === "dmg") {
       showGameAlert(
-        "⚔️ CÁLCULO DE ATAQUE DE COMBATE\n\n" +
-        "Muestra el daño neto que asestarás al rival con tu mano actual vs el daño masivo si alcanzas 21 exacto.\n\n" +
-        "• Considera tu PWR, afinidades de palos y penetración frente a la DEF enemiga.\n" +
+        "⚔️ CÁLCULO DE ATAQUE PREDICTIVO\n\n" +
+        "Muestra el daño exacto que asestarás al rival si te plantas con tu mano actual considerando buffs, PWR, nivel, margen y armadura enemiga.\n\n" +
+        "• Si alcanzas 19-21, el daño ya incluye el multiplicador de Golpe Crítico (x1.5 o x2.0).\n" +
         "• Si activas '¡DOBLAR!', este ataque se multiplicará x2 automáticamente.",
         "TÁCTICA: ATAQUE ACTUAL"
       );
@@ -3628,35 +3682,45 @@
         const e = (window.gameState && window.gameState.enemy);
         if (!p || !p.playerHand) return;
         const deck = (window.gameState && window.gameState.deck) || [];
-        const baseCrit = calculateCritChance(p.playerHand, deck);
-        
-        // Bonificaciones de crítico del Árbol de Talentos y cartas en mano
-        let talentCritBonus = 0;
-        if (typeof getHeroTalentTree === "function") {
-          const tree = getHeroTalentTree(p.classKey || p.heroKey || "knight");
-          const ranks = (tree && tree.ranks) || {};
-          if (ranks["spades_1"]) talentCritBonus += ranks["spades_1"] * 5; // +5% por rango
-          if (ranks["spades_2"]) talentCritBonus += 15; // +15% vorpal
-        }
-        const hasSpadeInHand = p.playerHand.some(c => c && (c.suit === "♠" || c.suit === "spades"));
-        const cardCritBonus = hasSpadeInHand ? 5 : 0;
-        const totalCrit = Math.min(95, Math.max(5, baseCrit + talentCritBonus + cardCritBonus));
-
-        const proj = calculateProjectedDamage(p.pwr || 2, e ? (e.def || 0) : 0, p.playerHand, deck);
+        const curScore = calculateHandScore(p.playerHand);
 
         const critEl = document.getElementById("dnd-crit-odds");
         const dmgEl = document.getElementById("dnd-projected-dmg");
 
-        const doubleFactor = (p && p.turnDoubleDamage) ? 2 : 1;
-        const curDmg = proj.currentDmg * doubleFactor;
-        const c21Dmg = proj.crit21Dmg * doubleFactor;
+        // 1. Probabilidad predictiva exacta de Crítico
+        let critText = "";
+        if (curScore >= 19 && curScore <= 21) {
+          critText = `⚡ CRÍTICO: 100% (ACTIVO)`;
+        } else if (curScore > 21) {
+          critText = `💀 BUST (0%)`;
+        } else {
+          const baseCrit = calculateCritChance(p.playerHand, deck);
+          let talentCritBonus = 0;
+          if (typeof getHeroTalentTree === "function") {
+            const tree = getHeroTalentTree(p.classKey || p.heroKey || "knight");
+            const ranks = (tree && tree.ranks) || {};
+            if (ranks["spades_1"]) talentCritBonus += ranks["spades_1"] * 5;
+            if (ranks["spades_2"]) talentCritBonus += 15;
+          }
+          const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
+          const hasSpadeInHand = p.playerHand.some(c => c && (c.suit === "♠" || c.suit === "spades"));
+          const cardCritBonus = hasSpadeInHand ? 5 : 0;
+          const totalCrit = Math.min(95, Math.max(10, baseCrit + talentCritBonus + dexStatBonus + cardCritBonus));
+          critText = `⚡ CRÍTICO: ${totalCrit}%`;
+        }
 
-        if (critEl) critEl.innerText = `⚡ CRÍTICO: ${totalCrit}%`;
+        // 2. Daño exacto predictivo
+        const isDoubled = !!(p && p.turnDoubleDamage);
+        const tactical = calculateExactTacticalDamage(p, e, p.playerHand, isDoubled);
+
+        if (critEl) critEl.innerText = critText;
         if (dmgEl) {
-          if (p && p.turnDoubleDamage) {
-            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmg} HP`;
+          if (curScore > 21) {
+            dmgEl.innerText = `⚔️ ATAQUE: 0 HP (BUST)`;
+          } else if (isDoubled) {
+            dmgEl.innerText = `⚡ ATAQUE x2: ${tactical.dmg} HP`;
           } else {
-            dmgEl.innerText = `⚔️ ATAQUE: ${curDmg} HP`;
+            dmgEl.innerText = `⚔️ ATAQUE: ${tactical.dmg} HP`;
           }
         }
       } else if (zone === "arena") {
@@ -3664,23 +3728,32 @@
         if (!hud || !window.arenaMatch) return;
         const hand = window.arenaMatch.playerHand || [];
         const deck = window.arenaMatch.deck || [];
-        const baseCrit = calculateCritChance(hand, deck);
+        const curScore = calculateHandScore(hand);
         const pwr = (window.arenaMatch.playerStats && window.arenaMatch.playerStats.pwr) || 12;
         const def = (window.arenaMatch.rival && window.arenaMatch.rival.def) || 6;
-        const proj = calculateProjectedDamage(pwr, def, hand, deck);
+        const mockP = { pwr, level: 1, currentBet: 0 };
+        const mockE = { def };
+        const isDoubledArena = !!(window.arenaMatch && window.arenaMatch.isDoubled);
+        const tactical = calculateExactTacticalDamage(mockP, mockE, hand, isDoubledArena);
 
         const critEl = document.getElementById("arena-dnd-crit-odds");
         const dmgEl = document.getElementById("arena-dnd-projected-dmg");
 
-        const doubleFactorArena = (window.arenaMatch && window.arenaMatch.isDoubled) ? 2 : 1;
-        const curDmgArena = proj.currentDmg * doubleFactorArena;
-
-        if (critEl) critEl.innerText = `⚡ CRÍTICO: ${baseCrit}%`;
-        if (dmgEl) {
-          if (doubleFactorArena > 1) {
-            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmgArena} HP`;
+        if (critEl) {
+          if (curScore >= 19 && curScore <= 21) {
+            critEl.innerText = `⚡ CRÍTICO: 100% (ACTIVO)`;
           } else {
-            dmgEl.innerText = `⚔️ ATAQUE: ${curDmgArena} HP`;
+            const baseCrit = calculateCritChance(hand, deck);
+            critEl.innerText = `⚡ CRÍTICO: ${Math.max(10, baseCrit)}%`;
+          }
+        }
+        if (dmgEl) {
+          if (curScore > 21) {
+            dmgEl.innerText = `⚔️ ATAQUE: 0 HP (BUST)`;
+          } else if (isDoubledArena) {
+            dmgEl.innerText = `⚡ ATAQUE x2: ${tactical.dmg} HP`;
+          } else {
+            dmgEl.innerText = `⚔️ ATAQUE: ${tactical.dmg} HP`;
           }
         }
       }
@@ -3932,15 +4005,15 @@
     },
     hell: {
       id: "hell",
-      label: "INFIERNO",
-      name: "Senda del Infierno",
-      icon: "🔥",
-      maxFloors: 14,
+      label: "ENDLESS",
+      name: "Torre Infinita (Modo Sin Fin)",
+      icon: "♾️",
+      maxFloors: 999,
       reqWins: 4,
       shieldPenaltyPct: 0.40,
-      desc: "🔥 <b>Senda del Infierno (Actos I-VI):</b> Penalización -40% escudo base. Enemigos Élite con 2 afijos y resistencias. (🏆 +8 Trofeos)",
-      loreTitle: "El Pandemónium del Mandinga",
-      lore: "Donde el calor eterno funde las coronas y los naipes se tiñen de azufre. Solo las leyendas forjadas en mil derrotas osan desafiar el Trono Supremo del Mandinga.",
+      desc: "♾️ <b>Torre Infinita (Modo Sin Fin):</b> Ascensión sin fin. Rivales con escalado infinito, afijos implacables y penalización -40% escudo base. ¡Llega lo más lejos posible! (🏆 +8 Trofeos)",
+      loreTitle: "La Aguja Eterna del Sin Fin",
+      lore: "Una torre interminable donde el tiempo y el espacio colapsan. No existe cima: cada piso desafía tus límites con rivales cada vez más temibles.",
       multHp: 2.10,
       bonusFloorHp: 12,
       levelHpMult: 6,
@@ -4364,7 +4437,7 @@
     renderHeroTalentsUI(heroKey);
     modal.classList.remove("hidden");
     modal.style.display = "flex";
-    modal.style.zIndex = "10005";
+    modal.style.zIndex = "10050";
     try { playCardDealSound(); } catch (_) {}
   }
   window.openHeroTalentsModal = openHeroTalentsModal;
@@ -4493,7 +4566,7 @@
     switchTutorialTab(initialTab);
     modal.classList.remove("hidden");
     modal.style.display = "flex";
-    modal.style.zIndex = "10005";
+    modal.style.zIndex = "10050";
     try { playCardDealSound(); } catch (_) {}
   }
   window.openInteractiveTutorialModal = openInteractiveTutorialModal;
@@ -9071,6 +9144,13 @@
     initFloor();
   }
   window.selectStarterBlessing = selectStarterBlessing;
+
+  function cancelRunBeforeStart() {
+    const modal = document.getElementById("screen-starter-blessing");
+    if (modal) modal.classList.add("hidden");
+    returnToMainMenuClean();
+  }
+  window.cancelRunBeforeStart = cancelRunBeforeStart;
 
   function getMaxArtifactSlots() {
     const lvl = (gameState.player && gameState.player.level) ? gameState.player.level : 1;
@@ -14560,7 +14640,8 @@
         const critMultiplier = (p.playerScore === 21 || isNatural21) ? 2.0 : 1.5;
         dmg = Math.round(dmg * critMultiplier);
         spawnFloatingText("player-sprite", `⚡ x${critMultiplier} ¡CRÍTICO!`, "crit");
-        addLog(`⚡ ¡Impacto Crítico (${totalCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
+        const reportedCritChance = (p.playerScore >= 19) ? 100 : totalCritChance;
+        addLog(`⚡ ¡Impacto Crítico (${reportedCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
       }
 
       // Escuelas D&D de Naipes en la Torre
@@ -17879,7 +17960,10 @@
       "screen-ingame-pause",
       "screen-game-over",
       "screen-win",
-      "screen-floor-transition"
+      "screen-floor-transition",
+      "screen-starter-blessing",
+      "modal-hero-talents",
+      "modal-interactive-tutorials"
     ];
     modals.forEach(id => {
       const el = document.getElementById(id);

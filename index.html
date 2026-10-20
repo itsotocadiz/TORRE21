@@ -334,8 +334,8 @@
               <span class="diff-text">PESADILLA</span>
             </button>
             <button class="diff-btn" data-diff="hell" onclick="setGameDifficulty('hell')">
-              <span class="diff-icon">🔥</span>
-              <span class="diff-text">INFIERNO</span>
+              <span class="diff-icon">♾️</span>
+              <span class="diff-text">ENDLESS</span>
             </button>
           </div>
           <div class="difficulty-desc-box ascension-diff-desc" id="difficulty-desc-box">
@@ -350,7 +350,6 @@
           <div class="campaign-chapters-header">
             <span class="campaign-badge">🗺️ CAMPAÑA DEL 21 • ACTOS I AL VI</span>
             <span class="campaign-sub">Puntos de control (Waypoints) persistentes</span>
-            <button type="button" class="campaign-back-btn" onclick="toggleCampaignChapters(false)" title="Regresar al Menú Principal">◀ VOLVER AL MENÚ</button>
           </div>
           <div class="campaign-chapters-grid" id="campaign-chapters-grid"></div>
         </div>
@@ -1287,6 +1286,10 @@
       <div class="starter-blessing-mastery-hint" id="starter-blessing-mastery-hint">
         ⭐ Maestría Permanente Nivel 1 activa. ¡Sube de nivel para desbloquear Bendiciones Raras, Épicas y Míticas!
       </div>
+
+      <button type="button" class="starter-blessing-back-btn" onclick="cancelRunBeforeStart()" title="Volver al Menú Principal">
+        ◀ VOLVER AL MENÚ PRINCIPAL
+      </button>
     </div>
   </div>
 
@@ -1979,7 +1982,7 @@
 </div>
 
 <!-- MODAL DE ÁRBOL DE TALENTOS PERMANENTE (FASE 5) -->
-<div id="modal-hero-talents" class="game-modal-fixed-overlay hidden" onclick="closeHeroTalentsModal(event)">
+<div id="modal-hero-talents" class="overlay hidden modal-overlay-center" onclick="closeHeroTalentsModal(event)">
   <div class="talent-tree-card" onclick="event.stopPropagation()">
     <div class="talent-tree-header">
       <div>
@@ -2000,7 +2003,7 @@
 </div>
 
 <!-- MODAL DE TUTORIALES INTERACTIVOS (FASE 6) -->
-<div id="modal-interactive-tutorials" class="game-modal-fixed-overlay hidden" onclick="closeInteractiveTutorialModal(event)">
+<div id="modal-interactive-tutorials" class="overlay hidden modal-overlay-center" onclick="closeInteractiveTutorialModal(event)">
   <div class="tutorial-modal-card" onclick="event.stopPropagation()">
     <div class="talent-tree-header">
       <div>
