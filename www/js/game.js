@@ -3596,6 +3596,38 @@
   }
   window.calculateProjectedDamage = calculateProjectedDamage;
 
+  function explainTacticalOdds(type) {
+    if (type === "safe") {
+      showGameAlert(
+        "🎲 PROBABILIDAD SEGURA DE ROBO\n\n" +
+        "Indica el porcentaje exacto de cartas restantes en la baraja que NO te harán pasarte de 21 puntos (evitando BUST).\n\n" +
+        "• 75% o más: Es muy seguro pedir otra carta.\n" +
+        "• 40% a 70%: Zona de riesgo moderado.\n" +
+        "• Menos de 35%: Alto peligro de pasarte. ¡Se recomienda Plantarse!",
+        "TÁCTICA: PROBABILIDAD SEGURA"
+      );
+    } else if (type === "crit") {
+      showGameAlert(
+        "⚡ PROBABILIDAD DE GOLPE CRÍTICO (D&D 21)\n\n" +
+        "Probabilidad de que la siguiente carta extraída coloque tu mano en rango crítico (19, 20 o 21 puntos / Nat 20).\n\n" +
+        "¿CÓMO AUMENTAR TU CRÍTICO PERMANENTE?\n" +
+        "1. Incrementa tu atributo INTEL (Inteligencia).\n" +
+        "2. Equipa Sellos de Picas y Cartas Dinámicas como 'Rey de Picas Verdugo' o '3 Sobrecarga'.\n" +
+        "3. Aprovecha sinergias elementales y cartas astrales.",
+        "TÁCTICA: GOLPE CRÍTICO"
+      );
+    } else if (type === "dmg") {
+      showGameAlert(
+        "⚔️ DAÑO PROYECTADO DE COMBATE\n\n" +
+        "Muestra el daño neto que asestarás al rival si decides Plantarte ahora mismo con tu mano actual vs el daño demoledor si alcanzas 21.\n\n" +
+        "• Considera tu PWR, bonos elementales y resta la armadura rival.\n" +
+        "• Si activas '¡DOBLAR!', este daño se multiplicará x2 automáticamente.",
+        "TÁCTICA: ESTIMACIÓN DE DAÑO"
+      );
+    }
+  }
+  window.explainTacticalOdds = explainTacticalOdds;
+
   function updateTacticalOddsHUD(zone = "tower") {
     try {
       if (zone === "tower") {
@@ -3613,9 +3645,19 @@
         const critEl = document.getElementById("dnd-crit-odds");
         const dmgEl = document.getElementById("dnd-projected-dmg");
 
+        const doubleFactor = (p && p.turnDoubleDamage) ? 2 : 1;
+        const curDmg = proj.currentDmg * doubleFactor;
+        const c21Dmg = proj.crit21Dmg * doubleFactor;
+
         if (safeEl) safeEl.innerText = `🎲 SEGURO: ${safe}%`;
         if (critEl) critEl.innerText = `⚡ CRÍTICO: ${crit}%`;
-        if (dmgEl) dmgEl.innerText = `⚔️ PROY: ${proj.currentDmg} [21: ${proj.crit21Dmg}]`;
+        if (dmgEl) {
+          if (p && p.turnDoubleDamage) {
+            dmgEl.innerText = `⚡ DAÑO x2: ${curDmg} HP (21: ${c21Dmg})`;
+          } else {
+            dmgEl.innerText = `⚔️ DAÑO: ${curDmg} HP (21: ${c21Dmg})`;
+          }
+        }
       } else if (zone === "arena") {
         const hud = document.getElementById("arena-dnd-odds-hud");
         if (!hud || !window.arenaMatch) return;
@@ -3631,9 +3673,19 @@
         const critEl = document.getElementById("arena-dnd-crit-odds");
         const dmgEl = document.getElementById("arena-dnd-projected-dmg");
 
+        const doubleFactorArena = (window.arenaMatch && window.arenaMatch.isDoubled) ? 2 : 1;
+        const curDmgArena = proj.currentDmg * doubleFactorArena;
+        const c21DmgArena = proj.crit21Dmg * doubleFactorArena;
+
         if (safeEl) safeEl.innerText = `🎲 SEGURO: ${safe}%`;
         if (critEl) critEl.innerText = `⚡ CRÍTICO: ${crit}%`;
-        if (dmgEl) dmgEl.innerText = `⚔️ PROY: ${proj.currentDmg} [21: ${proj.crit21Dmg}]`;
+        if (dmgEl) {
+          if (doubleFactorArena > 1) {
+            dmgEl.innerText = `⚡ DAÑO x2: ${curDmgArena} HP (21: ${c21DmgArena})`;
+          } else {
+            dmgEl.innerText = `⚔️ DAÑO: ${curDmgArena} HP (21: ${c21DmgArena})`;
+          }
+        }
       }
     } catch (_) {}
   }
@@ -4010,9 +4062,9 @@
       name: "Valquiria de Diamantes",
       sprite: "🛡️",
       img: "assets/svg/enemy_valkyrie_diamonds.svg",
-      hp: 150,
-      pwr: 4,
-      def: 6,
+      hp: 160,
+      pwr: 8,
+      def: 5,
       trait: "diamond_aegis",
       traitShort: "★ BALUARTE",
       traitName: "Baluarte Sagrado (+10 Escudo al iniciar cada mano)"
@@ -4021,9 +4073,9 @@
       name: "Archimago del Trébol",
       sprite: "🔮",
       img: "assets/svg/enemy_archmage_clubs.svg",
-      hp: 135,
-      pwr: 6,
-      def: 3,
+      hp: 210,
+      pwr: 11,
+      def: 5,
       trait: "arcane_burst",
       traitShort: "★ OJO ARCANO",
       traitName: "Ojo Arcano (Convoca cartas trampa y drena Overdrive)"
@@ -4032,9 +4084,9 @@
       name: "Malfas del Vacío",
       sprite: "💀",
       img: "assets/svg/enemy_necro_void.svg",
-      hp: 165,
-      pwr: 6,
-      def: 4,
+      hp: 260,
+      pwr: 14,
+      def: 7,
       trait: "void_drain",
       traitShort: "★ COSECHA",
       traitName: "Cosecha de Almas (Cura 5 HP cada vez que el rival roba carta)"
@@ -4043,9 +4095,9 @@
       name: "Sombra del 21",
       sprite: "🎭",
       img: "assets/svg/enemy_black.svg",
-      hp: 180,
-      pwr: 7,
-      def: 5,
+      hp: 320,
+      pwr: 17,
+      def: 8,
       trait: "shadow_gamble",
       traitShort: "★ ILUSIÓN 21",
       traitName: "Ilusión del 21 (Oculta la suma de cartas y duplica daño con 20/21)"
@@ -4054,9 +4106,9 @@
       name: "👑 El Mandinga (Señor del 21)",
       sprite: "👑",
       img: "assets/svg/enemy_mandinga.svg",
-      hp: 220,
-      pwr: 8,
-      def: 6,
+      hp: 420,
+      pwr: 22,
+      def: 10,
       trait: "mandinga_abyss",
       traitShort: "★ JUICIO FINAL",
       traitName: "Juicio Final del 21 (Crítico x2.5; Blackjack Vorpal; anula resurrección)"
@@ -4074,27 +4126,27 @@
       { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 34, pwr: 5, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
     ],
     2: [
-      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 42, pwr: 2, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
-      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 46, pwr: 3, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
-      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 58, pwr: 3, def: 3, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes ≤3 daño)" }
+      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 55, pwr: 6, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
+      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 65, pwr: 7, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
+      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 75, pwr: 6, def: 4, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes ≤3 daño)" }
     ],
     3: [
-      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 66, pwr: 3, def: 2, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+2 Veneno al impactar)" },
-      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 78, pwr: 4, def: 3, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas ocultas)" },
-      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 86, pwr: 4, def: 4, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
+      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 90, pwr: 9, def: 4, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+2 Veneno al impactar)" },
+      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 105, pwr: 10, def: 5, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas ocultas)" },
+      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 120, pwr: 11, def: 6, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
     ],
     4: [
-      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 96, pwr: 4, def: 5, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al recibir golpe)" },
-      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 104, pwr: 5, def: 4, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
-      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 98, pwr: 4, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 20 HP)" }
+      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 140, pwr: 13, def: 6, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al recibir golpe)" },
+      { name: "Centurión Espectral Élite", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 155, pwr: 14, def: 7, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
+      { name: "Esqueleto Segador", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 145, pwr: 15, def: 5, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 25 HP)" }
     ],
     5: [
-      { name: "Asesino de la Escarcha", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 115, pwr: 5, def: 4, trait: "frost", traitShort: "★ ESCARCHA", traitName: "Escarcha (drena 1 punto de aguante)" },
-      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 122, pwr: 5, def: 4, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (cartas ocultas)" },
-      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 130, pwr: 6, def: 5, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño)" }
+      { name: "Asesino de la Escarcha", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 175, pwr: 16, def: 7, trait: "frost", traitShort: "★ ESCARCHA", traitName: "Escarcha (drena 1 punto de aguante)" },
+      { name: "Quimera de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 190, pwr: 17, def: 8, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (cartas ocultas)" },
+      { name: "Coloso de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 210, pwr: 18, def: 9, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 3 daño)" }
     ],
     6: [
-      { name: "Dragón Guardián", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 180, pwr: 6, def: 5, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" }
+      { name: "Dragón Guardián Primigenio", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 280, pwr: 20, def: 9, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" }
     ]
   };
   window.ACT_ENEMY_POOLS = ACT_ENEMY_POOLS;
@@ -4155,20 +4207,30 @@
       try { playBustSound(); } catch (_) {}
       return false;
     }
-    setGameDifficulty(diffKey);
-    gameState.isCampaignMode = true;
-    gameState.chapter = chapterNum;
     const curChapter = CAMPAIGN_CHAPTERS.find(c => c.number === chapterNum) || CAMPAIGN_CHAPTERS[0];
     const startFloor = curChapter.startFloor || 1;
-    gameState.floor = startFloor;
-    const p = gameState.player || {};
-    if (chapterNum > 1) {
-      p.level = Math.max(p.level || 1, (chapterNum - 1) * 3);
-      gameState.gold = (gameState.gold || 0) + (chapterNum - 1) * 60;
-      p.potions = Math.max(p.potions || 2, 2 + Math.floor(chapterNum / 2));
-    }
     const curHeroKey = (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) ? HERO_KEYS[heroBookIndex] : "knight";
-    startGame(curHeroKey);
+
+    const launchRun = () => {
+      setGameDifficulty(diffKey);
+      gameState.isCampaignMode = true;
+      gameState.chapter = chapterNum;
+      gameState.floor = startFloor;
+      startGame(curHeroKey, false, startFloor, chapterNum);
+    };
+
+    if (typeof showGameConfirm === "function") {
+      showGameConfirm({
+        title: `🗺️ INICIAR ACTO ${chapterNum}`,
+        message: `¿Deseas iniciar tu expedición en "${curChapter.name}" (Piso ${startFloor}) con tu héroe actual?`,
+        okLabel: "⚡ ENTRAR AL ACTO",
+        cancelLabel: "◀ VOLVER",
+        onConfirm: launchRun
+      });
+      return true;
+    }
+
+    launchRun();
     return true;
   }
   window.startCampaignRun = startCampaignRun;
@@ -4198,6 +4260,96 @@
     }).join("");
   }
   window.renderCampaignChaptersUI = renderCampaignChaptersUI;
+
+  /* ============================================================
+     RELIQUIAS DEMONÍACAS DE ACTO (PROGRESIÓN ESTILO DIABLO II)
+     ============================================================ */
+  const DEMONIC_RELICS_BY_ACT = {
+    1: [
+      { id: "relic_dante_blade", name: "🗡️ Filo Sangriento de Dante", icon: "🗡️", desc: "+3 PWR permanente y aplica 2 Veneno al rival con cada 21.", apply: (p) => { p.pwr += 3; p._dantePoison21 = true; } },
+      { id: "relic_dante_spades", name: "♠️ Cota de Picas del Conquistador", icon: "♠️", desc: "+2 DEF permanente y cada carta de ♠ otorga +2 de Escudo.", apply: (p) => { p.def += 2; p._spadesShieldBonus = 2; } },
+      { id: "relic_dante_blood", name: "🩸 Frasco de Sangre Pura", icon: "🩸", desc: "+25 HP Máximo y restaura 2 Pociones de salud completas.", apply: (p) => { p.maxHp += 25; p.hp += 25; p.potions = (p.potions || 0) + 2; } }
+    ],
+    2: [
+      { id: "relic_valk_aegis", name: "🛡️ Baluarte de Diamantes", icon: "🛡️", desc: "+10 de Escudo azul protector al comenzar cada mano.", apply: (p) => { p._valkAegisShield = 10; } },
+      { id: "relic_valk_light", name: "✨ Relicario de la Luz", icon: "✨", desc: "+3 PWR y te cura +6 HP automáticamente si ganas una mano con 19 o 20.", apply: (p) => { p.pwr += 3; p._valkHealOnHighWin = true; } },
+      { id: "relic_valk_core", name: "💎 Núcleo Diamantino", icon: "💎", desc: "+3 DEF permanente y 2 Rerolls adicionales de inmediato.", apply: (p) => { p.def += 3; p.rerollsAvailable = (p.rerollsAvailable || 0) + 2; } }
+    ],
+    3: [
+      { id: "relic_archmage_eye", name: "🔮 Ojo Arcano del Archimago", icon: "🔮", desc: "+4 PWR y forja un Sello Cósmico Arcano permanente en tu baraja.", apply: (p) => { p.pwr += 4; if (typeof forgeRandomCosmicSeal === "function") forgeRandomCosmicSeal(); } },
+      { id: "relic_archmage_veil", name: "🌌 Manto del Vacío", icon: "🌌", desc: "25% de probabilidad de anular completamente el contraataque rival.", apply: (p) => { p._voidVeilDodge = 0.25; } },
+      { id: "relic_archmage_mana", name: "⚡ Cáliz de Éter", icon: "⚡", desc: "Comienzas cada piso con Overdrive listo y obtienes +40 Oro.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 40; p._etherCalice = true; } }
+    ],
+    4: [
+      { id: "relic_necro_harvest", name: "💀 Cosecha de Malfas", icon: "💀", desc: "Al pedir carta en combate, 35% de probabilidad de curar +4 HP.", apply: (p) => { p._necroHarvestHeal = true; } },
+      { id: "relic_necro_scythe", name: "☠️ Guadaña del Segador", icon: "☠️", desc: "+5 PWR y multiplica por x3 tu daño con Blackjack Natural.", apply: (p) => { p.pwr += 5; p.blackjackMultiplier = Math.max(p.blackjackMultiplier || 1, 3); } },
+      { id: "relic_necro_bones", name: "🦴 Coraza de Huesos Malditos", icon: "🦴", desc: "+4 DEF y espinas que devuelven 3 daño al rival por impacto.", apply: (p) => { p.def += 4; p._boneThorns = 3; } }
+    ],
+    5: [
+      { id: "relic_shadow_mirror", name: "🎭 Espejo de Sombras del 21", icon: "🎭", desc: "El As siempre computa a tu favor y anula el primer BUST de cada piso.", apply: (p) => { p._shadowMirrorBustProtect = true; } },
+      { id: "relic_shadow_crown", name: "👑 Corona del Gran Tahúr", icon: "👑", desc: "+60 Oro, +4 PWR y +3 DEF para la ascensión al Trono Final.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 60; p.pwr += 4; p.def += 3; } },
+      { id: "relic_shadow_pact", name: "⚔️ Pacto del Vencedor Inmortal", icon: "⚔️", desc: "Inmune a la perforación de Muerte Súbita durante los primeros 5 asaltos.", apply: (p) => { p._suddenDeathPactImmune = true; } }
+    ]
+  };
+  window.DEMONIC_RELICS_BY_ACT = DEMONIC_RELICS_BY_ACT;
+
+  function showDemonicRelicDraftModal(actNumber, onDone) {
+    const p = gameState.player;
+    if (!p) { if (typeof onDone === "function") onDone(); return; }
+    const pool = DEMONIC_RELICS_BY_ACT[actNumber] || DEMONIC_RELICS_BY_ACT[1];
+    const m = document.getElementById("screen-event");
+    const titleEl = document.getElementById("event-title");
+    const descEl = document.getElementById("event-desc");
+    const optEl = document.getElementById("event-options");
+    if (!m || !optEl) { if (typeof onDone === "function") onDone(); return; }
+
+    m.classList.remove("hidden");
+    if (titleEl) {
+      titleEl.innerText = `👹 RELIQUIA DEL DEMONIO (ACTO ${actNumber})`;
+      titleEl.style.color = "#ff4d6d";
+    }
+    if (descEl) {
+      descEl.innerText = `¡Has vencido al Líder del Acto ${actNumber}! Reclama una de sus 3 reliquias para imbuir a tu héroe durante el resto de la ascensión:`;
+    }
+
+    optEl.innerHTML = `
+      <div class="demonic-draft-container" style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:440px; margin:0 auto;">
+        ${pool.map((relic, idx) => `
+          <div class="demonic-relic-card" onclick="chooseDemonicRelic(${actNumber}, ${idx})" style="background:rgba(20,10,25,0.95); border:2px solid #e63946; border-radius:12px; padding:14px; cursor:pointer; text-align:left; box-shadow:0 4px 15px rgba(230,57,70,0.3); transition:transform 0.2s, border-color 0.2s;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+              <span style="font-size:2rem;">${relic.icon}</span>
+              <strong style="color:#ffb703; font-size:1.1rem;">${relic.name}</strong>
+            </div>
+            <div style="color:#f1faee; font-size:0.9rem; line-height:1.4;">${relic.desc}</div>
+            <div style="margin-top:8px; font-size:0.8rem; color:#e63946; font-weight:bold;">⚡ TOCAR PARA RECLAMAR</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    window._demonicRelicCallback = onDone;
+  }
+  window.showDemonicRelicDraftModal = showDemonicRelicDraftModal;
+
+  function chooseDemonicRelic(actNumber, relicIndex) {
+    const pool = DEMONIC_RELICS_BY_ACT[actNumber] || DEMONIC_RELICS_BY_ACT[1];
+    const relic = pool[relicIndex];
+    const p = gameState.player;
+    if (relic && p) {
+      p.artifacts = p.artifacts || [];
+      p.artifacts.push({ id: relic.id, name: relic.name, icon: relic.icon });
+      if (typeof relic.apply === "function") relic.apply(p);
+      addLog(`👹 Reliquia Demoníaca reclamada: ${relic.name}.`, "critical");
+      spawnFloatingText("player-sprite", relic.icon + " RECLAMADO", "crit");
+      try { playVictoryFanfareSound(); } catch (_) {}
+    }
+    const m = document.getElementById("screen-event");
+    if (m) m.classList.add("hidden");
+    const cb = window._demonicRelicCallback;
+    window._demonicRelicCallback = null;
+    if (typeof cb === "function") cb();
+  }
+  window.chooseDemonicRelic = chooseDemonicRelic;
 
   function getTotalTowerWins() {
     return parseInt(localStorage.getItem("bj_tower_total_wins") || "0", 10);
@@ -6022,7 +6174,7 @@
   /* ============================================================
      INICIO DE PARTIDA (CON SELECCIÓN DE HÉROE)
      ============================================================ */
-  function startGame(heroKey = "knight", bypassPendingCheck = false) {
+  function startGame(heroKey = "knight", bypassPendingCheck = false, customStartFloor = null, customChapter = null) {
     if (!bypassPendingCheck) {
       let hasPendingReward = false;
       try {
@@ -6036,7 +6188,7 @@
             if (typeof openPendingTowerReward === "function") openPendingTowerReward();
           },
           onCancel: () => {
-            startGame(heroKey, true);
+            startGame(heroKey, true, customStartFloor, customChapter);
           },
           okLabel: "RECLAMAR AHORA",
           cancelLabel: "INICIAR RUN DE TODOS MODOS"
@@ -6062,12 +6214,13 @@
     const masteryBonuses = getMasteryBonuses(heroLevel);
 
     gameState.diff = (typeof getGameDifficulty === "function") ? getGameDifficulty() : "normal";
-    gameState.floor = 1;
+    gameState.floor = (typeof customStartFloor === "number" && customStartFloor >= 1) ? customStartFloor : 1;
     gameState.isCampaignMode = true;
-    gameState.chapter = 1;
+    gameState.chapter = (typeof customChapter === "number" && customChapter >= 1) ? customChapter : ((typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1);
     const minigameGold = window.introMinigameGold || 0;
     const frenzyBonus = (window.introFrenzyMultiplier > 1 || window._frenzyTowerBenefit) ? 50 : 0;
-    gameState.gold = (masteryBonuses.gold || 0) + minigameGold + frenzyBonus;
+    const actGoldBonus = (gameState.chapter > 1) ? (gameState.chapter - 1) * 60 : 0;
+    gameState.gold = (masteryBonuses.gold || 0) + minigameGold + frenzyBonus + actGoldBonus;
     gameState.isRolling = false;
     gameState.killCount = 0;
     gameState.revivesUsed = 0;
@@ -6105,7 +6258,7 @@
     p.bonusKillExp = 0;
     p.pwr = ((typeof heroMeta.basePwr === "number" && heroMeta.basePwr >= 0) ? heroMeta.basePwr : (hero.pwr + masteryBonuses.pwr)) + legPwr;
     p.def = ((typeof heroMeta.baseDef === "number" && heroMeta.baseDef >= 0) ? heroMeta.baseDef : (hero.def + masteryBonuses.def)) + legDef;
-    p.potions = 2 + (masteryBonuses.potions || 0);
+    p.potions = 2 + (masteryBonuses.potions || 0) + ((gameState.chapter > 1) ? Math.floor(gameState.chapter / 2) : 0);
     p.rerollsAvailable = (masteryBonuses.rerolls || 0);
     p.gem = null;
     p.accessory = null;
@@ -6489,11 +6642,12 @@
     if (rerollBtn) rerollBtn.innerText = `🔄 REROLL (${p.rerollsAvailable})`;
   }
 
-  /* ============================================================
-     PLAYER ACTION
-     ============================================================ */
+  let _lastPlayerActionTime = 0;
   async function playerAction(action) {
     if (gameState.isRolling) return;
+    const _now = Date.now();
+    if (_now - _lastPlayerActionTime < 350) return;
+    _lastPlayerActionTime = _now;
     const p = gameState.player;
     const e = gameState.enemy;
 
@@ -7027,22 +7181,32 @@
         unlockCampaignWaypoint(diffKey, 2);
         addLog("🗺️ ¡ACTO I SUPERADO! Waypoint al Acto II desbloqueado.", "heal");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO I VENCIDO", "crit");
+        showDemonicRelicDraftModal(1, () => finishFloor(true));
+        return;
       } else if (gameState.floor === 7) {
         unlockCampaignWaypoint(diffKey, 3);
         addLog("🗺️ ¡ACTO II SUPERADO! Waypoint al Acto III desbloqueado.", "heal");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO II VENCIDO", "crit");
+        showDemonicRelicDraftModal(2, () => finishFloor(true));
+        return;
       } else if (gameState.floor === 11) {
         unlockCampaignWaypoint(diffKey, 4);
         addLog("🗺️ ¡ACTO III SUPERADO! Waypoint al Acto IV desbloqueado.", "heal");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO III VENCIDO", "crit");
+        showDemonicRelicDraftModal(3, () => finishFloor(true));
+        return;
       } else if (gameState.floor === 15) {
         unlockCampaignWaypoint(diffKey, 5);
         addLog("🗺️ ¡ACTO IV SUPERADO! Waypoint al Acto V desbloqueado.", "heal");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO IV VENCIDO", "crit");
+        showDemonicRelicDraftModal(4, () => finishFloor(true));
+        return;
       } else if (gameState.floor === 19) {
         unlockCampaignWaypoint(diffKey, 6);
         addLog("🗺️ ¡ACTO V SUPERADO! Waypoint al Acto VI desbloqueado.", "heal");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO V VENCIDO", "crit");
+        showDemonicRelicDraftModal(5, () => finishFloor(true));
+        return;
       } else if (gameState.floor >= 21) {
         localStorage.setItem("bj_campaign_completed_" + diffKey, "true");
         addLog("👑 ¡EL MANDINGA HA SIDO DESTRUIDO! ¡LA TORRE DEL 21 HA SIDO LIBERADA!", "critical");
@@ -11426,10 +11590,10 @@
     const mainActions = document.getElementById("pause-actions-main");
 
     if (box && msg && okBtn) {
-      msg.innerText = "¿Abandonar la ascensión actual y volver al Menú Principal? Se guardará tu EXP permanente.";
+      msg.innerText = `¿Deseas descansar en el Campamento y volver al Menú Principal? Tu progreso en el Piso ${gameState.floor || 1} quedará guardado para continuar más tarde.`;
       okBtn.onclick = () => {
         closeInGamePauseMenu();
-        exitToMainMenu();
+        exitToMainMenu(true);
       };
       box.classList.remove("hidden");
       if (mainActions) mainActions.style.display = "none";
@@ -11453,8 +11617,12 @@
   }
   window.restartCurrentRun = restartCurrentRun;
 
-  function exitToMainMenu() {
-    clearMidRunState();
+  function exitToMainMenu(saveCamp = true) {
+    if (saveCamp && gameState.player && gameState.player.hp > 0 && gameState.floor >= 1) {
+      saveMidRunState();
+    } else {
+      clearMidRunState();
+    }
     cleanupBattleRuntimeState();
     // La run termina: hay que silenciar la música de combate/alarma o quedaría
     // sonando sobre la pantalla de título (bug de audio reportado).
@@ -11472,6 +11640,7 @@
     const screenTitle = document.getElementById("screen-title");
     if (screenTitle) screenTitle.classList.remove("hidden");
     if (typeof updateResumeRunButton === "function") updateResumeRunButton();
+    if (typeof checkResumeRunButton === "function") checkResumeRunButton();
     if (typeof renderHeroBook === "function") renderHeroBook();
     try { playTitleMusic(); } catch (_) {}
   }
@@ -14238,7 +14407,14 @@
         spawnFloatingText("player-sprite", "⚡ x2 CONTRAATAQUE", "damage");
         addLog(`⚡ ¡Riesgo de Apuesta Doblada! El contraataque rival se multiplica x2 (${rawDmg} daño bruto).`, "warning");
       }
-      if (enemyHasBJ) rawDmg *= (e.trait === "dragon" ? 3 : 2);
+      const isEnemy21OrBJ = enemyHasBJ || (e.enemyScore === 21 && !e.bust);
+      if (isEnemy21OrBJ) {
+        rawDmg = Math.round(rawDmg * (e.trait === "dragon" ? 3 : 2));
+        totalDef = Math.max(0, totalDef - 4);
+        triggerScreenShake("heavy");
+        spawnFloatingText("enemy-sprite", "👹 ¡21 CRÍTICO VORPAL!", "crit");
+        addLog(`👹 ¡${e.name} DESATA UN 21 CRÍTICO! Perfora 4 DEF e inflige daño vorpal directo.`, "damage");
+      }
 
       if (isSuddenDeath) {
         rawDmg *= suddenMult; // Daño rival se multiplica por x2, x3, x4...
@@ -14306,7 +14482,7 @@
         totalDef += 2;
         addLog("🩸 Pacto del Gladiador: Furia desesperada (+2 DEF bajo 30% HP).", "critical");
       }
-      let incomingDmg = Math.max(0, rawDmg - totalDef);
+      let incomingDmg = Math.max(isEnemy21OrBJ ? 5 : 0, rawDmg - totalDef);
       // Yelmo de Valhalla: daño recibido limitado a un máximo de 20
       if (hasArtifact("valhalla_helm") && incomingDmg > 20) {
         incomingDmg = 20;

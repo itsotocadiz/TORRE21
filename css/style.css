@@ -9628,6 +9628,18 @@ body.sudden-death-active #stage {
   border: 1px solid #ef476f;
   color: #ff8fa3;
 }
+.dnd-odds-pill.interactive {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.dnd-odds-pill.interactive:hover {
+  filter: brightness(1.2);
+}
+.dnd-odds-pill.interactive:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 8px currentColor;
+}
 
 /* Asignador de Atributos RPG en Subida de Nivel */
 .rpg-attr-allocator {

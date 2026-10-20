@@ -866,10 +866,10 @@
         </button>
 
         <button class="pause-btn exit" onclick="askExitToMainMenu()">
-          <span class="p-icon">🚪</span>
+          <span class="p-icon">🏕️</span>
           <div class="p-info">
-            <span class="p-title">SALIR AL MENÚ PRINCIPAL</span>
-            <span class="p-sub">Guardar progreso permanente y volver a selección de héroes</span>
+            <span class="p-title">SALIR AL CAMPAMENTO</span>
+            <span class="p-sub">Guarda tu piso actual para continuar luego y vuelve al Menú</span>
           </div>
         </button>
       </div>
@@ -1013,11 +1013,11 @@
       <!-- SPRINT 2: CONTADOR DE MANOS TRASLÚCIDO EN EL CENTRO SUPERIOR DE LA MESA -->
       <div id="table-hand-pill" class="table-hand-pill" title="Mano actual de combate en la Torre">MANO 1/5</div>
 
-      <!-- VISOR TÁCTICO DE PROBABILIDADES D&D + 21 (HUD EN TIEMPO REAL) -->
-      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Probabilidades tácticas de robo y golpe crítico (D&D + 21)">
-        <span class="dnd-odds-pill safe" id="dnd-safe-odds">🎲 SEGURO: --%</span>
-        <span class="dnd-odds-pill crit" id="dnd-crit-odds">⚡ CRÍTICO: --%</span>
-        <span class="dnd-odds-pill dmg" id="dnd-projected-dmg">⚔️ PROY: --</span>
+      <!-- VISOR TÁCTICO DE PROBABILIDADES D&D + 21 (HUD EN TIEMPO REAL INTERACTIVO) -->
+      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Toca cualquier indicador para ver su explicación táctica detallada">
+        <span class="dnd-odds-pill safe interactive" id="dnd-safe-odds" onclick="explainTacticalOdds('safe')">🎲 SEGURO: --%</span>
+        <span class="dnd-odds-pill crit interactive" id="dnd-crit-odds" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
+        <span class="dnd-odds-pill dmg interactive" id="dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ DAÑO: --</span>
       </div>
 
       <!-- FILA 1: manos -->
@@ -1690,11 +1690,11 @@
           <div class="arena-timer-caption" id="arena-timer-caption">⚡ DECISIÓN: 5.0s (¡Reflejos rápidos = +20% Daño!)</div>
         </div>
 
-        <!-- VISOR TÁCTICO EN ARENA D&D + 21 -->
-        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Probabilidades tácticas en la Arena (D&D + 21)">
-          <span class="dnd-odds-pill safe" id="arena-dnd-safe-odds">🎲 SEGURO: --%</span>
-          <span class="dnd-odds-pill crit" id="arena-dnd-crit-odds">⚡ CRÍTICO: --%</span>
-          <span class="dnd-odds-pill dmg" id="arena-dnd-projected-dmg">⚔️ PROY: --</span>
+        <!-- VISOR TÁCTICO EN ARENA D&D + 21 (INTERACTIVO) -->
+        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Toca cualquier indicador para ver su explicación táctica detallada">
+          <span class="dnd-odds-pill safe interactive" id="arena-dnd-safe-odds" onclick="explainTacticalOdds('safe')">🎲 SEGURO: --%</span>
+          <span class="dnd-odds-pill crit interactive" id="arena-dnd-crit-odds" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
+          <span class="dnd-odds-pill dmg interactive" id="arena-dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ DAÑO: --</span>
         </div>
 
         <!-- ZONA DEL JUGADOR -->
