@@ -228,9 +228,9 @@
     enemy: {
       name: "Duende Pilluelo",
       sprite: "👺",
-      maxHp: 32,
-      hp: 32,
-      pwr: 1,
+      maxHp: 28,
+      hp: 28,
+      pwr: 4,
       def: 0,
       trait: "thief",
       traitName: "Robo (te roba 5 oro si gana)",
