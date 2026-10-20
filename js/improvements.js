@@ -1791,6 +1791,10 @@
 
       // 2. Modales emergentes de prioridad
       const modalCloseMap = [
+        { id: "screen-act-cinematic", close: () => { if (typeof window.skipActCinematic === "function") window.skipActCinematic(); } },
+        { id: "modal-hero-talents", close: () => { if (typeof window.closeHeroTalentsModal === "function") window.closeHeroTalentsModal(); } },
+        { id: "modal-interactive-tutorials", close: () => { if (typeof window.closeInteractiveTutorialModal === "function") window.closeInteractiveTutorialModal(); } },
+        { id: "campaign-chapters-panel", close: () => { if (typeof window.toggleCampaignChapters === "function") window.toggleCampaignChapters(false); } },
         { id: "modal-royal-iap", close: () => { if (typeof window.closeIAPModal === "function") window.closeIAPModal(); } },
         { id: "screen-victory-reward-saved-modal", close: () => { if (typeof window.closeVictoryRewardSavedModal === "function") window.closeVictoryRewardSavedModal(); } },
         { id: "screen-mastery-forge-modal", close: () => { if (typeof window.closeMasteryForgeModal === "function") window.closeMasteryForgeModal(); } },

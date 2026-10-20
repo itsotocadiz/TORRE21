@@ -343,15 +343,16 @@
               <span class="ascension-modifier-tag">🟢 Torre del Novicio:</span> Batallas tácticas. ¡Supera el Acto I (Pisos 1-3) y vence a Dante de Picas! (🏆 +1 Trofeo)
             </div>
           </div>
-          <!-- CAMPAÑA DEL 21: 6 CAPÍTULOS CON WAYPOINTS PERSISTENTES -->
-          <div class="campaign-chapters-panel" id="campaign-chapters-panel">
-            <div class="campaign-chapters-header">
-              <span class="campaign-badge">🗺️ CAMPAÑA DEL 21 • ACTOS I AL VI</span>
-              <span class="campaign-sub">Puntos de control (Waypoints) persistentes</span>
-              <button type="button" class="campaign-back-btn" onclick="toggleCampaignChapters(false)" title="Cerrar y volver a la selección de héroe">◀ VOLVER</button>
-            </div>
-            <div class="campaign-chapters-grid" id="campaign-chapters-grid"></div>
+        </div>
+
+        <!-- CAMPAÑA DEL 21: 6 CAPÍTULOS CON WAYPOINTS PERSISTENTES -->
+        <div class="campaign-chapters-panel" id="campaign-chapters-panel">
+          <div class="campaign-chapters-header">
+            <span class="campaign-badge">🗺️ CAMPAÑA DEL 21 • ACTOS I AL VI</span>
+            <span class="campaign-sub">Puntos de control (Waypoints) persistentes</span>
+            <button type="button" class="campaign-back-btn" onclick="toggleCampaignChapters(false)" title="Regresar al Menú Principal">◀ VOLVER AL MENÚ</button>
           </div>
+          <div class="campaign-chapters-grid" id="campaign-chapters-grid"></div>
         </div>
       </div>
 
@@ -1978,7 +1979,7 @@
 </div>
 
 <!-- MODAL DE ÁRBOL DE TALENTOS PERMANENTE (FASE 5) -->
-<div id="modal-hero-talents" class="overlay hidden" onclick="closeHeroTalentsModal(event)">
+<div id="modal-hero-talents" class="game-modal-fixed-overlay hidden" onclick="closeHeroTalentsModal(event)">
   <div class="talent-tree-card" onclick="event.stopPropagation()">
     <div class="talent-tree-header">
       <div>
@@ -1999,7 +2000,7 @@
 </div>
 
 <!-- MODAL DE TUTORIALES INTERACTIVOS (FASE 6) -->
-<div id="modal-interactive-tutorials" class="overlay hidden" onclick="closeInteractiveTutorialModal(event)">
+<div id="modal-interactive-tutorials" class="game-modal-fixed-overlay hidden" onclick="closeInteractiveTutorialModal(event)">
   <div class="tutorial-modal-card" onclick="event.stopPropagation()">
     <div class="talent-tree-header">
       <div>
@@ -2016,6 +2017,22 @@
       <!-- Contenido dinámico del tutorial -->
     </div>
     <button type="button" class="aoc-confirm-btn" onclick="closeInteractiveTutorialModal()" style="margin-top:14px; min-height:40px;">¡ENTENDIDO, A JUGAR!</button>
+  </div>
+</div>
+
+<!-- CINEMÁTICA NARRATIVA DE CAMBIO DE ACTO (MÁXIMO 3 SEGUNDOS) -->
+<div id="screen-act-cinematic" class="hidden" onclick="skipActCinematic()">
+  <div class="cinematic-banner" onclick="event.stopPropagation()">
+    <div class="cinematic-act-badge" id="cinematic-act-badge">ACTO II: LAS CATACUMBAS DE DIAMANTES</div>
+    <div class="cinematic-boss-art" id="cinematic-boss-art">
+      <img src="assets/svg/enemy_valkyrie_diamonds.svg" alt="Jefe de Acto">
+    </div>
+    <div class="cinematic-title" id="cinematic-title">EL BASTIÓN FRACTURADO</div>
+    <div class="cinematic-lore-text" id="cinematic-lore-text">...</div>
+    <div class="cinematic-progress-bar-wrap">
+      <div class="cinematic-progress-fill" id="cinematic-progress-fill"></div>
+    </div>
+    <button type="button" class="cinematic-skip-btn" onclick="skipActCinematic()">OMITIR (SKIP ➔)</button>
   </div>
 </div>
 

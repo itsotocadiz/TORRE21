@@ -3654,9 +3654,9 @@
         if (critEl) critEl.innerText = `⚡ CRÍTICO: ${totalCrit}%`;
         if (dmgEl) {
           if (p && p.turnDoubleDamage) {
-            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmg} HP (21: ${c21Dmg})`;
+            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmg} HP`;
           } else {
-            dmgEl.innerText = `⚔️ ATAQUE: ${curDmg} HP (21: ${c21Dmg})`;
+            dmgEl.innerText = `⚔️ ATAQUE: ${curDmg} HP`;
           }
         }
       } else if (zone === "arena") {
@@ -3674,14 +3674,13 @@
 
         const doubleFactorArena = (window.arenaMatch && window.arenaMatch.isDoubled) ? 2 : 1;
         const curDmgArena = proj.currentDmg * doubleFactorArena;
-        const c21DmgArena = proj.crit21Dmg * doubleFactorArena;
 
         if (critEl) critEl.innerText = `⚡ CRÍTICO: ${baseCrit}%`;
         if (dmgEl) {
           if (doubleFactorArena > 1) {
-            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmgArena} HP (21: ${c21DmgArena})`;
+            dmgEl.innerText = `⚡ ATAQUE x2: ${curDmgArena} HP`;
           } else {
-            dmgEl.innerText = `⚔️ ATAQUE: ${curDmgArena} HP (21: ${c21DmgArena})`;
+            dmgEl.innerText = `⚔️ ATAQUE: ${curDmgArena} HP`;
           }
         }
       }
@@ -4350,7 +4349,8 @@
     const heroLevel = heroMeta.level || heroMeta.masteryLevel || 1;
     const totalWins = (typeof getTotalTowerWins === "function") ? getTotalTowerWins() : 0;
     const bonusEarned = heroMeta.talentPoints || 0;
-    const earned = Math.max(0, (heroLevel - 1) + bonusEarned + totalWins * 2);
+    const runPoints = (window.gameState && window.gameState.player && window.gameState.player.talentPoints) || 0;
+    const earned = Math.max(0, (heroLevel - 1) + bonusEarned + runPoints + totalWins * 2);
     const tree = getHeroTalentTree(heroKey);
     return Math.max(0, earned - (tree.pointsSpent || 0));
   }
@@ -4363,13 +4363,18 @@
     if (!modal) return;
     renderHeroTalentsUI(heroKey);
     modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    modal.style.zIndex = "10005";
     try { playCardDealSound(); } catch (_) {}
   }
   window.openHeroTalentsModal = openHeroTalentsModal;
 
   function closeHeroTalentsModal() {
     const modal = document.getElementById("modal-hero-talents");
-    if (modal) modal.classList.add("hidden");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
   }
   window.closeHeroTalentsModal = closeHeroTalentsModal;
 
@@ -4487,13 +4492,18 @@
     if (!modal) return;
     switchTutorialTab(initialTab);
     modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    modal.style.zIndex = "10005";
     try { playCardDealSound(); } catch (_) {}
   }
   window.openInteractiveTutorialModal = openInteractiveTutorialModal;
 
   function closeInteractiveTutorialModal() {
     const modal = document.getElementById("modal-interactive-tutorials");
-    if (modal) modal.classList.add("hidden");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
   }
   window.closeInteractiveTutorialModal = closeInteractiveTutorialModal;
 
@@ -5051,6 +5061,15 @@
     const list = HERO_SKINS[heroKey] || HERO_SKINS.knight;
     const skin = list.find(s => s.id === skinId);
     if (!skin || skin.costCrypt === 0) return true;
+
+    try {
+      const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
+      const heroMeta = meta[heroKey] || {};
+      const heroLvl = heroMeta.level || heroMeta.masteryLevel || 1;
+      if (heroLvl >= 2 && list[1] && list[1].id === skinId) return true;
+      if (heroLvl >= 5 && list[2] && list[2].id === skinId) return true;
+    } catch (_) {}
+
     const unlockedList = parseJSONArray(localStorage.getItem(`bj_unlocked_skins_${heroKey}`), []);
     return unlockedList.includes(skinId);
   }
@@ -5890,7 +5909,7 @@
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
               <span class="talent-points-pill" style="font-size:10px;">✨ ${typeof getHeroAvailableTalentPoints === 'function' ? getHeroAvailableTalentPoints(heroKey) : 0} PUNTOS DISPONIBLES</span>
-              <button class="aoc-confirm-btn" style="padding:6px 12px; font-size:10px; min-height:34px; width:auto;" onclick="closeHeroSheet(); openHeroTalentsModal('${heroKey}');">
+              <button class="aoc-confirm-btn" style="padding:6px 12px; font-size:10px; min-height:34px; width:auto;" onclick="openHeroTalentsModal('${heroKey}');">
                 🌳 ABRIR ÁRBOL DE TALENTOS
               </button>
             </div>
@@ -7617,6 +7636,127 @@
       if (callback) callback();
     }, 1500);
   }
+
+  /* ============================================================
+     CINEMÁTICAS NARRATIVAS DE CAMBIO DE ACTO (MÁXIMO 3 SEGUNDOS)
+     Adaptadas a la historia y motivación de cada uno de los 4 Héroes
+     ============================================================ */
+  const ACT_CINEMATIC_DATA = {
+    2: {
+      actBadge: "ACTO II • LAS CATACUMBAS DE DIAMANTES",
+      bossImg: "assets/svg/enemy_valkyrie_diamonds.svg",
+      title: "EL BASTIÓN FRACTURADO",
+      heroLore: {
+        knight: "«Dante ha caído... pero su acero fue solo la vanguardia. La Valkiria custodia los salones de diamantes con su escudo místico. ¡Por el honor de los caídos, romperé su formación!»",
+        rogue: "«Dante se confió y pagó la cuenta. Las catacumbas de diamantes brillan con trampas mortales. Hora de afilar las dagas y cobrar el botín en silencio.»",
+        monk: "«La furia de Dante no pudo quebrar la quietud del loto. Ahora el frío de los diamantes pondrá a prueba mi templanza. El camino requiere serenidad.»",
+        necromancer: "«El alma de Dante ya arde en mi colección. La Valkiria cree que su escudo diamantino detendrá la muerte... pero las almas traspasan el metal.»"
+      }
+    },
+    3: {
+      actBadge: "ACTO III • EL SANTUARIO DE TRÉBOLES",
+      bossImg: "assets/svg/enemy_archmage_clubs.svg",
+      title: "LA CÚPULA DE LOS MIL TRÉBOLES",
+      heroLore: {
+        knight: "«El bastión quedó atrás. El Archimago de Tréboles manipula las líneas del éter para distorsionar la Torre. Mi espada cortará sus conjuros arcanos.»",
+        rogue: "«Un archimago rodeado de oro y reliquias arcanas. Para un tahúr, esto no es solo una pelea: es la mayor mesa de apuestas de la Torre.»",
+        monk: "«El éter de los tréboles resuena con energía caótica. Armonizaré mi respiración para disipar sus ilusiones antes de que toquen mi mente.»",
+        necromancer: "«El Archimago cree dominar el cosmos... pero su carne es tan frágil como la de un novicio. Su conocimiento será absorbido por el Vacío.»"
+      }
+    },
+    4: {
+      actBadge: "ACTO IV • EL COLMILLO DEL LEVIATÁN",
+      bossImg: "assets/svg/enemy_centurion.svg",
+      title: "LA GUARDIA DE HIERRO",
+      heroLore: {
+        knight: "«Los salones retumban con los pasos del Centurión. Un guerrero juramentado como yo, pero corrompido por el poder. Solo uno saldrá con vida.»",
+        rogue: "«Pesada armadura, poca velocidad. El Centurión es un blanco ideal para un truco de prestidigitación y una estocada certera entre las placas.»",
+        monk: "«La fuerza bruta sin sabiduría es como una montaña de arena. Dejaré que su propio peso lo derribe con el flujo del viento.»",
+        necromancer: "«El Centurión ha sacrificado a legiones enteras. Puedo oír los lamentos de sus víctimas... y pronto responderán a mi llamado contra él.»"
+      }
+    },
+    5: {
+      actBadge: "ACTO V • LA CIMA DE LA CASCADA INVERTIDA",
+      bossImg: "assets/svg/enemy_dragon.svg",
+      title: "EL DESPERTAR DEL DRAGÓN",
+      heroLore: {
+        knight: "«Las nubes arden con fuego negro. La gran bestia custodia las puertas del trono. Mi juramento llega a su prueba máxima: abatir al dragón.»",
+        rogue: "«Escamas impenetrables y aliento abrasador. Pero todo dragón tiene un punto ciego... y un gran tesoro esperando a su nuevo dueño.»",
+        monk: "«El fuego y el vacío son fuerzas de la naturaleza. No lucharé contra las llamas, me convertiré en la brisa que las disipa.»",
+        necromancer: "«Un dragón milenario... la mayor fuente de poder jamás vista. Cuando caiga, sus colosales huesos servirán a mi voluntad eterna.»"
+      }
+    },
+    6: {
+      actBadge: "ACTO VI • EL TRONO DEL MANDINGA",
+      bossImg: "assets/svg/enemy_mandinga.svg",
+      title: "EL DESTINO DEL 21",
+      heroLore: {
+        knight: "«Aquí termina el pacto maldito. Mandinga, ¡tu reinado de sombras y engaños concluye hoy bajo mi acero sagrado!»",
+        rogue: "«Mandinga... la casa nunca pierde, ¿verdad? Es hora de demostrarte que el verdadero tahúr siempre guarda una última carta bajo la manga.»",
+        monk: "«El 21 no es una maldición ni un juego de azar: es el equilibrio perfecto del universo. Romperé tu pacto con la pureza del espíritu.»",
+        necromancer: "«Mandinga, Señor de las Sombras... has reinado demasiado tiempo. Es momento de que entregues el Trono a quien realmente manda en el Abismo.»"
+      }
+    }
+  };
+
+  let _actCinematicTimer = null;
+  let _actCinematicCallback = null;
+
+  function showActCinematic(actNum, onComplete) {
+    const data = ACT_CINEMATIC_DATA[actNum];
+    const scr = document.getElementById("screen-act-cinematic");
+    if (!data || !scr) {
+      if (onComplete) onComplete();
+      return;
+    }
+
+    _actCinematicCallback = onComplete;
+    const p = (window.gameState && window.gameState.player) || {};
+    const heroKey = p.classKey || (p.class === 'necro' ? 'necromancer' : p.class) || "knight";
+
+    const badgeEl = document.getElementById("cinematic-act-badge");
+    const artEl = document.getElementById("cinematic-boss-art");
+    const titleEl = document.getElementById("cinematic-title");
+    const loreEl = document.getElementById("cinematic-lore-text");
+    const fillEl = document.getElementById("cinematic-progress-fill");
+
+    if (badgeEl) badgeEl.innerText = data.actBadge;
+    if (artEl) artEl.innerHTML = `<img src="${data.bossImg}" alt="${data.title}">`;
+    if (titleEl) titleEl.innerText = data.title;
+    if (loreEl) loreEl.innerText = (data.heroLore && (data.heroLore[heroKey] || data.heroLore[p.class])) || data.heroLore.knight;
+
+    if (fillEl) {
+      fillEl.style.animation = "none";
+      fillEl.offsetHeight; // trigger reflow
+      fillEl.style.animation = "cinematicFill 3s linear forwards";
+    }
+
+    scr.classList.remove("hidden");
+    scr.style.display = "flex";
+    scr.style.zIndex = "10010";
+    try { playFloorAscentSound(); } catch (_) {}
+
+    clearTimeout(_actCinematicTimer);
+    _actCinematicTimer = setTimeout(() => {
+      skipActCinematic();
+    }, 3000);
+  }
+  window.showActCinematic = showActCinematic;
+
+  function skipActCinematic() {
+    clearTimeout(_actCinematicTimer);
+    const scr = document.getElementById("screen-act-cinematic");
+    if (scr) {
+      scr.classList.add("hidden");
+      scr.style.display = "none";
+    }
+    if (_actCinematicCallback) {
+      const cb = _actCinematicCallback;
+      _actCinematicCallback = null;
+      cb();
+    }
+  }
+  window.skipActCinematic = skipActCinematic;
 
   /* ============================================================
      FIN DE PISO — oro + recompensa + tienda
@@ -12204,6 +12344,7 @@
       addLog("La Niebla Profunda se disipa.", "info");
     }
 
+    const prevFloor = gameState.floor;
     gameState.floor++;
     checkHeroUnlockCondition("monk", gameState.floor, "max");
     saveMidRunState();
@@ -12213,14 +12354,29 @@
       return;
     }
 
-    showFloorTransition(() => {
-      if (gameState.player) {
-        gameState.player.turnShieldBonus = 0;
-        gameState.player.turnDoubleDamage = false;
-        gameState.player.duplaDef = 0;
-      }
-      initFloor();
-    });
+    let newActNum = null;
+    if (prevFloor === 3) newActNum = 2;
+    else if (prevFloor === 7) newActNum = 3;
+    else if (prevFloor === 11) newActNum = 4;
+    else if (prevFloor === 15) newActNum = 5;
+    else if (prevFloor === 19) newActNum = 6;
+
+    const proceedToFloor = () => {
+      showFloorTransition(() => {
+        if (gameState.player) {
+          gameState.player.turnShieldBonus = 0;
+          gameState.player.turnDoubleDamage = false;
+          gameState.player.duplaDef = 0;
+        }
+        initFloor();
+      });
+    };
+
+    if (newActNum && typeof showActCinematic === "function") {
+      showActCinematic(newActNum, proceedToFloor);
+    } else {
+      proceedToFloor();
+    }
   }
   window.advanceToNextFloor = advanceToNextFloor;
 
@@ -14393,6 +14549,20 @@
         addLog("🛡️ Guardia Táctica (<15): Golpe amortiguado (+4 Escudo defensivo).", "heal");
       }
 
+      // Sistema de Golpe Crítico RPG: Escala con Destreza (DEX) y Rama del Filo (Picas)
+      const treeCritBonus = (typeof getHeroTalentTree === "function" && p.classKey) ? ((getHeroTalentTree(p.classKey).ranks?.spades_1 || 0) * 5) : 0;
+      const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
+      const baseCritPct = (typeof calculateCritChance === "function") ? calculateCritChance(p.playerHand, gameState.deck || []) : 25;
+      const totalCritChance = Math.min(90, Math.max(10, baseCritPct + treeCritBonus + dexStatBonus));
+      const isRpgCrit = (p.playerScore >= 19) || (Math.random() * 100 < totalCritChance);
+
+      if (isRpgCrit && dmg > 0) {
+        const critMultiplier = (p.playerScore === 21 || isNatural21) ? 2.0 : 1.5;
+        dmg = Math.round(dmg * critMultiplier);
+        spawnFloatingText("player-sprite", `⚡ x${critMultiplier} ¡CRÍTICO!`, "crit");
+        addLog(`⚡ ¡Impacto Crítico (${totalCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
+      }
+
       // Escuelas D&D de Naipes en la Torre
       let suitDiamonds = 0, suitHearts = 0;
       (p.playerHand || []).forEach(c => {
@@ -15617,7 +15787,7 @@
       } else {
         eSpriteEl.innerText = e.sprite;
       }
-      eSpriteEl.className = "character-sprite";
+      eSpriteEl.className = "sprite sprite-idle-enemy";
     }
     const eNameEl = document.getElementById("enemy-name");
     if (eNameEl) eNameEl.innerText = e.name;

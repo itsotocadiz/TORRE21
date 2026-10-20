@@ -63,6 +63,15 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
+### [v1.6.0] — Octubre 2026
+* **Cinemáticas Narrativas de Cambio de Acto (3 Segundos):** Al superar al jerarca de cada Acto, se despliega una cinemática vectorial ligera (máximo 3s con skip táctil) con arte del jefe y narrativa exclusiva según la motivación de tu héroe (el honor del Caballero, la apuesta del Pícaro, el zen del Monje o la cosecha de almas del Nigromante).
+* **Modales Fijos y Accesibilidad Táctil:** Modales de Talentos y Tutoriales migrados a `game-modal-fixed-overlay` (`position: fixed; z-index: 10005`), garantizando su apertura fluida desde el Menú Principal, la Ficha del Héroe o la ventana de subida de nivel.
+* **Animación y Movimiento de Rivales Restaurada:** Corregida la asignación de clases en `initEnemyForCombat`, devolviendo a todos los enemigos y jefes su respiración `@keyframes spriteIdleEnemy`, dimensiones de 96px y balanceo en combate.
+* **HUD de Daño Neto Limpio:** `⚔️ ATAQUE: X HP` (o `⚡ ATAQUE x2: X HP`), mostrando únicamente el valor neto final que impactará en el rival tras considerar todos los buffs activos y defensas.
+* **Sistema de Golpe Crítico RPG (x1.5 / x2.0):** El porcentaje de crítico escala formalmente con la estadística de Destreza (DEX) y talentos de Filo, aplicando daño amplificado x1.5 (o x2.0 en 21) con destello dorado, texto flotante y sacudida de pantalla.
+* **Vestiduras Desbloqueables por Maestría:** La segunda vestidura de cada héroe se desbloquea automáticamente al alcanzar Nivel de Maestría 2 (y la tercera al Nivel 5) sin barreras monetarias iniciales.
+* **Navegación Móvil y Botón Atrás de Android:** Separado el panel de selección de capítulos de la dificultad de ascensión, incorporado el botón `◀ VOLVER AL MENÚ` de 44px de alto y enganchado al evento físico `backButton` de Capacitor.
+
 ### [v1.5.0] — Octubre 2026 (Actual)
 * **Unificación en el Árbol de Talentos Permanente (Metaprogresión Diablo II / PoE):** Se eliminó el sistema arcaico del "Altar del Legado" y los 5 puntos planos de estadísticas por nivel. Ahora toda la progresión se canaliza en el Árbol de Talentos en 4 ramas elementales (♠️ Filo/Picas, ♦️ Baluarte/Diamantes, ♥️ Vitalidad/Corazones, ♣️ Fortuna/Tréboles), otorgando mejoras porcentuales acumulativas para cada héroe.
 * **Depuración del HUD de Combate (Fin del Dado):** Eliminado el dado `🎲 % Seguro` para limpiar la interfaz. El HUD ahora destaca exclusivamente dos indicadores tácticos contiguos:
