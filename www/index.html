@@ -221,12 +221,22 @@
       <span class="upc-status" id="upc-status">● Local</span>
     </div>
 
-    <!-- ACCESO RÁPIDO: RECOMPENSA DIARIA -->
-    <div class="daily-reward-quickbar">
+    <!-- ACCESO RÁPIDO: RECOMPENSA DIARIA, TALENTOS Y TUTORIALES -->
+    <div class="daily-reward-quickbar" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
       <button id="btn-daily-login" class="daily-login-badge-btn" onclick="openDailyLoginModal()" title="Recompensa Diaria de Conexión">
         <span class="daily-btn-ico">🎁</span>
-        <span class="daily-btn-lbl">RECOMPENSA DIARIA</span>
+        <span class="daily-btn-lbl">RECOMPENSA</span>
         <span id="daily-login-status-tag" class="daily-status-tag pending">LISTA</span>
+      </button>
+      <button id="btn-hero-talents" class="daily-login-badge-btn" onclick="openHeroTalentsModal()" title="Árbol de Talentos Permanente de tu Héroe">
+        <span class="daily-btn-ico">🌳</span>
+        <span class="daily-btn-lbl">TALENTOS</span>
+        <span class="daily-status-tag" id="hero-talents-pts-badge" style="background:#0ea5e9;">ÁRBOL</span>
+      </button>
+      <button id="btn-interactive-guide" class="daily-login-badge-btn" onclick="openInteractiveTutorialModal()" title="Tutoriales paso a paso de Campaña y Arena PvP">
+        <span class="daily-btn-ico">📖</span>
+        <span class="daily-btn-lbl">TUTORIALES</span>
+        <span class="daily-status-tag" style="background:#f59e0b;">GUÍA</span>
       </button>
     </div>
 
@@ -338,6 +348,7 @@
             <div class="campaign-chapters-header">
               <span class="campaign-badge">🗺️ CAMPAÑA DEL 21 • ACTOS I AL VI</span>
               <span class="campaign-sub">Puntos de control (Waypoints) persistentes</span>
+              <button type="button" class="campaign-back-btn" onclick="toggleCampaignChapters(false)" title="Cerrar y volver a la selección de héroe">◀ VOLVER</button>
             </div>
             <div class="campaign-chapters-grid" id="campaign-chapters-grid"></div>
           </div>
@@ -1965,6 +1976,46 @@
 
     <!-- LISTA DE LOGROS -->
     <div class="achievements-list" id="achievements-list"></div>
+  </div>
+<!-- MODAL DE ÁRBOL DE TALENTOS PERMANENTE (FASE 5) -->
+<div id="modal-hero-talents" class="overlay hidden" onclick="closeHeroTalentsModal(event)">
+  <div class="talent-tree-card" onclick="event.stopPropagation()">
+    <div class="talent-tree-header">
+      <div>
+        <div style="font-weight:bold; font-size:14px; color:#38bdf8;">🌳 ÁRBOL DE TALENTOS ELEMENTAL</div>
+        <div style="font-size:10px; color:#94a3b8;" id="talents-hero-subtitle">Progresión Permanente de Clase</div>
+      </div>
+      <div class="talent-points-pill" id="talents-points-available">✨ 0 PUNTOS</div>
+      <button class="inspect-close-btn" onclick="closeHeroTalentsModal()">✕</button>
+    </div>
+    <div class="talent-branches-grid" id="talent-branches-content">
+      <!-- Generado dinámicamente -->
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:10px; margin-top:12px;">
+      <button type="button" class="pause-conf-btn cancel" onclick="resetHeroTalents()" style="flex:1;">🔄 RESETEAR</button>
+      <button type="button" class="aoc-confirm-btn" onclick="closeHeroTalentsModal()" style="flex:2; min-height:40px;">LISTO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE TUTORIALES INTERACTIVOS (FASE 6) -->
+<div id="modal-interactive-tutorials" class="overlay hidden" onclick="closeInteractiveTutorialModal(event)">
+  <div class="tutorial-modal-card" onclick="event.stopPropagation()">
+    <div class="talent-tree-header">
+      <div>
+        <div style="font-weight:bold; font-size:14px; color:#f59e0b;">📖 MANUAL DEL TAHÚR: GUÍA PASO A PASO</div>
+        <div style="font-size:10px; color:#94a3b8;">Aprende las mecánicas maestras de la Torre y la Arena</div>
+      </div>
+      <button class="inspect-close-btn" onclick="closeInteractiveTutorialModal()">✕</button>
+    </div>
+    <div class="tutorial-tabs-bar">
+      <button type="button" class="tutorial-tab-btn active" id="tut-tab-campaign" onclick="switchTutorialTab('campaign')">🏰 CAMPAÑA DE LA TORRE</button>
+      <button type="button" class="tutorial-tab-btn" id="tut-tab-pvp" onclick="switchTutorialTab('pvp')">⚔️ ARENA DUELOS BO3</button>
+    </div>
+    <div id="tutorial-content-body">
+      <!-- Contenido dinámico del tutorial -->
+    </div>
+    <button type="button" class="aoc-confirm-btn" onclick="closeInteractiveTutorialModal()" style="margin-top:14px; min-height:40px;">¡ENTENDIDO, A JUGAR!</button>
   </div>
 </div>
 

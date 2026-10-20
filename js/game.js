@@ -4261,6 +4261,311 @@
   }
   window.renderCampaignChaptersUI = renderCampaignChaptersUI;
 
+  function toggleCampaignChapters(show) {
+    const panel = document.getElementById("campaign-chapters-panel");
+    if (!panel) return;
+    if (show === undefined) {
+      panel.classList.toggle("hidden");
+    } else if (show) {
+      panel.classList.remove("hidden");
+    } else {
+      panel.classList.add("hidden");
+    }
+    if (!panel.classList.contains("hidden")) {
+      renderCampaignChaptersUI();
+    }
+  }
+  window.toggleCampaignChapters = toggleCampaignChapters;
+
+  /* ============================================================
+     ÁRBOL DE TALENTOS PERMANENTE (FASE 5: DIABLO II / POE)
+     ============================================================ */
+  const TALENT_TREE_KEY = "bj_hero_talent_tree_v2";
+
+  const TALENT_BRANCHES = [
+    {
+      id: "spades",
+      name: "♠️ Rama del Filo (Picas)",
+      desc: "Daño físico directo y letalidad vorpal.",
+      tiers: [
+        { id: "spades_1", name: "Filo de Acero", desc: "+5% Daño físico de ataques.", maxRank: 3 },
+        { id: "spades_2", name: "Estocada Vorpal", desc: "El 20 y 21 infligen +15% daño adicional.", maxRank: 1 }
+      ]
+    },
+    {
+      id: "diamonds",
+      name: "♦️ Rama del Baluarte (Diamantes)",
+      desc: "Coraza mística y mitigación de daño.",
+      tiers: [
+        { id: "diamonds_1", name: "Baluarte Diamantino", desc: "+4 Escudo azul al inicio de cada piso.", maxRank: 3 },
+        { id: "diamonds_2", name: "Guardia Sagrada", desc: "Absorbe 50% del primer contraataque de cada piso.", maxRank: 1 }
+      ]
+    },
+    {
+      id: "hearts",
+      name: "♥️ Rama de la Vitalidad (Corazones)",
+      desc: "Salud extendida y regeneración sostenida.",
+      tiers: [
+        { id: "hearts_1", name: "Vigor del Heraldo", desc: "+10 HP Máximo permanente.", maxRank: 3 },
+        { id: "hearts_2", name: "Sangre de Fénix", desc: "Regenera +6 HP al derrotar a cualquier rival.", maxRank: 1 }
+      ]
+    },
+    {
+      id: "clubs",
+      name: "♣️ Rama de la Fortuna (Tréboles)",
+      desc: "Fortuna de la cripta y recursos arcanos.",
+      tiers: [
+        { id: "clubs_1", name: "Ojo de la Fortuna", desc: "+10% Oro obtenido por mano y botín.", maxRank: 3 },
+        { id: "clubs_2", name: "Mano del Tahúr", desc: "20% de probabilidad de no consumir poción al beberla.", maxRank: 1 }
+      ]
+    }
+  ];
+  window.TALENT_BRANCHES = TALENT_BRANCHES;
+
+  function getHeroTalentTree(heroKey) {
+    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) || "knight";
+    try {
+      const raw = localStorage.getItem(TALENT_TREE_KEY);
+      if (raw) {
+        const all = JSON.parse(raw);
+        if (all[heroKey]) return all[heroKey];
+      }
+    } catch (_) {}
+    return { pointsSpent: 0, ranks: {} };
+  }
+  window.getHeroTalentTree = getHeroTalentTree;
+
+  function saveHeroTalentTree(heroKey, treeData) {
+    try {
+      const raw = localStorage.getItem(TALENT_TREE_KEY);
+      const all = raw ? JSON.parse(raw) : {};
+      all[heroKey] = treeData;
+      localStorage.setItem(TALENT_TREE_KEY, JSON.stringify(all));
+    } catch (_) {}
+  }
+  window.saveHeroTalentTree = saveHeroTalentTree;
+
+  function getHeroAvailableTalentPoints(heroKey) {
+    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) || "knight";
+    const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
+    const heroMeta = meta[heroKey] || {};
+    const heroLevel = heroMeta.level || heroMeta.masteryLevel || 1;
+    const totalWins = (typeof getTotalTowerWins === "function") ? getTotalTowerWins() : 0;
+    const earned = Math.max(0, (heroLevel - 1) * 2 + totalWins * 3);
+    const tree = getHeroTalentTree(heroKey);
+    return Math.max(0, earned - (tree.pointsSpent || 0));
+  }
+  window.getHeroAvailableTalentPoints = getHeroAvailableTalentPoints;
+
+  function openHeroTalentsModal(heroKey) {
+    heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof heroBookIndex === "number" && HERO_KEYS[heroBookIndex]) || "knight";
+    window._selectedTalentHeroKey = heroKey;
+    const modal = document.getElementById("modal-hero-talents");
+    if (!modal) return;
+    renderHeroTalentsUI(heroKey);
+    modal.classList.remove("hidden");
+    try { playCardDealSound(); } catch (_) {}
+  }
+  window.openHeroTalentsModal = openHeroTalentsModal;
+
+  function closeHeroTalentsModal() {
+    const modal = document.getElementById("modal-hero-talents");
+    if (modal) modal.classList.add("hidden");
+  }
+  window.closeHeroTalentsModal = closeHeroTalentsModal;
+
+  function renderHeroTalentsUI(heroKey) {
+    heroKey = heroKey || window._selectedTalentHeroKey || "knight";
+    const hero = (typeof HERO_DATA !== "undefined" && HERO_DATA[heroKey]) ? HERO_DATA[heroKey] : { name: "Caballero" };
+    const avail = getHeroAvailableTalentPoints(heroKey);
+    const tree = getHeroTalentTree(heroKey);
+
+    const subEl = document.getElementById("talents-hero-subtitle");
+    if (subEl) subEl.innerText = `Héroe: ${hero.name} • Especialización Elemental Permanente`;
+
+    const ptsEl = document.getElementById("talents-points-available");
+    if (ptsEl) ptsEl.innerText = `✨ ${avail} PUNTOS DISPONIBLES`;
+
+    const badge = document.getElementById("hero-talents-pts-badge");
+    if (badge) badge.innerText = avail > 0 ? `+${avail} PTS` : "ÁRBOL";
+
+    const cont = document.getElementById("talent-branches-content");
+    if (!cont) return;
+
+    cont.innerHTML = TALENT_BRANCHES.map(branch => {
+      return `
+        <div class="talent-branch-card ${branch.id}">
+          <div class="talent-branch-title">
+            <span>${branch.name}</span>
+            <span style="font-size:9px; color:#94a3b8;">${branch.desc}</span>
+          </div>
+          ${branch.tiers.map(tier => {
+            const curRank = (tree.ranks && tree.ranks[tier.id]) || 0;
+            const isMax = curRank >= tier.maxRank;
+            const canBuy = avail > 0 && !isMax;
+            return `
+              <div class="talent-tier-row">
+                <div>
+                  <div style="font-weight:bold; color:${isMax ? '#10b981' : '#f8fafc'};">${tier.name} (${curRank}/${tier.maxRank})</div>
+                  <div style="color:#94a3b8; font-size:9px;">${tier.desc}</div>
+                </div>
+                <button type="button" class="talent-upgrade-btn" onclick="upgradeHeroTalent('${heroKey}', '${tier.id}')" ${canBuy ? '' : 'disabled'}>
+                  ${isMax ? '✔ DOMINADO' : `+ MEJORAR (1 PT)`}
+                </button>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }).join("");
+  }
+  window.renderHeroTalentsUI = renderHeroTalentsUI;
+
+  function upgradeHeroTalent(heroKey, tierId) {
+    const avail = getHeroAvailableTalentPoints(heroKey);
+    if (avail <= 0) {
+      if (typeof showGameToast === "function") showGameToast("No tienes Puntos de Talento disponibles. ¡Sube de nivel o gana en la Torre!");
+      return;
+    }
+    const tree = getHeroTalentTree(heroKey);
+    tree.ranks = tree.ranks || {};
+    tree.ranks[tierId] = (tree.ranks[tierId] || 0) + 1;
+    tree.pointsSpent = (tree.pointsSpent || 0) + 1;
+    saveHeroTalentTree(heroKey, tree);
+    try { playSynergyComboSound(); } catch (_) {}
+    renderHeroTalentsUI(heroKey);
+  }
+  window.upgradeHeroTalent = upgradeHeroTalent;
+
+  function resetHeroTalents(heroKey) {
+    heroKey = heroKey || window._selectedTalentHeroKey || "knight";
+    if (typeof showGameConfirm === "function") {
+      showGameConfirm({
+        title: "🔄 REINICIAR ÁRBOL DE TALENTOS",
+        message: "¿Deseas restablecer todos los puntos invertidos en este héroe? Recuperarás el 100% de los puntos para reasignarlos.",
+        okLabel: "SÍ, RESTABLECER",
+        cancelLabel: "CANCELAR",
+        onConfirm: () => {
+          saveHeroTalentTree(heroKey, { pointsSpent: 0, ranks: {} });
+          renderHeroTalentsUI(heroKey);
+          if (typeof showGameToast === "function") showGameToast("Puntos de talento restablecidos.");
+        }
+      });
+      return;
+    }
+    saveHeroTalentTree(heroKey, { pointsSpent: 0, ranks: {} });
+    renderHeroTalentsUI(heroKey);
+  }
+  window.resetHeroTalents = resetHeroTalents;
+
+  function applyHeroTalentsToPlayer(p, heroKey) {
+    if (!p) return;
+    const tree = getHeroTalentTree(heroKey);
+    const ranks = tree.ranks || {};
+    if (ranks["spades_1"]) p.pwr = (p.pwr || 10) + Math.round((p.pwr || 10) * (ranks["spades_1"] * 0.05));
+    if (ranks["spades_2"]) p._spadesVorpalBonus = 0.15;
+    if (ranks["diamonds_1"]) {
+      gameState.status = gameState.status || {};
+      gameState.status.playerShield = (gameState.status.playerShield || 0) + (ranks["diamonds_1"] * 4);
+    }
+    if (ranks["diamonds_2"]) p._diamondsFirstHitMitigate = true;
+    if (ranks["hearts_1"]) {
+      const extraHp = ranks["hearts_1"] * 10;
+      p.maxHp = (p.maxHp || 80) + extraHp;
+      p.hp = (p.hp || 80) + extraHp;
+    }
+    if (ranks["hearts_2"]) p._heartsKillRegen = 6;
+    if (ranks["clubs_1"]) p._clubsGoldBonus = ranks["clubs_1"] * 0.10;
+    if (ranks["clubs_2"]) p._clubsFreePotionChance = 0.20;
+  }
+  window.applyHeroTalentsToPlayer = applyHeroTalentsToPlayer;
+
+  /* ============================================================
+     TUTORIALES INTERACTIVOS PASO A PASO (HISTORIA & ARENA PVP)
+     ============================================================ */
+  function openInteractiveTutorialModal(initialTab = "campaign") {
+    const modal = document.getElementById("modal-interactive-tutorials");
+    if (!modal) return;
+    switchTutorialTab(initialTab);
+    modal.classList.remove("hidden");
+    try { playCardDealSound(); } catch (_) {}
+  }
+  window.openInteractiveTutorialModal = openInteractiveTutorialModal;
+
+  function closeInteractiveTutorialModal() {
+    const modal = document.getElementById("modal-interactive-tutorials");
+    if (modal) modal.classList.add("hidden");
+  }
+  window.closeInteractiveTutorialModal = closeInteractiveTutorialModal;
+
+  function switchTutorialTab(tab) {
+    const btnCampaign = document.getElementById("tut-tab-campaign");
+    const btnPvp = document.getElementById("tut-tab-pvp");
+    const body = document.getElementById("tutorial-content-body");
+    if (!body) return;
+
+    if (btnCampaign) btnCampaign.classList.toggle("active", tab === "campaign");
+    if (btnPvp) btnPvp.classList.toggle("active", tab === "pvp");
+
+    if (tab === "campaign") {
+      body.innerHTML = `
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>🃏 1. Regla Sagrada del 21</span></div>
+          <div class="tutorial-step-desc">El objetivo en cada mano es acercarte a 21 puntos sin pasarte (BUST). Las cartas del 2 al 10 valen su número, las figuras (J, Q, K) valen 10, y el As vale 1 u 11 automáticamente según te favorezca.</div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>⚡ 2. La Apuesta ¡DOBLAR! (Double Down)</span></div>
+          <div class="tutorial-step-desc">Con tus 2 cartas iniciales puedes duplicar tu apuesta: recibes exactamente 1 carta final y te plantas. Si ganas asestas <b>Daño x2</b>; pero si pierdes o sufres BUST, ¡el contraataque rival se multiplica x2!</div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>✨ 3. Poderes de los 4 Palos Arcanos</span></div>
+          <div class="tutorial-step-desc">
+            • <b>♠️ Picas:</b> Daño físico cortante adicional.<br>
+            • <b>♦️ Diamantes:</b> Generan Escudo azul protector frente a contraataques.<br>
+            • <b>♥️ Corazones:</b> Curan tu barra de salud (HP).<br>
+            • <b>♣️ Tréboles:</b> Cargan tu barra de Overdrive y otorgan oro extra.
+          </div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>🎲 4. Visor Táctico en Tiempo Real</span></div>
+          <div class="tutorial-step-desc">
+            • <b>🎲 % Seguro:</b> Probabilidad de que la siguiente carta no te haga pasar de 21.<br>
+            • <b>⚡ % Crítico:</b> Probabilidad de sacar 19, 20 o 21.<br>
+            • <b>⚔️ DAÑO:</b> Te indica con precisión el daño proyectado que asestarás al rival si te plantas en este momento.
+          </div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>🔥 5. Muerte Súbita (Modo Furia)</span></div>
+          <div class="tutorial-step-desc">Cada piso tiene un límite de manos. Si no abates al enemigo a tiempo, entra la Muerte Súbita: el daño de ambos contendientes se multiplica exponencialmente por asalto (x2, x3, x4...) y perfora armadura.</div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>👑 6. Jefes de Acto & Reliquias Demoníacas</span></div>
+          <div class="tutorial-step-desc">Al vencer al líder de cada Acto (Pisos 3, 7, 11, 15 y 19) desbloqueas su Waypoint permanente y eliges 1 de 3 <b>Reliquias Demoníacas</b> que potencian a tu héroe para el resto de la ascensión.</div>
+        </div>
+      `;
+    } else {
+      body.innerHTML = `
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>🏆 1. Formato al Mejor de 3 (BO3)</span></div>
+          <div class="tutorial-step-desc">En la Arena te enfrentas a otros Heraldos y Campeones. El primer duelista en ganar 2 asaltos se alza con la victoria, los trofeos de liga y el bote de fichas.</div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>💰 2. Bote Progresivo de la Arena</span></div>
+          <div class="tutorial-step-desc">Cada asalto acumula monedas en el centro de la mesa. Utilizar la acción de Doblar incrementa el bote en disputa para el vencedor del asalto.</div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>🎭 3. El Farol Psicológico (Mindgame)</span></div>
+          <div class="tutorial-step-desc">Si te plantas con una puntuación media (14 a 16), el rival puede creer que tienes una mano alta e intentará pedir más cartas. Si se pasa de 21, ¡sufrirá <b>Daño de Humillación (+50%)</b>!</div>
+        </div>
+        <div class="tutorial-step-box">
+          <div class="tutorial-step-title"><span>⚡ 4. Trance Arcano (Overdrive 100%)</span></div>
+          <div class="tutorial-step-desc">Recibir golpes y jugar tréboles llena tu medidor de Overdrive. Al 100% brilla intensamente y te permite activar poderes definitivos de clase: Extracción Perfecta, Trance Vampírico o Golpe Vorpal que ignora armadura.</div>
+        </div>
+      `;
+    }
+  }
+  window.switchTutorialTab = switchTutorialTab;
+
   /* ============================================================
      RELIQUIAS DEMONÍACAS DE ACTO (PROGRESIÓN ESTILO DIABLO II)
      ============================================================ */
@@ -5165,6 +5470,12 @@
     const pageBadge = document.getElementById("hero-book-page-badge");
     if (pageBadge) {
       pageBadge.innerText = `📖 LIBRO DE LOS JACKS • ${currentHeroBookIndex + 1} / ${HERO_KEYS.length}`;
+    }
+
+    const talentBadge = document.getElementById("hero-talents-pts-badge");
+    if (talentBadge && typeof getHeroAvailableTalentPoints === "function") {
+      const avail = getHeroAvailableTalentPoints(heroKey);
+      talentBadge.innerText = avail > 0 ? `+${avail} PTS` : "ÁRBOL";
     }
 
     // Actualizar dots indicadores
@@ -6267,8 +6578,10 @@
     p.hasGoldenDie = false;
     p.starterBlessing = null;
     p.phoenixGraceUsed = false;
-    p.artifacts = p.artifacts || [];
     p.attributes = (heroMeta && heroMeta.attributes) ? { ...heroMeta.attributes } : initHeroAttributes(p, heroKey);
+    if (typeof applyHeroTalentsToPlayer === "function") {
+      applyHeroTalentsToPlayer(p, heroKey);
+    }
     
     // FASE 6: Artefactos por victoria (1 a 3 aleatorios al iniciar ascensión si ya se ha ganado)
     try {
@@ -17957,14 +18270,95 @@
     if (pctEl) pctEl.innerText = `${Math.round(arenaMatch.overdrive)}%`;
 
     if (arenaMatch.overdrive >= 100) {
-      if (hud) hud.classList.add("charged");
+      if (hud) {
+        hud.classList.add("charged");
+        hud.classList.add("overdrive-full-pulse");
+      }
       if (powers) powers.classList.remove("hidden");
     } else {
-      if (hud) hud.classList.remove("charged");
+      if (hud) {
+        hud.classList.remove("charged");
+        hud.classList.remove("overdrive-full-pulse");
+      }
       if (powers) powers.classList.add("hidden");
     }
   }
   window.addArenaOverdrive = addArenaOverdrive;
+
+  /* ============================================================
+     COMBAT JUICE & ANIMACIONES EN ARENA PVP (FASE 4)
+     ============================================================ */
+  function triggerArenaCombatJuice(winner, winningSuit = "♠", isBluff = false, isCrit = false) {
+    const playerAvatar = document.getElementById("arena-combat-player-avatar");
+    const rivalAvatar = document.getElementById("arena-combat-enemy-avatar");
+    if (!playerAvatar || !rivalAvatar) return;
+
+    const fromAvatar = (winner === "player") ? playerAvatar : rivalAvatar;
+    const toAvatar = (winner === "player") ? rivalAvatar : playerAvatar;
+
+    // 1. Proyectil elemental según palo
+    const icons = { "♠": "🗡️", "♦": "💎", "♥": "🔥", "♣": "⚡" };
+    const pIcon = icons[winningSuit] || "⚔️";
+
+    const proj = document.createElement("div");
+    proj.className = "arena-projectile-flying";
+    proj.innerText = pIcon;
+
+    const fromRect = fromAvatar.getBoundingClientRect();
+    const toRect = toAvatar.getBoundingClientRect();
+
+    proj.style.left = `${fromRect.left + fromRect.width / 2}px`;
+    proj.style.top = `${fromRect.top + fromRect.height / 2}px`;
+    document.body.appendChild(proj);
+
+    setTimeout(() => {
+      proj.style.transform = `translate(${toRect.left - fromRect.left}px, ${toRect.top - fromRect.top}px) scale(${isCrit ? 1.8 : 1.2}) rotate(720deg)`;
+      proj.style.opacity = "0.2";
+    }, 20);
+
+    setTimeout(() => {
+      proj.remove();
+      toAvatar.classList.remove("arena-hit-recoil");
+      void toAvatar.offsetWidth;
+      toAvatar.classList.add("arena-hit-recoil");
+      if (typeof triggerScreenShake === "function") {
+        triggerScreenShake(isCrit ? "heavy" : "light");
+      }
+    }, 450);
+
+    // 2. Monedas volando hacia el ganador
+    triggerArenaPotCoinsAnim(winner === "player");
+
+    // 3. Emote de farol en el rival si fue engañado
+    if (isBluff && winner === "player") {
+      rivalAvatar.classList.add("arena-bluff-sweat");
+      if (typeof spawnFloatingText === "function") {
+        spawnFloatingText("arena-combat-enemy-avatar", "💧 ¡ENGAÑADO POR EL FAROL!", "crit");
+      }
+      setTimeout(() => rivalAvatar.classList.remove("arena-bluff-sweat"), 1200);
+    }
+  }
+  window.triggerArenaCombatJuice = triggerArenaCombatJuice;
+
+  function triggerArenaPotCoinsAnim(toPlayer = true) {
+    const potEl = document.getElementById("arena-pot-badge");
+    const targetEl = document.getElementById(toPlayer ? "arena-combat-player-avatar" : "arena-combat-enemy-avatar");
+    if (!potEl || !targetEl) return;
+
+    for (let i = 0; i < 4; i++) {
+      setTimeout(() => {
+        const coin = document.createElement("div");
+        coin.className = "arena-flying-coin";
+        coin.innerText = "🪙";
+        const pRect = potEl.getBoundingClientRect();
+        coin.style.left = `${pRect.left + (Math.random() * 40 - 20)}px`;
+        coin.style.top = `${pRect.top}px`;
+        document.body.appendChild(coin);
+        setTimeout(() => coin.remove(), 600);
+      }, i * 70);
+    }
+  }
+  window.triggerArenaPotCoinsAnim = triggerArenaPotCoinsAnim;
 
   function triggerOverdrivePower(powerId) {
     if (!arenaMatch || (arenaMatch.overdrive || 0) < 100) return;
@@ -19137,6 +19531,11 @@
         void rivalAvatar.offsetWidth;
         rivalAvatar.classList.add("flash-damage");
       }
+      const winningCard = arenaMatch.playerHand && arenaMatch.playerHand[0];
+      const winSuit = (winningCard && winningCard.suit) ? winningCard.suit : "♠";
+      if (typeof triggerArenaCombatJuice === "function") {
+        triggerArenaCombatJuice("player", winSuit, arenaMatch.bluffSuccess, pNaturalBJ);
+      }
       try { playSynergyComboSound(); } catch (_) {}
       try { playWinFanfareSound(); } catch (_) {}
     } else if (!isDraw) {
@@ -19151,6 +19550,11 @@
         playerAvatar.classList.remove("flash-damage");
         void playerAvatar.offsetWidth;
         playerAvatar.classList.add("flash-damage");
+      }
+      const winningCard = arenaMatch.rivalHand && arenaMatch.rivalHand[0];
+      const winSuit = (winningCard && winningCard.suit) ? winningCard.suit : "♠";
+      if (typeof triggerArenaCombatJuice === "function") {
+        triggerArenaCombatJuice("rival", winSuit, false, rNaturalBJ);
       }
       try { playRitualKick(); } catch (_) {}
       try { playCardBustSound(); } catch (_) {}
