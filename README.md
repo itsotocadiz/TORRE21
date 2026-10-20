@@ -72,7 +72,30 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Vestiduras Desbloqueables por Maestría:** La segunda vestidura de cada héroe se desbloquea automáticamente al alcanzar Nivel de Maestría 2 (y la tercera al Nivel 5) sin barreras monetarias iniciales.
 * **Navegación Móvil y Botón Atrás de Android:** Separado el panel de selección de capítulos de la dificultad de ascensión, incorporado el botón `◀ VOLVER AL MENÚ` de 44px de alto y enganchado al evento físico `backButton` de Capacitor.
 
-### [v1.6.2] — Octubre 2026 (Actual)
+### [v1.7.0] — Octubre 2026 (Actual)
+* **Afinidad Elemental de los 4 Palos Conectada en Combate:**
+  * ♠️ **Picas (Filo de la Agonía):** Otorga +2 de daño perforante puro directo por naipe al ganar la mano.
+  * ♦️ **Diamantes (Baluarte Sagrado):** Genera +2 de Escudo/Baluarte automático al ganar la mano.
+  * ♥️ **Corazones (Flujo Vital):** Restaura +2 HP de regeneración al ganar la mano.
+  * ♣️ **Tréboles (Fortuna del Tahúr):** Otorga +1 de Oro extra de recompensa al ganar la mano.
+* **Visualización Táctica del Ataque en Rango (`⚔️ ATAQUE: Mín–Máx HP (crít.)`):**
+  * Sustituido el cálculo estático anterior por un rango honesto y predictivo que desglosa el daño garantizado frente al golpe crítico máximo posible (con soporte para `⚡ ATAQUE x2:` al pulsar ¡DOBLAR!).
+* **Árbol de Talentos Expandido v3 (Metaprogresión Larga y Equilibrada):**
+  * Rediseño con 20 nodos (5 tiers por rama elemental: Picas, Diamantes, Corazones, Tréboles) con progresión a largo plazo (~30+ partidas) y requisitos acumulativos de inversión.
+  * Eliminado el exploit de +2 puntos por cualquier victoria simple; los puntos derivan de la maestría real (`heroLevel - 1` + bonus ganados).
+  * Talentos conectados al motor real de combate: Escudo de inicio de piso (`diamonds_1`), mitigación del primer golpe (`diamonds_3`), regeneración por piso (`hearts_2`), curación por bajas (`hearts_3`), potenciación de pociones (`hearts_4`) y probabilidad de conservar poción (`clubs_3`).
+* **Cinemáticas de Cambio de Acto de 5 Segundos y Lore Canónico:**
+  * Ampliada la duración a 5 segundos con barra de progreso fluida y botón táctil de omisión (skip de 44px).
+  * Incorporada la cinemática de introducción al Acto I tras elegir la bendición inicial.
+  * Corrección de los jerarcas canónicos: Acto IV (Malfas del Vacío) y Acto V (Sombra del 21 / BLACK).
+  * Enriquecido el lore de los 4 héroes bajo la jerarquía canónica: **Mandinga (Señor Supremo del 21) → BLACK (Avatar y Sombra Primigenia) → Heraldos de Palo (Dante de Picas, Valquiria de Diamantes, Archimago de Tréboles, Malfas del Vacío)**.
+* **Modo Sin Fin (Endless / Pisos > 21) Renovado:**
+  * Eliminada la repetición infinita del dragón.
+  * 2 nuevos biomas en acuarela vectorial: La Falla Astral (`bg_zone_endless_astral.svg`) y El Vacío Interminable (`bg_zone_endless_void.svg`).
+  * 4 nuevos sprites temáticos Paper Cutout: `enemy_void_titan.svg`, `enemy_astral_herald.svg`, `enemy_chronos_specter.svg` y `enemy_chaos_chimera.svg`.
+  * Rotación procedural de sub-jefes cada 5 pisos y jefes supremos del Abismo cada 10 pisos (Mandinga del Abismo, Sombra del 21 Ascendida, Titán del Vacío Eterno).
+
+### [v1.6.2] — Octubre 2026
 * **Aislamiento Estructural de la Arena PvP y Menús Principales:**
   * Corregido el cierre omitido de `<div id="screen-arena-pvp-modal">` en `index.html`. Debido a este tag faltante, todos los modales subsiguientes (Árbol de Talentos, Manual del Tahúr/Tutoriales, Selector de Vestiduras/Skins, Salón de Logros y Cinemáticas) quedaban atrapados como elementos hijos de la Arena, provocando que no respondieran en el Menú Principal y aparecieran indebidamente dentro del Coliseo PvP.
   * Selector de Vestiduras/Skins (`#screen-hero-skin-modal`) unificado con la clase `.modal-overlay-center` (`z-index: 10050`, centrado flex absoluto) y resolución automática del héroe activo en el libro.

@@ -11308,6 +11308,8 @@ body.sudden-death-active #stage {
 #stage.stage-zone-4 { background: #0a0602 url('../assets/svg/bg_zone_4_palace.svg') center/cover no-repeat !important; }
 #stage.stage-zone-5 { background: #000814 url('../assets/svg/bg_zone_5_peak.svg') center/cover no-repeat !important; }
 #stage.stage-zone-6 { background: #080003 url('../assets/svg/bg_zone_6_throne.svg') center/cover no-repeat !important; }
+#stage.stage-zone-7 { background: #02070f url('../assets/svg/bg_zone_endless_astral.svg') center/cover no-repeat !important; }
+#stage.stage-zone-8 { background: #05010a url('../assets/svg/bg_zone_endless_void.svg') center/cover no-repeat !important; }
 
 
 /* ===== ARENA PVP: ESCENARIO GLADIATORIO, ACTORES CARA A CARA Y MONEDA ===== */
@@ -13303,7 +13305,7 @@ body.sudden-death-active #stage {
   height: 100%;
   background: linear-gradient(90deg, #ffd166, #ef4444);
   width: 0%;
-  animation: cinematicFill 3s linear forwards;
+  animation: cinematicFill 5s linear forwards;
 }
 
 @keyframes cinematicFill {
@@ -13315,12 +13317,16 @@ body.sudden-death-active #stage {
   background: rgba(30, 41, 59, 0.85);
   border: 1px solid #94a3b8;
   color: #f1f5f9;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
-  padding: 8px 18px;
-  border-radius: 20px;
+  padding: 10px 22px;
+  border-radius: 22px;
   cursor: pointer;
-  min-height: 38px;
+  min-height: 44px;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
 }
 .cinematic-skip-btn:hover {

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" width="360" height="640">
+  <defs>
+    <radialGradient id="voidCosmic" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#2a0845"/>
+      <stop offset="45%" stop-color="#140424"/>
+      <stop offset="100%" stop-color="#05010a"/>
+    </radialGradient>
+    <radialGradient id="singularityGlow" cx="50%" cy="40%" r="35%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.4"/>
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#05010a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="abyssMists" cx="50%" cy="85%" r="50%">
+      <stop offset="0%" stop-color="#4c1d95" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#05010a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="360" height="640" fill="url(#voidCosmic)"/>
+  <circle cx="180" cy="240" r="150" fill="url(#singularityGlow)"/>
+  <circle cx="180" cy="540" r="180" fill="url(#abyssMists)"/>
+
+  <!-- Grietas dimensionales en el vacío -->
+  <path d="M-10 120 L80 180 L140 140 L210 210 L290 160 L370 230" stroke="#7e22ce" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M-10 120 L80 180 L140 140 L210 210 L290 160 L370 230" stroke="#c084fc" stroke-width="0.8" fill="none" opacity="0.85"/>
+  <path d="M30 400 L110 360 L180 430 L260 380 L340 440" stroke="#4f46e5" stroke-width="1.8" fill="none" opacity="0.5"/>
+
+  <!-- Agujero negro central / Vórtice del Sin Fin -->
+  <circle cx="180" cy="220" r="45" fill="#030007" stroke="#9333ea" stroke-width="3" opacity="0.9"/>
+  <circle cx="180" cy="220" r="50" fill="none" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="10 8" opacity="0.75"/>
+  <circle cx="180" cy="220" r="32" fill="#000000"/>
+
+  <!-- Fragmentos de naipes flotando en la distorsión -->
+  <g transform="translate(60,110) rotate(-22)" opacity="0.65">
+    <rect x="0" y="0" width="22" height="32" rx="3" fill="#1e1b4b" stroke="#818cf8" stroke-width="1.5"/>
+    <text x="11" y="21" font-size="14" fill="#a5b4fc" text-anchor="middle" font-family="serif">♠</text>
+  </g>
+  <g transform="translate(270,140) rotate(28)" opacity="0.6">
+    <rect x="0" y="0" width="20" height="30" rx="3" fill="#31102b" stroke="#f43f5e" stroke-width="1.5"/>
+    <text x="10" y="20" font-size="13" fill="#fb7185" text-anchor="middle" font-family="serif">♦</text>
+  </g>
+  <g transform="translate(290,320) rotate(-35)" opacity="0.55">
+    <rect x="0" y="0" width="22" height="32" rx="3" fill="#1e1b4b" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="11" y="21" font-size="14" fill="#c4b5fd" text-anchor="middle" font-family="serif">♣</text>
+  </g>
+  <g transform="translate(50,330) rotate(18)" opacity="0.5">
+    <rect x="0" y="0" width="20" height="30" rx="3" fill="#31102b" stroke="#e11d48" stroke-width="1.5"/>
+    <text x="10" y="20" font-size="13" fill="#fda4af" text-anchor="middle" font-family="serif">♥</text>
+  </g>
+
+  <!-- Pilares de roca cósmica suspendida (estilo Paper Cutout) -->
+  <path d="M0 0 L90 0 L60 260 L0 300 Z" fill="#0d0417" opacity="0.95"/>
+  <path d="M360 0 L270 0 L300 260 L360 300 Z" fill="#0d0417" opacity="0.95"/>
+  <line x1="0" y1="90" x2="78" y2="90" stroke="#230d3a" stroke-width="2"/>
+  <line x1="0" y1="180" x2="68" y2="180" stroke="#230d3a" stroke-width="2"/>
+  <line x1="282" y1="90" x2="360" y2="90" stroke="#230d3a" stroke-width="2"/>
+  <line x1="292" y1="180" x2="360" y2="180" stroke="#230d3a" stroke-width="2"/>
+
+  <!-- Plataforma de combate suspendida sobre la nada -->
+  <ellipse cx="180" cy="540" rx="160" ry="60" fill="#150824" stroke="#7e22ce" stroke-width="3"/>
+  <ellipse cx="180" cy="540" rx="130" ry="45" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="14 10" opacity="0.6"/>
+  <ellipse cx="180" cy="540" rx="80" ry="26" fill="none" stroke="#ffd166" stroke-width="1" stroke-dasharray="8 6" opacity="0.4"/>
+</svg>

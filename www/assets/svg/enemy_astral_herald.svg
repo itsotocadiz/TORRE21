@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="148" rx="48" ry="9" fill="#000" opacity="0.25"/>
+
+  <!-- Sombra de papel proyectada -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <!-- Túnica astral que ondea -->
+    <path d="M50 142 L58 74 L102 74 L110 142 Z"/>
+    <!-- Capa estelar ancha -->
+    <path d="M42 78 L26 128 L50 140 Z"/>
+    <path d="M118 78 L134 128 L110 140 Z"/>
+    <!-- Cabeza y corona astral -->
+    <circle cx="80" cy="52" r="22"/>
+    <polygon points="62,40 68,22 76,34 80,18 84,34 92,22 98,40"/>
+  </g>
+
+  <!-- Troquelado negro exterior -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M50 142 L58 74 L102 74 L110 142 Z"/>
+    <path d="M42 78 L26 128 L50 140 Z"/>
+    <path d="M118 78 L134 128 L110 140 Z"/>
+    <circle cx="80" cy="52" r="22"/>
+    <polygon points="62,40 68,22 76,34 80,18 84,34 92,22 98,40"/>
+  </g>
+
+  <!-- Elementos y colores -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Capa -->
+    <path d="M42 78 L26 128 L50 140 Z" fill="#0369a1"/>
+    <path d="M118 78 L134 128 L110 140 Z" fill="#0369a1"/>
+    <!-- Túnica -->
+    <path d="M50 142 L58 74 L102 74 L110 142 Z" fill="#0284c7"/>
+    <!-- Cinturón rúnico -->
+    <rect x="56" y="96" width="48" height="12" rx="4" fill="#0f172a"/>
+    <circle cx="80" cy="102" r="6" fill="#facc15" stroke="#17110c" stroke-width="3"/>
+    <!-- Cabeza -->
+    <circle cx="80" cy="52" r="22" fill="#0f172a"/>
+    <!-- Máscara de constelación -->
+    <path d="M68 46 L92 46 L88 64 L72 64 Z" fill="#38bdf8"/>
+    <!-- Ojos dorados -->
+    <circle cx="74" cy="54" r="4" fill="#facc15" stroke="none"/>
+    <circle cx="86" cy="54" r="4" fill="#facc15" stroke="none"/>
+    <!-- Corona astral -->
+    <polygon points="62,40 68,22 76,34 80,18 84,34 92,22 98,40" fill="#facc15"/>
+    <!-- Cetro del 21 en la mano izquierda -->
+    <line x1="126" y1="48" x2="134" y2="136" stroke="#facc15" stroke-width="5"/>
+    <circle cx="126" cy="46" r="8" fill="#38bdf8" stroke="#17110c" stroke-width="3"/>
+  </g>
+</svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="148" rx="50" ry="9" fill="#000" opacity="0.25"/>
+
+  <!-- Sombra de papel proyectada -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <!-- Alas de gárgola del caos -->
+    <path d="M46 76 L14 42 L26 78 L12 90 L44 94 Z"/>
+    <path d="M114 76 L146 42 L134 78 L148 90 L116 94 Z"/>
+    <!-- Patas y cuerpo bestial -->
+    <rect x="54" y="114" width="20" height="28" rx="6"/>
+    <rect x="86" y="114" width="20" height="28" rx="6"/>
+    <rect x="46" y="74" width="68" height="46" rx="14"/>
+    <!-- Cabeza con cuernos espirales -->
+    <circle cx="80" cy="50" r="22"/>
+    <path d="M62 44 C52 24 38 34 36 22 C50 18 64 36 68 40 Z"/>
+    <path d="M98 44 C108 24 122 34 124 22 C110 18 96 36 92 40 Z"/>
+  </g>
+
+  <!-- Troquelado negro exterior -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M46 76 L14 42 L26 78 L12 90 L44 94 Z"/>
+    <path d="M114 76 L146 42 L134 78 L148 90 L116 94 Z"/>
+    <rect x="54" y="114" width="20" height="28" rx="6"/>
+    <rect x="86" y="114" width="20" height="28" rx="6"/>
+    <rect x="46" y="74" width="68" height="46" rx="14"/>
+    <circle cx="80" cy="50" r="22"/>
+    <path d="M62 44 C52 24 38 34 36 22 C50 18 64 36 68 40 Z"/>
+    <path d="M98 44 C108 24 122 34 124 22 C110 18 96 36 92 40 Z"/>
+  </g>
+
+  <!-- Relleno y detalles -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Alas carmesí -->
+    <path d="M46 76 L14 42 L26 78 L12 90 L44 94 Z" fill="#991b1b"/>
+    <path d="M114 76 L146 42 L134 78 L148 90 L116 94 Z" fill="#991b1b"/>
+    <!-- Patas -->
+    <rect x="54" y="114" width="20" height="28" rx="6" fill="#1c1917"/>
+    <rect x="86" y="114" width="20" height="28" rx="6" fill="#1c1917"/>
+    <!-- Garras de fuego -->
+    <line x1="56" y1="140" x2="56" y2="144" stroke="#f97316" stroke-width="3"/>
+    <line x1="64" y1="140" x2="64" y2="144" stroke="#f97316" stroke-width="3"/>
+    <line x1="88" y1="140" x2="88" y2="144" stroke="#f97316" stroke-width="3"/>
+    <line x1="96" y1="140" x2="96" y2="144" stroke="#f97316" stroke-width="3"/>
+    <!-- Torso -->
+    <rect x="46" y="74" width="68" height="46" rx="14" fill="#b91c1c"/>
+    <path d="M58 84 L72 96 L66 112 M102 84 L88 96 L94 112" fill="none" stroke="#f59e0b" stroke-width="4"/>
+    <!-- Cabeza -->
+    <circle cx="80" cy="50" r="22" fill="#7f1d1d"/>
+    <!-- Cuernos espirales de carnero demoníaco -->
+    <path d="M62 44 C52 24 38 34 36 22 C50 18 64 36 68 40 Z" fill="#ea580c"/>
+    <path d="M98 44 C108 24 122 34 124 22 C110 18 96 36 92 40 Z" fill="#ea580c"/>
+    <!-- Ojos ígneos amarillos -->
+    <circle cx="72" cy="50" r="4.5" fill="#facc15" stroke="none"/>
+    <circle cx="88" cy="50" r="4.5" fill="#facc15" stroke="none"/>
+    <!-- Fauces con colmillos -->
+    <path d="M72 62 Q80 68 88 62" fill="none" stroke="#17110c" stroke-width="4"/>
+    <polygon points="76,62 78,66 80,62" fill="#fff"/>
+    <polygon points="82,62 84,66 86,62" fill="#fff"/>
+  </g>
+</svg>

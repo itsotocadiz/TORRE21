@@ -3628,6 +3628,13 @@
       dmg = Math.round(dmg * critMult);
     }
 
+    // Afinidad Elemental de Picas (♠): daño de corte perforante predictivo
+    let spadeBonus = 0;
+    (playerHand || []).forEach(c => {
+      if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += 2;
+    });
+    dmg += spadeBonus;
+
     // Multiplicador de Doblar
     if (isDouble || player.turnDoubleDamage) {
       dmg = Math.round(dmg * 2);
@@ -3636,6 +3643,71 @@
     return { dmg, isCrit, critMult, score };
   }
   window.calculateExactTacticalDamage = calculateExactTacticalDamage;
+
+  function calculateTacticalAttackRange(player, enemy, playerHand = [], isDouble = false) {
+    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ ATAQUE: 0 HP", score: 0 };
+    const score = calculateHandScore(playerHand);
+    if (score > 21) {
+      return { minDmg: 0, maxDmg: 0, text: "⚔️ ATAQUE: 0 HP (BUST)", isBust: true, score };
+    }
+
+    const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
+    const levelMult = 1 + ((player.level || 1) - 1) * 0.12;
+
+    let bonus = 0;
+    const strMod = (player.attributes && player.attributes.str > 10) ? Math.floor((player.attributes.str - 10) / 2) : 0;
+    if (strMod > 0) bonus += strMod;
+
+    let enemyScore = 17;
+    if (enemy && enemy.hand && enemy.hand.length > 0) {
+      const eScore = calculateHandScore(enemy.hand);
+      if (eScore <= 21) enemyScore = eScore;
+    }
+    const scoreMargin = Math.max(0, score - enemyScore);
+    const marginBonus = Math.floor(scoreMargin * 0.75);
+
+    const bet = player.currentBet || 0;
+    let baseStrike = (player.pwr || 2) + bet + marginBonus + bonus + (player.cardBonusDamage || 0);
+    let rawPlayerDmg = Math.round(baseStrike * levelMult);
+    let baseDmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
+
+    if (score < 15) {
+      baseDmg = Math.max(1, Math.round(baseDmg * 0.50));
+    }
+
+    // Afinidad Elemental Picas (♠)
+    let spadeBonus = 0;
+    (playerHand || []).forEach(c => {
+      if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += 2;
+    });
+    baseDmg += spadeBonus;
+
+    const doubleMult = (isDouble || player.turnDoubleDamage) ? 2 : 1;
+
+    let minDmg = Math.round(baseDmg * doubleMult);
+    let maxDmg = minDmg;
+    let label = "";
+
+    if (score === 21) {
+      minDmg = Math.round(baseDmg * 2.0 * doubleMult);
+      maxDmg = minDmg;
+      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP (CRÍTICO 21)` : `⚔️ ATAQUE: ${minDmg} HP (CRÍTICO 21)`;
+    } else if (score >= 19) {
+      minDmg = Math.round(baseDmg * 1.5 * doubleMult);
+      maxDmg = minDmg;
+      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP (crítico)` : `⚔️ ATAQUE: ${minDmg} HP (crítico)`;
+    } else {
+      maxDmg = Math.round(baseDmg * 1.5 * doubleMult);
+      if (minDmg === maxDmg) {
+        label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
+      } else {
+        label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg}–${maxDmg} HP (crít.)` : `⚔️ ATAQUE: ${minDmg}–${maxDmg} HP (crít.)`;
+      }
+    }
+
+    return { minDmg, maxDmg, text: label, score, baseDmg };
+  }
+  window.calculateTacticalAttackRange = calculateTacticalAttackRange;
 
   function calculateProjectedDamage(playerPwr, rivalDef, playerHand = [], deck = []) {
     const curScore = calculateHandScore(playerHand);
@@ -3663,11 +3735,13 @@
       );
     } else if (type === "dmg") {
       showGameAlert(
-        "⚔️ CÁLCULO DE ATAQUE PREDICTIVO\n\n" +
-        "Muestra el daño exacto que asestarás al rival si te plantas con tu mano actual considerando buffs, PWR, nivel, margen y armadura enemiga.\n\n" +
-        "• Si alcanzas 19-21, el daño ya incluye el multiplicador de Golpe Crítico (x1.5 o x2.0).\n" +
-        "• Si activas '¡DOBLAR!', este ataque se multiplicará x2 automáticamente.",
-        "TÁCTICA: ATAQUE ACTUAL"
+        "⚔️ CÁLCULO DE ATAQUE EN RANGO (PREDICTIVO)\n\n" +
+        "Muestra el daño proyectado que asestarás al rival al plantarte:\n\n" +
+        "• Muestra el rango Mín–Máx (crítico): el valor mínimo es tu impacto normal y el valor máximo refleja el daño si asestas Golpe Crítico.\n" +
+        "• Con 19 a 21 de mano, el Golpe Crítico está 100% asegurado (x1.5 o x2.0 con 21).\n" +
+        "• La Afinidad de Picas (♠) añade +2 daño de corte perforante por carta.\n" +
+        "• Al pulsar '¡DOBLAR!', todo el rango de ataque se duplica x2 automáticamente.",
+        "TÁCTICA: RANGO DE ATAQUE"
       );
     }
   }
@@ -3709,20 +3783,12 @@
           critText = `⚡ CRÍTICO: ${totalCrit}%`;
         }
 
-        // 2. Daño exacto predictivo
+        // 2. Rango de ataque predictivo (con crítico)
         const isDoubled = !!(p && p.turnDoubleDamage);
-        const tactical = calculateExactTacticalDamage(p, e, p.playerHand, isDoubled);
+        const rangeData = calculateTacticalAttackRange(p, e, p.playerHand, isDoubled);
 
         if (critEl) critEl.innerText = critText;
-        if (dmgEl) {
-          if (curScore > 21) {
-            dmgEl.innerText = `⚔️ ATAQUE: 0 HP (BUST)`;
-          } else if (isDoubled) {
-            dmgEl.innerText = `⚡ ATAQUE x2: ${tactical.dmg} HP`;
-          } else {
-            dmgEl.innerText = `⚔️ ATAQUE: ${tactical.dmg} HP`;
-          }
-        }
+        if (dmgEl) dmgEl.innerText = rangeData.text;
       } else if (zone === "arena") {
         const hud = document.getElementById("arena-dnd-odds-hud");
         if (!hud || !window.arenaMatch) return;
@@ -3734,7 +3800,7 @@
         const mockP = { pwr, level: 1, currentBet: 0 };
         const mockE = { def };
         const isDoubledArena = !!(window.arenaMatch && window.arenaMatch.isDoubled);
-        const tactical = calculateExactTacticalDamage(mockP, mockE, hand, isDoubledArena);
+        const rangeData = calculateTacticalAttackRange(mockP, mockE, hand, isDoubledArena);
 
         const critEl = document.getElementById("arena-dnd-crit-odds");
         const dmgEl = document.getElementById("arena-dnd-projected-dmg");
@@ -3747,15 +3813,7 @@
             critEl.innerText = `⚡ CRÍTICO: ${Math.max(10, baseCrit)}%`;
           }
         }
-        if (dmgEl) {
-          if (curScore > 21) {
-            dmgEl.innerText = `⚔️ ATAQUE: 0 HP (BUST)`;
-          } else if (isDoubledArena) {
-            dmgEl.innerText = `⚡ ATAQUE x2: ${tactical.dmg} HP`;
-          } else {
-            dmgEl.innerText = `⚔️ ATAQUE: ${tactical.dmg} HP`;
-          }
-        }
+        if (dmgEl) dmgEl.innerText = rangeData.text;
       }
     } catch (_) {}
   }
@@ -4216,7 +4274,19 @@
       { name: "Coloso de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 210, pwr: 18, def: 9, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 3 daño)" }
     ],
     6: [
-      { name: "Dragón Guardián Primigenio", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 280, pwr: 20, def: 9, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" }
+      { name: "Dragón Guardián Primigenio", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 280, pwr: 20, def: 9, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" },
+      { name: "Centurión Espectral Élite", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 260, pwr: 19, def: 9, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
+    ],
+    // --- BIOMAS TEMÁTICOS PARA EL MODO SIN FIN (ENDLESS / PISOS > 21) ---
+    7: [
+      { name: "Heraldo Astral del 21", sprite: "🌌", img: "assets/svg/enemy_astral_herald.svg", hp: 320, pwr: 22, def: 10, trait: "astral_drain", traitShort: "★ ÉTER ASTRAL", traitName: "Resplandor Astral (drena 15 Overdrive al ganar mano)" },
+      { name: "Espectro del Tiempo", sprite: "⏳", img: "assets/svg/enemy_chronos_specter.svg", hp: 300, pwr: 21, def: 9, trait: "stealth", traitShort: "★ DISTORSIÓN", traitName: "Distorsión Temporal (cartas ocultas; planta en 18+)" },
+      { name: "Coloso de Obsidiana Ancestral", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 350, pwr: 23, def: 12, trait: "thorns", traitShort: "★ ESPINAS VORPALES", traitName: "Espinas de Obsidiana (devuelve 4 daño al ser golpeado)" }
+    ],
+    8: [
+      { name: "Titán del Vacío Eterno", sprite: "🕳️", img: "assets/svg/enemy_void_titan.svg", hp: 390, pwr: 25, def: 12, trait: "void_shatter", traitShort: "★ RUPTURA ABISAL", traitName: "Ruptura Abisal (anula 50% de escudos y golpea con daño puro)" },
+      { name: "Quimera del Caos Primordial", sprite: "🔥", img: "assets/svg/enemy_chaos_chimera.svg", hp: 370, pwr: 24, def: 11, trait: "chaos_fury", traitShort: "★ FURIA DEL CAOS", traitName: "Furia del Caos (Blackjack x3; +2 PWR permanente por mano perdida)" },
+      { name: "Asesino de la Escarcha Abisal", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 330, pwr: 23, def: 10, trait: "frost", traitShort: "★ HIELO PERPETUO", traitName: "Escarcha Abisal (drena 2 puntos de aguante)" }
     ]
   };
   window.ACT_ENEMY_POOLS = ACT_ENEMY_POOLS;
@@ -4227,12 +4297,19 @@
     if (floorNum <= 11) return 3;
     if (floorNum <= 15) return 4;
     if (floorNum <= 19) return 5;
-    return 6;
+    if (floorNum <= 21) return 6;
+    // Para pisos > 21 en Modo Sin Fin: rotación entre el Bioma Astral (7) y el Bioma del Vacío (8)
+    const endlessCycle = Math.floor((floorNum - 22) / 10);
+    return (endlessCycle % 2 === 0) ? 7 : 8;
   }
   window.getActForFloor = getActForFloor;
 
   function isActBossFloor(floorNum) {
-    return floorNum === 3 || floorNum === 7 || floorNum === 11 || floorNum === 15 || floorNum === 19 || floorNum === 21;
+    if (floorNum <= 21) {
+      return floorNum === 3 || floorNum === 7 || floorNum === 11 || floorNum === 15 || floorNum === 19 || floorNum === 21;
+    }
+    // En Modo Sin Fin: cada 5 pisos hay un desafío mayor / jefe
+    return (floorNum % 5 === 0);
   }
   window.isActBossFloor = isActBossFloor;
 
@@ -4348,45 +4425,57 @@
   window.toggleCampaignChapters = toggleCampaignChapters;
 
   /* ============================================================
-     ÁRBOL DE TALENTOS PERMANENTE (FASE 5: DIABLO II / POE)
+     ÁRBOL DE TALENTOS ELEMENTAL EXPANDIDO (v3: PROGRESIÓN PROFUNDA)
      ============================================================ */
-  const TALENT_TREE_KEY = "bj_hero_talent_tree_v2";
+  const TALENT_TREE_KEY = "bj_hero_talent_tree_v3";
 
   const TALENT_BRANCHES = [
     {
       id: "spades",
       name: "♠️ Rama del Filo (Picas)",
-      desc: "Daño físico directo y letalidad vorpal.",
+      desc: "Daño físico, penetración de armadura e impactos vorpales.",
       tiers: [
-        { id: "spades_1", name: "Filo de Acero", desc: "+5% Daño físico de ataques.", maxRank: 3 },
-        { id: "spades_2", name: "Estocada Vorpal", desc: "El 20 y 21 infligen +15% daño adicional.", maxRank: 1 }
+        { id: "spades_1", name: "Filo Templado", desc: "+3% Daño físico por rango.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "spades_2", name: "Precisión de Acero", desc: "+3% Probabilidad Crítica predictiva.", maxRank: 2, cost: 2, reqBranch: 2 },
+        { id: "spades_3", name: "Estocada Vorpal", desc: "+10% Daño con manos de 20 o 21.", maxRank: 2, cost: 3, reqBranch: 5 },
+        { id: "spades_4", name: "Filo Vampírico", desc: "El 21 restaura 8% del impacto en salud.", maxRank: 1, cost: 4, reqBranch: 8 },
+        { id: "spades_5", name: "Cuchilla del Destino", desc: "Picas perforan +1 DEF y ejecutan rivales con ≤15% HP en BJ.", maxRank: 1, cost: 5, reqBranch: 11 }
       ]
     },
     {
       id: "diamonds",
       name: "♦️ Rama del Baluarte (Diamantes)",
-      desc: "Coraza mística y mitigación de daño.",
+      desc: "Coraza diamantina, mitigación de golpes y escudos de piso.",
       tiers: [
-        { id: "diamonds_1", name: "Baluarte Diamantino", desc: "+4 Escudo azul al inicio de cada piso.", maxRank: 3 },
-        { id: "diamonds_2", name: "Guardia Sagrada", desc: "Absorbe 50% del primer contraataque de cada piso.", maxRank: 1 }
+        { id: "diamonds_1", name: "Baluarte Diamantino", desc: "+3 Escudo azul al inicio de cada piso.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "diamonds_2", name: "Coraza Reactiva", desc: "Mitiga 2 de daño de cada contraataque rival.", maxRank: 2, cost: 2, reqBranch: 2 },
+        { id: "diamonds_3", name: "Guardia Sagrada", desc: "Absorbe 50% del primer contraataque de cada piso.", maxRank: 1, cost: 3, reqBranch: 5 },
+        { id: "diamonds_4", name: "Muralla Inamovible", desc: "+1 DEF base permanente.", maxRank: 1, cost: 4, reqBranch: 8 },
+        { id: "diamonds_5", name: "Égida de Diamante", desc: "Sobrevives al primer golpe letal con 1 HP y +20 Escudo.", maxRank: 1, cost: 5, reqBranch: 11 }
       ]
     },
     {
       id: "hearts",
       name: "♥️ Rama de la Vitalidad (Corazones)",
-      desc: "Salud extendida y regeneración sostenida.",
+      desc: "Salud máxima, regeneración al vencer y purificación solar.",
       tiers: [
-        { id: "hearts_1", name: "Vigor del Heraldo", desc: "+10 HP Máximo permanente.", maxRank: 3 },
-        { id: "hearts_2", name: "Sangre de Fénix", desc: "Regenera +6 HP al derrotar a cualquier rival.", maxRank: 1 }
+        { id: "hearts_1", name: "Vigor del Tahúr", desc: "+8 HP Máximo permanente.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "hearts_2", name: "Respiración Profunda", desc: "Restaura +3 HP al superar cada piso.", maxRank: 2, cost: 2, reqBranch: 2 },
+        { id: "hearts_3", name: "Sangre de Fénix", desc: "Regenera +5 HP al derrotar a cualquier enemigo.", maxRank: 2, cost: 3, reqBranch: 5 },
+        { id: "hearts_4", name: "Alquimia de Vida", desc: "Las pociones curan +25% de salud adicional.", maxRank: 1, cost: 4, reqBranch: 8 },
+        { id: "hearts_5", name: "Renacimiento Solar", desc: "El 21 regenera 10 HP y purga todo veneno o quemadura.", maxRank: 1, cost: 5, reqBranch: 11 }
       ]
     },
     {
       id: "clubs",
       name: "♣️ Rama de la Fortuna (Tréboles)",
-      desc: "Fortuna de la cripta y recursos arcanos.",
+      desc: "Oro de cripta, economía arcana y conservadurismo tahúr.",
       tiers: [
-        { id: "clubs_1", name: "Ojo de la Fortuna", desc: "+10% Oro obtenido por mano y botín.", maxRank: 3 },
-        { id: "clubs_2", name: "Mano del Tahúr", desc: "20% de probabilidad de no consumir poción al beberla.", maxRank: 1 }
+        { id: "clubs_1", name: "Ojo de la Fortuna", desc: "+8% Oro obtenido por mano y botín.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "clubs_2", name: "Trébol Afortunado", desc: "+5% Suerte en robos de cartas clutch (10/As).", maxRank: 2, cost: 2, reqBranch: 2 },
+        { id: "clubs_3", name: "Mano del Tahúr", desc: "25% de probabilidad de beber poción sin consumirla.", maxRank: 2, cost: 3, reqBranch: 5 },
+        { id: "clubs_4", name: "Bolsa de la Cripta", desc: "+15 Oro inicial al comenzar cualquier expedición.", maxRank: 1, cost: 4, reqBranch: 8 },
+        { id: "clubs_5", name: "Pacto del Gran Tahúr", desc: "Doblar con éxito otorga +12 Oro y +1 Cripta adicional.", maxRank: 1, cost: 5, reqBranch: 11 }
       ]
     }
   ];
@@ -4399,6 +4488,16 @@
       if (raw) {
         const all = JSON.parse(raw);
         if (all[heroKey]) return all[heroKey];
+      }
+      // Migración desde v2 si existe
+      const legacyRaw = localStorage.getItem("bj_hero_talent_tree_v2");
+      if (legacyRaw) {
+        const leg = JSON.parse(legacyRaw);
+        if (leg[heroKey]) {
+          const treeV3 = { pointsSpent: 0, ranks: {} };
+          saveHeroTalentTree(heroKey, treeV3);
+          return treeV3;
+        }
       }
     } catch (_) {}
     return { pointsSpent: 0, ranks: {} };
@@ -4420,14 +4519,24 @@
     const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
     const heroMeta = meta[heroKey] || {};
     const heroLevel = heroMeta.level || heroMeta.masteryLevel || 1;
-    const totalWins = (typeof getTotalTowerWins === "function") ? getTotalTowerWins() : 0;
+    // Puntos duraderos: 1 punto por cada nivel alcanzado (desde nivel 2 en adelante)
+    const earnedByLevel = Math.max(0, heroLevel - 1);
     const bonusEarned = heroMeta.talentPoints || 0;
-    const runPoints = (window.gameState && window.gameState.player && window.gameState.player.talentPoints) || 0;
-    const earned = Math.max(0, (heroLevel - 1) + bonusEarned + runPoints + totalWins * 2);
+    const totalEarned = earnedByLevel + bonusEarned;
     const tree = getHeroTalentTree(heroKey);
-    return Math.max(0, earned - (tree.pointsSpent || 0));
+    return Math.max(0, totalEarned - (tree.pointsSpent || 0));
   }
   window.getHeroAvailableTalentPoints = getHeroAvailableTalentPoints;
+
+  function getBranchPointsSpent(tree, branch) {
+    let spent = 0;
+    const ranks = (tree && tree.ranks) || {};
+    branch.tiers.forEach(tier => {
+      const r = ranks[tier.id] || 0;
+      spent += r * (tier.cost || 1);
+    });
+    return spent;
+  }
 
   function openHeroTalentsModal(heroKey) {
     heroKey = heroKey || (typeof HERO_KEYS !== "undefined" && typeof currentHeroBookIndex === "number" && HERO_KEYS[currentHeroBookIndex]) || "knight";
@@ -4458,7 +4567,7 @@
     const tree = getHeroTalentTree(heroKey);
 
     const subEl = document.getElementById("talents-hero-subtitle");
-    if (subEl) subEl.innerText = `Héroe: ${hero.name} • Especialización Elemental Permanente`;
+    if (subEl) subEl.innerText = `Héroe: ${hero.name} • Especialización Elemental Permanente (v3)`;
 
     const ptsEl = document.getElementById("talents-points-available");
     if (ptsEl) ptsEl.innerText = `✨ ${avail} PUNTOS DISPONIBLES`;
@@ -4470,24 +4579,35 @@
     if (!cont) return;
 
     cont.innerHTML = TALENT_BRANCHES.map(branch => {
+      const branchSpent = getBranchPointsSpent(tree, branch);
       return `
         <div class="talent-branch-card ${branch.id}">
           <div class="talent-branch-title">
             <span>${branch.name}</span>
-            <span style="font-size:9px; color:#94a3b8;">${branch.desc}</span>
+            <span style="font-size:9px; color:#38bdf8;">Invertidos: ${branchSpent} pts</span>
           </div>
+          <div style="font-size:9px; color:#94a3b8; margin-bottom:8px;">${branch.desc}</div>
           ${branch.tiers.map(tier => {
             const curRank = (tree.ranks && tree.ranks[tier.id]) || 0;
             const isMax = curRank >= tier.maxRank;
-            const canBuy = avail > 0 && !isMax;
+            const cost = tier.cost || 1;
+            const meetsReq = branchSpent >= (tier.reqBranch || 0);
+            const canBuy = avail >= cost && !isMax && meetsReq;
+
+            let btnLabel = `+ MEJORAR (${cost} PTS)`;
+            if (isMax) btnLabel = "✔ DOMINADO";
+            else if (!meetsReq) btnLabel = `🔒 REQUIERE ${tier.reqBranch} PTS`;
+
             return `
               <div class="talent-tier-row">
-                <div>
-                  <div style="font-weight:bold; color:${isMax ? '#10b981' : '#f8fafc'};">${tier.name} (${curRank}/${tier.maxRank})</div>
-                  <div style="color:#94a3b8; font-size:9px;">${tier.desc}</div>
+                <div style="flex:1; padding-right:8px;">
+                  <div style="font-weight:bold; font-size:10px; color:${isMax ? '#10b981' : (meetsReq ? '#f8fafc' : '#64748b')};">
+                    ${tier.name} (${curRank}/${tier.maxRank})
+                  </div>
+                  <div style="color:#94a3b8; font-size:9px; line-height:1.3;">${tier.desc}</div>
                 </div>
-                <button type="button" class="talent-upgrade-btn" onclick="upgradeHeroTalent('${heroKey}', '${tier.id}')" ${canBuy ? '' : 'disabled'}>
-                  ${isMax ? '✔ DOMINADO' : `+ MEJORAR (1 PT)`}
+                <button type="button" class="talent-upgrade-btn" onclick="upgradeHeroTalent('${heroKey}', '${tier.id}')" ${canBuy ? '' : 'disabled'} style="font-size:8.5px; padding:6px 8px; min-width:86px;">
+                  ${btnLabel}
                 </button>
               </div>
             `;
@@ -4500,14 +4620,30 @@
 
   function upgradeHeroTalent(heroKey, tierId) {
     const avail = getHeroAvailableTalentPoints(heroKey);
-    if (avail <= 0) {
-      if (typeof showGameToast === "function") showGameToast("No tienes Puntos de Talento disponibles. ¡Sube de nivel o gana en la Torre!");
+    let targetTier = null;
+    let targetBranch = null;
+    TALENT_BRANCHES.forEach(b => {
+      const found = b.tiers.find(t => t.id === tierId);
+      if (found) { targetTier = found; targetBranch = b; }
+    });
+    if (!targetTier) return;
+
+    const cost = targetTier.cost || 1;
+    if (avail < cost) {
+      if (typeof showGameToast === "function") showGameToast(`Necesitas ${cost} Puntos de Talento para esta maestría. ¡Sube de nivel a tu héroe!`);
       return;
     }
+
     const tree = getHeroTalentTree(heroKey);
+    const branchSpent = getBranchPointsSpent(tree, targetBranch);
+    if (branchSpent < (targetTier.reqBranch || 0)) {
+      if (typeof showGameToast === "function") showGameToast(`Requiere haber invertido al menos ${targetTier.reqBranch} puntos en esta rama.`);
+      return;
+    }
+
     tree.ranks = tree.ranks || {};
     tree.ranks[tierId] = (tree.ranks[tierId] || 0) + 1;
-    tree.pointsSpent = (tree.pointsSpent || 0) + 1;
+    tree.pointsSpent = (tree.pointsSpent || 0) + cost;
     saveHeroTalentTree(heroKey, tree);
     try { playSynergyComboSound(); } catch (_) {}
     renderHeroTalentsUI(heroKey);
@@ -4539,21 +4675,41 @@
     if (!p) return;
     const tree = getHeroTalentTree(heroKey);
     const ranks = tree.ranks || {};
-    if (ranks["spades_1"]) p.pwr = (p.pwr || 10) + Math.round((p.pwr || 10) * (ranks["spades_1"] * 0.05));
-    if (ranks["spades_2"]) p._spadesVorpalBonus = 0.15;
+
+    // ♠️ Picas (Filo)
+    if (ranks["spades_1"]) p.pwr = (p.pwr || 10) + Math.round((p.pwr || 10) * (ranks["spades_1"] * 0.03));
+    if (ranks["spades_2"]) p._treeCritChanceBonus = (ranks["spades_2"] || 0) * 3;
+    if (ranks["spades_3"]) p._spadesVorpalBonus = (ranks["spades_3"] || 0) * 0.10;
+    if (ranks["spades_4"]) p._spadesLifesteal = 0.08;
+    if (ranks["spades_5"]) p._spadesExecuteActive = true;
+
+    // ♦️ Diamantes (Baluarte)
     if (ranks["diamonds_1"]) {
       gameState.status = gameState.status || {};
-      gameState.status.playerShield = (gameState.status.playerShield || 0) + (ranks["diamonds_1"] * 4);
+      gameState.status.playerShield = (gameState.status.playerShield || 0) + (ranks["diamonds_1"] * 3);
     }
-    if (ranks["diamonds_2"]) p._diamondsFirstHitMitigate = true;
+    if (ranks["diamonds_2"]) p._diamondsCounterMitigate = (ranks["diamonds_2"] || 0) * 2;
+    if (ranks["diamonds_3"]) p._diamondsFirstHitMitigate = true;
+    if (ranks["diamonds_4"]) p.def = (p.def || 0) + 1;
+    if (ranks["diamonds_5"]) p._diamondsAegisRevive = true;
+
+    // ♥️ Corazones (Vitalidad)
     if (ranks["hearts_1"]) {
-      const extraHp = ranks["hearts_1"] * 10;
+      const extraHp = (ranks["hearts_1"] || 0) * 8;
       p.maxHp = (p.maxHp || 80) + extraHp;
       p.hp = (p.hp || 80) + extraHp;
     }
-    if (ranks["hearts_2"]) p._heartsKillRegen = 6;
-    if (ranks["clubs_1"]) p._clubsGoldBonus = ranks["clubs_1"] * 0.10;
-    if (ranks["clubs_2"]) p._clubsFreePotionChance = 0.20;
+    if (ranks["hearts_2"]) p._heartsFloorRegen = (ranks["hearts_2"] || 0) * 3;
+    if (ranks["hearts_3"]) p._heartsKillRegen = (ranks["hearts_3"] || 0) * 5;
+    if (ranks["hearts_4"]) p._heartsPotionBoost = 0.25;
+    if (ranks["hearts_5"]) p._heartsSolarCleanse = true;
+
+    // ♣️ Tréboles (Fortuna)
+    if (ranks["clubs_1"]) p._clubsGoldBonus = (ranks["clubs_1"] || 0) * 0.08;
+    if (ranks["clubs_2"]) p._clubsClutchLuck = (ranks["clubs_2"] || 0) * 0.05;
+    if (ranks["clubs_3"]) p._clubsFreePotionChance = (ranks["clubs_3"] || 0) * 0.25;
+    if (ranks["clubs_4"]) p._clubsStartingGold = 15;
+    if (ranks["clubs_5"]) p._clubsDoublePayout = true;
   }
   window.applyHeroTalentsToPlayer = applyHeroTalentsToPlayer;
 
@@ -7036,8 +7192,15 @@
       if (p.potions > 0 && p.hp < p.maxHp) {
         triggerHaptic("potion");
         try { playPotionDrinkSound(); } catch (_) {}
-        p.potions--;
-        const healed = Math.min(30, p.maxHp - p.hp);
+        if (p._clubsFreePotionChance && Math.random() < p._clubsFreePotionChance) {
+          addLog("♣️ Mano del Tahúr: ¡Bebiste la poción sin consumirla!", "heal");
+          spawnFloatingText("player-sprite", "♣️ POCIÓN CONSERVADA", "heal");
+        } else {
+          p.potions--;
+        }
+        let healBase = 30;
+        if (p._heartsPotionBoost) healBase = Math.round(healBase * (1 + p._heartsPotionBoost));
+        const healed = Math.min(healBase, p.maxHp - p.hp);
         p.hp += healed;
         spawnFloatingText("player-sprite", `+${healed} HP`, "heal");
         addLog(`+${healed} HP (${p.hp}/${p.maxHp})`, "heal");
@@ -7618,6 +7781,27 @@
      ============================================================ */
   function getFloorZoneInfo(floorNum, maxFloors) {
     maxFloors = maxFloors || (typeof getMaxFloorsForDifficulty === "function" ? getMaxFloorsForDifficulty() : 13);
+    // Modo Sin Fin (Endless / Pisos > 21)
+    if (floorNum > 21) {
+      const endlessCycle = Math.floor((floorNum - 22) / 10);
+      if (endlessCycle % 2 === 0) {
+        return {
+          zone: 7,
+          icon: "🌌",
+          title: "LA FALLA ASTRAL DEL 21 (MODO SIN FIN)",
+          name: "La Falla Astral del 21",
+          flavor: "Distorsiones cuánticas de naipes estelares donde el espacio colapsa bajo el influjo del 21."
+        };
+      } else {
+        return {
+          zone: 8,
+          icon: "🕳️",
+          title: "EL VACÍO INTERMINABLE (ABISMO CÓSMICO)",
+          name: "El Vacío Interminable",
+          flavor: "Una grieta abisal donde las leyes del tiempo perecen y las sombras primigenias no tienen fin."
+        };
+      }
+    }
     if (floorNum >= maxFloors) {
       return {
         zone: 6,
@@ -7681,7 +7865,7 @@
     const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
     const zoneInfo = getFloorZoneInfo(f, maxFloors);
     
-    for (let z = 1; z <= 6; z++) {
+    for (let z = 1; z <= 8; z++) {
       stage.classList.remove("stage-zone-" + z);
     }
     stage.classList.add("stage-zone-" + zoneInfo.zone);
@@ -7719,19 +7903,31 @@
   }
 
   /* ============================================================
-     CINEMÁTICAS NARRATIVAS DE CAMBIO DE ACTO (MÁXIMO 3 SEGUNDOS)
+     CINEMÁTICAS NARRATIVAS DE CAMBIO DE ACTO (5 SEGUNDOS)
+     Jerarquía canónica: Mandinga (Señor Supremo) → BLACK (Avatar/Sombra) → Heraldos de Palo
      Adaptadas a la historia y motivación de cada uno de los 4 Héroes
      ============================================================ */
   const ACT_CINEMATIC_DATA = {
+    1: {
+      actBadge: "ACTO I • LAS CRIPTAS DE PICAS",
+      bossImg: "assets/svg/enemy_dante_spades.svg",
+      title: "EL DESPERTAR EN EL FANGO",
+      heroLore: {
+        knight: "«Las rejas del fango se abren. Dante de Picas, primer heraldo de Mandinga, aguarda con su espada ensangrentada. Mi deber es romper la vanguardia del tirano.»",
+        rogue: "«Criptas húmedas y trampas en cada baldosa. Dante cree que su baraja de picas es intocable... aún no conoce la velocidad de mis trucos.»",
+        monk: "«El frío de las criptas no perturbará mi centro. Dante empuña el acero con odio ciego; yo responderé con el equilibrio sereno de la mano abierta.»",
+        necromancer: "«Las almas atrapadas en estas tumbas claman justicia. Dante cree servir a un dios, pero solo alimenta el banquete que consumiré al final.»"
+      }
+    },
     2: {
       actBadge: "ACTO II • LAS CATACUMBAS DE DIAMANTES",
       bossImg: "assets/svg/enemy_valkyrie_diamonds.svg",
       title: "EL BASTIÓN FRACTURADO",
       heroLore: {
-        knight: "«Dante ha caído... pero su acero fue solo la vanguardia. La Valkiria custodia los salones de diamantes con su escudo místico. ¡Por el honor de los caídos, romperé su formación!»",
-        rogue: "«Dante se confió y pagó la cuenta. Las catacumbas de diamantes brillan con trampas mortales. Hora de afilar las dagas y cobrar el botín en silencio.»",
-        monk: "«La furia de Dante no pudo quebrar la quietud del loto. Ahora el frío de los diamantes pondrá a prueba mi templanza. El camino requiere serenidad.»",
-        necromancer: "«El alma de Dante ya arde en mi colección. La Valkiria cree que su escudo diamantino detendrá la muerte... pero las almas traspasan el metal.»"
+        knight: "«Dante ha caído... pero su acero fue solo la vanguardia de Mandinga. La Valquiria custodia los salones de diamantes con su Baluarte místico. ¡Romperé su formación!»",
+        rogue: "«Dante mordió el polvo. Las catacumbas de diamantes brillan con trampas y riquezas prohibidas. Hora de desarmar a la Valquiria y cobrar la recompensa.»",
+        monk: "«La furia de Dante no quebró la quietud del loto. Ahora el frío diamantino pondrá a prueba mi templanza ante los heraldos del Señor del 21.»",
+        necromancer: "«El alma de Dante ya arde en mi colección. La Valquiria cree que sus diamantes detendrán la muerte... pero el Vacío desgasta hasta la gema más dura.»"
       }
     },
     3: {
@@ -7739,43 +7935,43 @@
       bossImg: "assets/svg/enemy_archmage_clubs.svg",
       title: "LA CÚPULA DE LOS MIL TRÉBOLES",
       heroLore: {
-        knight: "«El bastión quedó atrás. El Archimago de Tréboles manipula las líneas del éter para distorsionar la Torre. Mi espada cortará sus conjuros arcanos.»",
-        rogue: "«Un archimago rodeado de oro y reliquias arcanas. Para un tahúr, esto no es solo una pelea: es la mayor mesa de apuestas de la Torre.»",
-        monk: "«El éter de los tréboles resuena con energía caótica. Armonizaré mi respiración para disipar sus ilusiones antes de que toquen mi mente.»",
-        necromancer: "«El Archimago cree dominar el cosmos... pero su carne es tan frágil como la de un novicio. Su conocimiento será absorbido por el Vacío.»"
+        knight: "«El bastión quedó atrás. El Archimago manipula las líneas del éter para tejer las ilusiones de Mandinga. Mi espada sagrada cortará sus conjuros arcanos.»",
+        rogue: "«Un archimago rodeado de oro, reliquias y cartas trampa. Para un tahúr, esto no es solo una batalla: es la mesa de apuestas más suculenta de la Torre.»",
+        monk: "«El éter de los tréboles vibra con magia caótica. Armonizaré mi espíritu para disipar las mentiras arcanas que nublan la cima.»",
+        necromancer: "«El Archimago presume de dominar los secretos cósmicos... pero su carne es mortal. Sus conjuros pasarán a engrosar mi grimorio oscuro.»"
       }
     },
     4: {
-      actBadge: "ACTO IV • EL COLMILLO DEL LEVIATÁN",
-      bossImg: "assets/svg/enemy_centurion.svg",
-      title: "LA GUARDIA DE HIERRO",
+      actBadge: "ACTO IV • LA CIUDADELA DEL VACÍO",
+      bossImg: "assets/svg/enemy_necro_void.svg",
+      title: "EL ABISMO DE MALFAS",
       heroLore: {
-        knight: "«Los salones retumban con los pasos del Centurión. Un guerrero juramentado como yo, pero corrompido por el poder. Solo uno saldrá con vida.»",
-        rogue: "«Pesada armadura, poca velocidad. El Centurión es un blanco ideal para un truco de prestidigitación y una estocada certera entre las placas.»",
-        monk: "«La fuerza bruta sin sabiduría es como una montaña de arena. Dejaré que su propio peso lo derribe con el flujo del viento.»",
-        necromancer: "«El Centurión ha sacrificado a legiones enteras. Puedo oír los lamentos de sus víctimas... y pronto responderán a mi llamado contra él.»"
+        knight: "«El hedor a muerte lo inunda todo. Malfas del Vacío cosecha las almas caídas para nutrir el poder de Mandinga. Por la luz divina, purificaré esta ciudadela.»",
+        rogue: "«Niebla fúnebre y susurros que hielan la sangre. Malfas juega con cartas malditas, pero en la oscuridad mis sombras se mueven más rápido que las suyas.»",
+        monk: "«La muerte no es el final, sino una ilusión del apego. Malfas perturba el descanso eterno de los caídos; devolveré la paz al flujo vital.»",
+        necromancer: "«Malfas... un rival digno en las artes prohibidas. Cree que su cosecha complace a Mandinga, pero ignora que yo devoraré su vacío.»"
       }
     },
     5: {
-      actBadge: "ACTO V • LA CIMA DE LA CASCADA INVERTIDA",
-      bossImg: "assets/svg/enemy_dragon.svg",
-      title: "EL DESPERTAR DEL DRAGÓN",
+      actBadge: "ACTO V • LAS CUMBRES DE LA SOMBRA",
+      bossImg: "assets/svg/enemy_black.svg",
+      title: "EL AVATAR DE LA SOMBRA (BLACK)",
       heroLore: {
-        knight: "«Las nubes arden con fuego negro. La gran bestia custodia las puertas del trono. Mi juramento llega a su prueba máxima: abatir al dragón.»",
-        rogue: "«Escamas impenetrables y aliento abrasador. Pero todo dragón tiene un punto ciego... y un gran tesoro esperando a su nuevo dueño.»",
-        monk: "«El fuego y el vacío son fuerzas de la naturaleza. No lucharé contra las llamas, me convertiré en la brisa que las disipa.»",
-        necromancer: "«Un dragón milenario... la mayor fuente de poder jamás vista. Cuando caiga, sus colosales huesos servirán a mi voluntad eterna.»"
+        knight: "«El cielo arde con fuego umbrío. BLACK, el avatar corrupto de Mandinga, desciende para impedir nuestro paso. Es el guardián de las puertas del trono.»",
+        rogue: "«BLACK... la sombra que dobla el mazo y corrompe cada jugada. Ha llegado el momento del gran truco final contra la mano derecha del diablo.»",
+        monk: "«La oscuridad de BLACK es densa, nacida de la soberbia del 21. No lucharé con ira: seré la vela que alumbra el sendero hacia la verdad.»",
+        necromancer: "«BLACK encarna la corrupción pura del naipe cósmico. Doblegar al avatar es el último paso antes de arrancar la corona a Mandinga mismo.»"
       }
     },
     6: {
-      actBadge: "ACTO VI • EL TRONO DEL MANDINGA",
+      actBadge: "ACTO VI • EL TRONO DE MANDINGA",
       bossImg: "assets/svg/enemy_mandinga.svg",
-      title: "EL DESTINO DEL 21",
+      title: "EL JUICIO FINAL DEL 21",
       heroLore: {
-        knight: "«Aquí termina el pacto maldito. Mandinga, ¡tu reinado de sombras y engaños concluye hoy bajo mi acero sagrado!»",
-        rogue: "«Mandinga... la casa nunca pierde, ¿verdad? Es hora de demostrarte que el verdadero tahúr siempre guarda una última carta bajo la manga.»",
-        monk: "«El 21 no es una maldición ni un juego de azar: es el equilibrio perfecto del universo. Romperé tu pacto con la pureza del espíritu.»",
-        necromancer: "«Mandinga, Señor de las Sombras... has reinado demasiado tiempo. Es momento de que entregues el Trono a quien realmente manda en el Abismo.»"
+        knight: "«Aquí termina el pacto maldito. Mandinga, ¡Señor Supremo del 21! Tu tiranía sobre las almas y la Torre del 21 concluye hoy bajo mi acero juramentado.»",
+        rogue: "«Mandinga... la casa nunca pierde, ¿verdad? Es hora de demostrarte que el verdadero tahúr siempre guarda el as definitivo en la manga.»",
+        monk: "«El 21 no es una condena ni un juego de azar: es el equilibrio perfecto del cosmos. Romperé tus cadenas con la fuerza pura del espíritu.»",
+        necromancer: "«Mandinga... has reinado en el trono de sombras demasiado tiempo. Es momento de que entregues el Trono del 21 a quien realmente domina la Muerte.»"
       }
     }
   };
@@ -7809,7 +8005,7 @@
     if (fillEl) {
       fillEl.style.animation = "none";
       fillEl.offsetHeight; // trigger reflow
-      fillEl.style.animation = "cinematicFill 3s linear forwards";
+      fillEl.style.animation = "cinematicFill 5s linear forwards";
     }
 
     scr.classList.remove("hidden");
@@ -7820,7 +8016,7 @@
     clearTimeout(_actCinematicTimer);
     _actCinematicTimer = setTimeout(() => {
       skipActCinematic();
-    }, 3000);
+    }, 5000);
   }
   window.showActCinematic = showActCinematic;
 
@@ -9149,7 +9345,11 @@
     const modal = document.getElementById("screen-starter-blessing");
     if (modal) modal.classList.add("hidden");
 
-    initFloor();
+    if (gameState.floor === 1 && typeof showActCinematic === "function") {
+      showActCinematic(1, initFloor);
+    } else {
+      initFloor();
+    }
   }
   window.selectStarterBlessing = selectStarterBlessing;
 
@@ -14652,24 +14852,40 @@
         addLog(`⚡ ¡Impacto Crítico (${reportedCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
       }
 
-      // Escuelas D&D de Naipes en la Torre
-      let suitDiamonds = 0, suitHearts = 0;
+      // Afinidad Elemental de Naipes en la Torre (4 Palos Arcanos)
+      let suitSpades = 0, suitDiamonds = 0, suitHearts = 0, suitClubs = 0;
       (p.playerHand || []).forEach(c => {
         if (!c) return;
         const s = c.suit;
-        if (s === "♦" || s === "diamonds") suitDiamonds++;
+        if (s === "♠" || s === "spades") suitSpades++;
+        else if (s === "♦" || s === "diamonds") suitDiamonds++;
         else if (s === "♥" || s === "hearts") suitHearts++;
+        else if (s === "♣" || s === "clubs") suitClubs++;
       });
+      if (suitSpades > 0) {
+        const pierceDmg = suitSpades * 2;
+        dmg += pierceDmg;
+        spawnFloatingText("enemy-sprite", `🗡️ -${pierceDmg} PERFORACIÓN ♠`, "crit");
+        addLog(`🗡️ Afinidad de Picas (♠): +${pierceDmg} daño de corte perforante (${suitSpades} cartas).`, "critical");
+      }
       if (suitDiamonds > 0) {
         const dShield = suitDiamonds * 2;
         if (!gameState.status) gameState.status = {};
         gameState.status.playerShield = (gameState.status.playerShield || 0) + dShield;
         spawnFloatingText("player-sprite", `🛡️ +${dShield} ESCUDO ♦`, "shield");
+        addLog(`🛡️ Afinidad de Diamantes (♦): +${dShield} Baluarte defensivo (${suitDiamonds} cartas).`, "heal");
       }
       if (suitHearts > 0) {
         const hHeal = suitHearts * 2;
         p.hp = Math.min(p.maxHp, p.hp + hHeal);
         spawnFloatingText("player-sprite", `❤️ +${hHeal} HP ♥`, "heal");
+        addLog(`❤️ Afinidad de Corazones (♥): +${hHeal} HP regenerados (${suitHearts} cartas).`, "heal");
+      }
+      if (suitClubs > 0) {
+        const cGold = suitClubs * 1;
+        gameState.gold = (gameState.gold || 0) + cGold;
+        spawnFloatingText("player-sprite", `🪙 +${cGold} ORO ♣`, "gold");
+        addLog(`♣️ Afinidad de Tréboles (♣): +${cGold} Oro de fortuna arcana (${suitClubs} cartas).`, "gold");
       }
       if (hasCardUpgrade("astral_ace") && isNatural21) {
         dmg = Math.round(dmg * 1.5);
@@ -15264,6 +15480,14 @@
         addLog("💀 Perk Táctico [Cosecha Oscura]: +8 HP restaurados por dar de baja al rival.", "heal");
         updateHud();
         await sleep(500);
+      }
+
+      // Talento Corazones (Sangre de Fénix): Regeneración al abatir rivales
+      if (p._heartsKillRegen && p._heartsKillRegen > 0) {
+        p.hp = Math.min(p.maxHp, p.hp + p._heartsKillRegen);
+        spawnFloatingText("player-sprite", `❤️ +${p._heartsKillRegen} FÉNIX`, "heal");
+        addLog(`❤️ Sangre de Fénix (Talento Corazones): +${p._heartsKillRegen} HP restaurados por vencer al rival.`, "heal");
+        updateHud();
       }
 
       // Misión de Jack Nigromante: derrotar rivales
@@ -15878,9 +16102,9 @@
       }
       eSpriteEl.className = "sprite sprite-idle-enemy";
     }
-    const eNameEl = document.getElementById("enemy-name");
-    if (eNameEl) eNameEl.innerText = e.name;
-    const eTraitEl = document.getElementById("enemy-trait");
+    const eNameEl = document.getElementById("enemy-name-tag");
+    if (eNameEl) eNameEl.innerText = e.name.toUpperCase();
+    const eTraitEl = document.getElementById("enemy-trait-tag");
     if (eTraitEl) eTraitEl.innerText = e.traitShort || "";
   }
   window.initEnemyForCombat = initEnemyForCombat;
@@ -15899,6 +16123,27 @@
     // Mazo nuevo (barajado) al inicio de cada piso
     rebuildDrawPile();
 
+    // Aplicación de talentos al iniciar el piso
+    if (p && typeof getHeroTalentTree === "function") {
+      const heroKey = p.classKey || p.class || "knight";
+      const tree = getHeroTalentTree(heroKey);
+      const ranks = (tree && tree.ranks) || {};
+      if (ranks["diamonds_1"]) {
+        const floorShield = ranks["diamonds_1"] * 3;
+        gameState.status = gameState.status || {};
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + floorShield;
+        addLog(`♦️ Baluarte Diamantino: +${floorShield} Escudo al comenzar el piso ${gameState.floor}.`, "heal");
+      }
+      if (ranks["diamonds_3"]) {
+        p._diamondsFirstHitMitigate = true;
+      }
+      if (ranks["hearts_2"] && gameState.floor > 1) {
+        const healAmt = ranks["hearts_2"] * 3;
+        p.hp = Math.min(p.maxHp, p.hp + healAmt);
+        addLog(`❤️ Respiración Profunda: +${healAmt} HP restaurados al entrar al piso ${gameState.floor}.`, "heal");
+      }
+    }
+
     // Cada piso genera rivales según el modo (Campaña por Actos o Torre Clásica)
     const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
     const cfg = (typeof DIFFICULTY_CONFIGS !== "undefined" && DIFFICULTY_CONFIGS[diffKey]) ? DIFFICULTY_CONFIGS[diffKey] : { pwrBonusFloorDiv: 4, levelPwrBonus: 0 };
@@ -15910,7 +16155,104 @@
       const curChapter = (typeof CAMPAIGN_CHAPTERS !== "undefined") ? (CAMPAIGN_CHAPTERS.find(c => c.number === curAct) || CAMPAIGN_CHAPTERS[0]) : null;
       const isBoss = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : false;
 
-      if (isBoss && curChapter && typeof CHAPTER_BOSSES !== "undefined" && CHAPTER_BOSSES[curChapter.bossId]) {
+      if (gameState.floor > 21) {
+        // MODO SIN FIN (ENDLESS): Jefes cumbre cada 10 pisos y sub-jefes cada 5 pisos
+        if (gameState.floor % 10 === 0) {
+          const bossCycle = Math.floor(gameState.floor / 10) % 3;
+          let eb;
+          if (bossCycle === 0) {
+            eb = {
+              name: "👑 El Mandinga (Señor del Abismo)",
+              sprite: "👑",
+              img: "assets/svg/enemy_mandinga.svg",
+              hp: 420 + (gameState.floor * 5),
+              pwr: 22 + Math.floor(gameState.floor / 10),
+              def: 12,
+              trait: "mandinga_abyss",
+              traitShort: "★ JUICIO FINAL",
+              traitName: "Juicio Final del 21 (Crítico x2.5; Blackjack Vorpal; anula resurrección)",
+              isActBoss: true
+            };
+          } else if (bossCycle === 1) {
+            eb = {
+              name: "🎭 Sombra del 21 Ascendida",
+              sprite: "🎭",
+              img: "assets/svg/enemy_black.svg",
+              hp: 360 + (gameState.floor * 5),
+              pwr: 20 + Math.floor(gameState.floor / 10),
+              def: 11,
+              trait: "shadow_gamble",
+              traitShort: "★ ILUSIÓN 21",
+              traitName: "Ilusión del 21 (Oculta suma; duplica daño con 20/21)",
+              isActBoss: true
+            };
+          } else {
+            eb = {
+              name: "🕳️ Titán del Vacío Eterno",
+              sprite: "🕳️",
+              img: "assets/svg/enemy_void_titan.svg",
+              hp: 400 + (gameState.floor * 5),
+              pwr: 24 + Math.floor(gameState.floor / 10),
+              def: 14,
+              trait: "void_shatter",
+              traitShort: "★ RUPTURA ABISAL",
+              traitName: "Ruptura Abisal (anula 50% de escudos y perfora armadura)",
+              isActBoss: true
+            };
+          }
+          floorEnemies = [eb];
+          addLog(`👑 ¡JEFE CUMBRE DEL SIN FIN (PISO ${gameState.floor})! ${eb.name} emerge del Abismo.`, "critical");
+        } else if (gameState.floor % 5 === 0) {
+          const subCycle = Math.floor(gameState.floor / 5) % 3;
+          let sb;
+          if (subCycle === 0) {
+            sb = {
+              name: "🔥 Quimera del Caos Primordial",
+              sprite: "🔥",
+              img: "assets/svg/enemy_chaos_chimera.svg",
+              hp: 280 + (gameState.floor * 4),
+              pwr: 18 + Math.floor(gameState.floor / 10),
+              def: 9,
+              trait: "chaos_fury",
+              traitShort: "★ FURIA DEL CAOS",
+              traitName: "Furia del Caos (Blackjack x3; +2 PWR por mano perdida)",
+              isActBoss: true
+            };
+          } else if (subCycle === 1) {
+            sb = {
+              name: "🐉 Dragón de Ébano Guardián",
+              sprite: "🐉",
+              img: "assets/svg/enemy_dragon.svg",
+              hp: 270 + (gameState.floor * 4),
+              pwr: 17 + Math.floor(gameState.floor / 10),
+              def: 8,
+              trait: "dragon",
+              traitShort: "★ ALIENTO ÍGNEO",
+              traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)",
+              isActBoss: true
+            };
+          } else {
+            sb = {
+              name: "🌌 Heraldo Astral del 21",
+              sprite: "🌌",
+              img: "assets/svg/enemy_astral_herald.svg",
+              hp: 260 + (gameState.floor * 4),
+              pwr: 18 + Math.floor(gameState.floor / 10),
+              def: 9,
+              trait: "astral_drain",
+              traitShort: "★ ÉTER ASTRAL",
+              traitName: "Resplandor Astral (drena 15 Overdrive al ganar mano)",
+              isActBoss: true
+            };
+          }
+          floorEnemies = [sb];
+          addLog(`⚔️ ¡SUB-JEFE SUPREMO (PISO ${gameState.floor})! ${sb.name} bloquea el paso.`, "critical");
+        } else {
+          const pool = (typeof ACT_ENEMY_POOLS !== "undefined" && ACT_ENEMY_POOLS[curAct]) ? ACT_ENEMY_POOLS[curAct] : ACT_ENEMY_POOLS[7];
+          const randIdx = Math.floor(Math.random() * pool.length);
+          floorEnemies = [pool[randIdx]];
+        }
+      } else if (isBoss && curChapter && typeof CHAPTER_BOSSES !== "undefined" && CHAPTER_BOSSES[curChapter.bossId]) {
         const b = CHAPTER_BOSSES[curChapter.bossId];
         floorEnemies = [{
           name: b.name,

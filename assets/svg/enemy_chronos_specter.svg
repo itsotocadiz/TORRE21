@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <ellipse cx="80" cy="148" rx="46" ry="8" fill="#000" opacity="0.22"/>
+
+  <!-- Sombra de papel proyectada -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <!-- Harapos flotantes -->
+    <path d="M52 144 L60 74 L100 74 L108 144 L94 136 L80 144 L66 136 Z"/>
+    <!-- Capucha mística puntiaguda -->
+    <path d="M54 62 C50 36 78 20 84 18 C94 28 108 38 106 62 Z"/>
+    <!-- Reloj de arena flotante -->
+    <polygon points="26,82 46,82 36,96 46,110 26,110 36,96"/>
+  </g>
+
+  <!-- Troquelado negro exterior -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <path d="M52 144 L60 74 L100 74 L108 144 L94 136 L80 144 L66 136 Z"/>
+    <path d="M54 62 C50 36 78 20 84 18 C94 28 108 38 106 62 Z"/>
+    <polygon points="26,82 46,82 36,96 46,110 26,110 36,96"/>
+  </g>
+
+  <!-- Relleno y detalles -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Túnica etérea de jade oscuro -->
+    <path d="M52 144 L60 74 L100 74 L108 144 L94 136 L80 144 L66 136 Z" fill="#064e3b"/>
+    <path d="M64 88 L76 132 M96 88 L84 132" fill="none" stroke="#047857" stroke-width="4"/>
+    <!-- Capucha espectral -->
+    <path d="M54 62 C50 36 78 20 84 18 C94 28 108 38 106 62 Z" fill="#065f46"/>
+    <!-- Interior de la capucha en sombra absoluta -->
+    <ellipse cx="80" cy="54" rx="16" ry="14" fill="#022c22"/>
+    <!-- Ojos espectrales verdes brillantes -->
+    <circle cx="74" cy="54" r="3.5" fill="#34d399" stroke="none"/>
+    <circle cx="86" cy="54" r="3.5" fill="#34d399" stroke="none"/>
+    <!-- Reloj de arena arcano flotante -->
+    <polygon points="26,82 46,82 36,96 46,110 26,110 36,96" fill="#10b981"/>
+    <rect x="24" y="80" width="24" height="4" rx="1" fill="#facc15" stroke="#17110c" stroke-width="2"/>
+    <rect x="24" y="108" width="24" height="4" rx="1" fill="#facc15" stroke="#17110c" stroke-width="2"/>
+    <circle cx="36" cy="102" r="3" fill="#fef08a" stroke="none"/>
+  </g>
+</svg>

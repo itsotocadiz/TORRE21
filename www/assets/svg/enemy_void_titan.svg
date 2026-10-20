@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <!-- Suelo de sombra de papel -->
+  <ellipse cx="80" cy="148" rx="52" ry="9" fill="#000" opacity="0.25"/>
+
+  <!-- Sombra desplazada de papel troquelado -->
+  <g transform="translate(6,8)" opacity="0.32" stroke="#000" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <!-- Piernas macizas -->
+    <rect x="52" y="112" width="22" height="30" rx="6"/>
+    <rect x="86" y="112" width="22" height="30" rx="6"/>
+    <!-- Torso colosal -->
+    <rect x="42" y="70" width="76" height="48" rx="14"/>
+    <!-- Hombreras ciclópeas -->
+    <path d="M26 64 L50 60 L44 92 L20 86 Z"/>
+    <path d="M134 64 L110 60 L116 92 L140 86 Z"/>
+    <!-- Cabeza y cuernos de vacío -->
+    <rect x="58" y="32" width="44" height="40" rx="10"/>
+    <path d="M62 34 L46 16 L66 28 Z"/>
+    <path d="M98 34 L114 16 L94 28 Z"/>
+  </g>
+
+  <!-- Borde exterior troquelado negro -->
+  <g stroke="#17110c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" fill="#17110c">
+    <rect x="52" y="112" width="22" height="30" rx="6"/>
+    <rect x="86" y="112" width="22" height="30" rx="6"/>
+    <rect x="42" y="70" width="76" height="48" rx="14"/>
+    <path d="M26 64 L50 60 L44 92 L20 86 Z"/>
+    <path d="M134 64 L110 60 L116 92 L140 86 Z"/>
+    <rect x="58" y="32" width="44" height="40" rx="10"/>
+    <path d="M62 34 L46 16 L66 28 Z"/>
+    <path d="M98 34 L114 16 L94 28 Z"/>
+  </g>
+
+  <!-- Rellenos y detalles con trazo de tinta Paper Mario -->
+  <g stroke="#17110c" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Piernas -->
+    <rect x="52" y="112" width="22" height="30" rx="6" fill="#1e112a"/>
+    <rect x="86" y="112" width="22" height="30" rx="6" fill="#1e112a"/>
+    <!-- Torso -->
+    <rect x="42" y="70" width="76" height="48" rx="14" fill="#2d1345"/>
+    <!-- Núcleo de vacío brillante en el pecho -->
+    <circle cx="80" cy="94" r="12" fill="#c084fc" stroke="#17110c" stroke-width="4"/>
+    <circle cx="80" cy="94" r="6" fill="#f3e8ff" stroke="none"/>
+    <!-- Hombreras -->
+    <path d="M26 64 L50 60 L44 92 L20 86 Z" fill="#3b0764"/>
+    <path d="M134 64 L110 60 L116 92 L140 86 Z" fill="#3b0764"/>
+    <!-- Cabeza -->
+    <rect x="58" y="32" width="44" height="40" rx="10" fill="#1e112a"/>
+    <!-- Cuernos del Vacío -->
+    <path d="M62 34 L46 16 L66 28 Z" fill="#9333ea"/>
+    <path d="M98 34 L114 16 L94 28 Z" fill="#9333ea"/>
+    <!-- Ojos violáceos luminosos -->
+    <circle cx="70" cy="52" r="5" fill="#f43f5e" stroke="none"/>
+    <circle cx="90" cy="52" r="5" fill="#f43f5e" stroke="none"/>
+    <path d="M68 62 Q80 66 92 62" fill="none" stroke="#a855f7" stroke-width="4"/>
+  </g>
+</svg>
