@@ -96,6 +96,12 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
     * `playResurrectionSound()`: Acorde mayor celestial arpegiado con campana brillante para el Rayo de Salvación.
     * `playAnnihilationSound()`: Trueno sordo con filtro paso bajo descendente y sub-bajo tenebroso para el Rayo del Juicio y la Lápida.
     * `playJackpotCoinsSound()`: Cascada metálica de 8 monedas para Blackjack Natural y Triple Siete.
+* **Auditoría de Diseño, Unificación Tipográfica y Ergonomía Táctil (WCAG 2.5.5):**
+  * **Unificación Tipográfica Offline:** Erradicadas las fuentes fantasma externas (`Cinzel`, `Outfit`, `Georgia`) que provocaban degradación a tipos de letra genéricos sin conexión. Toda la interfaz utiliza ahora el sistema local oficial `var(--font-display)` (Fredoka Bold para títulos, marcas e impacto) y `var(--font-ui)` (Nunito para lectura, cuerpos y diálogos).
+  * **Eliminación de Microtextos Ilegibles (<10px):** Subsanadas más de 60 ocurrencias de tamaños diminutos (7px, 8px, 8.5px, 9px) en descripciones de Lore, Bazar, Política de Privacidad, Rueda del Destino, Coliseo Arena, Ficha de Héroe y Logros, elevándolos a un rango plenamente legible de 10.5px a 12.5px en pantallas móviles.
+  * **Ergonomía Táctil Accesible:** Garantizada una altura de contacto mínima de **44px** (o padding generoso) en todos los botones primarios y de cierre modal (`closeFighterInspect`, `comic-skip-btn`, `rad-btn-*`, `btn-google-auth`, etc.) cumpliendo el estándar WCAG 2.5.5 y Material Design.
+  * **Tokens Paper Mario Centralizados:** Consolidada en `:root` la paleta de color y sombras entintadas de recorte (`--paper-ink: #17110c`, `--paper-shadow: 0 3px 0 #17110c`, `--touch-target-min: 44px`).
+  * **Saneamiento de Codificación CSS:** Reparado el bloque de efectos holográficos que contenía bytes nulos por mojibake heredado, garantizando un código CSS 100% válido y sin desperfectos sintácticos.
 
 ### [v1.7.0] — Octubre 2026
 * **Afinidad Elemental de los 4 Palos Conectada en Combate:**

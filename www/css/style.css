@@ -936,6 +936,10 @@
   --color-gold: #ffd166;
   --color-red: #e63946;
   --color-purple: #c77dff;
+  --paper-ink: #17110c;
+  --paper-shadow: 0 3px 0 #17110c;
+  --paper-shadow-lg: 0 5px 0 #17110c;
+  --touch-target-min: 44px;
 }
 
 header {
@@ -3674,8 +3678,8 @@ body.sudden-death-active #stage {
 }
 
 .chronicle-story-text {
-  font-family: 'Cinzel', 'Georgia', serif, var(--font-ui);
-  font-size: 12.5px;
+  font-family: var(--font-display);
+  font-size: 13px;
   color: #e2e8f0;
   line-height: 1.55;
   font-style: italic;
@@ -4863,7 +4867,7 @@ body.sudden-death-active #stage {
   position: absolute;
   bottom: 2px;
   right: 2px;
-  font-size: 6.5px;
+  font-size: 8px;
   font-weight: 800;
   font-family: var(--font-pixel, monospace);
   padding: 1px 3px;
@@ -5379,7 +5383,7 @@ body.sudden-death-active #stage {
   border-radius: 10px;
   border: 1.5px solid transparent;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   text-align: left;
   transition: all 0.2s ease;
@@ -6339,8 +6343,8 @@ body.sudden-death-active #stage {
 .frt-icon-wrap { text-align: center; margin-bottom: 8px; }
 .frt-icon { font-size: 36px; line-height: 1; filter: drop-shadow(0 0 12px rgba(102,252,241,0.5)); }
 .frt-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-size: 16px;
   font-weight: 800;
   color: #ffd166;
   text-align: center;
@@ -6349,7 +6353,7 @@ body.sudden-death-active #stage {
   letter-spacing: 0.5px;
 }
 .frt-body {
-  font-size: 10px;
+  font-size: 12px;
   color: #c5c6c7;
   line-height: 1.65;
   margin-bottom: 12px;
@@ -6370,22 +6374,22 @@ body.sudden-death-active #stage {
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   line-height: 1.2;
 }
-.tut-demo-card span:nth-child(2) { font-size: 10px; color: #e63946; }
-.tut-demo-card span:nth-child(3) { font-size: 9px; color: #64748b; }
+.tut-demo-card span:nth-child(2) { font-size: 11px; color: #e63946; }
+.tut-demo-card span:nth-child(3) { font-size: 10px; color: #64748b; }
 .tut-demo-total { font-size: 14px; font-weight: bold; color: #ffd166; margin-left: 4px; }
 .tut-tip-box {
   background: rgba(69,162,158,0.12);
   border-left: 3px solid #45a29e;
   border-radius: 0 8px 8px 0;
   padding: 8px 10px;
-  font-size: 9px;
+  font-size: 11.5px;
   color: #a8dadc;
   margin-top: 8px;
   line-height: 1.5;
 }
 .tut-bet-row { display: flex; gap: 6px; justify-content: center; margin: 8px 0; }
 .tut-bet-card { padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; text-align: center; border: 1.5px solid transparent; min-width: 60px; }
-.tut-bet-card div { font-size: 9px; font-weight: normal; margin-top: 2px; opacity: 0.8; }
+.tut-bet-card div { font-size: 10.5px; font-weight: normal; margin-top: 2px; opacity: 0.8; }
 .tut-bet-card.low  { background: rgba(69,162,158,0.15); border-color: #45a29e; color: #66fcf1; }
 .tut-bet-card.mid  { background: rgba(244,162,97,0.15);  border-color: #f4a261; color: #f4a261; }
 .tut-bet-card.high { background: rgba(230,57,70,0.15);   border-color: #e63946; color: #ff758f; }
@@ -6400,7 +6404,7 @@ body.sudden-death-active #stage {
   margin-bottom: 14px;
 }
 .frt-hint-icon { font-size: 12px; flex-shrink: 0; }
-.frt-hint { font-size: 9px; color: #ffd166; line-height: 1.45; font-style: italic; }
+.frt-hint { font-size: 11.5px; color: #ffd166; line-height: 1.45; font-style: italic; }
 .frt-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 14px; }
 .frt-dot {
   width: 7px;
@@ -6419,11 +6423,12 @@ body.sudden-death-active #stage {
 }
 .frt-btn-next {
   width: 100%;
+  min-height: 44px;
   padding: 12px 16px;
   background: linear-gradient(135deg, #45a29e, #2a9d8f);
   color: #0b0c10;
-  font-family: 'Outfit', sans-serif;
-  font-size: 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
   font-weight: 800;
   border: none;
   border-radius: 10px;
@@ -6448,8 +6453,8 @@ body.sudden-death-active #stage {
   margin: 6px 0;
 }
 .abyss-pact-name {
-  font-family: 'Outfit', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-size: 14px;
   font-weight: 800;
   color: #c77dff;
   margin-bottom: 10px;
@@ -6461,11 +6466,11 @@ body.sudden-death-active #stage {
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
-  font-size: 9px;
+  font-size: 11.5px;
   color: #c5c6c7;
 }
 .abyss-badge {
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: bold;
   padding: 2px 6px;
   border-radius: 10px;
@@ -6476,8 +6481,8 @@ body.sudden-death-active #stage {
 .abyss-badge.curse  { background: rgba(230,57,70,0.2);  color: #ff758f; border: 1px solid #e63946; }
 .abyss-badge.reward { background: rgba(69,162,158,0.2); color: #66fcf1; border: 1px solid #45a29e; }
 .abyss-pact-lore {
-  font-size: 9px;
-  color: #64748b;
+  font-size: 11px;
+  color: #94a3b8;
   font-style: italic;
   margin-top: 10px;
   border-top: 1px solid rgba(199,125,255,0.15);
@@ -6500,16 +6505,16 @@ body.sudden-death-active #stage {
 .wev-icon { font-size: 20px; flex-shrink: 0; }
 .wev-content { flex: 1; }
 .wev-name {
-  font-family: 'Outfit', sans-serif;
-  font-size: 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
   font-weight: 800;
   color: var(--wev-color, #ffd166);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
-.wev-desc { font-size: 9px; color: #c5c6c7; margin-top: 2px; }
+.wev-desc { font-size: 11px; color: #c5c6c7; margin-top: 2px; }
 .wev-badge {
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: bold;
   color: #0b0c10;
   background: var(--wev-color, #ffd166);
@@ -7671,21 +7676,21 @@ body.sudden-death-active #stage {
 }
 .amb-tag {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10.5px;
   color: #94a3b8;
   letter-spacing: 1px;
 }
 .amb-title {
   font-family: var(--font-pixel, monospace);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: bold;
   color: #ffd166;
   letter-spacing: 0.5px;
 }
 .amb-desc {
-  font-size: 9.5px;
+  font-size: 11px;
   color: #e2e8f0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 .arena-mutator-badge.theme-gold { border-color: rgba(255, 209, 102, 0.6); box-shadow: 0 0 12px rgba(255, 209, 102, 0.25); }
 .arena-mutator-badge.theme-gold .amb-title { color: #ffd166; }
@@ -7717,14 +7722,14 @@ body.sudden-death-active #stage {
 .awp-title {
   display: block;
   font-family: var(--font-pixel, monospace);
-  font-size: 9.5px;
+  font-size: 11.5px;
   color: #ffd166;
   letter-spacing: 0.8px;
   font-weight: bold;
 }
 .awp-subtitle {
   display: block;
-  font-size: 8.5px;
+  font-size: 11px;
   color: #94a3b8;
   margin-top: 2px;
 }
@@ -7768,19 +7773,19 @@ body.sudden-death-active #stage {
 .awp-icon { font-size: 14px; }
 .awp-tier {
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: bold;
   color: #f1f5f9;
 }
 .awp-tier-card.active .awp-tier { color: #ffd166; }
 .awp-tier-card.crypt.active .awp-tier { color: #ff758f; }
 .awp-fee {
-  font-size: 8px;
+  font-size: 10.5px;
   color: #cbd5e1;
 }
 .awp-pot {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   color: #ffd166;
   font-weight: bold;
 }
@@ -7908,7 +7913,7 @@ body.sudden-death-active #stage {
 }
 .arena-timer-caption {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10.5px;
   color: #94a3b8;
   text-align: center;
   margin-top: 3px;
@@ -7931,14 +7936,14 @@ body.sudden-death-active #stage {
 }
 .aoh-label {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   color: #66fcf1;
   letter-spacing: 0.8px;
   font-weight: bold;
 }
 .aoh-pct {
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 11px;
   color: #ffd166;
   font-weight: bold;
 }
@@ -8012,12 +8017,12 @@ body.sudden-death-active #stage {
 .opb-icon { font-size: 14px; }
 .opb-name {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: bold;
   color: #f1f5f9;
 }
 .opb-sub {
-  font-size: 7.5px;
+  font-size: 10px;
   color: #cbd5e1;
 }
 
@@ -8040,7 +8045,7 @@ body.sudden-death-active #stage {
   top: 2px;
   right: 4px;
   font-family: var(--font-pixel, monospace);
-  font-size: 7px;
+  font-size: 9.5px;
   padding: 1px 4px;
   background: #000;
   color: #ffd166;
@@ -8206,19 +8211,19 @@ body.sudden-death-active #stage {
 /* ARENA PVP: TELÉGRAFO DE PODER, AURA DE RIVAL Y MUERTE SÚBITA */
 .actor-power-badge {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10.5px;
   color: #ffd166;
   background: rgba(255, 209, 102, 0.12);
   border: 1px solid rgba(255, 209, 102, 0.35);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 3px 8px;
   margin-top: 3px;
   text-align: center;
   white-space: nowrap;
 }
 .actor-power-badge .rival-trait-pill {
   display: block;
-  font-size: 7.5px;
+  font-size: 10px;
   color: #66fcf1;
   letter-spacing: 0.5px;
   margin-top: 2px;
@@ -9526,13 +9531,13 @@ body.sudden-death-active #stage {
 }
 .campaign-badge {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: bold;
   color: #ffd166;
   letter-spacing: 0.5px;
 }
 .campaign-sub {
-  font-size: 8px;
+  font-size: 10.5px;
   color: #94a3b8;
 }
 .campaign-chapters-grid {
@@ -9568,23 +9573,23 @@ body.sudden-death-active #stage {
 }
 .campaign-ch-num {
   font-family: var(--font-pixel, monospace);
-  font-size: 7.5px;
+  font-size: 10px;
   color: #ffd166;
   font-weight: bold;
 }
 .campaign-ch-name {
-  font-size: 8px;
+  font-size: 10.5px;
   color: #e2e8f0;
   font-weight: 600;
   line-height: 1.1;
   margin: 2px 0;
 }
 .campaign-ch-boss {
-  font-size: 7px;
+  font-size: 9.5px;
   color: #94a3b8;
 }
 .campaign-ch-wp {
-  font-size: 7px;
+  font-size: 9.5px;
   margin-top: 2px;
   padding: 1px 4px;
   border-radius: 4px;
@@ -9603,7 +9608,7 @@ body.sudden-death-active #stage {
 }
 .dnd-odds-pill {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10.5px;
   font-weight: bold;
   padding: 2.5px 6px;
   border-radius: 5px;
@@ -9674,7 +9679,7 @@ body.sudden-death-active #stage {
   background: rgba(255, 255, 255, 0.04);
   padding: 4px 6px;
   border-radius: 6px;
-  font-size: 8.5px;
+  font-size: 11px;
 }
 .rpg-attr-btn {
   background: rgba(102, 252, 241, 0.2);
@@ -9696,16 +9701,15 @@ body.sudden-death-active #stage {
 
 .difficulty-desc-box {
   margin-top: 6px;
-  font-size: 9px;
+  font-size: 11.5px;
   color: #cbd5e1;
   text-align: center;
-  line-height: 1.35;
+  line-height: 1.4;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 6px 8px;
-  height: 62px;
-  max-height: 62px;
+  min-height: 62px;
   overflow-y: auto;
   box-sizing: border-box;
   display: flex;
@@ -9716,10 +9720,10 @@ body.sudden-death-active #stage {
 
 .diff-lore-box {
   margin-top: 4px;
-  font-size: 8.5px;
+  font-size: 11px;
   color: #94a3b8;
   font-style: italic;
-  line-height: 1.3;
+  line-height: 1.35;
   border-left: 2px solid #ffd166;
   padding-left: 6px;
   text-align: left;
@@ -10327,7 +10331,7 @@ body.sudden-death-active #stage {
   display: inline-block;
   padding: 2px 7px;
   border-radius: 4px;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   letter-spacing: 0.5px;
   border: 1px solid #17110c;
@@ -10457,14 +10461,14 @@ body.sudden-death-active #stage {
 
 .dc-header {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   letter-spacing: 0.3px;
 }
 
 .dc-epic-star {
   display: block;
-  font-size: 7px;
+  font-size: 9.5px;
   color: #b45309;
   font-weight: bold;
 }
@@ -10476,7 +10480,7 @@ body.sudden-death-active #stage {
 
 .dc-amount {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10.5px;
   font-weight: bold;
   color: #17110c;
 }
@@ -10487,9 +10491,9 @@ body.sudden-death-active #stage {
 
 .dc-badge {
   display: inline-block;
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 7px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 9.5px;
   font-family: var(--font-pixel, monospace);
   font-weight: bold;
 }
@@ -10566,7 +10570,7 @@ body.sudden-death-active #stage {
 }
 
 .dac-countdown-label {
-  font-size: 8px;
+  font-size: 11px;
   color: #94a3b8;
   margin-bottom: 2px;
 }
@@ -10584,7 +10588,7 @@ body.sudden-death-active #stage {
   margin: 0 12px 12px;
   min-height: 44px;
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: bold;
   color: #ffd166;
   background: #19202c;
@@ -10606,17 +10610,17 @@ body.sudden-death-active #stage {
 
 .hero-sheet-tab-btn {
   flex: 1;
-  min-height: 34px;
+  min-height: 40px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   color: #94a3b8;
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 10.5px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.15s ease;
-  padding: 4px 2px;
+  padding: 6px 4px;
   text-align: center;
 }
 
@@ -10645,7 +10649,7 @@ body.sudden-death-active #stage {
   position: absolute;
   top: 1px;
   right: 2px;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1;
   pointer-events: none;
 }
@@ -10721,7 +10725,7 @@ body.sudden-death-active #stage {
 
 .scs-name {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   color: #ffd166;
   font-weight: bold;
   flex: 1;
@@ -10729,7 +10733,7 @@ body.sudden-death-active #stage {
 
 .scs-rank {
   font-family: var(--font-pixel, monospace);
-  font-size: 7.5px;
+  font-size: 10px;
   background: #2a9d8f;
   color: #ffffff;
   padding: 1px 5px;
@@ -10738,21 +10742,21 @@ body.sudden-death-active #stage {
 }
 
 .scs-cond {
-  font-size: 8px;
+  font-size: 10.5px;
   color: #94a3b8;
   margin-bottom: 2px;
   font-style: italic;
 }
 
 .scs-effect {
-  font-size: 8.5px;
+  font-size: 11px;
   color: #66fcf1;
   font-weight: bold;
   margin-bottom: 2px;
 }
 
 .scs-next {
-  font-size: 7.5px;
+  font-size: 10px;
   color: #f4a261;
   border-top: 1px dashed rgba(255, 255, 255, 0.1);
   padding-top: 3px;
@@ -10760,7 +10764,7 @@ body.sudden-death-active #stage {
 }
 
 .scs-max {
-  font-size: 7.5px;
+  font-size: 10px;
   color: #ffd166;
   font-weight: bold;
   letter-spacing: 0.3px;
@@ -11029,13 +11033,13 @@ body.sudden-death-active #stage {
   transition: width 0.3s ease;
 }
 .ach-progress-count {
-  font-size: 8px;
+  font-size: 11px;
   color: #94a3b8;
   text-align: right;
 }
 .ach-filters-nav {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   overflow-x: auto;
   padding-bottom: 6px;
   margin-bottom: 10px;
@@ -11045,8 +11049,9 @@ body.sudden-death-active #stage {
   border: 1px solid rgba(255,255,255,0.15);
   color: #cbd5e1;
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
-  padding: 5px 8px;
+  font-size: 11px;
+  padding: 6px 10px;
+  min-height: 36px;
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
@@ -11109,13 +11114,13 @@ body.sudden-death-active #stage {
   color: #ffd166;
 }
 .ach-desc {
-  font-size: 8px;
+  font-size: 11px;
   color: #94a3b8;
   margin-top: 2px;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 .ach-status-badge {
-  font-size: 8px;
+  font-size: 10.5px;
   font-weight: bold;
   padding: 3px 6px;
   border-radius: 4px;
@@ -11141,11 +11146,11 @@ body.sudden-death-active #stage {
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(102, 252, 241, 0.3);
   border-radius: 16px;
-  padding: 4px 10px;
+  padding: 6px 12px;
   margin: 6px auto;
   cursor: pointer;
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   transition: all 0.2s ease;
 }
 .user-profile-chip:hover {
@@ -11153,14 +11158,14 @@ body.sudden-death-active #stage {
   border-color: #66fcf1;
 }
 .upc-avatar {
-  font-size: 11px;
+  font-size: 12px;
 }
 .upc-name {
   color: #f8f9fa;
   font-weight: bold;
 }
 .upc-status {
-  font-size: 7.5px;
+  font-size: 10.5px;
   color: #2a9d8f;
 }
 .config-account-card {
@@ -11178,20 +11183,20 @@ body.sudden-death-active #stage {
 }
 .cac-title {
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 11px;
   color: #66fcf1;
   font-weight: bold;
 }
 .cac-badge {
   font-family: var(--font-pixel, monospace);
-  font-size: 7.5px;
+  font-size: 10.5px;
   color: #2a9d8f;
 }
 .cac-desc {
-  font-size: 8.5px;
+  font-size: 11.5px;
   color: #cbd5e1;
   margin-bottom: 8px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 .cac-actions {
   display: flex;
@@ -11202,18 +11207,24 @@ body.sudden-death-active #stage {
   background: linear-gradient(135deg, #2a9d8f, #48cae4);
   color: #0b0c10;
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: bold;
-  padding: 7px 10px;
+  padding: 10px 12px;
+  min-height: 44px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-cloud-sync {
   background: rgba(255, 255, 255, 0.08);
   color: #f8f9fa;
-  font-size: 11px;
-  padding: 7px 12px;
+  font-size: 14px;
+  padding: 10px 14px;
+  min-height: 44px;
+  min-width: 44px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   cursor: pointer;
@@ -11223,69 +11234,64 @@ body.sudden-death-active #stage {
   justify-content: space-between;
   align-items: center;
   background: rgba(0, 0, 0, 0.35);
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
   margin-bottom: 8px;
-  font-size: 8.5px;
+  font-size: 11px;
   color: #cbd5e1;
 }
-/ *   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-       E F E C T O S   H O L O G R � F I C O S   ( F a s e   2 ) 
-       = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =   * / 
- 
- . c a r d - h o l o g r a p h i c   { 
-     p o s i t i o n :   r e l a t i v e ; 
-     o v e r f l o w :   h i d d e n ; 
- } 
- 
- . c a r d - h o l o g r a p h i c : : b e f o r e   { 
-     c o n t e n t :   ' ' ; 
-     p o s i t i o n :   a b s o l u t e ; 
-     t o p :   - 5 0 % ; 
-     l e f t :   - 5 0 % ; 
-     w i d t h :   2 0 0 % ; 
-     h e i g h t :   2 0 0 % ; 
-     b a c k g r o u n d :   c o n i c - g r a d i e n t ( 
-         f r o m   1 8 0 d e g   a t   5 0 %   5 0 % , 
-         r g b a ( 2 5 5 ,   2 5 5 ,   2 5 5 ,   0 . 1 )   0 d e g , 
-         r g b a ( 1 0 2 ,   2 5 2 ,   2 4 1 ,   0 . 2 )   6 0 d e g , 
-         r g b a ( 2 5 5 ,   2 5 5 ,   2 5 5 ,   0 . 1 )   1 2 0 d e g , 
-         r g b a ( 1 0 2 ,   2 5 2 ,   2 4 1 ,   0 . 2 )   1 8 0 d e g , 
-         r g b a ( 2 5 5 ,   2 5 5 ,   2 5 5 ,   0 . 1 )   2 4 0 d e g , 
-         r g b a ( 1 0 2 ,   2 5 2 ,   2 4 1 ,   0 . 2 )   3 0 0 d e g , 
-         r g b a ( 2 5 5 ,   2 5 5 ,   2 5 5 ,   0 . 1 )   3 6 0 d e g 
-     ) ; 
-     a n i m a t i o n :   h o l o g r a m S p i n   4 s   l i n e a r   i n f i n i t e ; 
-     p o i n t e r - e v e n t s :   n o n e ; 
-     m i x - b l e n d - m o d e :   o v e r l a y ; 
-     z - i n d e x :   0 ; 
- } 
- 
- . c a r d - h o l o g r a p h i c - l e g e n d a r y : : b e f o r e   { 
-     b a c k g r o u n d :   c o n i c - g r a d i e n t ( 
-         f r o m   1 8 0 d e g   a t   5 0 %   5 0 % , 
-         r g b a ( 2 5 5 ,   2 1 5 ,   0 ,   0 . 2 )   0 d e g , 
-         r g b a ( 2 5 5 ,   1 4 0 ,   0 ,   0 . 3 )   6 0 d e g , 
-         r g b a ( 2 5 5 ,   0 ,   1 2 8 ,   0 . 2 )   1 2 0 d e g , 
-         r g b a ( 1 3 8 ,   4 3 ,   2 2 6 ,   0 . 3 )   1 8 0 d e g , 
-         r g b a ( 0 ,   1 9 1 ,   2 5 5 ,   0 . 2 )   2 4 0 d e g , 
-         r g b a ( 0 ,   2 5 0 ,   1 5 4 ,   0 . 3 )   3 0 0 d e g , 
-         r g b a ( 2 5 5 ,   2 1 5 ,   0 ,   0 . 2 )   3 6 0 d e g 
-     ) ; 
-     a n i m a t i o n :   h o l o g r a m S p i n   3 s   l i n e a r   i n f i n i t e ; 
- } 
- 
- @ k e y f r a m e s   h o l o g r a m S p i n   { 
-     0 %   {   t r a n s f o r m :   r o t a t e ( 0 d e g ) ;   } 
-     1 0 0 %   {   t r a n s f o r m :   r o t a t e ( 3 6 0 d e g ) ;   } 
- } 
- 
- . c a r d - h o l o g r a p h i c   >   *   { 
-     p o s i t i o n :   r e l a t i v e ; 
-     z - i n d e x :   1 ; 
- } 
-  
- 
+
+/* ============================================================
+   EFECTOS HOLOGRÁFICOS (Fase 2)
+   ============================================================ */
+.card-holographic {
+  position: relative;
+  overflow: hidden;
+}
+.card-holographic::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    rgba(255, 255, 255, 0.1) 0deg,
+    rgba(102, 252, 241, 0.2) 60deg,
+    rgba(255, 255, 255, 0.1) 120deg,
+    rgba(102, 252, 241, 0.2) 180deg,
+    rgba(255, 255, 255, 0.1) 240deg,
+    rgba(102, 252, 241, 0.2) 300deg,
+    rgba(255, 255, 255, 0.1) 360deg
+  );
+  animation: hologramSpin 4s linear infinite;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+.card-holographic-legendary::before {
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    rgba(255, 215, 0, 0.2) 0deg,
+    rgba(255, 140, 0, 0.3) 60deg,
+    rgba(255, 0, 128, 0.2) 120deg,
+    rgba(138, 43, 226, 0.3) 180deg,
+    rgba(0, 191, 255, 0.2) 240deg,
+    rgba(0, 250, 154, 0.3) 300deg,
+    rgba(255, 215, 0, 0.2) 360deg
+  );
+  animation: hologramSpin 3s linear infinite;
+}
+@keyframes hologramSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.card-holographic > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* ESTILOS PVP MESA */
 .arena-combat-zone { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; padding: 10px; background: rgba(31,40,51,0.5); border: 1px solid #45a29e; border-radius: 8px; }
 .combat-actor-box { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100px; }
@@ -11384,14 +11390,14 @@ body.sudden-death-active #stage {
 
 .actor-name {
   font-family: var(--font-pixel, monospace) !important;
-  font-size: 8.5px !important;
+  font-size: 10px !important;
   color: #66fcf1 !important;
   margin-top: 4px !important;
   text-align: center !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  max-width: 74px !important;
+  max-width: 86px !important;
   text-shadow: 0 1px 3px rgba(0,0,0,0.9) !important;
 }
 
@@ -11539,9 +11545,9 @@ body.sudden-death-active #stage {
 }
 
 .pvr-desc {
-  font-size: 8.5px;
+  font-size: 11px;
   color: #e2e8f0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .pvr-claim-btn {
@@ -11663,7 +11669,7 @@ body.sudden-death-active #stage {
 }
 .splash-brand-title {
   margin: 2px 0;
-  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-size: 38px;
   letter-spacing: 4px;
@@ -11897,14 +11903,15 @@ body.sudden-death-active #stage {
 }
 .comic-act-tag {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   color: #48cae4;
   letter-spacing: 1.5px;
   display: block;
   margin-bottom: 3px;
+  font-weight: 800;
 }
 .comic-text {
-  font-size: 11px;
+  font-size: 12.5px;
   color: #f1f5f9;
   line-height: 1.5;
   margin: 0;
@@ -11995,7 +12002,7 @@ body.sudden-death-active #stage {
 .amc-tag {
   display: inline-block;
   padding: 2px 6px;
-  font-size: 7.5px;
+  font-size: 10px;
   font-family: var(--font-pixel, monospace);
   font-weight: bold;
   border-radius: 4px;
@@ -12105,13 +12112,13 @@ body.sudden-death-active #stage {
 }
 .splash-developed-by {
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
+  font-size: 11px;
   color: #94a3b8;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
 }
 .barita-hp-title {
-  font-family: "Cinzel", "Georgia", "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 900;
   letter-spacing: 6px;
@@ -12138,14 +12145,14 @@ body.sudden-death-active #stage {
 }
 .splash-tagline {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 11px;
   color: #ffd166;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-shadow: 0 0 8px rgba(255, 209, 102, 0.5);
 }
 .splash-tap-hint {
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 12px;
   color: #66fcf1;
   letter-spacing: 1.5px;
   margin-top: 10px;
@@ -12192,7 +12199,7 @@ body.sudden-death-active #stage {
 }
 .comic-badge {
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: bold;
   color: #ffd166;
   letter-spacing: 1px;
@@ -12220,8 +12227,9 @@ body.sudden-death-active #stage {
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #cbd5e1;
   font-family: var(--font-pixel, monospace);
-  font-size: 8.5px;
-  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
   min-height: 44px;
@@ -12314,17 +12322,17 @@ body.sudden-death-active #stage {
 }
 .comic-act-tag {
   font-family: var(--font-pixel, monospace);
-  font-size: 8px;
+  font-size: 11px;
   color: #ffd166;
-  font-weight: bold;
+  font-weight: 800;
   letter-spacing: 1px;
   display: block;
   margin-bottom: 4px;
 }
 .comic-text {
-  font-size: 11px;
+  font-size: 12.5px;
   color: #f1f5f9;
-  line-height: 1.45;
+  line-height: 1.5;
   margin: 0;
 }
 .comic-footer {
