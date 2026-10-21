@@ -7,8 +7,8 @@ Para compilar y verificar este proyecto se requiere el siguiente entorno en Wind
 | Herramienta | Versión / Ruta Requerida | Propósito |
 |---|---|---|
 | **Node.js** | v20+ / v22+ (`node`, `npm.cmd`) | Ejecución de scripts, tests y sincronización |
-| **Java JDK** | Java 21 LTS (`C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot`) | Compilación de Android con Gradle 8.14.3 |
-| **Android SDK** | `C:\Users\DELL\AppData\Local\Android\Sdk` (API 36, Build-Tools) | Compilación y herramientas nativas |
+| **Java JDK** | Java 21 LTS (`JAVA_HOME`) | Compilación de Android con Gradle 8.14.3 |
+| **Android SDK** | `%ANDROID_HOME%` / `$env:LOCALAPPDATA\Android\Sdk` (API 36, Build-Tools) | Compilación y herramientas nativas |
 | **Capacitor CLI** | 8.5.2 (vía dependencias locales de `package.json`) | Empaquetado de Web Assets en Android |
 
 > [!IMPORTANT]
@@ -67,7 +67,7 @@ call scripts\build-apk.bat
 
 ## 5. Ubicación y Trazabilidad del Binario Compilado
 
-- **Ruta del APK final:** `c:\Proyectos\Juego de prueba\BlackjackTorre21.apk`
+- **Ruta del APK final:** `./BlackjackTorre21.apk` (en la raíz del repositorio)
 - **Tamaño:** `12.451.350 bytes` (~12.45 MB)
 - **Hash SHA-256 Definitivo:** `DAB9C6D7DB06D3F113E7DA22DD2A49794FDB0E83E96CAFC90F0D8ED17634448D`
 - **Hash de Línea Base (`BlackjackTorre21.apk.bak`):** `7FBBD1B58CF1E4B0FEEE71400DF35CE0515991DB6E2D13FFF8CF578BF69A9C6B`
@@ -77,11 +77,11 @@ call scripts\build-apk.bat
 ## 6. Procedimiento de Instalación en Dispositivo Android
 
 1. Conectar el dispositivo Android con depuración USB activada.
-2. Ejecutar a través de ADB:
+2. Ejecutar a través de ADB (asegurando `adb` en PATH o vía SDK):
 ```powershell
-& "C:\Users\DELL\AppData\Local\Android\Sdk\platform-tools\adb.exe" install -r "C:\Proyectos\Juego de prueba\BlackjackTorre21.apk"
+adb install -r ".\BlackjackTorre21.apk"
 ```
 3. Lanzar la aplicación en el dispositivo o mediante comando:
 ```powershell
-& "C:\Users\DELL\AppData\Local\Android\Sdk\platform-tools\adb.exe" shell am start -n com.blacktower.roguelike/.MainActivity
+adb shell am start -n com.blacktower.roguelike/.MainActivity
 ```

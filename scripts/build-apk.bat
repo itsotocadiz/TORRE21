@@ -1,13 +1,23 @@
 @echo off
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
-set "PATH=%JAVA_HOME%\bin;%PATH%"
-cd /d "C:\Proyectos\Juego de prueba\android"
-echo [START] Gradle build iniciado a las %TIME% > "C:\Proyectos\Juego de prueba\build_apk.log"
-call gradlew.bat assembleDebug --rerun-tasks >> "C:\Proyectos\Juego de prueba\build_apk.log" 2>&1
-if %ERRORLEVEL% EQU 0 (
-    echo [GRADLE_OK] Compilacion exitosa. Copiando APK... >> "C:\Proyectos\Juego de prueba\build_apk.log"
-    copy /Y "C:\Proyectos\Juego de prueba\android\app\build\outputs\apk\debug\app-debug.apk" "C:\Proyectos\Juego de prueba\BlackjackTorre21.apk" >> "C:\Proyectos\Juego de prueba\build_apk.log" 2>&1
-    echo [DONE] APK generado y copiado como BlackjackTorre21.apk >> "C:\Proyectos\Juego de prueba\build_apk.log"
-) else (
-    echo [ERROR] Gradle fallo con codigo %ERRORLEVEL% >> "C:\Proyectos\Juego de prueba\build_apk.log"
+setlocal
+set "SCRIPT_DIR=%~dp0"
+for %%I in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fI"
+
+if not defined JAVA_HOME (
+    if exist "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot" (
+        set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
+    )
 )
+if defined JAVA_HOME set "PATH=%JAVA_HOME%\bin;%PATH%"
+
+cd /d "%REPO_ROOT%\android"
+echo [START] Gradle build iniciado a las %TIME% > "%REPO_ROOT%\build_apk.log"
+call gradlew.bat assembleDebug --rerun-tasks >> "%REPO_ROOT%\build_apk.log" 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo [GRADLE_OK] Compilacion exitosa. Copiando APK... >> "%REPO_ROOT%\build_apk.log"
+    copy /Y "%REPO_ROOT%\android\app\build\outputs\apk\debug\app-debug.apk" "%REPO_ROOT%\BlackjackTorre21.apk" >> "%REPO_ROOT%\build_apk.log" 2>&1
+    echo [DONE] APK generado y copiado como BlackjackTorre21.apk >> "%REPO_ROOT%\build_apk.log"
+) else (
+    echo [ERROR] Gradle fallo con codigo %ERRORLEVEL% >> "%REPO_ROOT%\build_apk.log"
+)
+endlocal

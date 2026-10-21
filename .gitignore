@@ -42,3 +42,24 @@ backup-pre-improvements/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Variables de entorno y secretos
+.env
+.env.*
+*.env
+
+# Firmas, certificados y almacenes de claves Android
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+*.pkcs12
+
+# Google Services y Play Billing
+google-services.json
+GoogleService-Info.plist
+*service-account*.json
+play-services-key.json
+

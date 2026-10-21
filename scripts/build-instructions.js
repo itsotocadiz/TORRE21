@@ -4,7 +4,7 @@ console.log(`
 ======================================================================
 
 El proyecto nativo de Android ya está 100% generado y configurado en:
-📁 c:\\Proyectos\\Juego de prueba\\android
+📁 ./android (dentro de la carpeta raíz del repositorio)
 
 Tienes 2 alternativas sencillas y profesionales para compilar el APK:
 
@@ -14,7 +14,7 @@ OPCIÓN 1: CON ANDROID STUDIO (RECOMENDADO Y MÁS RÁPIDO)
 1. Descarga e instala Android Studio si aún no lo tienes:
    https://developer.android.com/studio
 2. Abre Android Studio y haz clic en "Open":
-   Selecciona la carpeta: C:\\Proyectos\\Juego de prueba\\android
+   Selecciona la carpeta: ./android del repositorio
 3. Espera unos segundos a que Gradle sincronice las dependencias.
 4. En el menú superior de Android Studio, ve a:
    👉 Build > Build Bundle(s) / APK(s) > Build APK(s)
@@ -27,9 +27,9 @@ OPCIÓN 1: CON ANDROID STUDIO (RECOMENDADO Y MÁS RÁPIDO)
 OPCIÓN 2: POR CONSOLA (LÍNEA DE COMANDOS)
 ----------------------------------------------------------------------
 Si tienes JDK (Java Development Kit 17 o 21) instalado en tu PATH:
-1. Abre tu terminal en: C:\\Proyectos\\Juego de prueba\\android
-2. Ejecuta:
-   cmd /c gradlew assembleDebug
+1. Abre tu terminal en la carpeta raíz y ejecuta:
+   npm run build:apk
+   (O entra a ./android y ejecuta gradlew assembleDebug)
 3. El archivo APK se generará directamente en:
    android/app/build/outputs/apk/debug/app-debug.apk
 

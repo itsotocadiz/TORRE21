@@ -81,7 +81,10 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
     * *Marea Carmesí:* +3 de curación extra por carta de Corazones.
     * *Nebulosa del Trébol:* Oro de manos ganadas multiplicado x2.
 * **Física de Caída de Naipes Paper Mario (Micro-rotación Orgánica):**
-  * Incorporada micro-rotación aleatoria sutil (`rotate(-1.5deg)` a `rotate(1.8deg)`) en cada carta repartida al jugador y al enemigo, acentuando la estética de naipes de cartulina reales sobre el tapete.
+* **Auditoría DevSecOps y Blindaje para Repositorio Público:**
+  * Actualizado `.gitignore` con exclusiones estrictas de prevención para variables de entorno (`.env*`), almacenes de claves y certificados (`*.keystore`, `*.jks`, `*.pem`, `*.key`) y archivos de infraestructura (`google-services.json`, `*service-account*.json`).
+  * Sanitización y portabilidad de scripts de compilación (`scripts/build-apk.bat`, `scripts/build-apk.ps1`, `scripts/build-instructions.js`) usando rutas relativas automáticas en lugar de rutas absolutas locales.
+  * Sanitización de guías de auditoría eliminando rutas con nombres de usuario de desarrollo local.
 
 ### [v1.7.0] — Octubre 2026
 * **Afinidad Elemental de los 4 Palos Conectada en Combate:**
