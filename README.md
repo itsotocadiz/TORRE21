@@ -85,6 +85,11 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * Actualizado `.gitignore` con exclusiones estrictas de prevención para variables de entorno (`.env*`), almacenes de claves y certificados (`*.keystore`, `*.jks`, `*.pem`, `*.key`) y archivos de infraestructura (`google-services.json`, `*service-account*.json`).
   * Sanitización y portabilidad de scripts de compilación (`scripts/build-apk.bat`, `scripts/build-apk.ps1`, `scripts/build-instructions.js`) usando rutas relativas automáticas en lugar de rutas absolutas locales.
   * Sanitización de guías de auditoría eliminando rutas con nombres de usuario de desarrollo local.
+* **Preparación para Google Play Store y Seguridad Robusta (Fases 1–3):**
+  * **Política de Privacidad Pública y Web Standalone:** Creada página web independiente `privacy-policy.html` y guía de publicación `docs/GUIA_PUBLICACION_PLAY_STORE.md` con respuestas exactas para los cuestionarios IARC (*Simulated Gambling*) y Data Safety de Google Play Console.
+  * **Content Security Policy (CSP):** Incorporada cabecera meta CSP estricta en `index.html` para restringir la ejecución de scripts y carga de recursos.
+  * **Barajado Criptográfico (CSPRNG):** Sustituido `Math.random()` en `shuffleArray()` por `secureRandom()` con `crypto.getRandomValues()` para garantizar impredecibilidad matemática en el reparto de naipes.
+  * **Ciclo de Vida Nativo (@capacitor/app):** Integrado el listener nativo `appStateChange` para suspender el audio y persistir el estado de la partida automáticamente al enviar la aplicación a segundo plano en Android.
 
 ### [v1.7.0] — Octubre 2026
 * **Afinidad Elemental de los 4 Palos Conectada en Combate:**

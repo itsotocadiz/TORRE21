@@ -2460,9 +2460,21 @@
 
   let drawPile = [];
 
+  function secureRandom() {
+    try {
+      if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        return buf[0] / (0xffffffff + 1);
+      }
+    } catch (_) {}
+    return Math.random();
+  }
+  window.secureRandom = secureRandom;
+
   function shuffleArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(secureRandom() * (i + 1));
       const tmp = arr[i];
       arr[i] = arr[j];
       arr[j] = tmp;
@@ -17599,6 +17611,24 @@
   window.addEventListener("pagehide", () => {
     saveMidRunState();
   });
+
+  // Integración nativa Capacitor para pausar audio y persistir en background
+  try {
+    if (typeof window !== "undefined" && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.addListener("appStateChange", (state) => {
+        if (!state || !state.isActive) {
+          try { saveMidRunState(); } catch (_) {}
+          try { if (audioCtx && audioCtx.state === "running") audioCtx.suspend().catch(() => {}); } catch (_) {}
+        } else {
+          try {
+            if (audioCtx && gameState.audioEnabled && audioCtx.state === "suspended") {
+              audioCtx.resume().catch(() => {});
+            }
+          } catch (_) {}
+        }
+      });
+    }
+  } catch (_) {}
 
   /* ============================================================
      SISTEMA DE PESTAÑAS DEL MENÚ PRINCIPAL Y CÓDIGO PROMOCIONAL
