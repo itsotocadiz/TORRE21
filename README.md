@@ -72,7 +72,27 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Vestiduras Desbloqueables por Maestría:** La segunda vestidura de cada héroe se desbloquea automáticamente al alcanzar Nivel de Maestría 2 (y la tercera al Nivel 5) sin barreras monetarias iniciales.
 * **Navegación Móvil y Botón Atrás de Android:** Separado el panel de selección de capítulos de la dificultad de ascensión, incorporado el botón `◀ VOLVER AL MENÚ` de 44px de alto y enganchado al evento físico `backButton` de Capacitor.
 
-### [v1.7.0] — Octubre 2026 (Actual)
+### [v1.7.1] — Octubre 2026 (Actual)
+* **Corrección Crítica del Botón "⚡ FRENESÍ x3" y Recarga de Tiros en la Intro:**
+  * Desbloqueado el multiplicador x3 de oro: al presionar el botón `[⚡ FRENESÍ x3]`, se activa inmediatamente el temporizador de 15 segundos con multiplicador x3 (`introFrenzyMultiplier = 3`), eliminando el bloqueo que provocaba el fallback del anuncio simulado.
+  * Recarga táctica de lanzamientos: si el jugador agotó sus lanzamientos (`throwsLeft <= 0`) o le quedan pocos, el botón recarga automáticamente **+3 lanzamientos extra** de la pelota/héroe para cazar cartas y acumular oro multiplicado en la intro.
+  * Sonido triunfal de fanfarria y pulso háptico inmediato.
+* **Protección Táctil Anti-Bust en 20 Puntos y Bloqueo en 21:**
+  * Advertencia visual en `#btn-hit`: cuando la mano del jugador suma exactamente 20 puntos, el botón cambia de color a ámbar pulsante (`.btn-hit-warn`) con el texto `⚠️ PEDIR (TIENES 20)`.
+  * Doble confirmación táctil: el primer toque muestra advertencia de riesgo (`"⚠️ ¡Tienes 20 puntos! Pulsa de nuevo para confirmar riesgo de BUST"`) y cambia a `⚠️ ¿SEGURO? PEDIR`. Solo un segundo toque intencional pide carta, previniendo muertes accidentales por toques involuntarios.
+  * Bloqueo automático en 21 o más: el botón se desactiva de forma estricta para evitar pasarse de 21 una vez alcanzado el objetivo.
+* **Jackpot Euphoria (Blackjack Natural 21 y Triple 7):**
+  * Al sacar Blackjack Natural (21 con 2 cartas) o la combinación cósmica 7-7-7, se desata una sacudida de pantalla pesada (`heavy`), triple pulso háptico rítmico, texto flotante y un Jackpot de Oro extra (+5 Oro por 21 Natural, +15 Oro por Triple Siete).
+* **Mutadores del Abismo en Modo Sin Fin (Pisos > 21):**
+  * En pisos superiores al 21, se activan dinámicamente modificaciones de entorno cósmico que alteran las reglas del combate:
+    * *Tormenta Diamantina:* +6 de Escudo inicial para ambos combatientes.
+    * *Eclipse de Picas:* +3 de daño perforante puro por carta de Picas.
+    * *Marea Carmesí:* +3 de curación extra por carta de Corazones.
+    * *Nebulosa del Trébol:* Oro de manos ganadas multiplicado x2.
+* **Física de Caída de Naipes Paper Mario (Micro-rotación Orgánica):**
+  * Incorporada micro-rotación aleatoria sutil (`rotate(-1.5deg)` a `rotate(1.8deg)`) en cada carta repartida al jugador y al enemigo, acentuando la estética de naipes de cartulina reales sobre el tapete.
+
+### [v1.7.0] — Octubre 2026
 * **Afinidad Elemental de los 4 Palos Conectada en Combate:**
   * ♠️ **Picas (Filo de la Agonía):** Otorga +2 de daño perforante puro directo por naipe al ganar la mano.
   * ♦️ **Diamantes (Baluarte Sagrado):** Genera +2 de Escudo/Baluarte automático al ganar la mano.

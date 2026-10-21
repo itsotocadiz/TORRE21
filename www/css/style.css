@@ -13360,6 +13360,20 @@ body.sudden-death-active #stage {
   color: #ffd166;
 }
 
+/* --- ESTILO DE ADVERTENCIA ANTI-BUST EN 20 (BOTÓN PEDIR CARTA) --- */
+#btn-hit.btn-hit-warn {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  border-color: #fef08a !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.5) !important;
+  animation: pulseHitWarn 1.6s ease-in-out infinite;
+}
+
+@keyframes pulseHitWarn {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+  50% { transform: scale(1.02); box-shadow: 0 0 18px rgba(245, 158, 11, 0.7); }
+}
+
 /* --- MODAL OVERLAY CENTRADO DE ALTO NIVEL (TALENTOS, TUTORIALES & ASPECTOS) --- */
 .modal-overlay-center,
 .skin-modal-overlay {

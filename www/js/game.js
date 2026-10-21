@@ -7012,6 +7012,11 @@
       const isNewCard = !card._animPlayed;
       const dealClass = isNewCard ? "card-dealing" : "";
       el.className = `card-face player-card interactive-card ${dealClass} ${suitClass}`.replace(/\s+/g, ' ').trim();
+      if (typeof card._tiltDeg !== "number") {
+        const tiltPool = [-1.5, 1.2, -0.8, 1.8, -1.2, 1.5];
+        card._tiltDeg = tiltPool[idx % tiltPool.length];
+      }
+      el.style.transform = `rotate(${card._tiltDeg}deg)`;
       if (isNewCard) {
         el.style.animationDelay = `${idx * 90}ms`;
         card._animPlayed = true;
@@ -7079,6 +7084,11 @@
       const isNewEnemyCard = !card._animPlayed;
       const dealClass = isNewEnemyCard ? "card-dealing" : "";
       el.className = `card-face enemy-card ${dealClass} ${suitClass}`.replace(/\s+/g, ' ').trim();
+      if (typeof card._tiltDeg !== "number") {
+        const tiltPool = [1.4, -1.6, 1.1, -1.9, 0.9, -1.3];
+        card._tiltDeg = tiltPool[i % tiltPool.length];
+      }
+      el.style.transform = `rotate(${card._tiltDeg}deg)`;
       if (isNewEnemyCard) {
         el.style.animationDelay = `${i * 90}ms`;
         card._animPlayed = true;
@@ -7165,9 +7175,23 @@
       return;
     }
 
-    if (hitBtn) hitBtn.disabled = false;
+    if (hitBtn) {
+      if (p.playerScore >= 21) {
+        hitBtn.disabled = true;
+        hitBtn.classList.remove("btn-hit-warn");
+        hitBtn.innerText = "🃏 PEDIR CARTA";
+      } else if (p.playerScore === 20) {
+        hitBtn.disabled = false;
+        hitBtn.classList.add("btn-hit-warn");
+        hitBtn.innerText = p._confirmedHit20 ? "⚠️ ¿SEGURO? PEDIR" : "⚠️ PEDIR (TIENES 20)";
+      } else {
+        hitBtn.disabled = false;
+        hitBtn.classList.remove("btn-hit-warn");
+        hitBtn.innerText = "🃏 PEDIR CARTA";
+      }
+    }
     if (standBtn) standBtn.disabled = false;
-    if (doubleBtn) doubleBtn.disabled = p.stand || (p.playerHand && p.playerHand.length !== 2);
+    if (doubleBtn) doubleBtn.disabled = p.stand || (p.playerHand && p.playerHand.length !== 2) || (p.playerScore >= 21);
     if (rerollBtn) rerollBtn.disabled = (p.rerollsAvailable <= 0);
     if (potionBtn) potionBtn.disabled = (p.potions <= 0);
 
@@ -7411,11 +7435,24 @@
     }
 
     if (action === "hit") {
-      if (p.bust) {
+      if (p.bust || p.playerScore >= 21) {
         triggerHaptic("button_click");
-        addLog("No puedes pedir carta — ya te pasaste de 21.", "warning");
+        addLog("No puedes pedir carta — ya alcanzaste 21 o te pasaste.", "warning");
         return;
       }
+
+      // Protección táctil Anti-Bust: advertir primero si la mano suma exactamente 20
+      if (p.playerScore === 20 && !p._confirmedHit20) {
+        p._confirmedHit20 = true;
+        try { triggerHaptic("warning"); } catch (_) {}
+        updateCombatState();
+        if (typeof showGameToast === "function") {
+          showGameToast("⚠️ ¡Tienes 20 puntos! Pulsa de nuevo para confirmar riesgo de BUST.", "warn");
+        }
+        addLog("⚠️ ¡Atención! Tienes 20 puntos. Pulsa 'Pedir Carta' nuevamente si confirmas el riesgo de BUST.", "warning");
+        return;
+      }
+      p._confirmedHit20 = false;
 
       triggerHaptic("card_draw");
       try { playHitActionSound(); } catch (_) {}
@@ -7535,6 +7572,7 @@
     }
 
     if (action === "stand") {
+      p._confirmedHit20 = false;
       triggerHaptic("stand");
       try { playStandActionSound(); } catch (_) {}
       if (p.bust) {
@@ -14635,7 +14673,27 @@
       await sleep(450);
 
     } else if (isPlayerWin) {
-      if (p.playerScore === 21) {
+      const isNatural21 = p.blackjack && p.playerHand.length === 2;
+      const isTripleSeven = p.playerHand && p.playerHand.length === 3 && p.playerHand.every(c => c && (c.value === 7 || c.rank === "7"));
+
+      if (isNatural21 || isTripleSeven) {
+        try { playBlackjackFanfareSound(); } catch (_) {}
+        triggerScreenShake("heavy");
+        try {
+          triggerHaptic("blackjack");
+          setTimeout(() => { try { triggerHaptic("blackjack"); } catch (_) {} }, 160);
+          setTimeout(() => { try { triggerHaptic("blackjack"); } catch (_) {} }, 320);
+        } catch (_) {}
+        const jackpotGold = isTripleSeven ? 15 : 5;
+        gameState.gold = (gameState.gold || 0) + jackpotGold;
+        if (isTripleSeven) {
+          spawnFloatingText("player-sprite", "✨ ¡TRIPLE 7 ASTRAL! (+15 🪙)", "crit");
+          addLog("✨ ¡JACKPOT TRIPLE 7! La constelación sagrada te otorga +15 Oro extra.", "critical");
+        } else {
+          spawnFloatingText("player-sprite", "💥 ¡BLACKJACK NATURAL! (+5 🪙)", "crit");
+          addLog("💥 ¡JACKPOT NATURAL 21! La banca premia tu mano perfecta con +5 Oro.", "critical");
+        }
+      } else if (p.playerScore === 21) {
         try { playBlackjackFanfareSound(); } catch (_) {}
       }
 
@@ -14696,7 +14754,6 @@
       p._winStreak = (p._winStreak || 0) + 1;
 
       // FASE 3 (R-02): SINERGIAS CONDICIONALES DE VESTIDURAS
-      const isNatural21 = p.blackjack && p.playerHand.length === 2;
       if (typeof applyEquippedSkinSynergy === "function") {
         applyEquippedSkinSynergy("hand_win", p, e, gameState);
         if (p.playerScore === 20 || p.playerScore === 21) applyEquippedSkinSynergy("hand_win_high", p, e, gameState);
@@ -14863,10 +14920,11 @@
         else if (s === "♣" || s === "clubs") suitClubs++;
       });
       if (suitSpades > 0) {
-        const pierceDmg = suitSpades * 2;
+        const perSpade = 2 + (p._spadesEclipseBonus || 0);
+        const pierceDmg = suitSpades * perSpade;
         dmg += pierceDmg;
         spawnFloatingText("enemy-sprite", `🗡️ -${pierceDmg} PERFORACIÓN ♠`, "crit");
-        addLog(`🗡️ Afinidad de Picas (♠): +${pierceDmg} daño de corte perforante (${suitSpades} cartas).`, "critical");
+        addLog(`🗡️ Afinidad de Picas (♠): +${pierceDmg} daño de corte perforante (${suitSpades} cartas${p._spadesEclipseBonus ? ' • Eclipse +3' : ''}).`, "critical");
       }
       if (suitDiamonds > 0) {
         const dShield = suitDiamonds * 2;
@@ -14876,16 +14934,18 @@
         addLog(`🛡️ Afinidad de Diamantes (♦): +${dShield} Baluarte defensivo (${suitDiamonds} cartas).`, "heal");
       }
       if (suitHearts > 0) {
-        const hHeal = suitHearts * 2;
+        const perHeart = 2 + (p._heartsTideBonus || 0);
+        const hHeal = suitHearts * perHeart;
         p.hp = Math.min(p.maxHp, p.hp + hHeal);
         spawnFloatingText("player-sprite", `❤️ +${hHeal} HP ♥`, "heal");
-        addLog(`❤️ Afinidad de Corazones (♥): +${hHeal} HP regenerados (${suitHearts} cartas).`, "heal");
+        addLog(`❤️ Afinidad de Corazones (♥): +${hHeal} HP regenerados (${suitHearts} cartas${p._heartsTideBonus ? ' • Marea +3' : ''}).`, "heal");
       }
       if (suitClubs > 0) {
-        const cGold = suitClubs * 1;
+        const goldMult = (p._cloverNebulaMult || 1);
+        const cGold = suitClubs * 1 * goldMult;
         gameState.gold = (gameState.gold || 0) + cGold;
         spawnFloatingText("player-sprite", `🪙 +${cGold} ORO ♣`, "gold");
-        addLog(`♣️ Afinidad de Tréboles (♣): +${cGold} Oro de fortuna arcana (${suitClubs} cartas).`, "gold");
+        addLog(`♣️ Afinidad de Tréboles (♣): +${cGold} Oro de fortuna arcana (${suitClubs} cartas${goldMult > 1 ? ' • Nebulosa x2' : ''}).`, "gold");
       }
       if (hasCardUpgrade("astral_ace") && isNatural21) {
         dmg = Math.round(dmg * 1.5);
@@ -16344,6 +16404,25 @@
     }
 
     saveMidRunState();
+
+    // Mutadores del Abismo para Modo Sin Fin (Pisos > 21)
+    if (gameState.floor > 21) {
+      const mutators = [
+        { name: "Tormenta Diamantina", icon: "♦️", desc: "+6 Escudo inicial a ambos", apply: () => { gameState.status.playerShield = (gameState.status.playerShield || 0) + 6; e.shield = (e.shield || 0) + 6; } },
+        { name: "Eclipse de Picas", icon: "♠️", desc: "+3 daño perforante de Picas", apply: () => { p._spadesEclipseBonus = 3; } },
+        { name: "Marea Carmesí", icon: "♥️", desc: "+3 curación de Corazones", apply: () => { p._heartsTideBonus = 3; } },
+        { name: "Nebulosa del Trébol", icon: "♣️", desc: "Oro por Tréboles x2", apply: () => { p._cloverNebulaMult = 2; } }
+      ];
+      const mutIdx = gameState.floor % mutators.length;
+      const curMut = mutators[mutIdx];
+      curMut.apply();
+      addLog(`🌌 Mutador del Abismo: ${curMut.icon} ${curMut.name} (${curMut.desc}).`, "critical");
+      spawnFloatingText("player-sprite", `${curMut.icon} ${curMut.name}`, "crit");
+    } else {
+      p._spadesEclipseBonus = 0;
+      p._heartsTideBonus = 0;
+      p._cloverNebulaMult = 1;
+    }
 
     // FASE 2.4 — Pacto del Abismo (15% de probabilidad pisos 5-10)
     if (typeof checkAbyssPactEvent === "function" && checkAbyssPactEvent(gameState)) {
@@ -18404,7 +18483,20 @@
       window.introFrenzyMultiplier = 3;
       window._frenzyTowerBenefit = true;
       try { playWinFanfareSound(); } catch (_) {}
-      triggerHaptic("blackjack");
+      try { triggerHaptic("blackjack"); } catch (_) {}
+
+      // Recargar tiros de la pelota para que el jugador pueda aprovechar el frenesí
+      if (typeof introMinigameState !== "undefined") {
+        introMinigameState.throwsLeft = Math.min(8, Math.max((introMinigameState.throwsLeft || 0) + 3, 3));
+        const throwsEl = document.getElementById("intro-throws-val");
+        if (throwsEl) {
+          throwsEl.textContent = `${introMinigameState.throwsLeft}/${introMinigameState.maxThrows}`;
+        }
+      }
+
+      if (typeof showGameToast === "function") {
+        showGameToast("⚡ ¡FRENESÍ x3 ACTIVADO! (+3 Tiros Extra)", "gold");
+      }
 
       let secsLeft = 15;
       if (btn) {
@@ -18428,12 +18520,7 @@
       }, 1000);
     }
 
-    window._onFrenzyAdReward = startFrenzyCountdown;
-    if (typeof showRewardedAdModal === "function") {
-      showRewardedAdModal("ad_frenzy");
-    } else {
-      startFrenzyCountdown();
-    }
+    startFrenzyCountdown();
   }
   window.triggerIntroFrenzy = triggerIntroFrenzy;
 
