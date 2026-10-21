@@ -104,6 +104,10 @@ check('sin canales masterGainNode.gain.setValueAtTime extra (límite del test sp
 console.log('\n== 6. Enganches de escena ==');
 check('showShopModal lanza la música del bazar', /function\s+showShopModal\s*\([\s\S]{0,300}startTrackedSceneMusic\s*\(\s*"bazaar"/.test(gameSrc));
 check('chooseCampfireRest lanza la música de la fogata', /function\s+chooseCampfireRest\s*\([\s\S]{0,500}startTrackedSceneMusic\s*\(\s*"campfire"/.test(gameSrc));
+check('showFateWheel detiene combate y arranca la música de la Rueda', /function\s+showFateWheel\s*\([\s\S]{0,800}stopCombatMusic\s*\(\s*\)[\s\S]{0,200}startFateWheelMusic\s*\(\s*\)/.test(gameSrc));
+check('define playResurrectionSound', /function\s+playResurrectionSound\s*\(/.test(gameSrc) && /window\.playResurrectionSound\s*=/.test(gameSrc));
+check('define playAnnihilationSound', /function\s+playAnnihilationSound\s*\(/.test(gameSrc) && /window\.playAnnihilationSound\s*=/.test(gameSrc));
+check('define playJackpotCoinsSound', /function\s+playJackpotCoinsSound\s*\(/.test(gameSrc) && /window\.playJackpotCoinsSound\s*=/.test(gameSrc));
 
 /* ---------- 7. Pistas CC0 descargadas y referenciadas ---------- */
 console.log('\n== 7. Pistas de música en assets/audio ==');

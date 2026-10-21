@@ -1283,12 +1283,12 @@
     try {
       const t = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
-      const g = audioGain(0.28);
+      const g = audioGain(0.22);
       if (g) {
         osc.type = "triangle";
         osc.frequency.setValueAtTime(1450, t);
         osc.frequency.exponentialRampToValueAtTime(220, t + 0.018);
-        g.gain.setValueAtTime(0.28, t);
+        g.gain.setValueAtTime(0.22, t);
         g.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
         osc.connect(g);
         osc.start(t);
@@ -1297,6 +1297,119 @@
     } catch (_) {}
   }
   window.playWheelTickSound = playWheelTickSound;
+
+  function playResurrectionSound() {
+    if (!gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      const t = audioCtx.currentTime;
+      // 1. Acorde celestial arpegiado (Fa4, La4, Do5, Fa5, La5)
+      const notes = [349.23, 440.0, 523.25, 698.46, 880.0];
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioGain(0.22);
+        if (!g) return;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.setValueAtTime(0.22, t + idx * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.08 + 1.2);
+        osc.connect(g);
+        osc.start(t + idx * 0.08);
+        osc.stop(t + idx * 0.08 + 1.25);
+      });
+      // 2. Campana brillante de bendición
+      const bell = audioCtx.createOscillator();
+      const bellGain = audioGain(0.18);
+      if (bellGain) {
+        bell.type = "triangle";
+        bell.frequency.setValueAtTime(1046.5, t + 0.35); // Do6
+        bellGain.gain.setValueAtTime(0.18, t + 0.35);
+        bellGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+        bell.connect(bellGain);
+        bell.start(t + 0.35);
+        bell.stop(t + 1.65);
+      }
+    } catch (_) {}
+  }
+  window.playResurrectionSound = playResurrectionSound;
+
+  function playAnnihilationSound() {
+    if (!gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      const t = audioCtx.currentTime;
+      // 1. Trueno destructor con filtro paso bajo descendente
+      const bufferSize = Math.floor(audioCtx.sampleRate * 0.9);
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99 * b0 + white * 0.05;
+        b1 = 0.95 * b1 + white * 0.1;
+        b2 = 0.85 * b2 + white * 0.25;
+        output[i] = (b0 + b1 + b2) * 0.6;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(500, t);
+      filter.frequency.exponentialRampToValueAtTime(45, t + 0.85);
+
+      const noiseGain = audioGain(0.45);
+      if (noiseGain) {
+        noiseGain.gain.setValueAtTime(0.45, t);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noise.start(t);
+        noise.stop(t + 0.95);
+      }
+
+      // 2. Sub-bajo tenebroso en 55 Hz
+      const sub = audioCtx.createOscillator();
+      const subGain = audioGain(0.38);
+      if (subGain) {
+        sub.type = "sawtooth";
+        sub.frequency.setValueAtTime(75, t);
+        sub.frequency.exponentialRampToValueAtTime(38, t + 0.9);
+        subGain.gain.setValueAtTime(0.38, t);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+        sub.connect(subGain);
+        sub.start(t);
+        sub.stop(t + 1.05);
+      }
+    } catch (_) {}
+  }
+  window.playAnnihilationSound = playAnnihilationSound;
+
+  function playJackpotCoinsSound() {
+    if (!gameState.audioEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    try {
+      const t = audioCtx.currentTime;
+      const freqs = [1975, 2349, 2093, 2637, 2489, 3135, 2793, 3520];
+      freqs.forEach((freq, i) => {
+        const coinTime = t + i * 0.055;
+        const osc = audioCtx.createOscillator();
+        const g = audioGain(0.22);
+        if (!g) return;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, coinTime);
+        g.gain.setValueAtTime(0.22, coinTime);
+        g.gain.exponentialRampToValueAtTime(0.001, coinTime + 0.12);
+        osc.connect(g);
+        osc.start(coinTime);
+        osc.stop(coinTime + 0.14);
+      });
+    } catch (_) {}
+  }
+  window.playJackpotCoinsSound = playJackpotCoinsSound;
 
   function playLevelUpSound() {
     if (!gameState.audioEnabled) return;
@@ -1613,6 +1726,9 @@
     [523, 659, 784, 1046].forEach((f, idx) => {
       setTimeout(() => playTone(f, 0.1, "sine", 0.7), idx * 60);
     });
+    setTimeout(() => {
+      try { playJackpotCoinsSound(); } catch (_) {}
+    }, 240);
   }
   window.playJackpotSound = playJackpotSound;
 
@@ -2210,26 +2326,46 @@
     stopProceduralSceneMusic();
     activeProceduralScene = "fate_wheel";
     activeProceduralStep = 0;
-    const stepDuration = 200;
+    const stepDuration = 220;
 
     activeProceduralMusicInterval = setInterval(() => {
       if (!gameState.audioEnabled || !audioCtx || activeProceduralScene !== "fate_wheel") return;
-      const freq = FATE_WHEEL_STEPS[activeProceduralStep % FATE_WHEEL_STEPS.length];
+      const step = activeProceduralStep % FATE_WHEEL_STEPS.length;
+      const freq = FATE_WHEEL_STEPS[step];
       const t = audioCtx.currentTime;
 
+      // 1. Arpegio místico de cuerdas/viento suspendido
       try {
         const osc = audioCtx.createOscillator();
-        const g = musicGain(0.08);
+        const g = musicGain(0.12);
         if (g) {
-          osc.type = "triangle";
+          osc.type = "sine";
           osc.frequency.setValueAtTime(freq, t);
-          g.gain.setValueAtTime(0.08, t);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+          g.gain.setValueAtTime(0.001, t);
+          g.gain.linearRampToValueAtTime(0.12, t + 0.04);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
           osc.connect(g);
           osc.start(t);
-          osc.stop(t + 0.19);
+          osc.stop(t + 0.3);
         }
       } catch (_) {}
+
+      // 2. Cada 8 pasos: campana de juicio / drone en Re grave (73.4 Hz + 146.8 Hz)
+      if (step === 0) {
+        try {
+          const bell = audioCtx.createOscillator();
+          const bg = musicGain(0.16);
+          if (bg) {
+            bell.type = "triangle";
+            bell.frequency.setValueAtTime(73.42, t); // Re2
+            bg.gain.setValueAtTime(0.16, t);
+            bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+            bell.connect(bg);
+            bell.start(t);
+            bell.stop(t + 1.75);
+          }
+        } catch (_) {}
+      }
 
       activeProceduralStep = (activeProceduralStep + 1) % FATE_WHEEL_STEPS.length;
     }, stepDuration);
@@ -15678,6 +15814,13 @@
     result.style.color = "";
     if (wheelCountdownTimer) clearInterval(wheelCountdownTimer);
 
+    // Detener música de combate/tensión y activar la atmósfera solemne de la Rueda
+    try {
+      stopCombatMusic();
+      stopSuddenDeathTension();
+      startFateWheelMusic();
+    } catch (_) {}
+
     // Resetear escenario teatral de la Rueda (actores y rayos)
     const beam = document.getElementById("wheel-beam");
     const kneeling = document.getElementById("wheel-actor-kneeling");
@@ -15747,11 +15890,14 @@
               tomb.classList.remove("hidden");
               tomb.classList.add("tomb-drop");
             }
-            try { playHitSound(); } catch (_) {}
+            try { playAnnihilationSound(); } catch (_) {
+              try { playHitSound(); } catch (_) {}
+            }
             triggerHaptic("heavy");
             result.innerHTML = "⚡ <b>¡EL DESTINO NO ESPERA!</b><br><span style='font-size:8.5px;color:#fca5a5;font-style:italic;'>\"Aquí descansa quien dudó ante la Torre del 21. La vacilación es muerte.\"</span>";
             result.style.color = "#e63946";
             setTimeout(() => {
+              try { stopFateWheelMusic(); } catch (_) {}
               overlay.classList.add("hidden");
               showGameOver();
             }, 1500);
@@ -16007,6 +16153,7 @@
       applyWheelOutcome(sliceIndex);
       updateHud();
       await sleep(2000);
+      try { stopFateWheelMusic(); } catch (_) {}
       document.getElementById("screen-fate-wheel").classList.add("hidden");
       finishFloor(true);
     } else {
@@ -16020,13 +16167,19 @@
         setPlayerSpriteState("idle");
         if (beam) beam.className = "wheel-light-beam beam-salvation";
         if (kneeling) kneeling.classList.remove("kneeling-tremble");
-        try { playVictorySound(); } catch (_) {}
+        try { playResurrectionSound(); } catch (_) {
+          try { playVictorySound(); } catch (_) {}
+        }
         triggerHaptic("blackjack");
         result.innerHTML = `✨ <b>¡RAYO DE SALVACIÓN!</b><br><span style="font-size:9px;color:#cbd5e1;">El Destino te otorga un segundo aliento (+${heal} HP).</span>`;
         result.style.color = "#2a9d8f";
         addLog(`La Rueda del Destino te concedió una segunda oportunidad (+${heal} HP).`, "heal");
         updateHud();
         setTimeout(() => {
+          try {
+            stopFateWheelMusic();
+            startCombatMusic();
+          } catch (_) {}
           document.getElementById("screen-fate-wheel").classList.add("hidden");
           showBetScreen();
         }, 1500);
@@ -16037,12 +16190,15 @@
           tomb.classList.remove("hidden");
           tomb.classList.add("tomb-drop");
         }
-        try { playHitSound(); } catch (_) {}
+        try { playAnnihilationSound(); } catch (_) {
+          try { playHitSound(); } catch (_) {}
+        }
         triggerHaptic("heavy");
         result.innerHTML = `⚡ <b>¡EL RAYO DEL JUICIO TE HA PULVERIZADO!</b><br><span style="font-size:8.5px;color:#fca5a5;font-style:italic;">"Aquí descansa quien desafió a la Torre del 21. El Destino no concede tregua."</span>`;
         result.style.color = "#e63946";
         addLog("⚡ Rayo del Juicio: La Rueda del Destino dictó tu final. Game Over.", "damage");
         await sleep(1500);
+        try { stopFateWheelMusic(); } catch (_) {}
         document.getElementById("screen-fate-wheel").classList.add("hidden");
         showGameOver();
       }

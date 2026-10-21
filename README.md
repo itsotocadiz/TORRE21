@@ -89,7 +89,13 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * **Política de Privacidad Pública y Web Standalone:** Creada página web independiente `privacy-policy.html` y guía de publicación `docs/GUIA_PUBLICACION_PLAY_STORE.md` con respuestas exactas para los cuestionarios IARC (*Simulated Gambling*) y Data Safety de Google Play Console.
   * **Content Security Policy (CSP):** Incorporada cabecera meta CSP estricta en `index.html` para restringir la ejecución de scripts y carga de recursos.
   * **Barajado Criptográfico (CSPRNG):** Sustituido `Math.random()` en `shuffleArray()` por `secureRandom()` con `crypto.getRandomValues()` para garantizar impredecibilidad matemática en el reparto de naipes.
-  * **Ciclo de Vida Nativo (@capacitor/app):** Integrado el listener nativo `appStateChange` para suspender el audio y persistir el estado de la partida automáticamente al enviar la aplicación a segundo plano en Android.
+* **Auditoría y Rediseño del Paisaje Sonoro (Rueda del Destino y SFX de Clímax):**
+  * **Aislamiento Musical de la Rueda del Destino / Resurrección:** Corregida la fuga musical que mantenía el combate sonando en la pantalla de la Rueda. Al entrar a la Rueda se detiene el combate y se activa la atmósfera solemne de juicio y trance (`startFateWheelMusic`), deteniéndose formalmente al resolver el destino.
+  * **Música Enriquecida de la Rueda:** Añadido un tañido periódico de campana catedralicia en Re bajo con arpegios suspendidos para crear una experiencia inmersiva de vida o muerte.
+  * **Efectos Sonoros Exclusivos (Stingers):**
+    * `playResurrectionSound()`: Acorde mayor celestial arpegiado con campana brillante para el Rayo de Salvación.
+    * `playAnnihilationSound()`: Trueno sordo con filtro paso bajo descendente y sub-bajo tenebroso para el Rayo del Juicio y la Lápida.
+    * `playJackpotCoinsSound()`: Cascada metálica de 8 monedas para Blackjack Natural y Triple Siete.
 
 ### [v1.7.0] — Octubre 2026
 * **Afinidad Elemental de los 4 Palos Conectada en Combate:**
