@@ -4602,7 +4602,7 @@
       name: "♠️ Rama del Filo (Picas)",
       desc: "Daño físico, penetración de armadura e impactos vorpales.",
       tiers: [
-        { id: "spades_1", name: "Filo Templado", desc: "+3% Daño físico por rango.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "spades_1", name: "Afinidad del Filo", desc: "Despierta la Afinidad de Picas: +2 daño perforante puro por carta de Picas al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
         { id: "spades_2", name: "Precisión de Acero", desc: "+3% Probabilidad Crítica predictiva.", maxRank: 2, cost: 2, reqBranch: 2 },
         { id: "spades_3", name: "Estocada Vorpal", desc: "+10% Daño con manos de 20 o 21.", maxRank: 2, cost: 3, reqBranch: 5 },
         { id: "spades_4", name: "Filo Vampírico", desc: "El 21 restaura 8% del impacto en salud.", maxRank: 1, cost: 4, reqBranch: 8 },
@@ -4614,7 +4614,7 @@
       name: "♦️ Rama del Baluarte (Diamantes)",
       desc: "Coraza diamantina, mitigación de golpes y escudos de piso.",
       tiers: [
-        { id: "diamonds_1", name: "Baluarte Diamantino", desc: "+3 Escudo azul al inicio de cada piso.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "diamonds_1", name: "Afinidad del Baluarte", desc: "Despierta la Afinidad de Diamantes: +2 Escudo protector por carta de Diamantes al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
         { id: "diamonds_2", name: "Coraza Reactiva", desc: "Mitiga 2 de daño de cada contraataque rival.", maxRank: 2, cost: 2, reqBranch: 2 },
         { id: "diamonds_3", name: "Guardia Sagrada", desc: "Absorbe 50% del primer contraataque de cada piso.", maxRank: 1, cost: 3, reqBranch: 5 },
         { id: "diamonds_4", name: "Muralla Inamovible", desc: "+1 DEF base permanente.", maxRank: 1, cost: 4, reqBranch: 8 },
@@ -4626,7 +4626,7 @@
       name: "♥️ Rama de la Vitalidad (Corazones)",
       desc: "Salud máxima, regeneración al vencer y purificación solar.",
       tiers: [
-        { id: "hearts_1", name: "Vigor del Tahúr", desc: "+8 HP Máximo permanente.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "hearts_1", name: "Afinidad Vital", desc: "Despierta la Afinidad de Corazones: +2 HP regenerados por carta de Corazones al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
         { id: "hearts_2", name: "Respiración Profunda", desc: "Restaura +3 HP al superar cada piso.", maxRank: 2, cost: 2, reqBranch: 2 },
         { id: "hearts_3", name: "Sangre de Fénix", desc: "Regenera +5 HP al derrotar a cualquier enemigo.", maxRank: 2, cost: 3, reqBranch: 5 },
         { id: "hearts_4", name: "Alquimia de Vida", desc: "Las pociones curan +25% de salud adicional.", maxRank: 1, cost: 4, reqBranch: 8 },
@@ -4638,7 +4638,7 @@
       name: "♣️ Rama de la Fortuna (Tréboles)",
       desc: "Oro de cripta, economía arcana y conservadurismo tahúr.",
       tiers: [
-        { id: "clubs_1", name: "Ojo de la Fortuna", desc: "+8% Oro obtenido por mano y botín.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "clubs_1", name: "Afinidad de la Fortuna", desc: "Despierta la Afinidad de Tréboles: +1 Oro extra por carta de Tréboles al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
         { id: "clubs_2", name: "Trébol Afortunado", desc: "+5% Suerte en robos de cartas clutch (10/As).", maxRank: 2, cost: 2, reqBranch: 2 },
         { id: "clubs_3", name: "Mano del Tahúr", desc: "25% de probabilidad de beber poción sin consumirla.", maxRank: 2, cost: 3, reqBranch: 5 },
         { id: "clubs_4", name: "Bolsa de la Cripta", desc: "+15 Oro inicial al comenzar cualquier expedición.", maxRank: 1, cost: 4, reqBranch: 8 },
@@ -9964,126 +9964,15 @@
   window.getFloorShopArtifacts = getFloorShopArtifacts;
 
   /* ============================================================
-     SISTEMA DE MEJORA DE CARTAS: FRAGUA DEL DESTINO (REQ 2)
+     SISTEMA DE MEJORA DE CARTAS: DESACTIVADO (REQ USUARIO)
+     Las afinidades elementales se gestionan exclusivamente en el Árbol de Talentos.
      ============================================================ */
   function hasCardUpgrade(id) {
-    if (!gameState.player || !gameState.player.cardUpgrades) return false;
-    return gameState.player.cardUpgrades.includes(id);
+    return false;
   }
   window.hasCardUpgrade = hasCardUpgrade;
 
-  const CARD_UPGRADES = [
-    {
-      id: "sharp_cards",
-      name: "Filo de Sangre (2 al 5)",
-      icon: "🗡️",
-      tier: "common",
-      tierLabel: "COMÚN",
-      unlockLevel: 1,
-      price: 55,
-      desc: "Cartas 2, 3, 4 y 5 otorgan +2 de daño de corte al jugarse en tu mano."
-    },
-    {
-      id: "armored_cards",
-      name: "Placas de Muralla (6 al 8)",
-      icon: "🛡️",
-      tier: "common",
-      tierLabel: "COMÚN",
-      unlockLevel: 1,
-      price: 60,
-      desc: "Cartas 6, 7 y 8 generan +2 de Escudo azul protector al momento de robarlas."
-    },
-    {
-      id: "royal_prosperity",
-      name: "Nobleza Próspera (J, Q, K)",
-      icon: "👑",
-      tier: "rare",
-      tierLabel: "RARA",
-      unlockLevel: 2,
-      price: 65,
-      desc: "Cada Figura (J, Q, K) te premia con +2 de Oro y restaura +2 HP al entrar a tu mano."
-    },
-    {
-      id: "vampiric_seven",
-      name: "Sello Vampírico del 7",
-      icon: "🩸",
-      tier: "rare",
-      tierLabel: "RARA",
-      unlockLevel: 3,
-      price: 70,
-      desc: "Toda carta 7 absorbe 4 HP del rival y te los transfiere directamente a tu salud."
-    },
-    {
-      id: "devastating_pair",
-      name: "Dupla Devastadora",
-      icon: "👯",
-      tier: "rare",
-      tierLabel: "RARA",
-      unlockLevel: 4,
-      price: 70,
-      desc: "Toda pareja de naipes iguales en mano suma +5 de daño adicional a tu ataque."
-    },
-    {
-      id: "fortune_clover",
-      name: "Tréboles de Fortuna",
-      icon: "♣",
-      tier: "rare",
-      tierLabel: "RARA",
-      unlockLevel: 4,
-      price: 65,
-      desc: "Toda carta del palo Trébol otorga +2 de Oro extra al entrar a tu mano."
-    },
-    {
-      id: "healing_hearts",
-      name: "Corazones Sanadores",
-      icon: "♥",
-      tier: "rare",
-      tierLabel: "RARA",
-      unlockLevel: 5,
-      price: 75,
-      desc: "Toda carta del palo Corazones restaura +2 HP inmediatos al momento de robarla."
-    },
-    {
-      id: "piercing_spades",
-      name: "Picas Cortantes",
-      icon: "♠",
-      tier: "mythic",
-      tierLabel: "MÍTICA",
-      unlockLevel: 6,
-      price: 85,
-      desc: "Toda carta del palo Picas ignora 2 puntos de armadura (DEF) del rival."
-    },
-    {
-      id: "fortified_diamonds",
-      name: "Diamantes Reforzados",
-      icon: "♦",
-      tier: "mythic",
-      tierLabel: "MÍTICA",
-      unlockLevel: 6,
-      price: 85,
-      desc: "Toda carta del palo Diamantes genera +3 de Escudo azul protector al robarla."
-    },
-    {
-      id: "astral_ace",
-      name: "As Astral del 21",
-      icon: "✨",
-      tier: "mythic",
-      tierLabel: "MÍTICA",
-      unlockLevel: 7,
-      price: 70,
-      desc: "Los Ases canalizan energía astral: si alcanzas 21, tu daño crítico se amplifica x1.5 extra."
-    },
-    {
-      id: "phoenix_card",
-      name: "Carta Fénix de Salvación",
-      icon: "🔥",
-      tier: "mythic",
-      tierLabel: "LEGENDARIA",
-      unlockLevel: 8,
-      price: 85,
-      desc: "Una vez por piso, si una carta te causa BUST (pasar de 21), su valor se transmuta en 1."
-    }
-  ];
+  const CARD_UPGRADES = [];
   window.CARD_UPGRADES = CARD_UPGRADES;
 
   /* ============================================================
@@ -11324,62 +11213,6 @@
           spawnFloatingText("player-sprite", "🔮 +8 ESCUDO CRISTAL", "shield");
           addLog(`🔮 Sello de Cristal Resonante (${card.rank}${card.suit}): Baluarte cristalino otorga +8 Escudo y purga 2 veneno.`, "heal");
           playSteelSound();
-          updateHud();
-        }
-      }
-
-      // 2. Cartas Blindadas (6, 7, 8)
-      if (hasCardUpgrade("armored_cards") && [6, 7, 8].includes(card.value)) {
-        if (!gameState.status) gameState.status = {};
-        gameState.status.playerShield = (gameState.status.playerShield || 0) + 2;
-        spawnFloatingText("player-sprite", "🛡️ +2 ESCUDO", "shield");
-        addLog("🛡️ Carta Blindada (" + card.rank + "): +2 de Escudo azul protector generado.", "heal");
-        updateHud();
-      }
-
-      // 3. Figuras Reales (J, Q, K)
-      if (hasCardUpgrade("royal_prosperity") && ["J", "Q", "K"].includes(card.rank)) {
-        gameState.gold += 2;
-        p.hp = Math.min(p.maxHp, p.hp + 2);
-        spawnFloatingText("player-sprite", "🪙+2 💖+2", "heal");
-        addLog("👑 Figura Próspera (" + card.rank + "): +2 Oro obtenido y +2 HP restaurados.", "heal");
-        updateHud();
-      }
-
-      // 4. Tréboles de Fortuna (♣): +2 de Oro al entrar a la mano
-      if (hasCardUpgrade("fortune_clover") && card.suit === "♣") {
-        gameState.gold += 2;
-        spawnFloatingText("player-sprite", "🪙 +2 ORO", "gold");
-        addLog("♣ Tréboles de Fortuna (" + card.rank + "): +2 de Oro obtenido.", "heal");
-        updateHud();
-      }
-
-      // 5. Corazones Sanadores (♥): +2 HP al robar la carta
-      if (hasCardUpgrade("healing_hearts") && card.suit === "♥") {
-        p.hp = Math.min(p.maxHp, p.hp + 2);
-        spawnFloatingText("player-sprite", "💖 +2 HP", "heal");
-        addLog("♥ Corazones Sanadores (" + card.rank + "): +2 HP restaurados.", "heal");
-        updateHud();
-      }
-
-      // 6. Diamantes Reforzados (♦): +3 de Escudo al robar la carta
-      if (hasCardUpgrade("fortified_diamonds") && card.suit === "♦") {
-        if (!gameState.status) gameState.status = {};
-        gameState.status.playerShield = (gameState.status.playerShield || 0) + 3;
-        spawnFloatingText("player-sprite", "🛡️ +3 ESCUDO", "shield");
-        addLog("♦ Diamantes Reforzados (" + card.rank + "): +3 de Escudo azul protector.", "heal");
-        updateHud();
-      }
-
-      // 7. Sello Vampírico del 7
-      if (hasCardUpgrade("vampiric_seven") && (card.value === 7 || card.rank === "7")) {
-        if (gameState.enemy && gameState.enemy.hp > 0) {
-          const drain = Math.min(gameState.enemy.hp, 4);
-          gameState.enemy.hp = Math.max(0, gameState.enemy.hp - drain);
-          p.hp = Math.min(p.maxHp, p.hp + drain);
-          spawnFloatingText("player-sprite", "🩸 +" + drain + " HP", "heal");
-          spawnFloatingText("enemy-sprite", "🩸 -" + drain + " HP", "damage");
-          addLog("🩸 Sello Vampírico (7): Drenaste " + drain + " HP del rival.", "critical");
           updateHud();
         }
       }
@@ -15051,21 +14884,6 @@
         effectiveEnemyDef = 0;
         addLog("⚔️ Señor de las Sombras: Ignoraste el 100% de la armadura enemiga (DEF 0).", "critical");
       }
-      if (hasCardUpgrade("sharp_cards")) {
-        const sharpCount = p.playerHand.filter(c => [2, 3, 4, 5].includes(c.value)).length;
-        if (sharpCount > 0) {
-          bonus += sharpCount * 2;
-          addLog("🗡️ Cartas Afiladas: +" + (sharpCount * 2) + " daño de corte.", "critical");
-        }
-      }
-      if (hasCardUpgrade("devastating_pair") && p.playerHand.length >= 2 && p.playerHand[0].rank === p.playerHand[1].rank) {
-        bonus += 5;
-        addLog("👯 Dupla Devastadora: +5 de daño de impacto.", "critical");
-      }
-      if (hasCardUpgrade("piercing_spades")) {
-        const spadeCount = p.playerHand.filter(c => c.suit === "♠" || c.suit === "spades").length;
-        if (spadeCount > 0) effectiveEnemyDef = Math.max(0, effectiveEnemyDef - (spadeCount * 2));
-      }
       if (p.sharpArmorPierce && p.sharpArmorPierce > 0) {
         effectiveEnemyDef = Math.max(0, effectiveEnemyDef - p.sharpArmorPierce);
         addLog(`🗡️ Sello Afilado: Ignora ${p.sharpArmorPierce} DEF de armadura rival (DEF efectiva: ${effectiveEnemyDef}).`, "critical");
@@ -15123,7 +14941,14 @@
         }
       }
 
-      // Afinidad Elemental de Naipes en la Torre (4 Palos Arcanos)
+      // Afinidad Elemental de Naipes en la Torre (Activada mediante Tier 1 del Árbol de Talentos)
+      const treeHeroKey = p.classKey || p.class || "knight";
+      const treeRanks = (typeof getHeroTalentTree === "function") ? (getHeroTalentTree(treeHeroKey).ranks || {}) : {};
+      const spadesRank = treeRanks.spades_1 || 0;
+      const diamondsRank = treeRanks.diamonds_1 || 0;
+      const heartsRank = treeRanks.hearts_1 || 0;
+      const clubsRank = treeRanks.clubs_1 || 0;
+
       let suitSpades = 0, suitDiamonds = 0, suitHearts = 0, suitClubs = 0;
       (p.playerHand || []).forEach(c => {
         if (!c) return;
@@ -15133,37 +14958,34 @@
         else if (s === "♥" || s === "hearts") suitHearts++;
         else if (s === "♣" || s === "clubs") suitClubs++;
       });
-      if (suitSpades > 0) {
-        const perSpade = 2 + (p._spadesEclipseBonus || 0);
+
+      if (suitSpades > 0 && (spadesRank > 0 || p._spadesEclipseBonus)) {
+        const perSpade = (spadesRank > 0 ? (spadesRank + 1) : 2) + (p._spadesEclipseBonus || 0);
         const pierceDmg = suitSpades * perSpade;
         dmg += pierceDmg;
         spawnFloatingText("enemy-sprite", `🗡️ -${pierceDmg} PERFORACIÓN ♠`, "crit");
-        addLog(`🗡️ Afinidad de Picas (♠): +${pierceDmg} daño de corte perforante (${suitSpades} cartas${p._spadesEclipseBonus ? ' • Eclipse +3' : ''}).`, "critical");
+        addLog(`🗡️ Afinidad de Picas (♠ Nivel ${spadesRank}): +${pierceDmg} daño de corte perforante (${suitSpades} cartas${p._spadesEclipseBonus ? ' • Eclipse +3' : ''}).`, "critical");
       }
-      if (suitDiamonds > 0) {
-        const dShield = suitDiamonds * 2;
+      if (suitDiamonds > 0 && diamondsRank > 0) {
+        const dShield = suitDiamonds * (diamondsRank + 1);
         if (!gameState.status) gameState.status = {};
         gameState.status.playerShield = (gameState.status.playerShield || 0) + dShield;
         spawnFloatingText("player-sprite", `🛡️ +${dShield} ESCUDO ♦`, "shield");
-        addLog(`🛡️ Afinidad de Diamantes (♦): +${dShield} Baluarte defensivo (${suitDiamonds} cartas).`, "heal");
+        addLog(`🛡️ Afinidad de Diamantes (♦ Nivel ${diamondsRank}): +${dShield} Baluarte defensivo (${suitDiamonds} cartas).`, "heal");
       }
-      if (suitHearts > 0) {
-        const perHeart = 2 + (p._heartsTideBonus || 0);
+      if (suitHearts > 0 && (heartsRank > 0 || p._heartsTideBonus)) {
+        const perHeart = (heartsRank > 0 ? (heartsRank + 1) : 2) + (p._heartsTideBonus || 0);
         const hHeal = suitHearts * perHeart;
         p.hp = Math.min(p.maxHp, p.hp + hHeal);
         spawnFloatingText("player-sprite", `❤️ +${hHeal} HP ♥`, "heal");
-        addLog(`❤️ Afinidad de Corazones (♥): +${hHeal} HP regenerados (${suitHearts} cartas${p._heartsTideBonus ? ' • Marea +3' : ''}).`, "heal");
+        addLog(`❤️ Afinidad de Corazones (♥ Nivel ${heartsRank}): +${hHeal} HP regenerados (${suitHearts} cartas${p._heartsTideBonus ? ' • Marea +3' : ''}).`, "heal");
       }
-      if (suitClubs > 0) {
+      if (suitClubs > 0 && clubsRank > 0) {
         const goldMult = (p._cloverNebulaMult || 1);
-        const cGold = suitClubs * 1 * goldMult;
+        const cGold = suitClubs * clubsRank * goldMult;
         gameState.gold = (gameState.gold || 0) + cGold;
         spawnFloatingText("player-sprite", `🪙 +${cGold} ORO ♣`, "gold");
-        addLog(`♣️ Afinidad de Tréboles (♣): +${cGold} Oro de fortuna arcana (${suitClubs} cartas${goldMult > 1 ? ' • Nebulosa x2' : ''}).`, "gold");
-      }
-      if (hasCardUpgrade("astral_ace") && isNatural21) {
-        dmg = Math.round(dmg * 1.5);
-        addLog("✨ ¡As Astral! Tu golpe crítico se amplifica x1.5.", "critical");
+        addLog(`♣️ Afinidad de Tréboles (♣ Nivel ${clubsRank}): +${cGold} Oro de fortuna arcana (${suitClubs} cartas${goldMult > 1 ? ' • Nebulosa x2' : ''}).`, "gold");
       }
       if (hasStarterBlessing("berserker_rage") && (p.playerScore === 20 || p.playerScore === 21)) {
         dmg = Math.round(dmg * 1.30);

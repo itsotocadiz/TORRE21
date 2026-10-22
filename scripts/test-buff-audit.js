@@ -255,7 +255,6 @@ function pricesOf(src, name, key) {
 }
 const priceChecks = [
   ['SHOP_ARTIFACTS', 'price'],
-  ['CARD_UPGRADES', 'price'],
   ['SPECIAL_DYNAMIC_CARDS', 'cost']
 ];
 priceChecks.forEach(([name, key]) => {
@@ -281,14 +280,11 @@ ok(/function\s+buyShopArtifact|function\s+purchaseCardUpgrade|function\s+buyCard
    'existen funciones de compra que descuentan recursos');
 
 /* ============================================================
-   5. MEJORAS DE CARTA (CARD_UPGRADES) cableadas
+   5. AFINIDADES ELEMENTALES CABLEADAS EN EL ÁRBOL DE TALENTOS
    ============================================================ */
-console.log('== 5. Mejoras de carta: cada mejora tiene su efecto en el motor ==');
-const upgrades = pricesOf(game, 'CARD_UPGRADES', 'price');
-if (upgrades) {
-  const dead = upgrades.filter(u => !u.id || countId(game, u.id) + countId(imp, u.id) < 2);
-  ok(dead.length === 0, 'todas las mejoras de carta están referenciadas en el motor' + (dead.length ? ' -> ' + dead.map(d => d.id).join(', ') : ''));
-}
+console.log('== 5. Afinidades elementales: cableadas mediante el Árbol de Talentos ==');
+ok(game.includes('Afinidad del Filo') && game.includes('Afinidad del Baluarte') && game.includes('Afinidad Vital') && game.includes('Afinidad de la Fortuna'),
+  'todas las 4 afinidades elementales están definidas en TALENT_BRANCHES');
 
 /* ============================================================
    6. EXTRAS: eventos semanales, pactos de sacrificio, perks

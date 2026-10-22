@@ -65,6 +65,11 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v1.7.3] — Octubre 2026 (Actual)
+* **Afinidad Elemental Despertada por el Árbol de Talentos (Tier 1):**
+  * Las afinidades elementales de los 4 palos ya no se activan todas a la vez por defecto en cada combate.
+  * Cada afinidad se desbloquea invirtiendo puntos en el **Tier 1 de la rama correspondiente**, permitiendo al jugador definir una auténtica **"Línea de Combate"** (Ofensiva/Perforante con Picas, Baluarte de Escudos con Diamantes, Vitalidad/Regeneración con Corazones o Economía con Tréboles), reduciendo el ruido en pantalla y escalando de +2 a +4 de impacto según el rango del talento.
+* **Erradicación de los Sellos Pasivos de Forja (`CARD_UPGRADES`):**
+  * Eliminadas las antiguas mejoras pasivas genéricas de mazo (*Corazones Sanadores*, *Diamantes Reforzados*, *Tréboles de Fortuna*, *Picas Cortantes*, *Filo de Sangre*, etc.) que se disparaban al robar cartas interrumpiendo el flujo de combate. La Tienda y el mazo de 52 cartas quedan limpios y enfocados en las cartas transmutadas reales y las ramas de talentos.
 * **Campaña Completa de 21 Pisos (6 Actos) en Todas las Dificultades:**
   * Sincronizado `maxFloors = 21` en todas las dificultades de campaña (Normal, Heroico, Mítico, Pesadilla), erradicando el corte prematuro en el piso 7. Los jugadores pueden ascender fluidamente a lo largo de los 6 Actos completos en cualquier dificultad.
 * **Botín Arcano de Jefes Fuertes (50% Probabilidad de Transmutación en 52 Cartas):**
