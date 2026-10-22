@@ -3839,23 +3839,42 @@
     if (score === 21) {
       minDmg = Math.round(baseDmg * 2.0 * doubleMult);
       maxDmg = minDmg;
-      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP (CRÍTICO 21)` : `⚔️ ATAQUE: ${minDmg} HP (CRÍTICO 21)`;
+      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
     } else if (score >= 19) {
       minDmg = Math.round(baseDmg * 1.5 * doubleMult);
       maxDmg = minDmg;
-      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP (crítico)` : `⚔️ ATAQUE: ${minDmg} HP (crítico)`;
+      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
     } else {
       maxDmg = Math.round(baseDmg * 1.5 * doubleMult);
       if (minDmg === maxDmg) {
         label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
       } else {
-        label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg}–${maxDmg} HP (crít.)` : `⚔️ ATAQUE: ${minDmg}–${maxDmg} HP (crít.)`;
+        label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg}–${maxDmg} HP` : `⚔️ ATAQUE: ${minDmg}–${maxDmg} HP`;
       }
     }
 
     return { minDmg, maxDmg, text: label, score, baseDmg };
   }
   window.calculateTacticalAttackRange = calculateTacticalAttackRange;
+
+  function showCombatCritSignal(multiplier = 1.5) {
+    try {
+      const el = document.getElementById("combat-crit-signal");
+      if (!el) return;
+      el.innerText = `⚡ ¡GOLPE CRÍTICO! (x${multiplier})`;
+      el.style.display = "block";
+      el.classList.remove("hidden", "active");
+      void el.offsetWidth;
+      el.classList.add("active");
+      try { triggerScreenShake("light"); } catch (_) {}
+      setTimeout(() => {
+        el.classList.remove("active");
+        el.classList.add("hidden");
+        el.style.display = "none";
+      }, 880);
+    } catch (_) {}
+  }
+  window.showCombatCritSignal = showCombatCritSignal;
 
   function calculateProjectedDamage(playerPwr, rivalDef, playerHand = [], deck = []) {
     const curScore = calculateHandScore(playerHand);
@@ -5976,10 +5995,9 @@
 
         ${missionHtml}
 
-        <div style="display:flex;gap:4px;width:100%;margin-bottom:6px;">
-          <button class="hero-book-sheet-btn" style="flex:1;font-size: 9px;padding:4px 3px;" onclick="event.stopPropagation(); openHeroSheet('${heroKey}')">📊 FICHA</button>
-          <button class="hero-book-sheet-btn" style="flex:1;font-size: 9px;padding:4px 3px;background:rgba(42,157,143,0.25);border-color:#2a9d8f;color:#66fcf1;" onclick="event.stopPropagation(); openHeroPerksDirect('${heroKey}')">⚡ PERKS</button>
-          <button class="hero-book-sheet-btn" style="flex:1;font-size: 9px;padding:4px 3px;background:rgba(217,119,6,0.22);border-color:#d97706;color:#fef08a;" onclick="event.stopPropagation(); openHeroSkinModal('${heroKey}')">🎨 ASPECTOS</button>
+        <div style="display:flex;gap:6px;width:100%;margin-bottom:6px;">
+          <button class="hero-book-sheet-btn" style="flex:1;font-size:10px;padding:6px 4px;" onclick="event.stopPropagation(); openHeroSheet('${heroKey}')">📊 FICHA DEL HÉROE</button>
+          <button class="hero-book-sheet-btn" style="flex:1;font-size:10px;padding:6px 4px;background:rgba(217,119,6,0.22);border-color:#d97706;color:#fef08a;" onclick="event.stopPropagation(); openHeroSkinModal('${heroKey}')">🎨 ASPECTOS</button>
         </div>
 
         ${actionBtnHtml}
@@ -6318,12 +6336,12 @@
                 if (unlocked) {
                   revealed++;
                   return `<div class="hero-sheet-lore-item unlocked">
-                    <div class="hero-sheet-lore-head">📖 CAPÍTULO ${lvl} · PISO ${lvl} — ✓ REVELADO</div>
+                    <div class="hero-sheet-lore-head">📖 MEMORIA ${lvl} · PISO ${lvl} — ✓ REVELADA</div>
                     <div class="hero-sheet-lore-text">${text}</div>
                   </div>`;
                 }
                 return `<div class="hero-sheet-lore-item locked">
-                  <div class="hero-sheet-lore-head">🔒 CAPÍTULO ${lvl} · PISO ${lvl} — REQ. NIVEL ${lvl}</div>
+                  <div class="hero-sheet-lore-head">🔒 MEMORIA ${lvl} · PISO ${lvl} — REQ. NIVEL ${lvl}</div>
                   <div class="hero-sheet-lore-text locked-text">Fragmento de memoria sellado. Para revelarlo, alcanza el Nivel Permanente ${lvl} con ${hero.name} (actualmente Nivel ${permLevel}).</div>
                 </div>`;
               }).join("");
@@ -6431,7 +6449,7 @@
           return `
             <button type="button" class="lore-chapter-item unlocked" onclick="openLoreChapter(${lvl})" title="Abrir la ventana de la crónica" style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-left:3px solid ${heroColor};border-radius:4px;padding:9px 10px;margin-bottom:6px;cursor:pointer;color:inherit;font-family:inherit;">
               <span style="font-size:11px;">📖</span>
-              <span style="flex:1;font-family:var(--font-pixel,monospace);font-size:9px;color:#ffd166;">CAPÍTULO ${lvl} · PISO ${lvl}</span>
+              <span style="flex:1;font-family:var(--font-pixel,monospace);font-size:9px;color:#ffd166;">MEMORIA ${lvl} · PISO ${lvl}</span>
               <span style="font-family:var(--font-pixel,monospace);font-size:9px;color:#2a9d8f;">ABRIR ▸</span>
             </button>
           `;
@@ -6439,7 +6457,7 @@
           return `
             <button type="button" class="lore-chapter-item locked" onclick="openLoreChapter(${lvl})" title="Crónica sellada: toca para ver el requisito" style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:rgba(0,0,0,0.35);border:1px dashed rgba(148,163,184,0.35);border-left:3px solid #64748b;border-radius:4px;padding:9px 10px;margin-bottom:6px;cursor:pointer;color:inherit;font-family:inherit;opacity:0.8;">
               <span style="font-size:11px;">🔒</span>
-              <span style="flex:1;font-family:var(--font-pixel,monospace);font-size:9px;color:#94a3b8;">CAPÍTULO ${lvl} · PISO ${lvl}</span>
+              <span style="flex:1;font-family:var(--font-pixel,monospace);font-size:9px;color:#94a3b8;">MEMORIA ${lvl} · PISO ${lvl}</span>
               <span style="font-family:var(--font-pixel,monospace);font-size:9px;color:#f4a261;">NIV. ${lvl}</span>
             </button>
           `;
@@ -6487,7 +6505,7 @@
 
     const titleEl = document.getElementById("lore-chapter-title");
     const bodyEl = document.getElementById("lore-chapter-body");
-    if (titleEl) titleEl.innerHTML = `📖 ${hero.name.toUpperCase()} · CAPÍTULO ${lvl}`;
+    if (titleEl) titleEl.innerHTML = `📖 ${hero.name.toUpperCase()} · MEMORIA ${lvl}`;
     if (bodyEl) {
       bodyEl.innerHTML = unlocked
         ? `
@@ -6502,7 +6520,7 @@
             <div style="font-size:24px;margin-bottom:6px;">🔒</div>
             <div style="font-family:var(--font-pixel,monospace);font-size:9px;color:#f4a261;margin-bottom:6px;">CRÓNICA SELLADA</div>
             <div style="font-size:9px;color:#94a3b8;line-height:1.5;">
-              Alcanza el Nivel Permanente ${lvl} con ${hero.name} (actualmente Nivel ${permLevel}) para develar este capítulo del grimorio.
+              Alcanza el Nivel Permanente ${lvl} con ${hero.name} (actualmente Nivel ${permLevel}) para develar esta memoria del grimorio.
             </div>
           </div>`;
     }
@@ -15055,6 +15073,9 @@
         spawnFloatingText("player-sprite", `⚡ x${critMultiplier} ¡CRÍTICO!`, "crit");
         const reportedCritChance = (p.playerScore >= 19) ? 100 : totalCritChance;
         addLog(`⚡ ¡Impacto Crítico (${reportedCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
+        if (typeof showCombatCritSignal === "function") {
+          showCombatCritSignal(critMultiplier);
+        }
       }
 
       // Afinidad Elemental de Naipes en la Torre (4 Palos Arcanos)
@@ -15268,6 +15289,9 @@
             triggerScreenShake("heavy");
             setEnemySpriteState("hit_crit");
             spawnFloatingText("enemy-sprite", `-${dmg} ¡CRÍTICO!`, "crit");
+            if (typeof showCombatCritSignal === "function") {
+              showCombatCritSignal(dmg >= 30 ? 2.0 : 1.5);
+            }
           } else if (dmg < 8) {
             await applyHitStop(60, eSpriteEl);
             setEnemySpriteState("hit_weak");

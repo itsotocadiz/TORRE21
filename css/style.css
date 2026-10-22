@@ -9646,6 +9646,41 @@ body.sudden-death-active #stage {
   box-shadow: 0 0 8px currentColor;
 }
 
+/* Señal Dinámica de Impacto Crítico */
+.combat-crit-signal {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  z-index: 120;
+  pointer-events: none;
+  font-family: var(--font-display, sans-serif);
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffd166;
+  background: radial-gradient(circle, rgba(230, 57, 70, 0.95) 0%, rgba(15, 23, 42, 0.92) 75%);
+  border: 2px solid #ffd166;
+  border-radius: 20px;
+  padding: 6px 16px;
+  box-shadow: 0 0 20px rgba(255, 209, 102, 0.8), 0 0 35px rgba(230, 57, 70, 0.6);
+  text-shadow: 0 2px 4px #000, 0 0 8px #ff758f;
+  letter-spacing: 1px;
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.combat-crit-signal.active {
+  opacity: 1;
+  animation: critSignalPulse 0.85s ease-out forwards;
+}
+@keyframes critSignalPulse {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  25% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  85% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
+  100% { transform: translate(-50%, -65%) scale(0.9); opacity: 0; }
+}
+
 /* Asignador de Atributos RPG en Subida de Nivel */
 .rpg-attr-allocator {
   background: rgba(0, 0, 0, 0.45);

@@ -211,35 +211,13 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.7.1</span></div>
-    <div class="lore-banner">
-      «En el trono del piso 21 aguarda <b>El Mandinga</b>, Señor del 21. Elige tu heraldo, supera los 6 Actos y quiebra el pacto eterno del Blackjack.»
-    </div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.7.2</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
       <span class="upc-avatar" id="upc-avatar">👤</span>
       <span class="upc-name" id="upc-name">Heraldo Invitado</span>
       <span class="upc-status" id="upc-status">● Local</span>
-    </div>
-
-    <!-- ACCESO RÁPIDO: RECOMPENSA DIARIA, TALENTOS Y TUTORIALES -->
-    <div class="daily-reward-quickbar" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-      <button id="btn-daily-login" class="daily-login-badge-btn" onclick="openDailyLoginModal()" title="Recompensa Diaria de Conexión">
-        <span class="daily-btn-ico">🎁</span>
-        <span class="daily-btn-lbl">RECOMPENSA</span>
-        <span id="daily-login-status-tag" class="daily-status-tag pending">LISTA</span>
-      </button>
-      <button id="btn-hero-talents" class="daily-login-badge-btn" onclick="openHeroTalentsModal()" title="Árbol de Talentos Permanente de tu Héroe">
-        <span class="daily-btn-ico">🌳</span>
-        <span class="daily-btn-lbl">TALENTOS</span>
-        <span class="daily-status-tag" id="hero-talents-pts-badge" style="background:#0ea5e9;">ÁRBOL</span>
-      </button>
-      <button id="btn-interactive-guide" class="daily-login-badge-btn" onclick="openInteractiveTutorialModal()" title="Tutoriales paso a paso de Campaña y Arena PvP">
-        <span class="daily-btn-ico">📖</span>
-        <span class="daily-btn-lbl">TUTORIALES</span>
-        <span class="daily-status-tag" style="background:#f59e0b;">GUÍA</span>
-      </button>
     </div>
 
     <!-- NAVEGACIÓN POR 5 PESTAÑAS DEL MENÚ -->
@@ -284,9 +262,6 @@
         <button class="pvr-claim-btn" onclick="openPendingTowerReward()">RECLAMAR</button>
       </div>
 
-      <!-- Contenedor dinámico de reanudación automática de partida -->
-      <div id="container-resume-run"></div>
-
       <!-- BANNER DE EVENTO SEMANAL: SIEMPRE ARRIBA PARA QUE SEA VISIBLE -->
       <div id="weekly-event-banner" class="hidden" style="margin:6px auto;max-width:390px;width:95%;"></div>
 
@@ -314,6 +289,9 @@
           <button class="hero-dot" onclick="setHeroBookIndex(2)" title="Monje"></button>
           <button class="hero-dot" onclick="setHeroBookIndex(3)" title="Nigromante"></button>
         </div>
+
+        <!-- Contenedor dinámico de reanudación automática de partida (Flujo: Héroe -> Reanudar -> Dificultad) -->
+        <div id="container-resume-run" style="margin:8px auto;max-width:380px;width:100%;"></div>
 
         <!-- SELECTOR DE DIFICULTAD DE LA TORRE (SISTEMA DE ASCENSIÓN) -->
         <div class="difficulty-selection-container">
@@ -396,6 +374,9 @@
         <button onclick="showControls()" style="padding:12px;font-size:11px;font-weight:700;border-color:#66fcf1;color:#66fcf1;min-height:44px;">
           📖 REGLAS DEL BLACKJACK Y GUÍA DE COMBATE
         </button>
+        <button id="btn-interactive-guide" onclick="openInteractiveTutorialModal()" class="btn-glow-gold" style="border-color:#f59e0b;color:#fcd34d;padding:12px;font-size:11px;font-weight:700;background:rgba(245,158,11,0.12);min-height:44px;">
+          🎓 TUTORIALES INTERACTIVOS (CAMPAÑA Y ARENA)
+        </button>
       </div>
 
       <!-- GRIMORIO DE HISTORIA DE LOS 4 JACKS -->
@@ -412,6 +393,21 @@
 
     <!-- PESTAÑA 3: TIENDAS -->
     <div class="title-tab-pane" id="title-pane-shop">
+      <!-- SECCIÓN DESTACADA: RECOMPENSA DIARIA DE CONEXIÓN -->
+      <div class="shop-daily-reward-card" style="background:linear-gradient(135deg,rgba(42,157,143,0.22),rgba(15,23,42,0.96));border:1.5px solid #2a9d8f;border-radius:12px;padding:12px 14px;max-width:420px;margin:8px auto 12px;text-align:center;box-shadow:0 0 14px rgba(42,157,143,0.25);">
+        <div style="font-family:var(--font-pixel);font-size:11.5px;font-weight:700;color:#2a9d8f;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <span>🎁</span> <span>RECOMPENSA DIARIA DE CONEXIÓN</span>
+        </div>
+        <div style="font-size:10px;color:#cbd5e1;margin-bottom:8px;line-height:1.4;">
+          ¡Inicia sesión diariamente en la Torre para reclamar Monedas de Cripta, pociones y bendiciones!
+        </div>
+        <button id="btn-daily-login" class="daily-login-badge-btn" onclick="openDailyLoginModal()" style="width:100%;max-width:280px;margin:0 auto;padding:10px 14px;justify-content:center;font-size:11px;min-height:44px;" title="Reclamar Recompensa Diaria">
+          <span class="daily-btn-ico">🎁</span>
+          <span class="daily-btn-lbl">RECLAMAR RECOMPENSA</span>
+          <span id="daily-login-status-tag" class="daily-status-tag pending">LISTA</span>
+        </button>
+      </div>
+
       <div style="background:radial-gradient(circle at top,rgba(255,209,102,0.15),rgba(13,18,28,0.95));border:1.5px solid #ffd166;border-radius:12px;padding:14px 16px;max-width:420px;margin:8px auto;text-align:center;">
         <div style="font-family:var(--font-pixel);font-size:12px;font-weight:700;color:#ffd166;margin-bottom:6px;">🏪 BAZAR Y MERCADO REAL</div>
         
@@ -503,6 +499,7 @@
         <button class="tut-tab active" id="tab-btn-attacks" onclick="switchTutorialTab('attacks')">⚔️ COMBATE D&D Y HUD</button>
         <button class="tut-tab" id="tab-btn-rules" onclick="switchTutorialTab('rules')">🃏 REGLAS Y PALOS</button>
         <button class="tut-tab" id="tab-btn-lore" onclick="switchTutorialTab('lore')">👑 LOS 6 ACTOS Y EL MANDINGA</button>
+        <button class="tut-tab" id="tab-btn-interactive-guide" onclick="closeTutorial(); openInteractiveTutorialModal('campaign');" style="color:#ffd166;border-color:rgba(255,209,102,0.4);">🎓 PASO A PASO</button>
       </div>
 
       <div class="tutorial-content" id="tut-content-attacks">
@@ -1026,11 +1023,12 @@
       <!-- SPRINT 2: CONTADOR DE MANOS TRASLÚCIDO EN EL CENTRO SUPERIOR DE LA MESA -->
       <div id="table-hand-pill" class="table-hand-pill" title="Mano actual de combate en la Torre">MANO 1/5</div>
 
-      <!-- VISOR TÁCTICO DE COMBATE: CRÍTICO Y ATAQUE ACTUAL -->
-      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Golpe Crítico y Daño">
-        <span class="dnd-odds-pill crit interactive" id="dnd-crit-odds" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
+      <!-- VISOR TÁCTICO DE COMBATE: RANGO DE ATAQUE PREDICTIVO -->
+      <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Daño">
+        <span class="dnd-odds-pill crit interactive" id="dnd-crit-odds" style="display:none;" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
         <span class="dnd-odds-pill dmg interactive" id="dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ ATAQUE: -- HP</span>
       </div>
+      <div id="combat-crit-signal" class="combat-crit-signal hidden" style="display:none;"></div>
 
       <!-- FILA 1: manos -->
       <div class="hands-row">
@@ -1706,9 +1704,9 @@
           <div class="arena-timer-caption" id="arena-timer-caption">⚡ DECISIÓN: 5.0s (¡Reflejos rápidos = +20% Daño!)</div>
         </div>
 
-        <!-- VISOR TÁCTICO EN ARENA: CRÍTICO Y ATAQUE ACTUAL -->
-        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Golpe Crítico y Daño">
-          <span class="dnd-odds-pill crit interactive" id="arena-dnd-crit-odds" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
+        <!-- VISOR TÁCTICO EN ARENA: RANGO DE ATAQUE PREDICTIVO -->
+        <div id="arena-dnd-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Daño">
+          <span class="dnd-odds-pill crit interactive" id="arena-dnd-crit-odds" style="display:none;" onclick="explainTacticalOdds('crit')">⚡ CRÍTICO: --%</span>
           <span class="dnd-odds-pill dmg interactive" id="arena-dnd-projected-dmg" onclick="explainTacticalOdds('dmg')">⚔️ ATAQUE: -- HP</span>
         </div>
 
@@ -1994,6 +1992,7 @@
         <div style="font-size:11.5px; color:#94a3b8; margin-top:2px;" id="talents-hero-subtitle">Progresión Permanente de Clase</div>
       </div>
       <div class="talent-points-pill" id="talents-points-available">✨ 0 PUNTOS</div>
+      <span id="hero-talents-pts-badge" style="display:none;">ÁRBOL</span>
       <button class="inspect-close-btn" onclick="closeHeroTalentsModal()">✕</button>
     </div>
     <div class="talent-branches-grid" id="talent-branches-content">

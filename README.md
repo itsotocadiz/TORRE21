@@ -63,7 +63,33 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.7.1] — Octubre 2026 (Actual)
+### [v1.7.2] — Octubre 2026 (Actual)
+* **Despeje y Optimización Vertical del Menú de Inicio:**
+  * Eliminado el banner redundante `«En el trono del piso 21 aguarda El Mandinga...»` de la pantalla de inicio, reduciendo 80px de altura vertical y permitiendo visualizar los héroes y dificultades completas sin scroll en pantallas móviles.
+  * Retirada la barra rápida superior (`.daily-reward-quickbar`) que saturaba la portada con botones fragmentados.
+* **Erradicación de Perks Duplicados en el Selector de Héroes:**
+  * Eliminado el botón `⚡ PERKS` de la tarjeta del héroe en el libro (`renderHeroBook`), unificando las acciones en dos botones amplios y cómodos: `[📊 FICHA DEL HÉROE]` y `[🎨 ASPECTOS]`.
+  * La consulta y combinatoria de Perks Tácticos se gestiona de manera coherente dentro de la Ficha del Personaje y el Códice.
+* **Reorganización Ergonómica del Flujo de Partida ("Reanudar Ascensión"):**
+  * Reubicado el botón dinámico de reanudación (`#container-resume-run`) para situarse **inmediatamente debajo del selector de héroe (`#hero-book-dots`) y sobre el selector de dificultad (`.difficulty-selection-container`)**. Flujo optimizado: *Héroe activo → Reanudar partida guardada → O configurar dificultad para una nueva ascensión*.
+* **Recompensa Diaria de Conexión Integrada en Pestaña Tiendas:**
+  * Trasladado el botón y estatus de reclamo diario (`openDailyLoginModal()`) desde el inicio a una **tarjeta destacada en la pestaña `🏪 TIENDAS`**, promoviendo el bucle diario de retención de los jugadores hacia el Bazar de forma limpia y sin intrusiones en la pantalla de bienvenida.
+* **Talentos Centralizados en la Ficha del Personaje:**
+  * Acceso al Árbol de Talentos Permanente (`openHeroTalentsModal()`) consolidado exclusivamente dentro de la pestaña `🌳 TALENTOS` de la Ficha de cada Héroe, eliminando botones genéricos sueltos en el menú.
+* **Tutoriales y Guías Paso a Paso Reubicados en LORE:**
+  * Los tutoriales interactivos (`openInteractiveTutorialModal()`) y la Guía de Combate D&D se integran de manera intuitiva dentro de la pestaña `📖 LORE` bajo **"Reglas del Blackjack y Guía de Combate"** y el botón destacado de **Tutoriales Interactivos**.
+* **HUD de Combate Limpio y Señal Dinámica de Impacto Crítico:**
+  * Retirada la píldora fija permanente `[⚡ CRÍTICO: X%]` del HUD superior de combate en Campaña y Arena PvP para despejar la vista de la mesa.
+  * Nueva **Señal Visual Dinámica de Crítico** (`.combat-crit-signal`): cuando el jugador asesta un golpe crítico por destreza, mano 19–21 o Blackjack, emerge en pantalla un cartel animado centelleante `⚡ ¡GOLPE CRÍTICO! (x1.5 / x2.0)` con sacudida sutil de pantalla.
+* **Predictivo de Daño Táctico Simplificado:**
+  * La fórmula predictiva en vivo muestra únicamente el rango honesto y directo: `⚔️ ATAQUE: X HP` o `⚔️ ATAQUE: X–Y HP` (o `⚡ ATAQUE x2:` si se ha duplicado), eliminando coletillas redundantes de texto como `(crít.)` o `(CRÍTICO 21)`.
+* **Normalización Narrativa ("Actos" vs "Memorias"):**
+  * La ascensión por los 21 pisos de la Torre se define canónicamente en **6 Actos (Actos I al VI)**.
+  * Los pasajes de vida y crónicas del Grimorio de cada héroe se unifican bajo la denominación de **"MEMORIAS" (Memoria I a IV)**, eliminando la palabra "Capítulo" para evitar confusiones de progresión.
+* **Delimitación Estricta de la Mecánica de Frenesí:**
+  * El multiplicador y botón `⚡ FRENESÍ x3` queda delimitado exclusivamente al minijuego de atrapar cartas y monedas de la cinemática de introducción (`#screen-intro`), garantizando que no aparezca como stat ni habilidad incompleta en configuraciones ni menús.
+
+### [v1.7.1] — Octubre 2026
 * **Corrección Crítica del Botón "⚡ FRENESÍ x3" y Recarga de Tiros en la Intro:**
   * Desbloqueado el multiplicador x3 de oro: al presionar el botón `[⚡ FRENESÍ x3]`, se activa inmediatamente el temporizador de 15 segundos con multiplicador x3 (`introFrenzyMultiplier = 3`), eliminando el bloqueo que provocaba el fallback del anuncio simulado.
   * Recarga táctica de lanzamientos: si el jugador agotó sus lanzamientos (`throwsLeft <= 0`) o le quedan pocos, el botón recarga automáticamente **+3 lanzamientos extra** de la pelota/héroe para cazar cartas y acumular oro multiplicado en la intro.
