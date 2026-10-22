@@ -64,7 +64,19 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.7.3] — Octubre 2026 (Actual)
+### [v1.7.4] — Octubre 2026 (Actual)
+* **Árbol de Talentos Elemental Expandido (28 Maestrías en 4 Ramas D&D):**
+  * Cada rama elemental (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) se expande a **7 Tiers escalonados** (28 maestrías en total) con costes de 1 a 4 puntos y requisitos de inversión acumulada por rama (`reqBranch`), permitiendo una especialización RPG profunda para cada héroe:
+    * **♠️ Filo (Picas):** Afinidad del Filo (daño perforante), Ojo Crítico (+4% crítico por rango), Mella de Armadura (-DEF rival por pica en mano), Estocada Vorpal (+15% daño físico con 20/21), Filo Vampírico (12% robo de vida al asestar crítico), Cuchillas Gemelas (multiplicador crítico x2.2 al ganar con 2+ picas) y Sentencia de Muerte (ejecución fulminante del rival con Blackjack si tiene 25% o menos HP).
+    * **♦️ Baluarte (Diamantes):** Afinidad del Baluarte (escudo azul por diamantes), Placas Reactivas (-2 mitigación de contragolpes rivales por rango), Baluarte Inicial (+8 escudo azul de piso por rango), Reflejo Diamantino (devuelve 25% del impacto sufrido si tienes escudo activo), Muralla Inamovible (+2 DEF base permanente), Fortaleza de Ases (+10 escudo al plantarte con As de diamantes) y Égida Inexpugnable (revive a 1 HP con +30 escudo tras un golpe letal, 1 vez por combate).
+    * **♥️ Vitalidad (Corazones):** Afinidad Vital (curación por corazones al ganar), Segundo Aliento (+4 HP por rango al ascender de piso), Vigor de Titán (+15 HP Máx permanente por rango), Alquimia Solar (+35% curación de pociones y purga inmediata de Veneno y Quemadura), Sangre de Fénix (+8 HP al derrotar cualquier enemigo), Marea Carmesí (curación x2 duplicada al ganar con 2+ corazones) y Renacimiento Solar (+15 HP y purificación total de dolencias con Blackjack).
+    * **♣️ Fortuna (Tréboles):** Afinidad de la Fortuna (oro de cripta por tréboles), Trébol Afortunado (+6% probabilidad clutch en robo de cartas 10/As), Bolsa de la Cripta (+20 oro inicial al arrancar la expedición por rango), Alquimia de Dados (+1 Dado de Reroll gratuito al inicio de cada piso por rango), Mano del Tahúr (25% probabilidad de conservar poción al beberla), Doble o Nada (+25 oro extra y +1 Moneda de Cripta al ganar doblando) y Soberanía Tahúr (+25 oro y +1 Dado de Reroll al lograr Blackjack con tréboles).
+* **Integración Total en el Motor de Combate y Transición de Pisos:**
+  * Cableados todos los disparadores pasivos y de combate en `resolveHandResult`, `initFloor`, `startTowerAscent`, `usePotion` y en la tirada clutch de `hit`.
+* **Rebalanceo de Artefactos de Tienda:**
+  * Orbe del Nigromante restaura 100% HP al subir de nivel; Blasón del Desafío inflige 6 daño y otorga +6 escudo en empate; Espuela de Celeridad otorga +8 daño y +15 oro en la primera mano; Daga del Vampiro drena hasta 6 HP en manos ganadoras de 20+.
+
+### [v1.7.3] — Octubre 2026
 * **Afinidad Elemental Despertada por el Árbol de Talentos (Tier 1):**
   * Las afinidades elementales de los 4 palos ya no se activan todas a la vez por defecto en cada combate.
   * Cada afinidad se desbloquea invirtiendo puntos en el **Tier 1 de la rama correspondiente**, permitiendo al jugador definir una auténtica **"Línea de Combate"** (Ofensiva/Perforante con Picas, Baluarte de Escudos con Diamantes, Vitalidad/Regeneración con Corazones o Economía con Tréboles), reduciendo el ruido en pantalla y escalando de +2 a +4 de impacto según el rango del talento.

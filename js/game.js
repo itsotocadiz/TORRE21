@@ -4600,49 +4600,57 @@
     {
       id: "spades",
       name: "♠️ Rama del Filo (Picas)",
-      desc: "Daño físico, penetración de armadura e impactos vorpales.",
+      desc: "Daño físico, penetración de armadura, impactos vorpales y ejecuciones.",
       tiers: [
-        { id: "spades_1", name: "Afinidad del Filo", desc: "Despierta la Afinidad de Picas: +2 daño perforante puro por carta de Picas al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
-        { id: "spades_2", name: "Precisión de Acero", desc: "+3% Probabilidad Crítica predictiva.", maxRank: 2, cost: 2, reqBranch: 2 },
-        { id: "spades_3", name: "Estocada Vorpal", desc: "+10% Daño con manos de 20 o 21.", maxRank: 2, cost: 3, reqBranch: 5 },
-        { id: "spades_4", name: "Filo Vampírico", desc: "El 21 restaura 8% del impacto en salud.", maxRank: 1, cost: 4, reqBranch: 8 },
-        { id: "spades_5", name: "Cuchilla del Destino", desc: "Picas perforan +1 DEF y ejecutan rivales con ≤15% HP en BJ.", maxRank: 1, cost: 5, reqBranch: 11 }
+        { id: "spades_1", name: "Afinidad del Filo", desc: "Despierta la Afinidad de Picas: +2 daño perforante puro por carta de Picas al ganar (+1 extra por rango). Sin este talento, las Picas no perforan.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "spades_2", name: "Precisión de Acero", desc: "+4% Probabilidad Crítica predictiva en cualquier combate (+4% por rango).", maxRank: 2, cost: 1, reqBranch: 2 },
+        { id: "spades_3", name: "Mella de Armadura", desc: "Cada carta de Picas en mano reduce la armadura (DEF) rival en 1 punto durante el asalto.", maxRank: 2, cost: 2, reqBranch: 4 },
+        { id: "spades_4", name: "Estocada Vorpal", desc: "+15% de Daño físico total al ganar con manos de 20 o 21.", maxRank: 2, cost: 2, reqBranch: 7 },
+        { id: "spades_5", name: "Filo Vampírico", desc: "Tus Golpes Críticos drenan un 12% del daño infligido en salud directa para tu héroe.", maxRank: 1, cost: 3, reqBranch: 10 },
+        { id: "spades_6", name: "Cuchillas Gemelas", desc: "Si tu mano ganadora contiene 2 o más cartas de Picas, tu multiplicador crítico sube a x2.2.", maxRank: 1, cost: 3, reqBranch: 13 },
+        { id: "spades_7", name: "Sentencia de Muerte", desc: "Blackjack con cartas de Picas ejecuta al instante a cualquier rival con ≤25% de salud.", maxRank: 1, cost: 4, reqBranch: 16 }
       ]
     },
     {
       id: "diamonds",
       name: "♦️ Rama del Baluarte (Diamantes)",
-      desc: "Coraza diamantina, mitigación de golpes y escudos de piso.",
+      desc: "Coraza diamantina, mitigación de golpes, escudos de piso y barrera inexpugnable.",
       tiers: [
-        { id: "diamonds_1", name: "Afinidad del Baluarte", desc: "Despierta la Afinidad de Diamantes: +2 Escudo protector por carta de Diamantes al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
-        { id: "diamonds_2", name: "Coraza Reactiva", desc: "Mitiga 2 de daño de cada contraataque rival.", maxRank: 2, cost: 2, reqBranch: 2 },
-        { id: "diamonds_3", name: "Guardia Sagrada", desc: "Absorbe 50% del primer contraataque de cada piso.", maxRank: 1, cost: 3, reqBranch: 5 },
-        { id: "diamonds_4", name: "Muralla Inamovible", desc: "+1 DEF base permanente.", maxRank: 1, cost: 4, reqBranch: 8 },
-        { id: "diamonds_5", name: "Égida de Diamante", desc: "Sobrevives al primer golpe letal con 1 HP y +20 Escudo.", maxRank: 1, cost: 5, reqBranch: 11 }
+        { id: "diamonds_1", name: "Afinidad del Baluarte", desc: "Despierta la Afinidad de Diamantes: +2 Escudo protector por carta de Diamantes al ganar (+1 extra por rango). Sin este talento, los Diamantes no dan escudo.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "diamonds_2", name: "Placas Reactivas", desc: "Mitiga 2 de daño de cualquier contraataque rival (+2 por rango).", maxRank: 2, cost: 1, reqBranch: 2 },
+        { id: "diamonds_3", name: "Baluarte Inicial", desc: "Comienzas cada piso con +8 de Escudo protector azul adicional (+8 por rango).", maxRank: 2, cost: 2, reqBranch: 4 },
+        { id: "diamonds_4", name: "Reflejo Diamantino", desc: "Si tienes Escudo activo al recibir un contragolpe, reflejas el 25% del daño al rival.", maxRank: 2, cost: 2, reqBranch: 7 },
+        { id: "diamonds_5", name: "Muralla Inamovible", desc: "+2 DEF permanente de armadura pesada en todos tus asaltos.", maxRank: 1, cost: 3, reqBranch: 10 },
+        { id: "diamonds_6", name: "Fortaleza de Ases", desc: "Tus Ases de Diamantes otorgan +10 de Escudo protector adicional al plantarte.", maxRank: 1, cost: 3, reqBranch: 13 },
+        { id: "diamonds_7", name: "Égida Inexpugnable", desc: "Sobrevives a un golpe letal por combate quedando a 1 HP y generando una barrera de +30 de Escudo.", maxRank: 1, cost: 4, reqBranch: 16 }
       ]
     },
     {
       id: "hearts",
       name: "♥️ Rama de la Vitalidad (Corazones)",
-      desc: "Salud máxima, regeneración al vencer y purificación solar.",
+      desc: "Salud máxima, regeneración al vencer, alquimia de pociones y purificación solar.",
       tiers: [
-        { id: "hearts_1", name: "Afinidad Vital", desc: "Despierta la Afinidad de Corazones: +2 HP regenerados por carta de Corazones al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
-        { id: "hearts_2", name: "Respiración Profunda", desc: "Restaura +3 HP al superar cada piso.", maxRank: 2, cost: 2, reqBranch: 2 },
-        { id: "hearts_3", name: "Sangre de Fénix", desc: "Regenera +5 HP al derrotar a cualquier enemigo.", maxRank: 2, cost: 3, reqBranch: 5 },
-        { id: "hearts_4", name: "Alquimia de Vida", desc: "Las pociones curan +25% de salud adicional.", maxRank: 1, cost: 4, reqBranch: 8 },
-        { id: "hearts_5", name: "Renacimiento Solar", desc: "El 21 regenera 10 HP y purga todo veneno o quemadura.", maxRank: 1, cost: 5, reqBranch: 11 }
+        { id: "hearts_1", name: "Afinidad Vital", desc: "Despierta la Afinidad de Corazones: +2 HP regenerados por carta de Corazones al ganar (+1 extra por rango). Sin este talento, los Corazones no curan.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "hearts_2", name: "Segundo Aliento", desc: "Restaura +4 HP automáticamente al ascender de piso en la Torre (+4 por rango).", maxRank: 2, cost: 1, reqBranch: 2 },
+        { id: "hearts_3", name: "Vigor de Titán", desc: "+15 Salud Máxima permanente para tu héroe (+15 por rango).", maxRank: 2, cost: 2, reqBranch: 4 },
+        { id: "hearts_4", name: "Alquimia Solar", desc: "Las pociones curativas restauran +35% de salud adicional y purgan Veneno y Quemadura.", maxRank: 2, cost: 2, reqBranch: 7 },
+        { id: "hearts_5", name: "Sangre de Fénix", desc: "Regenera +8 HP cada vez que derrotes a cualquier enemigo o jefe.", maxRank: 1, cost: 3, reqBranch: 10 },
+        { id: "hearts_6", name: "Marea Carmesí", desc: "Si tu mano ganadora contiene 2 o más cartas de Corazones, duplicas la curación obtenida.", maxRank: 1, cost: 3, reqBranch: 13 },
+        { id: "hearts_7", name: "Renacimiento Solar", desc: "Blackjack con Corazones restaura +15 HP y purga todo Veneno y Quemadura de inmediato.", maxRank: 1, cost: 4, reqBranch: 16 }
       ]
     },
     {
       id: "clubs",
       name: "♣️ Rama de la Fortuna (Tréboles)",
-      desc: "Oro de cripta, economía arcana y conservadurismo tahúr.",
+      desc: "Oro de cripta, economía arcana, rerolls infinitos y soberanía tahúr.",
       tiers: [
-        { id: "clubs_1", name: "Afinidad de la Fortuna", desc: "Despierta la Afinidad de Tréboles: +1 Oro extra por carta de Tréboles al ganar (+1 extra por rango).", maxRank: 3, cost: 1, reqBranch: 0 },
-        { id: "clubs_2", name: "Trébol Afortunado", desc: "+5% Suerte en robos de cartas clutch (10/As).", maxRank: 2, cost: 2, reqBranch: 2 },
-        { id: "clubs_3", name: "Mano del Tahúr", desc: "25% de probabilidad de beber poción sin consumirla.", maxRank: 2, cost: 3, reqBranch: 5 },
-        { id: "clubs_4", name: "Bolsa de la Cripta", desc: "+15 Oro inicial al comenzar cualquier expedición.", maxRank: 1, cost: 4, reqBranch: 8 },
-        { id: "clubs_5", name: "Pacto del Gran Tahúr", desc: "Doblar con éxito otorga +12 Oro y +1 Cripta adicional.", maxRank: 1, cost: 5, reqBranch: 11 }
+        { id: "clubs_1", name: "Afinidad de la Fortuna", desc: "Despierta la Afinidad de Tréboles: +2 Oro extra por carta de Tréboles al ganar (+1 extra por rango). Sin este talento, los Tréboles no dan oro.", maxRank: 3, cost: 1, reqBranch: 0 },
+        { id: "clubs_2", name: "Trébol Afortunado", desc: "+6% Suerte en robos de cartas clutch (10 o As cuando necesitas 20 o 21).", maxRank: 2, cost: 1, reqBranch: 2 },
+        { id: "clubs_3", name: "Bolsa de la Cripta", desc: "+20 de Oro inicial al comenzar cualquier expedición en la Torre (+20 por rango).", maxRank: 2, cost: 2, reqBranch: 4 },
+        { id: "clubs_4", name: "Alquimia de Dados", desc: "+1 Dado de Reroll gratuito al inicio de cada piso (+1 por rango).", maxRank: 2, cost: 2, reqBranch: 7 },
+        { id: "clubs_5", name: "Mano del Tahúr", desc: "25% de probabilidad al usar una poción de no consumirla del inventario.", maxRank: 1, cost: 3, reqBranch: 10 },
+        { id: "clubs_6", name: "Doble o Nada", desc: "Doblar con éxito (Double Down) otorga +25 de Oro extra y +1 Moneda de Cripta.", maxRank: 1, cost: 3, reqBranch: 13 },
+        { id: "clubs_7", name: "Soberanía Tahúr", desc: "Blackjack con Tréboles otorga +25 de Oro inmediato y recarga 1 Dado de Reroll.", maxRank: 1, cost: 4, reqBranch: 16 }
       ]
     }
   ];
@@ -4845,10 +4853,12 @@
 
     // ♠️ Picas (Filo)
     if (ranks["spades_1"]) p.pwr = (p.pwr || 10) + Math.round((p.pwr || 10) * (ranks["spades_1"] * 0.03));
-    if (ranks["spades_2"]) p._treeCritChanceBonus = (ranks["spades_2"] || 0) * 3;
-    if (ranks["spades_3"]) p._spadesVorpalBonus = (ranks["spades_3"] || 0) * 0.10;
-    if (ranks["spades_4"]) p._spadesLifesteal = 0.08;
-    if (ranks["spades_5"]) p._spadesExecuteActive = true;
+    if (ranks["spades_2"]) p._treeCritChanceBonus = (ranks["spades_2"] || 0) * 4;
+    if (ranks["spades_3"]) p._spadesArmorShred = (ranks["spades_3"] || 0) * 1;
+    if (ranks["spades_4"]) p._spadesVorpalBonus = (ranks["spades_4"] || 0) * 0.15;
+    if (ranks["spades_5"]) p._spadesCritLifesteal = 0.12;
+    if (ranks["spades_6"]) p._spadesTwinBlades = true;
+    if (ranks["spades_7"]) p._spadesDeathSentence = true;
 
     // ♦️ Diamantes (Baluarte)
     if (ranks["diamonds_1"]) {
@@ -4856,9 +4866,11 @@
       gameState.status.playerShield = (gameState.status.playerShield || 0) + (ranks["diamonds_1"] * 3);
     }
     if (ranks["diamonds_2"]) p._diamondsCounterMitigate = (ranks["diamonds_2"] || 0) * 2;
-    if (ranks["diamonds_3"]) p._diamondsFirstHitMitigate = true;
-    if (ranks["diamonds_4"]) p.def = (p.def || 0) + 1;
-    if (ranks["diamonds_5"]) p._diamondsAegisRevive = true;
+    if (ranks["diamonds_3"]) p._diamondsFloorShield = (ranks["diamonds_3"] || 0) * 8;
+    if (ranks["diamonds_4"]) p._diamondsThornReflect = (ranks["diamonds_4"] || 0) * 0.25;
+    if (ranks["diamonds_5"]) p.def = (p.def || 0) + 2;
+    if (ranks["diamonds_6"]) p._diamondsAceShield = 10;
+    if (ranks["diamonds_7"]) p._diamondsAegisRevive = true;
 
     // ♥️ Corazones (Vitalidad)
     if (ranks["hearts_1"]) {
@@ -4866,17 +4878,25 @@
       p.maxHp = (p.maxHp || 80) + extraHp;
       p.hp = (p.hp || 80) + extraHp;
     }
-    if (ranks["hearts_2"]) p._heartsFloorRegen = (ranks["hearts_2"] || 0) * 3;
-    if (ranks["hearts_3"]) p._heartsKillRegen = (ranks["hearts_3"] || 0) * 5;
-    if (ranks["hearts_4"]) p._heartsPotionBoost = 0.25;
-    if (ranks["hearts_5"]) p._heartsSolarCleanse = true;
+    if (ranks["hearts_2"]) p._heartsFloorRegen = (ranks["hearts_2"] || 0) * 4;
+    if (ranks["hearts_3"]) {
+      const extraMaxHp = (ranks["hearts_3"] || 0) * 15;
+      p.maxHp = (p.maxHp || 80) + extraMaxHp;
+      p.hp = (p.hp || 80) + extraMaxHp;
+    }
+    if (ranks["hearts_4"]) p._heartsPotionBoost = (ranks["hearts_4"] || 0) * 0.35;
+    if (ranks["hearts_5"]) p._heartsKillRegen = 8;
+    if (ranks["hearts_6"]) p._heartsDoubleTide = true;
+    if (ranks["hearts_7"]) p._heartsSolarCleanse = true;
 
     // ♣️ Tréboles (Fortuna)
     if (ranks["clubs_1"]) p._clubsGoldBonus = (ranks["clubs_1"] || 0) * 0.08;
-    if (ranks["clubs_2"]) p._clubsClutchLuck = (ranks["clubs_2"] || 0) * 0.05;
-    if (ranks["clubs_3"]) p._clubsFreePotionChance = (ranks["clubs_3"] || 0) * 0.25;
-    if (ranks["clubs_4"]) p._clubsStartingGold = 15;
-    if (ranks["clubs_5"]) p._clubsDoublePayout = true;
+    if (ranks["clubs_2"]) p._clubsClutchLuck = (ranks["clubs_2"] || 0) * 0.06;
+    if (ranks["clubs_3"]) p._clubsStartingGold = (ranks["clubs_3"] || 0) * 20;
+    if (ranks["clubs_4"]) p._clubsFloorRerolls = (ranks["clubs_4"] || 0) * 1;
+    if (ranks["clubs_5"]) p._clubsFreePotionChance = 0.25;
+    if (ranks["clubs_6"]) p._clubsDoublePayout = true;
+    if (ranks["clubs_7"]) p._clubsSovereignJack = true;
   }
   window.applyHeroTalentsToPlayer = applyHeroTalentsToPlayer;
 
@@ -6983,6 +7003,17 @@
     p.attributes = (heroMeta && heroMeta.attributes) ? { ...heroMeta.attributes } : initHeroAttributes(p, heroKey);
     if (typeof applyHeroTalentsToPlayer === "function") {
       applyHeroTalentsToPlayer(p, heroKey);
+      if (p._clubsStartingGold) {
+        gameState.gold = (gameState.gold || 0) + p._clubsStartingGold;
+        addLog(`♣️ Bolsa de la Cripta (♣️): +${p._clubsStartingGold} Oro inicial para la expedición.`, "gold");
+      }
+      if (p._diamondsFloorShield) {
+        if (!gameState.status) gameState.status = {};
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + p._diamondsFloorShield;
+      }
+      if (p._clubsFloorRerolls) {
+        p.rerollsAvailable = (p.rerollsAvailable || 0) + p._clubsFloorRerolls;
+      }
     }
     
     // FASE 6: Artefactos por victoria (1 a 3 aleatorios al iniciar ascensión si ya se ha ganado)
@@ -7404,6 +7435,13 @@
         if (p._heartsPotionBoost) healBase = Math.round(healBase * (1 + p._heartsPotionBoost));
         const healed = Math.min(healBase, p.maxHp - p.hp);
         p.hp += healed;
+        if (p._heartsPotionBoost && gameState.status) {
+          if (gameState.status.playerPoison > 0 || gameState.status.playerBurn > 0) {
+            gameState.status.playerPoison = 0;
+            gameState.status.playerBurn = 0;
+            addLog("☀️ Alquimia Solar (♥️): Veneno y quemadura purgados.", "heal");
+          }
+        }
         spawnFloatingText("player-sprite", `+${healed} HP`, "heal");
         addLog(`+${healed} HP (${p.hp}/${p.maxHp})`, "heal");
         updateHud();
@@ -7641,11 +7679,13 @@
       await sleep(300);
       pCardEl.classList.remove("rolling");
 
-      // Debilidad con suerte: Sesgo de robo cuando HP <= 30%
+      // Debilidad con suerte: Sesgo de robo cuando HP <= 30% o por Trébol Afortunado
       let clutchTarget = null;
       const isCriticalHp = p.hp > 0 && p.hp <= Math.ceil(p.maxHp * 0.30);
       const scoreDiff = 21 - p.playerScore;
       if (isCriticalHp && scoreDiff >= 1 && scoreDiff <= 10 && Math.random() < 0.30) {
+        clutchTarget = scoreDiff;
+      } else if (scoreDiff >= 1 && scoreDiff <= 10 && p._clubsClutchLuck && Math.random() < p._clubsClutchLuck) {
         clutchTarget = scoreDiff;
       }
 
@@ -9691,42 +9731,42 @@
     },
     {
       id: "rider_spur",
-      name: "Espuela del Jinete",
+      name: "Espuela de Celeridad",
       icon: "👞",
       tier: 2,
       unlockLevel: 3,
-      price: 32,
-      desc: "La primera mano de cada piso inflige +5 de daño directo garantizado.",
+      price: 34,
+      desc: "La primera mano de cada piso inflige +8 de daño y te otorga +15 de Oro de asalto.",
       apply: () => {}
     },
     {
       id: "bloody_chalice",
-      name: "Cáliz Sangriento",
-      icon: "🍷",
+      name: "Daga del Vampiro",
+      icon: "🗡️",
       tier: 2,
       unlockLevel: 3,
       price: 38,
-      desc: "Drenas +3 HP del rival cada vez que ganas una mano con valor impar.",
+      desc: "Drenas salud al ganar: +3 HP con manos normales y +6 HP con puntuación de 20 o 21.",
       apply: () => {}
     },
     {
       id: "copper_amulet",
-      name: "Amuleto de Cobre",
-      icon: "💍",
+      name: "Blasón del Desafío",
+      icon: "🛡️",
       tier: 2,
       unlockLevel: 3,
-      price: 30,
-      desc: "Si empatas una mano (Push), ganas +2 de Escudo azul en lugar de nada.",
+      price: 32,
+      desc: "Si empatas una mano (Push), infliges 6 de daño al rival y ganas +6 de Escudo azul.",
       apply: () => {}
     },
     {
-      id: "golden_horseshoe",
-      name: "Herradura de Oro",
-      icon: "🧾",
+      id: "merchant_coin",
+      name: "Moneda del Mercader Arcano",
+      icon: "🪙",
       tier: 2,
       unlockLevel: 4,
-      price: 40,
-      desc: "Los sobres arcanos en la tienda cuestan 10 monedas menos.",
+      price: 38,
+      desc: "20% de descuento en todos los objetos del Bazar y +1 Reroll gratuito al inicio de cada piso.",
       apply: () => {}
     },
     {
@@ -9808,7 +9848,7 @@
       tier: 3,
       unlockLevel: 8,
       price: 55,
-      desc: "Cada rival derrotado otorga +30% EXP para subir de nivel más rápido.",
+      desc: "+30% EXP por enemigo derrotado y recuperas el 100% de la salud al subir de nivel.",
       apply: (p) => { p.expMultiplier = (p.expMultiplier || 1) * 1.30; }
     },
     {
@@ -9875,13 +9915,13 @@
     },
     {
       id: "relic_hourglass",
-      name: "Reloj de Arena Arcano",
-      icon: "⏳",
+      name: "Ámbar de la Longevidad",
+      icon: "🍯",
       tier: 2,
       unlockLevel: 3,
       price: 36,
-      desc: "+15 HP Máximo permanente y restaura +15 HP de salud inmediata.",
-      apply: (p) => { p.maxHp += 15; p.hp += 15; }
+      desc: "+20 HP Máximo permanente y restaura +20 HP de salud de inmediato.",
+      apply: (p) => { p.maxHp += 20; p.hp = Math.min(p.maxHp, p.hp + 20); }
     },
     {
       id: "gamblers_loaded_die",
@@ -9910,8 +9950,8 @@
       tier: 1,
       unlockLevel: 1,
       price: 26,
-      desc: "+8 HP Máximo y restaura +12 HP de salud de inmediato.",
-      apply: (p) => { p.maxHp += 8; p.hp = Math.min(p.maxHp, p.hp + 12); }
+      desc: "+15 HP Máximo y restaura +20 HP de salud de inmediato.",
+      apply: (p) => { p.maxHp += 15; p.hp = Math.min(p.maxHp, p.hp + 20); }
     }
   ];
   window.SHOP_ARTIFACTS = SHOP_ARTIFACTS;
@@ -9929,7 +9969,8 @@
     if (typeof art === "object" && art.name && art.icon) {
       return art;
     }
-    const id = typeof art === "string" ? art : (art.id || "");
+    let id = typeof art === "string" ? art : (art.id || "");
+    if (id === "golden_horseshoe") id = "merchant_coin";
     if (typeof SHOP_ARTIFACTS !== "undefined") {
       const found = SHOP_ARTIFACTS.find(a => a.id === id);
       if (found) return { id: found.id, name: found.name, icon: found.icon, desc: found.desc || "" };
@@ -10544,10 +10585,11 @@
     const p = gameState.player;
     if (!p) return;
 
+    const shopDiscount = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 0.8 : 1.0;
     let baseCost = 40;
-    if (packType === "arcane") baseCost = hasArtifact("golden_horseshoe") ? 45 : 55;
-    else if (packType === "artifacts") baseCost = hasArtifact("golden_horseshoe") ? 32 : 40;
-    else if (packType === "accessories") baseCost = 40;
+    if (packType === "arcane") baseCost = Math.round(55 * shopDiscount);
+    else if (packType === "artifacts") baseCost = Math.round(40 * shopDiscount);
+    else if (packType === "accessories") baseCost = Math.round(40 * shopDiscount);
 
     const isFree = !!options.free;
     const packCost = isFree ? 0 : baseCost;
@@ -11312,10 +11354,16 @@
     if (titleEl) titleEl.style.display = "none";
     if (descEl) descEl.style.display = "none";
 
-    const canP = gameState.gold >= 20;
-    const canShieldMinor = gameState.gold >= 15;
-    const canShieldMajor = gameState.gold >= 28;
-    const canR = gameState.gold >= 15;
+    const shopDiscount = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 0.8 : 1.0;
+    const potionPrice = Math.round(20 * shopDiscount);
+    const shieldMinorPrice = Math.round(15 * shopDiscount);
+    const shieldMajorPrice = Math.round(28 * shopDiscount);
+    const rerollPrice = Math.round(15 * shopDiscount);
+
+    const canP = gameState.gold >= potionPrice;
+    const canShieldMinor = gameState.gold >= shieldMinorPrice;
+    const canShieldMajor = gameState.gold >= shieldMajorPrice;
+    const canR = gameState.gold >= rerollPrice;
 
     // Pestaña 1: Provisiones (Poción vida, pociones armadura, reroll)
     let consumablesHtml = `
@@ -11333,12 +11381,12 @@
         <div class="shop-card-right">
           ${canP 
             ? `<button class="shop-action-btn buy" onclick="buyPotion()">
-                 <span class="shop-btn-price">🪙 20 ORO</span>
+                 <span class="shop-btn-price">🪙 ${potionPrice} ORO</span>
                  <span class="shop-btn-action">COMPRAR +1</span>
                </button>`
             : `<button class="shop-action-btn locked" disabled>
-                 <span class="shop-btn-price">🪙 20 ORO</span>
-                 <span class="shop-btn-action">FALTAN ${20 - gameState.gold} 🪙</span>
+                 <span class="shop-btn-price">🪙 ${potionPrice} ORO</span>
+                 <span class="shop-btn-action">FALTAN ${potionPrice - gameState.gold} 🪙</span>
                </button>`
           }
         </div>
@@ -11357,13 +11405,13 @@
         </div>
         <div class="shop-card-right">
           ${canShieldMinor 
-            ? `<button class="shop-action-btn buy" onclick="buyShieldPotion(10, 15)">
-                 <span class="shop-btn-price">🪙 15 ORO</span>
+            ? `<button class="shop-action-btn buy" onclick="buyShieldPotion(10, ${shieldMinorPrice})">
+                 <span class="shop-btn-price">🪙 ${shieldMinorPrice} ORO</span>
                  <span class="shop-btn-action">BEBER (+10)</span>
                </button>`
             : `<button class="shop-action-btn locked" disabled>
-                 <span class="shop-btn-price">🪙 15 ORO</span>
-                 <span class="shop-btn-action">FALTAN ${15 - gameState.gold} 🪙</span>
+                 <span class="shop-btn-price">🪙 ${shieldMinorPrice} ORO</span>
+                 <span class="shop-btn-action">FALTAN ${shieldMinorPrice - gameState.gold} 🪙</span>
                </button>`
           }
         </div>
@@ -11382,13 +11430,13 @@
         </div>
         <div class="shop-card-right">
           ${canShieldMajor 
-            ? `<button class="shop-action-btn buy" onclick="buyShieldPotion(20, 28)">
-                 <span class="shop-btn-price">🪙 28 ORO</span>
+            ? `<button class="shop-action-btn buy" onclick="buyShieldPotion(20, ${shieldMajorPrice})">
+                 <span class="shop-btn-price">🪙 ${shieldMajorPrice} ORO</span>
                  <span class="shop-btn-action">BEBER (+20)</span>
                </button>`
             : `<button class="shop-action-btn locked" disabled>
-                 <span class="shop-btn-price">🪙 28 ORO</span>
-                 <span class="shop-btn-action">FALTAN ${28 - gameState.gold} 🪙</span>
+                 <span class="shop-btn-price">🪙 ${shieldMajorPrice} ORO</span>
+                 <span class="shop-btn-action">FALTAN ${shieldMajorPrice - gameState.gold} 🪙</span>
                </button>`
           }
         </div>
@@ -11408,12 +11456,12 @@
         <div class="shop-card-right">
           ${canR 
             ? `<button class="shop-action-btn buy" onclick="buyReroll()">
-                 <span class="shop-btn-price">🪙 15 ORO</span>
+                 <span class="shop-btn-price">🪙 ${rerollPrice} ORO</span>
                  <span class="shop-btn-action">COMPRAR +1</span>
                </button>`
             : `<button class="shop-action-btn locked" disabled>
-                 <span class="shop-btn-price">🪙 15 ORO</span>
-                 <span class="shop-btn-action">FALTAN ${15 - gameState.gold} 🪙</span>
+                 <span class="shop-btn-price">🪙 ${rerollPrice} ORO</span>
+                 <span class="shop-btn-action">FALTAN ${rerollPrice - gameState.gold} 🪙</span>
                </button>`
           }
         </div>
@@ -11422,8 +11470,8 @@
 
     // Pestaña 2: Sobres de Artefactos y Accesorios (Estilo Balatro / Pokémon)
     const isSlotsFull = p.artifacts.length >= maxSlots;
-    const artPackPrice = hasArtifact("golden_horseshoe") ? 32 : 40;
-    const accPackPrice = 40;
+    const artPackPrice = Math.round(40 * shopDiscount);
+    const accPackPrice = Math.round(40 * shopDiscount);
     const canBuyArtPack = gameState.gold >= artPackPrice;
     const canBuyAccPack = gameState.gold >= accPackPrice;
 
@@ -11547,7 +11595,7 @@
     // Pestaña 3: Sobres Arcanos y Cartas Encantadas
     const enchantedMap = p.cardEnchantments || {};
     const enchantedList = Object.keys(enchantedMap);
-    const boosterPrice = hasArtifact("golden_horseshoe") ? 45 : 55;
+    const boosterPrice = Math.round(55 * shopDiscount);
     const canBuyBooster = gameState.gold >= boosterPrice;
 
     let enchantedCardsSummaryHtml = "";
@@ -11916,12 +11964,13 @@
   window.buyAmulet = buyAmulet;
 
   function buyPotion() {
-    if (gameState.gold >= 20) {
-      gameState.gold -= 20;
+    const cost = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 16 : 20;
+    if (gameState.gold >= cost) {
+      gameState.gold -= cost;
       gameState.player.potions++;
       playPotionDrinkSound();
       playCoinSound();
-      addLog("Compraste una Poción Curativa (+1).", "heal");
+      addLog(`Compraste una Poción Curativa (+1) por ${cost} 🪙.`, "heal");
       updateHud();
       showShopModal();
     }
@@ -11945,12 +11994,13 @@
   window.buyShieldPotion = buyShieldPotion;
 
   function buyReroll() {
-    if (gameState.gold >= 15) {
-      gameState.gold -= 15;
+    const cost = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 12 : 15;
+    if (gameState.gold >= cost) {
+      gameState.gold -= cost;
       gameState.player.rerollsAvailable++;
       playRerollActionSound();
       playCoinSound();
-      addLog("Compraste un Dado de Reroll (+1).", "heal");
+      addLog(`Compraste un Dado de Reroll (+1) por ${cost} 🪙.`, "heal");
       updateHud();
       showShopModal();
     }
@@ -14632,6 +14682,11 @@
       gameState.status.playerShield = (gameState.status.playerShield || 0) + 10;
       addLog("⭐ Reliquia de Nivel " + p.level + ": Égida de Diamante equipada (+1 DEF y +10 Escudo azul por piso).", "critical");
     }
+    if (hasArtifact("necromancer_orb")) {
+      p.hp = p.maxHp;
+      spawnFloatingText("player-sprite", "🔮 VIDA COMPLETA", "heal");
+      addLog("🔮 Orbe del Nigromante: ¡Salud restaurada al 100% por subir de nivel!", "heal");
+    }
     const screenLvl = document.getElementById("screen-levelup");
     if (screenLvl) screenLvl.classList.add("hidden");
     updateHud();
@@ -14699,9 +14754,11 @@
       }
       if (hasArtifact("copper_amulet")) {
         if (!gameState.status) gameState.status = {};
-        gameState.status.playerShield = (gameState.status.playerShield || 0) + 2;
-        spawnFloatingText("player-sprite", "🛡️ +2 ESCUDO", "shield");
-        addLog("💍 Amuleto de Cobre: +2 de Escudo azul protector tras empatar mano.", "heal");
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + 6;
+        if (e && e.hp > 0) e.hp = Math.max(0, e.hp - 6);
+        spawnFloatingText("player-sprite", "🛡️ +6 ESCUDO", "shield");
+        spawnFloatingText("enemy-sprite", "⚔️ -6 DESAFÍO", "damage");
+        addLog("🛡️ Blasón del Desafío: En empate, infliges 6 de daño y ganas +6 de Escudo.", "critical");
         updateHud();
       }
       if (p.accessory === "nebula_ring") {
@@ -14851,18 +14908,21 @@
       if (hasArtifact("behemoth_fang")) effectiveEnemyDef = Math.max(0, effectiveEnemyDef - 3);
       if (hasArtifact("rider_spur") && !p.riderSpurUsedThisFloor) {
         p.riderSpurUsedThisFloor = true;
-        bonus += 5;
-        addLog("👞 Espuela del Jinete: +5 de daño directo garantizado en primera mano.", "critical");
+        bonus += 8;
+        gameState.gold = (gameState.gold || 0) + 15;
+        spawnFloatingText("player-sprite", "+15 🪙 CELERIDAD", "gold");
+        addLog("👞 Espuela de Celeridad: +8 de daño e ímpetu de +15 Oro en primera mano.", "critical");
       }
       if (hasArtifact("fury_bracer")) {
         p.furyBracerStreak = (p.furyBracerStreak || 0) + 1;
         bonus += p.furyBracerStreak;
         addLog("🥊 Brazal de Furia: Racha +" + p.furyBracerStreak + " de daño extra.", "critical");
       }
-      if (hasArtifact("bloody_chalice") && !isEven(p.playerScore)) {
-        p.hp = Math.min(p.maxHp, p.hp + 3);
-        spawnFloatingText("player-sprite", "+3 HP CÁLIZ", "heal");
-        addLog("🍷 Cáliz Sangriento: +3 HP drenados por mano impar ganada.", "heal");
+      if (hasArtifact("bloody_chalice")) {
+        const drainHp = (p.playerScore >= 20) ? 6 : 3;
+        p.hp = Math.min(p.maxHp, p.hp + drainHp);
+        spawnFloatingText("player-sprite", `+${drainHp} HP VAMPIRO`, "heal");
+        addLog(`🗡️ Daga del Vampiro: +${drainHp} HP drenados del rival tras ganar la mano.`, "heal");
       }
       if (hasArtifact("titan_heart")) {
         p.hp = Math.min(p.maxHp, p.hp + 4);
@@ -14908,10 +14968,26 @@
       const strMod = (p.attributes && p.attributes.str > 10) ? Math.floor((p.attributes.str - 10) / 2) : 0;
       if (strMod > 0) bonus += strMod;
 
+      // Mella de Armadura (Talento spades_3): Picas en mano reducen DEF rival
+      if (p._spadesArmorShred) {
+        const handSpadesCount = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
+        if (handSpadesCount > 0) {
+          const shred = handSpadesCount * p._spadesArmorShred;
+          effectiveEnemyDef = Math.max(0, effectiveEnemyDef - shred);
+          addLog(`🗡️ Mella de Armadura (♠): DEF enemiga reducida en -${shred} puntos por ${handSpadesCount} Picas.`, "info");
+        }
+      }
+
       // 3. FÓRMULA DE DAÑO: Base = PWR normal + Apuesta + Margen de Mano + Reliquias / Mejoras de Cartas
       let baseStrike = p.pwr + bet + marginBonus + bonus + (p.cardBonusDamage || 0);
       let rawPlayerDmg = Math.round(baseStrike * levelMult);
       let dmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
+
+      // Estocada Vorpal (Talento spades_4): +15% de Daño en manos de 20 o 21
+      if (p._spadesVorpalBonus && (p.playerScore === 20 || p.playerScore === 21)) {
+        dmg = Math.round(dmg * (1 + p._spadesVorpalBonus));
+        addLog("🗡️ Estocada Vorpal (♠): +15% daño físico por puntuación 20/21.", "critical");
+      }
 
       // D&D: Golpe Amortiguado si la mano ganadora fue tímida (< 15)
       if (p.playerScore < 15) {
@@ -14924,20 +15000,32 @@
       // Sistema de Golpe Crítico RPG: Escala con Destreza (DEX) y Rama del Filo (Picas)
       const effectiveHeroKey = p.classKey || p.class || "knight";
       const treeCritRanks = (typeof getHeroTalentTree === "function") ? (getHeroTalentTree(effectiveHeroKey).ranks || {}) : {};
-      const treeCritBonus = ((treeCritRanks.spades_2 || 0) * 5) + ((treeCritRanks.spades_1 || 0) * 2);
+      const treeCritBonus = ((treeCritRanks.spades_2 || 0) * 4) + ((treeCritRanks.spades_1 || 0) * 2) + (p._treeCritChanceBonus || 0);
       const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
       const baseCritPct = (typeof calculateCritChance === "function") ? calculateCritChance(p.playerHand, gameState.deck || []) : 25;
       const totalCritChance = Math.min(90, Math.max(10, baseCritPct + treeCritBonus + dexStatBonus));
       const isRpgCrit = (p.playerScore >= 19) || (Math.random() * 100 < totalCritChance);
 
       if (isRpgCrit && dmg > 0) {
-        const critMultiplier = (p.playerScore === 21 || isNatural21) ? 2.0 : 1.5;
+        const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
+        let critMultiplier = (p.playerScore === 21 || isNatural21) ? 2.0 : 1.5;
+        // Cuchillas Gemelas (Talento spades_6)
+        if (p._spadesTwinBlades && handSpadesTotal >= 2) {
+          critMultiplier = 2.2;
+        }
         dmg = Math.round(dmg * critMultiplier);
         spawnFloatingText("player-sprite", `⚡ x${critMultiplier} ¡CRÍTICO!`, "crit");
         const reportedCritChance = (p.playerScore >= 19) ? 100 : totalCritChance;
         addLog(`⚡ ¡Impacto Crítico (${reportedCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
         if (typeof showCombatCritSignal === "function") {
           showCombatCritSignal(critMultiplier);
+        }
+        // Filo Vampírico (Talento spades_5)
+        if (p._spadesCritLifesteal) {
+          const leechHp = Math.max(1, Math.round(dmg * p._spadesCritLifesteal));
+          p.hp = Math.min(p.maxHp, p.hp + leechHp);
+          spawnFloatingText("player-sprite", `+${leechHp} HP VAMPIRO ♠`, "heal");
+          addLog(`🗡️ Filo Vampírico (♠): +${leechHp} HP drenados por Impacto Crítico.`, "heal");
         }
       }
 
@@ -14967,7 +15055,11 @@
         addLog(`🗡️ Afinidad de Picas (♠ Nivel ${spadesRank}): +${pierceDmg} daño de corte perforante (${suitSpades} cartas${p._spadesEclipseBonus ? ' • Eclipse +3' : ''}).`, "critical");
       }
       if (suitDiamonds > 0 && diamondsRank > 0) {
-        const dShield = suitDiamonds * (diamondsRank + 1);
+        let dShield = suitDiamonds * (diamondsRank + 1);
+        if (p._diamondsAceShield && (p.playerHand || []).some(c => (c.suit === "♦" || c.suit === "diamonds") && (c.value === 11 || c.rank === "A"))) {
+          dShield += p._diamondsAceShield;
+          addLog("♦️ Fortaleza de Ases: +10 Escudo protector adicional por As de Diamantes.", "heal");
+        }
         if (!gameState.status) gameState.status = {};
         gameState.status.playerShield = (gameState.status.playerShield || 0) + dShield;
         spawnFloatingText("player-sprite", `🛡️ +${dShield} ESCUDO ♦`, "shield");
@@ -14975,17 +15067,50 @@
       }
       if (suitHearts > 0 && (heartsRank > 0 || p._heartsTideBonus)) {
         const perHeart = (heartsRank > 0 ? (heartsRank + 1) : 2) + (p._heartsTideBonus || 0);
-        const hHeal = suitHearts * perHeart;
+        let hHeal = suitHearts * perHeart;
+        if (p._heartsDoubleTide && suitHearts >= 2) {
+          hHeal *= 2;
+          spawnFloatingText("player-sprite", "🌊 MAREA CARMESÍ x2", "heal");
+          addLog("🌊 Marea Carmesí (♥): Curación duplicada al jugar múltiples cartas de Corazones.", "heal");
+        }
         p.hp = Math.min(p.maxHp, p.hp + hHeal);
         spawnFloatingText("player-sprite", `❤️ +${hHeal} HP ♥`, "heal");
         addLog(`❤️ Afinidad de Corazones (♥ Nivel ${heartsRank}): +${hHeal} HP regenerados (${suitHearts} cartas${p._heartsTideBonus ? ' • Marea +3' : ''}).`, "heal");
       }
       if (suitClubs > 0 && clubsRank > 0) {
         const goldMult = (p._cloverNebulaMult || 1);
-        const cGold = suitClubs * clubsRank * goldMult;
+        const cGold = suitClubs * (clubsRank + 1) * goldMult;
         gameState.gold = (gameState.gold || 0) + cGold;
         spawnFloatingText("player-sprite", `🪙 +${cGold} ORO ♣`, "gold");
         addLog(`♣️ Afinidad de Tréboles (♣ Nivel ${clubsRank}): +${cGold} Oro de fortuna arcana (${suitClubs} cartas${goldMult > 1 ? ' • Nebulosa x2' : ''}).`, "gold");
+      }
+
+      // Sentencia de Muerte (Talento spades_7)
+      if (p._spadesDeathSentence && (isNatural21 || p.blackjack || p.playerScore === 21) && suitSpades > 0) {
+        if (e.hp / e.maxHp <= 0.25) {
+          dmg = e.hp;
+          spawnFloatingText("enemy-sprite", "💀 SENTENCIA DE MUERTE", "crit");
+          addLog("🗡️ Sentencia de Muerte (Maestría ♠️): ¡Ejecución fulminante del rival con Blackjack!", "critical");
+        }
+      }
+
+      // Renacimiento Solar (Talento hearts_7)
+      if (p._heartsSolarCleanse && (isNatural21 || p.blackjack || p.playerScore === 21) && suitHearts > 0) {
+        p.hp = Math.min(p.maxHp, p.hp + 15);
+        if (gameState.status) {
+          gameState.status.playerPoison = 0;
+          gameState.status.playerBurn = 0;
+        }
+        spawnFloatingText("player-sprite", "☀️ +15 HP RENACIMIENTO", "heal");
+        addLog("☀️ Renacimiento Solar (Maestría ♥️): +15 HP y purificación total de dolencias al lograr Blackjack.", "heal");
+      }
+
+      // Soberanía Tahúr (Talento clubs_7)
+      if (p._clubsSovereignJack && (isNatural21 || p.blackjack || p.playerScore === 21) && suitClubs > 0) {
+        gameState.gold = (gameState.gold || 0) + 25;
+        p.rerollsAvailable = (p.rerollsAvailable || 0) + 1;
+        spawnFloatingText("player-sprite", "♣️ +25 🪙 +1 DADO", "gold");
+        addLog("♣️ Soberanía Tahúr (Maestría ♣️): +25 Oro y +1 Dado de Reroll por Blackjack con Tréboles.", "gold");
       }
       if (hasStarterBlessing("berserker_rage") && (p.playerScore === 20 || p.playerScore === 21)) {
         dmg = Math.round(dmg * 1.30);
@@ -15028,6 +15153,12 @@
         dmg = Math.round(dmg * doubleMult);
         spawnFloatingText("player-sprite", `⚡ x${doubleMult} DAÑO DOBLADO`, "crit");
         addLog(`⚡ ¡Apuesta Doblada con éxito! Daño de impacto x${doubleMult} = ${dmg}.`, "critical");
+        if (p._clubsDoublePayout) {
+          gameState.gold = (gameState.gold || 0) + 25;
+          if (typeof addCryptCoins === "function") addCryptCoins(1);
+          spawnFloatingText("player-sprite", "+25 🪙 +1 🗝️", "gold");
+          addLog("♣️ Doble o Nada (Talento ♣️): +25 Oro adicional y +1 Moneda de Cripta por ganar doblando.", "gold");
+        }
       }
 
       // Efectos de cartas dinámicas en ataque (Fase E)
@@ -15311,6 +15442,10 @@
         addLog("🩸 Pacto del Gladiador: Furia desesperada (+2 DEF bajo 30% HP).", "critical");
       }
       let incomingDmg = Math.max(isEnemy21OrBJ ? 5 : 0, rawDmg - totalDef);
+      if (p._diamondsCounterMitigate && incomingDmg > 0) {
+        incomingDmg = Math.max(0, incomingDmg - p._diamondsCounterMitigate);
+        addLog(`♦️ Placas Reactivas (♦): -${p._diamondsCounterMitigate} daño mitigado de contraataque.`, "heal");
+      }
       // Yelmo de Valhalla: daño recibido limitado a un máximo de 20
       if (hasArtifact("valhalla_helm") && incomingDmg > 20) {
         incomingDmg = 20;
@@ -15362,6 +15497,12 @@
           setPlayerSpriteState("block");
           spawnFloatingText("player-sprite", `🛡️ -${absorbed} ESCUDO`, "shield");
           addLog(`¡Tu Escudo azul absorbió ${absorbed} de daño! (Quedan ${gameState.status.playerShield} escudo)`, "heal");
+          if (p._diamondsThornReflect && absorbed > 0) {
+            const reflectDmg = Math.max(1, Math.round(absorbed * p._diamondsThornReflect));
+            e.hp = Math.max(0, e.hp - reflectDmg);
+            spawnFloatingText("enemy-sprite", `💎 -${reflectDmg} REFLEJO`, "crit");
+            addLog(`♦️ Reflejo Diamantino (♦): Devuelves ${reflectDmg} de daño reflejado al rival.`, "critical");
+          }
           playShieldSound();
           const pShieldWrap = document.getElementById("player-shield-wrapper");
           if (pShieldWrap) {
@@ -15521,6 +15662,19 @@
     // -------------------------------------------------------------
     // Muerte del jugador → Rueda de Destino (1 sola vez por partida)
     if (p.hp <= 0) {
+      if (p._diamondsAegisRevive && !p._diamondsAegisUsed) {
+        p._diamondsAegisUsed = true;
+        p.hp = 1;
+        if (!gameState.status) gameState.status = {};
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + 30;
+        setPlayerSpriteState("idle");
+        spawnFloatingText("player-sprite", "♦️ ÉGIDA INEXPUGNABLE", "shield");
+        addLog("♦️ ¡Égida Inexpugnable (Maestría ♦️)! Sobrevives al golpe letal con 1 HP y +30 de Escudo protector.", "critical");
+        try { playShieldSound(); } catch (_) {}
+        updateHud();
+        showNextRoundButton();
+        return;
+      }
       if (hasStarterBlessing("phoenix_grace") && !p.phoenixGraceUsed) {
         p.phoenixGraceUsed = true;
         p.hp = Math.round(p.maxHp * 0.50);
@@ -16243,23 +16397,19 @@
     rebuildDrawPile();
 
     // Aplicación de talentos al iniciar el piso
-    if (p && typeof getHeroTalentTree === "function") {
-      const heroKey = p.classKey || p.class || "knight";
-      const tree = getHeroTalentTree(heroKey);
-      const ranks = (tree && tree.ranks) || {};
-      if (ranks["diamonds_1"]) {
-        const floorShield = ranks["diamonds_1"] * 3;
+    if (p) {
+      if (p._diamondsFloorShield) {
         gameState.status = gameState.status || {};
-        gameState.status.playerShield = (gameState.status.playerShield || 0) + floorShield;
-        addLog(`♦️ Baluarte Diamantino: +${floorShield} Escudo al comenzar el piso ${gameState.floor}.`, "heal");
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + p._diamondsFloorShield;
+        addLog(`♦️ Baluarte Inicial (♦️): +${p._diamondsFloorShield} Escudo al comenzar el piso ${gameState.floor}.`, "heal");
       }
-      if (ranks["diamonds_3"]) {
-        p._diamondsFirstHitMitigate = true;
+      if (p._heartsFloorRegen && gameState.floor > 1) {
+        p.hp = Math.min(p.maxHp, p.hp + p._heartsFloorRegen);
+        addLog(`❤️ Segundo Aliento (♥️): +${p._heartsFloorRegen} HP restaurados al entrar al piso ${gameState.floor}.`, "heal");
       }
-      if (ranks["hearts_2"] && gameState.floor > 1) {
-        const healAmt = ranks["hearts_2"] * 3;
-        p.hp = Math.min(p.maxHp, p.hp + healAmt);
-        addLog(`❤️ Respiración Profunda: +${healAmt} HP restaurados al entrar al piso ${gameState.floor}.`, "heal");
+      if (p._clubsFloorRerolls) {
+        p.rerollsAvailable = (p.rerollsAvailable || 0) + p._clubsFloorRerolls;
+        addLog(`♣️ Alquimia de Dados (♣️): +${p._clubsFloorRerolls} Dado(s) de Reroll obtenidos para el piso ${gameState.floor}.`, "gold");
       }
     }
 
