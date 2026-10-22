@@ -220,28 +220,49 @@
 
   function showSynergyPopups(activated) {
     if (!activated || !activated.length) return;
-    activated.forEach((combo, i) => {
+
+    // Desduplicar combos idénticos para no mostrar el mismo perk 2 o 3 veces
+    const seen = new Set();
+    const uniqueCombos = [];
+    for (const c of activated) {
+      const key = (c.id || c.name || "").trim().toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueCombos.push(c);
+      }
+    }
+
+    // Mostrar banner principal únicamente para el primer perk (evita colisiones parpadeantes)
+    const first = uniqueCombos[0];
+    if (first && typeof showCombatBanner === "function") {
+      const subTitle = uniqueCombos.length > 1
+        ? `${first.icon} ${first.name} (+${uniqueCombos.length - 1} perks más)`
+        : `${first.icon} ${first.name}: ${first.desc}`;
+      showCombatBanner(`⚡ ¡PERK TÁCTICO ACTIVADO!`, subTitle, "player-win");
+    }
+
+    uniqueCombos.forEach((combo, i) => {
       setTimeout(() => {
         if (typeof addLog === "function") addLog(`⚡ [PERK TÁCTICO] ${combo.icon} ${combo.name}: ${combo.desc}`, "critical");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", `${combo.icon} ${combo.name}`, "crit");
-        if (typeof showCombatBanner === "function") showCombatBanner(`⚡ ¡PERK TÁCTICO ACTIVADO!`, `${combo.icon} ${combo.name}: ${combo.desc}`, "player-win");
         try {
           const stage = document.getElementById("stage") || document.body;
           const toast = document.createElement("div");
           toast.className = "tactical-perk-toast";
           toast.style.cursor = "pointer";
+          toast.style.top = `calc(clamp(80px, 22%, 160px) + ${i * 46}px)`;
           toast.title = "Toca para ver detalles del Perk";
           toast.onclick = () => {
             if (typeof showGameAlert === "function") {
               showGameAlert(`⚡ [PERK TÁCTICO: ${combo.name}]\n\n${combo.desc}`, "PERK TÁCTICO ACTIVADO");
             }
           };
-          toast.innerHTML = `<div style="font-size:22px;line-height:1;">${combo.icon}</div><div><div class="tpt-name">⚡ PERK: ${combo.name.toUpperCase()}</div><div class="tpt-desc">${combo.desc}</div></div>`;
+          toast.innerHTML = `<div style="font-size:20px;line-height:1;">${combo.icon}</div><div><div class="tpt-name">⚡ PERK: ${combo.name.toUpperCase()}</div><div class="tpt-desc">${combo.desc}</div></div>`;
           stage.appendChild(toast);
           setTimeout(() => { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 2800);
         } catch (_) {}
         if (i === 0 && typeof playSynergyComboSound === "function") { try { playSynergyComboSound(); } catch (_) {} }
-      }, i * 450);
+      }, i * 200);
     });
   }
   window.showSynergyPopups = showSynergyPopups;

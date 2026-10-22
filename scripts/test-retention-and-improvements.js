@@ -39,12 +39,12 @@ eval(gameCode);
 
 console.log('=== VERIFICACIÓN DE REQUERIMIENTOS DEL USUARIO ===');
 
-// 1. Verificar alturas de torre (Pisos progresivos tipo Mortal Kombat)
-assert.strictEqual(window.getMaxFloorsForDifficulty('normal'), 7, 'Torre Normal debe tener 7 pisos');
-assert.strictEqual(window.getMaxFloorsForDifficulty('hard'), 9, 'Torre Heroica debe tener 9 pisos');
-assert.strictEqual(window.getMaxFloorsForDifficulty('mythic'), 11, 'Torre Mítica debe tener 11 pisos');
-assert.strictEqual(window.getMaxFloorsForDifficulty('nightmare'), 13, 'Torre Pesadilla debe tener 13 pisos');
-console.log('✔ Pisos por torre: Normal=7, Heroico=9, Mítico=11, Pesadilla=13.');
+// 1. Verificar alturas de torre (Campaña completa de 21 pisos en los 6 Actos)
+assert.strictEqual(window.getMaxFloorsForDifficulty('normal'), 21, 'Torre Normal debe tener 21 pisos (6 Actos)');
+assert.strictEqual(window.getMaxFloorsForDifficulty('hard'), 21, 'Torre Heroica debe tener 21 pisos (6 Actos)');
+assert.strictEqual(window.getMaxFloorsForDifficulty('mythic'), 21, 'Torre Mítica debe tener 21 pisos (6 Actos)');
+assert.strictEqual(window.getMaxFloorsForDifficulty('nightmare'), 21, 'Torre Pesadilla debe tener 21 pisos (6 Actos)');
+console.log('✔ Pisos por torre: 21 pisos en todos los niveles cubriendo los 6 Actos.');
 
 // 2. Verificar desbloqueo secuencial (Estilo Mortal Kombat)
 localStorage.setItem('bj_tower_total_wins', '0');

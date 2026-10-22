@@ -33,7 +33,7 @@
       pwr: 4,
       def: 1,
       styleClass: "blood-bio",
-      desc: "Trascendencia del 21: Lograr 21 con tus 2 primeras cartas inflige daño crítico x3 perforando el 100% de la armadura rival."
+      desc: "Golpe Bajo: Trascendencia del 21: Lograr 21 natural con tus 2 primeras cartas asesta una estocada vorpal que ignora el 100% de la armadura rival."
     },
     monk: {
       name: "Monje",
@@ -48,7 +48,7 @@
       pwr: 3,
       def: 1,
       styleClass: "zen-bio",
-      desc: "Trascendencia del 21: Lograr 21 con tus 2 primeras cartas restaura +20 HP y aturde al rival."
+      desc: "Concentración Zen: Si te plantas con 18 o 19, tu mente se enfoca otorgándote +1 punto automático a tu puntuación. Trascendencia del 21: Lograr 21 natural restaura +20 HP de vida."
     },
     necromancer: {
       name: "Nigromante",
@@ -63,7 +63,7 @@
       pwr: 3,
       def: 1,
       styleClass: "blood-bio",
-      desc: "Trascendencia del 21: Lograr 21 con tus 2 primeras cartas drena 10 HP al rival y le inocula 5 de Veneno residual."
+      desc: "Devorador de Almas: Al derrotar a cualquier enemigo cosechas su esencia restaurando +8 HP. Trascendencia del 21: Lograr 21 natural drena 10 HP al rival y le inocula 5 de Veneno residual."
     }
   };
 
@@ -4160,11 +4160,11 @@
       label: "NORMAL",
       name: "Torre del Novicio",
       icon: "🟢",
-      maxFloors: 7,
+      maxFloors: 21,
       reqWins: 0,
-      desc: "🟢 <b>Torre del Novicio:</b> Batallas tácticas y fluidas. ¡Supera el Acto I (Pisos 1-3) y vence a Dante de Picas! (🏆 +1 Trofeo)",
+      desc: "🟢 <b>Torre del Novicio (21 Pisos - 6 Actos):</b> Campaña completa. Asciende por las Criptas, Arenas, Pantano, Ciudadela, Cumbres y Trono de Mandinga. (🏆 +1 Trofeo)",
       loreTitle: "La Fosa de los Condenados",
-      lore: "Erigida sobre las cloacas del reino, esta aguja menor sirve como foso donde los señores del 21 arrojan a los rebeldes. Solo quienes dominan la prudencia y el valor logran abrirse paso hasta el primer avatar de BLACK.",
+      lore: "Erigida sobre las cloacas del reino, esta aguja sirve como senda donde los duelistas buscan romper la maldición del 21 hasta el Trono Supremo.",
       multHp: 1.0,
       bonusFloorHp: 4,
       levelHpMult: 0,
@@ -4178,11 +4178,11 @@
       label: "HEROICO",
       name: "Torre Guerrera",
       icon: "🟡",
-      maxFloors: 9,
+      maxFloors: 21,
       reqWins: 1,
-      desc: "🟡 <b>Torre Guerrera (9 Pisos):</b> Requiere ganar la Torre Normal. Rivales con +15% HP y escudos tempranos. (🏆 +2 Trofeos)",
+      desc: "🟡 <b>Torre Guerrera (21 Pisos):</b> Requiere ganar la Torre Normal. Rivales con +15% HP y escudos tempranos a lo largo de los 6 Actos. (🏆 +2 Trofeos)",
       loreTitle: "El Bastión de Sangre y Acero",
-      lore: "Custodiada por mercenarios veteranos y falanges blindadas. Aquí la suerte no basta: cada naipe es una estocada y cada error cuesta caro. Quien corone su cima demostrará la madera de un auténtico paladín.",
+      lore: "Custodiada por mercenarios veteranos y falanges blindadas. Aquí la suerte no basta: cada naipe es una estocada y cada error cuesta caro.",
       multHp: 1.15,
       bonusFloorHp: 6,
       levelHpMult: 2,
@@ -4196,11 +4196,11 @@
       label: "MÍTICO",
       name: "Torre Maestra",
       icon: "🔴",
-      maxFloors: 11,
+      maxFloors: 21,
       reqWins: 2,
-      desc: "🔴 <b>Torre Maestra (11 Pisos):</b> Requiere ganar la Torre Heroica. Rivales con +35% HP y +1 PWR extra. (🏆 +3 Trofeos)",
+      desc: "🔴 <b>Torre Maestra (21 Pisos):</b> Requiere ganar la Torre Heroica. Rivales con +35% HP y +1 PWR extra a través de los 6 Actos. (🏆 +3 Trofeos)",
       loreTitle: "El Sagrario del Éter Prohibido",
-      lore: "Flotando entre nubes purpúreas, esta torre concentra la magia ancestral del Mazo Primigenio. Los cortesanos y centinelas celestes emplean hechizos oscuros para aniquilar a los intrusos antes del salón del trono.",
+      lore: "Flotando entre nubes purpúreas, esta torre concentra la magia ancestral del Mazo Primigenio. Los cortesanos emplean hechizos oscuros para aniquilarte.",
       multHp: 1.35,
       bonusFloorHp: 8,
       levelHpMult: 3,
@@ -4214,12 +4214,12 @@
       label: "PESADILLA",
       name: "Torre de la Perdición",
       icon: "🟣",
-      maxFloors: 13,
+      maxFloors: 21,
       reqWins: 3,
       shieldPenaltyPct: 0.20,
-      desc: "🟣 <b>Torre de la Perdición (13 Pisos):</b> Desafío supremo legendario. Penalización -20% escudo base. Requiere ganar la Torre Mítica. (🏆 +5 Trofeos)",
+      desc: "🟣 <b>Torre de la Perdición (21 Pisos):</b> Desafío supremo legendario. Penalización -20% escudo base. Rivales brutales en todos los Actos. (🏆 +5 Trofeos)",
       loreTitle: "La Cúspide del Abismo Eterno",
-      lore: "La cúspide definitiva donde el Dragón Guardián y BLACK gobiernan la realidad del juego. 13 pisos de agonía pura, maldiciones arcanas y poder desatado. Solo una leyenda viva puede romper la maldición del 21.",
+      lore: "La cúspide definitiva donde el Dragón Guardián y Mandinga gobiernan la realidad del juego. 21 pisos de agonía pura y poder desatado.",
       multHp: 1.60,
       bonusFloorHp: 10,
       levelHpMult: 5,
@@ -5082,7 +5082,7 @@
   function getMaxFloorsForDifficulty(diffKey) {
     if (typeof gameState !== "undefined" && gameState.isCampaignMode) return 21;
     const k = diffKey || (gameState && gameState.diff) || getGameDifficulty();
-    return DIFFICULTY_CONFIGS[k]?.maxFloors || 7;
+    return DIFFICULTY_CONFIGS[k]?.maxFloors || 21;
   }
   window.getMaxFloorsForDifficulty = getMaxFloorsForDifficulty;
   window.getMaxFloorsForDifficulty = getMaxFloorsForDifficulty;
@@ -6829,6 +6829,18 @@
 
       const p = gameState.player;
       const e = gameState.enemy;
+
+      // Re-vincular la Bendición del Destino con el catálogo para restaurar metadatos completos y funciones
+      if (p && p.starterBlessing && p.starterBlessing.id && typeof STARTER_BLESSINGS !== "undefined") {
+        const fullBlessing = STARTER_BLESSINGS.find(b => b.id === p.starterBlessing.id);
+        if (fullBlessing) {
+          p.starterBlessing = Object.assign({}, fullBlessing, p.starterBlessing);
+        }
+      }
+      if (typeof updatePlayerAccSlot === "function") {
+        updatePlayerAccSlot();
+      }
+
       // La mano en curso se reinicia de forma limpia (las cartas no se pueden reconstruir con seguridad)
       p.playerHand = []; p.playerScore = 0; p.bust = false; p.blackjack = false; p.stand = false; p.crimsonApplied = false; p.frozenApplied = false;
       p.betAmount = 0; p.turnShieldBonus = 0; p.turnDoubleDamage = false; p.duplaDef = 0;
@@ -7931,29 +7943,26 @@
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO I VENCIDO", "crit");
         showDemonicRelicDraftModal(1, () => finishFloor(true));
         return;
-      } else if (gameState.floor === 7) {
-        unlockCampaignWaypoint(diffKey, 3);
-        addLog("🗺️ ¡ACTO II SUPERADO! Waypoint al Acto III desbloqueado.", "heal");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO II VENCIDO", "crit");
-        showDemonicRelicDraftModal(2, () => finishFloor(true));
-        return;
-      } else if (gameState.floor === 11) {
-        unlockCampaignWaypoint(diffKey, 4);
-        addLog("🗺️ ¡ACTO III SUPERADO! Waypoint al Acto IV desbloqueado.", "heal");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO III VENCIDO", "crit");
-        showDemonicRelicDraftModal(3, () => finishFloor(true));
-        return;
-      } else if (gameState.floor === 15) {
-        unlockCampaignWaypoint(diffKey, 5);
-        addLog("🗺️ ¡ACTO IV SUPERADO! Waypoint al Acto V desbloqueado.", "heal");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO IV VENCIDO", "crit");
-        showDemonicRelicDraftModal(4, () => finishFloor(true));
-        return;
-      } else if (gameState.floor === 19) {
-        unlockCampaignWaypoint(diffKey, 6);
-        addLog("🗺️ ¡ACTO V SUPERADO! Waypoint al Acto VI desbloqueado.", "heal");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO V VENCIDO", "crit");
-        showDemonicRelicDraftModal(5, () => finishFloor(true));
+      } else if (gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19) {
+        const nextAct = gameState.floor === 7 ? 3 : (gameState.floor === 11 ? 4 : (gameState.floor === 15 ? 5 : 6));
+        const actNum = nextAct - 1;
+        unlockCampaignWaypoint(diffKey, nextAct);
+        addLog(`🗺️ ¡ACTO ${actNum} SUPERADO! Waypoint al Acto ${nextAct} desbloqueado.`, "heal");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", `ACTO ${actNum} VENCIDO`, "crit");
+
+        const proceedWithRelics = () => {
+          showDemonicRelicDraftModal(actNum, () => finishFloor(true));
+        };
+
+        // Recompensa del 50% de Transmutación Arcana al abatir al Jefe de Acto
+        const wonBossDrop = Math.random() < 0.50;
+        if (wonBossDrop) {
+          addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
+          spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
+          showVictoryCardsModal(proceedWithRelics, 1, true);
+        } else {
+          proceedWithRelics();
+        }
         return;
       } else if (gameState.floor >= 21) {
         localStorage.setItem("bj_campaign_completed_" + diffKey, "true");
@@ -7964,10 +7973,21 @@
     }
 
     // Victoria directa en piso cumbre al vencer al rival final (según torre elegida)
-    const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
+    const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 21;
     if (gameState.floor >= maxFloors) {
       showVictory();
       return;
+    }
+
+    // Botín 50% de jefe fuera de modo campaña en pisos clave (7, 11, 15, 19, 20)
+    if (typeof isActBossFloor === "function" && isActBossFloor(gameState.floor) && gameState.floor >= 7) {
+      const nonCampDrop = Math.random() < 0.50;
+      if (nonCampDrop) {
+        addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
+        spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
+        showVictoryCardsModal(() => finishFloor(true), 1, true);
+        return;
+      }
     }
 
     // Cada 5 rivales eliminados → Rueda del Destino (buff/nerf permanente)
@@ -9406,6 +9426,25 @@
     if (modal) modal.classList.add("hidden");
   }
   window.closeBlessingDetailModal = closeBlessingDetailModal;
+
+  function explainCryptKills() {
+    try { playButtonClickSound(); } catch (_) {}
+    const k = (gameState && typeof gameState.killCount === "number") ? (gameState.killCount % 5) : 0;
+    if (typeof showGameAlert === "function") {
+      showGameAlert(`💀 [COFRE DE CRIPTA ABISAL]\nProgreso actual: ${k}/5 rivales vencidos.\n\nPor cada 5 enemigos que derrotas en tu ascensión, recibes recompensas especiales (Monedas de Cripta o apertura de Cofre Arcano con tesoros).`, "TRIBUTO DE CRIPTA");
+    }
+  }
+  window.explainCryptKills = explainCryptKills;
+
+  function explainTableHands() {
+    try { playButtonClickSound(); } catch (_) {}
+    const h = (gameState && gameState.player && typeof gameState.player.handNumber === "number") ? gameState.player.handNumber : 1;
+    const maxH = TURNS_PER_FLOOR || 5;
+    if (typeof showGameAlert === "function") {
+      showGameAlert(`⏳ [RELOJ DE MESA Y MUERTE SÚBITA]\nMano actual: ${h}/${maxH}.\n\nCada piso tiene un límite de ${maxH} manos. Si no derrotas al rival antes de agotarlas, la niebla abisal desata la Muerte Súbita: daño x2 para ambos contendientes y cartas ardientes.`, "TIEMPO DE MESA");
+    }
+  }
+  window.explainTableHands = explainTableHands;
 
   function explainEquipmentPill(type) {
     try { playButtonClickSound(); } catch (_) {}
@@ -13285,7 +13324,11 @@
     if (uiGold) uiGold.innerHTML = `<img src="assets/svg/ui/icon_gold.svg" class="hud-icon" alt=""> ${gameState.gold}`;
 
     const uiKills = document.getElementById("ui-kills");
-    if (uiKills) uiKills.innerHTML = `<img src="assets/svg/ui/icon_crypt.svg" class="hud-icon" alt=""> ${gameState.killCount % 5}/5`;
+    if (uiKills) {
+      const killsInCycle = gameState.killCount % 5;
+      uiKills.innerHTML = `<img src="assets/svg/ui/icon_crypt.svg" class="hud-icon" alt=""> ${killsInCycle}/5`;
+      uiKills.title = `💀 Bajas para Cofre de Cripta: ${killsInCycle}/5 (Cada 5 enemigos derrotados obtienes tributos abisales)`;
+    }
 
     const pClassTitle = document.getElementById("player-class-title");
     if (pClassTitle) pClassTitle.innerText = p.name ? p.name.toUpperCase().replace(/^JACK\s+/i, "") : "CABALLERO";
@@ -13372,14 +13415,14 @@
     const pMini = document.getElementById("player-stats-mini");
     if (pMini) {
       const effDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
-      const shieldStr = gameState.status.playerShield > 0 ? ` <span style="color:#48cae4;">[🛡️+${gameState.status.playerShield}]</span>` : "";
-      pMini.innerHTML = `⚔️ ${p.pwr}  🛡️ ${effDef}${shieldStr}`;
+      const shieldStr = gameState.status.playerShield > 0 ? ` <span style="color:#48cae4;font-weight:bold;">(+${gameState.status.playerShield})</span>` : "";
+      pMini.innerHTML = `⚔️ ${p.pwr} &nbsp; 🛡️ ${effDef}${shieldStr}`;
     }
 
     const eMini = document.getElementById("enemy-stats-mini");
     if (eMini && e) {
-      const shieldStr = gameState.status.enemyShield > 0 ? ` <span style="color:#48cae4;">[🛡️+${gameState.status.enemyShield}]</span>` : "";
-      eMini.innerHTML = `⚔️ ${e.pwr}  🛡️ ${e.def}${shieldStr}`;
+      const shieldStr = gameState.status.enemyShield > 0 ? ` <span style="color:#48cae4;font-weight:bold;">(+${gameState.status.enemyShield})</span>` : "";
+      eMini.innerHTML = `⚔️ ${e.pwr} &nbsp; 🛡️ ${e.def}${shieldStr}`;
     }
 
     if (typeof updatePlayerAccSlot === "function") {
@@ -15061,7 +15104,9 @@
       }
 
       // Sistema de Golpe Crítico RPG: Escala con Destreza (DEX) y Rama del Filo (Picas)
-      const treeCritBonus = (typeof getHeroTalentTree === "function" && p.classKey) ? ((getHeroTalentTree(p.classKey).ranks?.spades_1 || 0) * 5) : 0;
+      const effectiveHeroKey = p.classKey || p.class || "knight";
+      const treeCritRanks = (typeof getHeroTalentTree === "function") ? (getHeroTalentTree(effectiveHeroKey).ranks || {}) : {};
+      const treeCritBonus = ((treeCritRanks.spades_2 || 0) * 5) + ((treeCritRanks.spades_1 || 0) * 2);
       const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
       const baseCritPct = (typeof calculateCritChance === "function") ? calculateCritChance(p.playerHand, gameState.deck || []) : 25;
       const totalCritChance = Math.min(90, Math.max(10, baseCritPct + treeCritBonus + dexStatBonus));
@@ -18292,9 +18337,13 @@
   let activeVictoryCardCandidates = [];
   let selectedVictoryCardIndices = new Set();
   let onVictoryCardsComplete = null;
+  let victoryCardsPickLimit = 3;
+  let isCurrentVictoryBossDrop = false;
 
-  function showVictoryCardsModal(onComplete = null) {
+  function showVictoryCardsModal(onComplete = null, pickLimit = 3, isBossReward = false) {
     onVictoryCardsComplete = onComplete;
+    victoryCardsPickLimit = Math.max(1, pickLimit || 3);
+    isCurrentVictoryBossDrop = !!isBossReward;
     selectedVictoryCardIndices.clear();
 
     const modal = document.getElementById("screen-mastery-forge-modal");
@@ -18302,13 +18351,23 @@
     if (!modal || !grid) return;
 
     const crownEl = document.getElementById("mf-crown");
-    if (crownEl) crownEl.innerText = "🃏 BOTÍN DE NAIPES DE LA TORRE";
+    if (crownEl) {
+      crownEl.innerText = isBossReward
+        ? "👑 BOTÍN ARCANO DE JEFE (50% PROBABILIDAD)"
+        : "🃏 BOTÍN DE NAIPES DE LA TORRE";
+    }
     const titleEl = document.getElementById("mf-title");
     if (titleEl) titleEl.innerText = "TRANSMUTACIÓN DE MAZO (52 CARTAS)";
     const descEl = document.getElementById("mf-desc");
-    if (descEl) descEl.innerHTML = `¡Conquista legendaria! Elige <b>3 naipes arcanos de los 6</b> para transmutar y reemplazar sus cartas correspondientes en tu baraja de 52 cartas (<b id="mf-cards-picked-count" style="color:#ffd166;">0/3</b> elegidos):`;
+    if (descEl) {
+      descEl.innerHTML = isBossReward
+        ? `¡Has derrotado al Guardián de la Torre! La fortuna te concede una Transmutación Arcana: elige <b>1 naipe</b> para sustituir su carta ordinaria en tu mazo de 52 cartas (<b id="mf-cards-picked-count" style="color:#ffd166;">0/1</b> elegidos):`
+        : `¡Conquista legendaria! Elige <b>${victoryCardsPickLimit} naipes arcanos de los 6</b> para transmutar y reemplazar sus cartas correspondientes en tu baraja de 52 cartas (<b id="mf-cards-picked-count" style="color:#ffd166;">0/${victoryCardsPickLimit}</b> elegidos):`;
+    }
     const hintEl = document.getElementById("mf-hint");
-    if (hintEl) hintEl.innerText = "✨ Estos 3 naipes arcanos sustituyen a su número y palo ordinarios, manteniendo siempre 52 cartas exactas en tu baraja.";
+    if (hintEl) {
+      hintEl.innerText = "✨ Este naipe arcano sustituye a su número y palo ordinarios, manteniendo siempre 52 cartas exactas en tu baraja.";
+    }
 
     const highRanks = [
       {
@@ -18383,7 +18442,8 @@
       }
     ];
     shuffleArray(highRanks);
-    const chosenRanks = highRanks.slice(0, 6);
+    let chosenRanks = highRanks.slice(0, 6);
+    if (isBossReward) chosenRanks = highRanks.slice(0, 3);
 
     const suitsCopy = [...SUITS];
     shuffleArray(suitsCopy);
@@ -18407,6 +18467,7 @@
       actionCont.style.display = "block";
       updateVictoryCardsConfirmButton();
     }
+    modal.classList.remove("hidden");
   }
   window.showVictoryCardsModal = showVictoryCardsModal;
 
@@ -18442,8 +18503,10 @@
     if (selectedVictoryCardIndices.has(idx)) {
       selectedVictoryCardIndices.delete(idx);
     } else {
-      if (selectedVictoryCardIndices.size >= 3) {
-        if (typeof showGameToast === "function") showGameToast("Ya has seleccionado 3 naipes. Desmarca uno para cambiar.", "warning");
+      if (selectedVictoryCardIndices.size >= victoryCardsPickLimit) {
+        if (typeof showGameToast === "function") {
+          showGameToast(`Ya has seleccionado ${victoryCardsPickLimit} naipe(s). Desmarca uno para cambiar.`, "warning");
+        }
         return;
       }
       selectedVictoryCardIndices.add(idx);
@@ -18456,28 +18519,42 @@
 
   function updateVictoryCardsConfirmButton() {
     const countEl = document.getElementById("mf-cards-picked-count");
-    if (countEl) countEl.innerText = `${selectedVictoryCardIndices.size}/3`;
+    if (countEl) countEl.innerText = `${selectedVictoryCardIndices.size}/${victoryCardsPickLimit}`;
     const btn = document.getElementById("mf-confirm-cards-btn");
     if (!btn) return;
-    if (selectedVictoryCardIndices.size === 3) {
+    if (selectedVictoryCardIndices.size === victoryCardsPickLimit) {
       btn.disabled = false;
       btn.style.opacity = "1";
       btn.style.cursor = "pointer";
-      btn.innerText = "✅ CONFIRMAR Y TRANSMUTAR 3 NAIPES (52 CARTAS)";
+      btn.innerText = `✅ CONFIRMAR Y TRANSMUTAR (${victoryCardsPickLimit} NAIPE EN 52 CARTAS)`;
     } else {
       btn.disabled = true;
       btn.style.opacity = "0.6";
       btn.style.cursor = "not-allowed";
-      btn.innerText = `ELIGE 3 NAIPES (${selectedVictoryCardIndices.size}/3)`;
+      btn.innerText = `ELIGE ${victoryCardsPickLimit} NAIPES (${selectedVictoryCardIndices.size}/${victoryCardsPickLimit})`;
     }
   }
 
   function confirmVictoryCardsSelection() {
-    if (selectedVictoryCardIndices.size !== 3) return;
+    if (selectedVictoryCardIndices.size === 3 || selectedVictoryCardIndices.size === victoryCardsPickLimit) {
+      // Selección válida
+    } else {
+      return;
+    }
     const cardsToAdd = Array.from(selectedVictoryCardIndices).map(i => activeVictoryCardCandidates[i]);
     savePersistentExtraCards(cardsToAdd);
 
-    if (gameState.player) {
+    // Si hay baraja activa en juego, aplicar la transmutación inmediatamente reemplazando su homólogo en 52 cartas
+    if (gameState && Array.isArray(gameState.deck)) {
+      cardsToAdd.forEach(transmuted => {
+        const matchIdx = gameState.deck.findIndex(c => c.rank === transmuted.rank && c.suit === transmuted.suit);
+        if (matchIdx !== -1) {
+          gameState.deck[matchIdx] = Object.assign({}, gameState.deck[matchIdx], transmuted);
+        }
+      });
+    }
+
+    if (gameState.player && !isCurrentVictoryBossDrop) {
       const p = gameState.player;
       const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
       const claimedKey = `blackjack_victory_cards_claimed_${p.class}_${diffKey}`;
@@ -18491,15 +18568,18 @@
     } catch (_) {}
     if (typeof updatePendingTowerRewardBanner === "function") updatePendingTowerRewardBanner();
 
-    addLog(`👑 Recompensa de Conquista: Has transmutado 3 naipes arcanos en tu baraja de 52 (${cardsToAdd.map(c => c.rank + c.suit).join(", ")}).`, "critical");
-    spawnFloatingText("stage", "🃏 +3 NAIPES TRANSMUTADOS (52 CARTAS)", "crit");
+    const cardNames = cardsToAdd.map(c => c.rank + c.suit).join(", ");
+    addLog(`👑 Transmutación Arcana: Has modificado tu baraja de 52 cartas (${cardNames}).`, "critical");
+    spawnFloatingText("stage", `🃏 +${cardsToAdd.length} TRANSMUTADA(S) (52 CARTAS)`, "crit");
     try { playWinFanfareSound(); } catch (_) {}
     triggerHaptic("blackjack");
 
     const modal = document.getElementById("screen-mastery-forge-modal");
     if (modal) modal.classList.add("hidden");
 
-    showVictoryRewardSavedModal(cardsToAdd);
+    if (!isCurrentVictoryBossDrop) {
+      showVictoryRewardSavedModal(cardsToAdd);
+    }
 
     if (onVictoryCardsComplete) {
       const cb = onVictoryCardsComplete;
@@ -18695,17 +18775,8 @@
       try { playWinFanfareSound(); } catch (_) {}
       try { triggerHaptic("blackjack"); } catch (_) {}
 
-      // Recargar tiros de la pelota para que el jugador pueda aprovechar el frenesí
-      if (typeof introMinigameState !== "undefined") {
-        introMinigameState.throwsLeft = Math.min(8, Math.max((introMinigameState.throwsLeft || 0) + 3, 3));
-        const throwsEl = document.getElementById("intro-throws-val");
-        if (throwsEl) {
-          throwsEl.textContent = `${introMinigameState.throwsLeft}/${introMinigameState.maxThrows}`;
-        }
-      }
-
       if (typeof showGameToast === "function") {
-        showGameToast("⚡ ¡FRENESÍ x3 ACTIVADO! (+3 Tiros Extra)", "gold");
+        showGameToast("⚡ ¡FRENESÍ x3 ACTIVADO! (x3 Monedas)", "gold");
       }
 
       let secsLeft = 15;

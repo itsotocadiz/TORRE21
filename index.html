@@ -998,9 +998,9 @@
 
   <header>
     <div class="header-left">
-      <span id="ui-floor">PISO 1 / 13</span>
+      <span id="ui-floor">PISO 1 / 21</span>
       <span id="ui-gold" class="term" data-term="gold">💰 0</span>
-      <span id="ui-kills">💀 0/5</span>
+      <span id="ui-kills" class="interactive-term" onclick="explainCryptKills()" title="Bajas para Cofre de Cripta: Cada 5 rivales vencidos recibes recompensas abisales">💀 0/5</span>
     </div>
     <div class="header-right">
       <button id="btn-header-codex" onclick="openCodex()" class="header-btn" title="Códice de Colección">📜 CÓDICE</button>
@@ -1021,7 +1021,7 @@
     <!-- ESCENARIO DE COMBATE: cartas arriba (enfrentadas), personajes abajo al centro -->
     <div class="battle-scene">
       <!-- SPRINT 2: CONTADOR DE MANOS TRASLÚCIDO EN EL CENTRO SUPERIOR DE LA MESA -->
-      <div id="table-hand-pill" class="table-hand-pill" title="Mano actual de combate en la Torre">MANO 1/5</div>
+      <div id="table-hand-pill" class="table-hand-pill" onclick="explainTableHands()" title="Mano actual de combate. Al llegar al límite inicia la Muerte Súbita (daño x2 y cartas con fuego)">MANO 1/5</div>
 
       <!-- VISOR TÁCTICO DE COMBATE: RANGO DE ATAQUE PREDICTIVO -->
       <div id="dnd-tactical-odds-hud" class="dnd-tactical-odds-hud" title="Toca para ver el desglose de tu Daño">

@@ -29,7 +29,7 @@ assert(gameContent.includes('EL BAZAR DEL DESTINO'), 'Opción 2: El Bazar del De
 assert(gameContent.includes('EL YUNQUE TAHÚR'), 'Opción 3: El Yunque Tahúr presente');
 
 console.log("== 3. Verificación de resumeSavedRun ==");
-const resumeSnippet = gameContent.slice(gameContent.indexOf('function resumeSavedRun'), gameContent.indexOf('function resumeSavedRun') + 3000);
+const resumeSnippet = gameContent.slice(gameContent.indexOf('function resumeSavedRun'), gameContent.indexOf('function resumeSavedRun') + 5000);
 assert(resumeSnippet.includes('floorCleared'), 'Manejo de floorCleared presente');
 assert(resumeSnippet.includes('showRewardModal()'), 'Al reanudar con piso despejado abre showRewardModal (no solo la tienda)');
 

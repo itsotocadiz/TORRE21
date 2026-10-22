@@ -9925,7 +9925,7 @@ body.sudden-death-active #stage {
   align-items: center;
   gap: 8px;
   animation: perkToastPop 2.4s ease forwards;
-  pointer-events: none;
+  pointer-events: auto;
   max-width: 90%;
   width: max-content;
 }
@@ -10120,8 +10120,9 @@ body.sudden-death-active #stage {
    ============================================================ */
 .player-streak-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -10px;
+  left: -8px;
+  right: auto;
   background: linear-gradient(135deg, #e63946, #f77f00, #fcbf49);
   color: #fff;
   font-family: var(--font-pixel, monospace);

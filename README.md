@@ -64,7 +64,32 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.7.2] — Octubre 2026 (Actual)
+### [v1.7.3] — Octubre 2026 (Actual)
+* **Campaña Completa de 21 Pisos (6 Actos) en Todas las Dificultades:**
+  * Sincronizado `maxFloors = 21` en todas las dificultades de campaña (Normal, Heroico, Mítico, Pesadilla), erradicando el corte prematuro en el piso 7. Los jugadores pueden ascender fluidamente a lo largo de los 6 Actos completos en cualquier dificultad.
+* **Botín Arcano de Jefes Fuertes (50% Probabilidad de Transmutación en 52 Cartas):**
+  * Al derrotar a los jerarcas y guardianes mayores de la Torre (Dante de Picas P.3, Valquiria de Diamantes P.7, Archimago del Trébol P.11, Malfas del Vacío P.15, Sombra del 21 P.19 y Dragón Guardián P.20), existe un **50% de probabilidad** de obtener una Transmutación Arcana.
+  * El jugador elige **1 naipe arcano de entre 3 candidatos** (ej. 6 Modular Alquímico, 8 Armónico de Fusión, As Multiplicador x2, Rey Verdugo Crítico x2, 7 Elástico +2/-2, etc.).
+  * **Regla Reglamentaria de 52 Cartas:** El naipe arcano transmutado sustituye de inmediato a su carta ordinaria en el mazo activo y en la baraja persistente, garantizando que el jugador mantenga siempre exactamente 52 cartas reglamentarias en mano.
+* **Cola de Notificaciones Tácticas de Perks (Fin de Mensajes Superpuestos):**
+  * Eliminado el solapamiento visual cuando se activan múltiples Perks Tácticos en una misma mano.
+  * Los mensajes se apilan verticalmente de forma dinámica (`top: calc(75px + ${offsetY}px)`) con animación individual de desvanecimiento secuencial (`slideInRight` + `fadeOutToast`).
+* **Blindaje y Persistencia de la Run al Reanudar:**
+  * Al reanudar una partida guardada (`resumeSavedRun`), se re-vinculan automáticamente las Bendiciones del Destino activas con su catálogo oficial y se fuerza el refresco de `#player-acc-slot` para que el medallón protector del héroe permanezca visible y activo.
+* **Unificación del HUD de Defensa y Escudo:**
+  * Eliminada la redundancia de escudos duplicados en la pantalla de combate.
+  * Unificado el visor de estadísticas mínimas en un formato limpio: `⚔️ PWR  🛡️ DEF (+Escudo)` (ej: `⚔️ 3  🛡️ 2 (+4)` en cian brillante).
+* **HUD Interactivo y Explicación Táctil de Calaveras y Tiempo de Mesa:**
+  * `#ui-kills` (💀 0/5) y `#table-hand-pill` (MANO 1/5) ahora son interactivos al toque táctil (`explainCryptKills()` y `explainTableHands()`), explicando claramente la apertura de Cofres de Cripta cada 5 bajas y el inicio de la Muerte Súbita al agotar las manos del piso.
+* **Reposicionamiento del Banner de Racha (`#player-streak-badge`):**
+  * Reubicado hacia el margen superior derecho sin superponerse al avatar del héroe ni tapar el slot de bendiciones.
+* **Ajuste del Frenesí en la Intro:**
+  * El Frenesí aplica estrictamente su multiplicador x3 de monedas/recursos recolectados durante 15 segundos, sin otorgar recargas indebidas de tiros extra de pelota.
+* **Pasivas de Clase Documentadas y Activas:**
+  * Actualizadas las biografías del Monje (*Concentración Zen: +1 punto automático al plantarse con 18 o 19*) y del Nigromante (*Devorador de Almas: +8 HP al abatir cualquier enemigo*).
+  * Corrección de la resolución de la clase activa en el cálculo de críticos del Árbol de Talentos.
+
+### [v1.7.2] — Octubre 2026
 * **Despeje y Optimización Vertical del Menú de Inicio:**
   * Eliminado el banner redundante `«En el trono del piso 21 aguarda El Mandinga...»` de la pantalla de inicio, reduciendo 80px de altura vertical y permitiendo visualizar los héroes y dificultades completas sin scroll en pantallas móviles.
   * Retirada la barra rápida superior (`.daily-reward-quickbar`) que saturaba la portada con botones fragmentados.
