@@ -28,17 +28,18 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * ♣️ **Tréboles:** Carga de Overdrive, robo de recursos y fortuna de cripta.
 * **Sistema D&D de Tiradas:** Críticos naturales (Nat 20), impacto vorpal en Blackjack Natural, fintas con tiradas de salvación basadas en Destreza/Inteligencia y pifias críticas (Nat 1 / BUST).
 * **Oleadas de Rivales y Muerte Súbita:** En cada piso combates contra oleadas de esbirros antes de encarar al jerarca. Al llegar al límite de manos entra el **Modo Furia / Muerte Súbita** con daño multiplicado exponencialmente.
+* **Predictivo Táctico de Daño y Señal Dinámica de Crítico:** Visualización en vivo del daño neto proyectado `⚔️ ATAQUE: X HP` o `⚔️ ATAQUE: X–Y HP` (o `⚡ ATAQUE x2:` al doblar), complementada con una señal visual emergente `⚡ ¡GOLPE CRÍTICO!` animada en pantalla cuando se confirma un impacto crítico por Destreza, afinidad o 19–21.
 
 ### 🗺️ Campaña en 6 Actos (Estilo Diablo II)
-* **21 Pisos de Ascensión:** Estructurados en 6 Capítulos temáticos que recorren desde los confines de las catacumbas hasta el trono supremo.
-  * **Acto I (P.1 a P.3):** Criptas Sombrías • Jefe: *Dante de Picas*.
-  * **Acto II (P.4 a P.6):** Caverna de Hielo • Jefe: *Valquiria de Diamantes*.
-  * **Acto III (P.7 a P.10):** Bastión Enano • Jefe: *Archimago de Tréboles*.
-  * **Acto IV (P.11 a P.14):** Inframundo Arcano • Jefe: *El Dragón Ancestral*.
-  * **Acto V (P.15 a P.18):** Pico del Juicio • Jefe: *Víbora de Sombras*.
-  * **Acto VI (P.19 a P.21):** Trono del Caos • Jefe Final: *El Rey del 21*.
+* **21 Pisos de Ascensión:** Estructurados en 6 Actos temáticos secuenciales que recorren desde los confines de las catacumbas hasta el trono supremo:
+  * **Acto I (P.1 a P.3):** Criptas de Picas • Jefe: *Dante de Picas*.
+  * **Acto II (P.4 a P.7):** Arenas de Diamante • Jefa: *Valquiria de Diamantes*.
+  * **Acto III (P.8 a P.11):** Pantano del Trébol • Jefe: *Archimago del Trébol*.
+  * **Acto IV (P.12 a P.15):** Ciudadela del Vacío • Jefe: *Malfas del Vacío*.
+  * **Acto V (P.16 a P.19):** Cumbres de la Sombra • Jefe: *Sombra del 21 (BLACK)*.
+  * **Acto VI (P.20 a P.21):** Sagrario del Mandinga • Subjefe: *Dragón de Ébano* (P.20) • Jefe Final: *👑 El Mandinga, Señor del 21* (P.21).
 * **Portal de Waypoints:** Desbloqueo de puntos de teletransporte permanentes entre actos guardados en almacenamiento local.
-* **3 Dificultades Maestras:** *Normal*, *Pesadilla* e *Infierno*, con escalado de IA enemiga, botines superiores y mutadores de ascensión.
+* **Dificultades de Ascensión:** *Normal*, *Heroico*, *Mítico*, *Pesadilla* y el desafiante modo *♾️ ENDLESS (Modo Sin Fin)* con biomas astrales y escalado procedural infinito.
 
 ### 🧙 4 Clases de Héroes y Progresión RPG
 * **Caballero:** Tanque inamovible con armadura de placas, generación de escudo protector pasivo y mitigación de daño físico.
