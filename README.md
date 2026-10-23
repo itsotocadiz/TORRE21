@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.7.4 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.7.5 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -29,7 +29,7 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * ♣️ **Tréboles:** Carga de Overdrive, robo de recursos y fortuna de cripta.
 * **Sistema D&D de Tiradas:** Críticos naturales (Nat 20), impacto vorpal en Blackjack Natural, fintas con tiradas de salvación basadas en Destreza/Inteligencia y pifias críticas (Nat 1 / BUST).
 * **Oleadas de Rivales y Muerte Súbita:** En cada piso combates contra oleadas de esbirros antes de encarar al jerarca. Al llegar al límite de manos entra el **Modo Furia / Muerte Súbita** con daño multiplicado exponencialmente.
-* **Predictivo Táctico de Daño y Señal Dinámica de Crítico:** Visualización en vivo del daño neto proyectado `⚔️ ATAQUE: X HP` o `⚔️ ATAQUE: X–Y HP` (o `⚡ ATAQUE x2:` al doblar), complementada con una señal visual emergente `⚡ ¡GOLPE CRÍTICO!` animada en pantalla cuando se confirma un impacto crítico por Destreza, afinidad o 19–21.
+* **Predictivo Táctico de Daño y Señal Dinámica de Crítico:** Visualización en vivo del daño neto proyectado `⚔️ Daño: X HP` o `⚔️ Daño: X – Y HP` (o `⚡ ATAQUE x2:` al doblar), complementada con una señal visual emergente `⚡ ¡GOLPE CRÍTICO!` animada en pantalla cuando se confirma un impacto crítico por Destreza, afinidad o 19–21.
 
 ### 🗺️ Campaña en 6 Actos (Estilo Diablo II)
 * **21 Pisos de Ascensión:** Estructurados en 6 Actos temáticos secuenciales que recorren desde los confines de las catacumbas hasta el trono supremo:
@@ -65,7 +65,32 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.7.4] — Octubre 2026 (Actual)
+### [v1.7.5] — Octubre 2026 (Actual)
+* **Reestructuración Visual de Lore con 5 Pestañas de Símbolos:**
+  * Barra horizontal de 5 pestañas representadas únicamente por iconos intuitivos (`🏰 Pisos`, `📜 Memorias`, `👑 Álbum Ragnarok`, `⚔️ Bestiario/Rivales`, `🔮 Secretos del Abismo`) que garantizan cero rupturas de interfaz en smartphones.
+  * Encabezado activo dinámico (`#codex-active-section-title`) que indica la crónica seleccionada y organiza el contenido en tarjetas limpias y legibles.
+* **Salón del Logro con Filtros Solo por Símbolo y Subtítulo Dinámico:**
+  * Pestañas de categoría compactadas a sus iconos puros (`🏆`, `🏰`, `⚔️`, `🪙`, `🃏`, `🥊`), con ergonomía táctil estricta $\ge 44 \times 44$ px.
+  * Subtítulo dinámico `#ach-active-category-title` que muestra en tiempo real la categoría activa y el progreso global de desafíos.
+* **Estandarización del Códice con Ranuras `?`:**
+  * **Álbum Ragnarok:** Catálogo estandarizado de 14 monstruos y jefes (Dante, Valquiria, Archimago, Malfas, Mandinga y esbirros). Las cartas no obtenidas se muestran como siluetas oscuras misteriosas con un gran `?` centrado y pista de desbloqueo; las desbloqueadas lucen su corona dorada `👑`, sprite y marco brillante.
+  * **Memorias Ocultas:** Bloqueadas como crónicas selladas con `?` hasta alcanzar los pisos correspondientes en la Torre.
+* **Reparación y Contenido Completo en Tutoriales:**
+  * Desambiguación del conflicto entre pestañas interactivas y generales (`switchInteractiveTutorialTab` vs `switchTutorialTab`).
+  * Implementadas las secciones completas de **⚡ Mecánicas Avanzadas** (Parry Épico 21v21, Crítico RPG dinámico, Esquiva, Espinas, Vampirismo, Suerte, Afinidades y Mesa Sacrificial) y **🧠 Estrategias y Economía** (3 líneas de defensa, cuándo plantarse vs pedir, Cartas Transmutadas y Sellos, Dado del Campeón al 50% y Cartas Ragnarok).
+* **HUD Predictivo de Combate Limpio:**
+  * Retirada la fórmula algebraica superior (`[Mano + Base] × Mult...`), dejando una indicación limpia y precisa del rango de impacto: `⚔️ Daño: 14 – 22 HP` o `⚔️ Daño: 20 HP`.
+* **Corrección de Estadísticas RPG Iniciales:**
+  * Las Espinas inician en 0 para todos los personajes (eliminado el valor inicial de 15 en Caballero y 5 en Monje).
+  * Crítico y Esquiva inician en 0% base y escalan limpiamente con Destreza, Árbol de Talentos y Reliquias.
+  * Visualización completa de Crítico (⚡), Esquiva (💨), Espinas (🌵), Vampirismo (🩸) y Suerte (🍀) en la ficha del héroe y en el HUD superior `#player-stats-mini`.
+* **Mercado de Héroes con Metamonedas (Transmutaciones y Sellos):**
+  * Interfaz completa accesible desde el Bazar in-game y directamente desde la pantalla de inicio (`title-pane-shop`) mediante el modal `#screen-hero-market-modal`.
+  * Selector dinámico de Héroe (Caballero, Pícaro, Monje, Nigromante).
+  * Compra de nuevas Cartas Transmutadas y re-roll de efectos arcanos con Metamonedas de Cripta.
+  * Compra y transmutación de Sellos de Alto Nivel grabados en los naipes permanentes de cada héroe.
+
+### [v1.7.4] — Octubre 2026
 * **Revolución Matemática del Combate y Eliminación de `levelMult`:**
   * Eliminado el escalado artificial por nivel (`levelMult`) en `calculateExactTacticalDamage`, `calculateTacticalAttackRange` y `resolveHandResult`. El daño es completamente predecible y fiel a las estadísticas puras del héroe y la mano de naipes:
     $$\text{Daño Total} = [\text{Daño Mano} + \text{Ataque Base}] \times [\text{Multiplicador}] - \text{DEF Rival}$$

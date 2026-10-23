@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.7.4";
+  const GAME_VERSION = "v1.7.5";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.7.4)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.7.5)
      ============================================================ */
 
   const HERO_DATA = {
@@ -3836,10 +3836,10 @@
   window.calculateExactTacticalDamage = calculateExactTacticalDamage;
 
   function calculateTacticalAttackRange(player, enemy, playerHand = [], isDouble = false) {
-    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ [Mano: 0] + [Atq: 0] × 1x = 0 HP", score: 0 };
+    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ Daño: 0 HP", score: 0 };
     const score = calculateHandScore(playerHand);
     if (score > 21) {
-      return { minDmg: 0, maxDmg: 0, text: "⚔️ [BUST] Ataque: 0 HP", isBust: true, score };
+      return { minDmg: 0, maxDmg: 0, text: "⚔️ Daño: 0 HP (BUST)", isBust: true, score };
     }
 
     const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
@@ -3889,9 +3889,9 @@
 
     let label = "";
     if (minDmg === maxDmg) {
-      label = `⚔️ [Mano: ${handDmg}] + [Atq: ${baseAtk}] × ${minMult.toFixed(1)}x = ${minDmg} HP`;
+      label = `⚔️ Daño: ${minDmg} HP`;
     } else {
-      label = `⚔️ [Mano: ${handDmg}] + [Atq: ${baseAtk}] × [${minMult}x–${maxMult}x] = ${minDmg}–${maxDmg} HP`;
+      label = `⚔️ Daño: ${minDmg} – ${maxDmg} HP`;
     }
 
     return { minDmg, maxDmg, text: label, score, baseDmg, handDmg, baseAtk, minMult, maxMult };
@@ -3976,18 +3976,8 @@
         } else if (curScore > 21) {
           critText = `💀 BUST (0%)`;
         } else {
-          const baseCrit = calculateCritChance(p.playerHand, deck);
-          let talentCritBonus = 0;
-          if (typeof getHeroTalentTree === "function") {
-            const tree = getHeroTalentTree(p.classKey || p.heroKey || "knight");
-            const ranks = (tree && tree.ranks) || {};
-            if (ranks["spades_1"]) talentCritBonus += ranks["spades_1"] * 5;
-            if (ranks["spades_2"]) talentCritBonus += 15;
-          }
-          const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
-          const hasSpadeInHand = p.playerHand.some(c => c && (c.suit === "♠" || c.suit === "spades"));
-          const cardCritBonus = hasSpadeInHand ? 5 : 0;
-          const totalCrit = Math.min(95, Math.max(10, baseCrit + talentCritBonus + dexStatBonus + cardCritBonus));
+          if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+          const totalCrit = p.critChance || 0;
           critText = `⚡ CRÍTICO: ${totalCrit}%`;
         }
 
@@ -5005,51 +4995,42 @@
 
     const heroKey = p.classKey || p.class || "knight";
 
-    // Bases según arquetipo de héroe
-    let baseDodge = 5;
-    let baseLuck = 5;
+    // Todos los stats RPG especiales inician estrictamente en 0
+    let baseDodge = 0;
+    let baseLuck = 0;
     let baseLifesteal = 0;
     let baseThorns = 0;
-    let baseCrit = 15;
+    let baseCrit = 0;
 
-    if (heroKey === "rogue") {
-      baseDodge = 15;
-      baseLuck = 12;
-      baseCrit = 25;
-    } else if (heroKey === "monk") {
-      baseDodge = 10;
-      baseLifesteal = 10;
-      baseThorns = 5;
-    } else if (heroKey === "knight") {
-      baseThorns = 15;
-      baseDodge = 5;
-    } else if (heroKey === "necromancer") {
-      baseLifesteal = 12;
-      baseLuck = 10;
+    // Talentos del Árbol Elemental
+    if (typeof getHeroTalentTree === "function") {
+      const tree = getHeroTalentTree(heroKey);
+      const ranks = (tree && tree.ranks) || {};
+      if (ranks["spades_1"]) baseCrit += ranks["spades_1"] * 2;
+      if (ranks["spades_2"]) baseCrit += ranks["spades_2"] * 4;
+      if (ranks["spades_5"]) baseLifesteal += ranks["spades_5"] * 12;
+      if (ranks["diamonds_4"]) baseThorns += ranks["diamonds_4"] * 10;
+      if (ranks["clubs_2"]) baseLuck += ranks["clubs_2"] * 6;
     }
 
-    // Atributos RPG
-    if (p.attributes) {
-      if (p.attributes.dex > 10) {
-        const extraDex = p.attributes.dex - 10;
-        baseDodge += Math.floor(extraDex * 0.8);
-        baseCrit += Math.floor(extraDex * 1.5);
-      }
-      if (p.attributes.int > 10) {
-        baseLuck += Math.floor((p.attributes.int - 10) * 0.8);
-      }
-      if (p.attributes.vit > 10) {
-        baseThorns += Math.floor((p.attributes.vit - 10) * 0.5);
-      }
-    }
-
-    // Talentos del héroe
     if (p._treeCritChanceBonus) baseCrit += p._treeCritChanceBonus;
     if (p._spadesCritLifesteal) baseLifesteal += Math.round(p._spadesCritLifesteal * 100);
     if (p._diamondsThornReflect) baseThorns += Math.round(p._diamondsThornReflect * 100);
     if (p._clubsClutchLuck) baseLuck += Math.round(p._clubsClutchLuck * 100);
 
-    // Reliquias estándar y Reliquias Demoníacas de Jefes
+    // Atributos RPG escalados
+    if (p.attributes) {
+      if (p.attributes.dex > 10) {
+        const extraDex = p.attributes.dex - 10;
+        baseDodge += Math.floor(extraDex * 1.0);
+        baseCrit += Math.floor(extraDex * 1.5);
+      }
+      if (p.attributes.int > 10) {
+        baseLuck += Math.floor((p.attributes.int - 10) * 1.0);
+      }
+    }
+
+    // Reliquias estándar, Artefactos y Reliquias Demoníacas
     const allRelics = [
       ...(p.artifacts || []),
       ...(p.relics || []),
@@ -5059,14 +5040,15 @@
     allRelics.forEach(r => {
       if (!r) return;
       const rid = r.id || "";
+      if (rid.includes("crit") || rid === "sharp_blade" || rid === "assassin_dagger") baseCrit += 10;
       if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") baseDodge += 10;
       if (rid.includes("luck") || rid === "lucky_charm") baseLuck += 10;
       if (rid.includes("vampire") || rid === "bloody_chalice") baseLifesteal += 10;
-      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 12;
+      if (rid.includes("thorn") || rid === "spiked_belt" || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 12;
     });
 
     p.dodgeChance = Math.min(45, Math.max(0, baseDodge));
-    p.critChance = Math.min(90, Math.max(5, baseCrit));
+    p.critChance = Math.min(90, Math.max(0, baseCrit));
     p.luck = Math.min(50, Math.max(0, baseLuck));
     p.lifesteal = Math.min(50, Math.max(0, baseLifesteal));
     p.thorns = Math.min(50, Math.max(0, baseThorns));
@@ -5079,7 +5061,7 @@
   function openInteractiveTutorialModal(initialTab = "campaign") {
     const modal = document.getElementById("modal-interactive-tutorials");
     if (!modal) return;
-    switchTutorialTab(initialTab);
+    switchInteractiveTutorialTab(initialTab);
     modal.classList.remove("hidden");
     modal.style.display = "flex";
     modal.style.zIndex = "10050";
@@ -5096,7 +5078,7 @@
   }
   window.closeInteractiveTutorialModal = closeInteractiveTutorialModal;
 
-  function switchTutorialTab(tab) {
+  function switchInteractiveTutorialTab(tab) {
     const btnCampaign = document.getElementById("tut-tab-campaign");
     const btnPvp = document.getElementById("tut-tab-pvp");
     const body = document.getElementById("tutorial-content-body");
@@ -5161,7 +5143,7 @@
       `;
     }
   }
-  window.switchTutorialTab = switchTutorialTab;
+  window.switchInteractiveTutorialTab = switchInteractiveTutorialTab;
 
   /* ============================================================
      RELIQUIAS DEMONÍACAS DE ACTO (PROGRESIÓN ESTILO DIABLO II)
@@ -6442,6 +6424,11 @@
             ${statRow('⚔️', 'PODER', basePwr, legPwr)}
             ${statRow('🛡️', 'BASTIÓN', baseDef, legDef)}
             ${hero.startingShield ? `<div class="hero-sheet-stat-row"><span class="hss-icon">🛡️</span><span class="hss-label">ESCUDO INICIAL</span><span class="hss-total">Total <b>${hero.startingShield}</b></span></div>` : ""}
+            <div class="hero-sheet-stat-row"><span class="hss-icon">⚡</span><span class="hss-label">% CRÍTICO</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.critChance || 0) : 0}%</b></span></div>
+            <div class="hero-sheet-stat-row"><span class="hss-icon">💨</span><span class="hss-label">% ESQUIVAR</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.dodgeChance || 0) : 0}%</b></span></div>
+            <div class="hero-sheet-stat-row"><span class="hss-icon">🌵</span><span class="hss-label">ESPINAS</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.thorns || 0) : 0}</b></span></div>
+            <div class="hero-sheet-stat-row"><span class="hss-icon">🩸</span><span class="hss-label">% VAMPIRISMO</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.lifesteal || 0) : 0}%</b></span></div>
+            <div class="hero-sheet-stat-row"><span class="hss-icon">🍀</span><span class="hss-label">% SUERTE</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.luck || 0) : 0}%</b></span></div>
           </div>
 
           <div class="hero-sheet-section">
@@ -6831,9 +6818,27 @@
     { title: "La Maldición del Jack de Tréboles", icon: "♣", text: "Necro domina las artes prohibidas del Abismo. Para él, los naipes no son cartón, sino relicarios donde yacen cautivas las almas de antiguos tahúres sedientos de venganza." }
   ];
 
+  const RAGNAROK_MONSTERS_CATALOG = [
+    { id: "goblin", name: "Duende Tahúr", sprite: "👺", hint: "Derrota Duendes Tahúres en la Torre" },
+    { id: "bat", name: "Murciélago Espectral", sprite: "🦇", hint: "Derrota Murciélagos Espectrales en las Criptas" },
+    { id: "skeleton", name: "Esqueleto Crupier", sprite: "💀", hint: "Vence Esqueletos Crupier en los primeros pisos" },
+    { id: "archer", name: "Ballestero Sombrío", sprite: "🏹", hint: "Vence Ballesteros Sombríos en los Cuarteles" },
+    { id: "ghost", name: "Fantasma Apostador", sprite: "👻", hint: "Vence Fantasmas Apostadores en la Torre" },
+    { id: "gargoyle", name: "Gárgola Guardiana", sprite: "🗿", hint: "Vence Gárgolas Guardianas en los pisos intermedios" },
+    { id: "cultist", name: "Cultista del 21", sprite: "🧙", hint: "Vence Cultistas del 21 en los santuarios" },
+    { id: "vampire", name: "Vampiro Crupier", sprite: "🧛", hint: "Vence Vampiros Crupier en los salones nobles" },
+    { id: "golem", name: "Gólem de Diamantes", sprite: "💎", hint: "Vence Gólems de Diamantes en las agujas" },
+    { id: "dante", name: "Dante de Picas", sprite: "👹", isBoss: true, hint: "Derrota a Dante de Picas (Jefe Acto I)" },
+    { id: "valkyrie", name: "Valquiria de Diamantes", sprite: "✨", isBoss: true, hint: "Derrota a la Valquiria de Diamantes (Jefa Acto II)" },
+    { id: "archmage", name: "Archimago del Trébol", sprite: "🔮", isBoss: true, hint: "Derrota al Archimago del Trébol (Jefe Acto III)" },
+    { id: "malfas", name: "Malfas del Vacío", sprite: "☠️", isBoss: true, hint: "Derrota a Malfas del Vacío (Jefe Acto IV)" },
+    { id: "mandinga", name: "Mandinga Señor del 21", sprite: "👑", isBoss: true, hint: "Derrota al Mandinga en la Cúspide de la Torre" }
+  ];
+  window.RAGNAROK_MONSTERS_CATALOG = RAGNAROK_MONSTERS_CATALOG;
+
   function switchCodexTab(tab = "floors") {
     currentCodexTab = tab;
-    const allTabIds = ["floors", "memories", "collection", "relics", "amulets", "enemies"];
+    const allTabIds = ["floors", "memories", "collection", "enemies", "secrets", "relics", "amulets"];
     allTabIds.forEach(t => {
       const btn = document.getElementById("codex-tab-" + t);
       if (btn) {
@@ -6841,6 +6846,20 @@
         else btn.classList.remove("active");
       }
     });
+
+    const sectionTitleEl = document.getElementById("codex-active-section-title");
+    const tabHeaders = {
+      floors: "🏰 PISOS Y CRÓNICAS DE LA TORRE",
+      memories: "📜 CRÓNICAS Y MEMORIAS OCULTAS",
+      collection: "👑 ÁLBUM DE CARTAS COSMÉTICAS RAGNAROK",
+      enemies: "⚔️ BESTIARIO Y RIVALES DE LA TORRE",
+      secrets: "🔮 SECRETOS Y PACTOS DEL ABISMO",
+      relics: "🏺 RELIQUIAS MÍSTICAS DE LA TORRE",
+      amulets: "💍 ACCESORIOS Y AMULETOS SAGRADOS"
+    };
+    if (sectionTitleEl) {
+      sectionTitleEl.innerText = tabHeaders[tab] || "📜 CÓDICE DE LA TORRE";
+    }
 
     const codex = getCodex();
     const grid = document.getElementById("codex-grid");
@@ -6870,9 +6889,9 @@
           `;
         } else {
           return `
-            <div class="codex-card silhouette" style="text-align:left; padding:12px; opacity:0.6;">
+            <div class="codex-card silhouette locked" style="text-align:left; padding:12px; opacity:0.65;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:1.4rem;">🔒</span>
+                <span style="font-size:1.6rem; color:#64748b; font-weight:bold;">?</span>
                 <div>
                   <strong style="color:#94a3b8; font-size:11px;">PISO ${f.floor} — OCULTO</strong>
                   <div style="font-size:9px; color:#64748b;">Alcanza el Piso ${f.floor} para revelar su historia</div>
@@ -6887,52 +6906,140 @@
       if (badgeEl) badgeEl.innerText = `${Math.min(21, maxFloorReached)} / 21 PISOS REVELADOS`;
 
     } else if (tab === "memories") {
-      itemsHtml = TOWER_MEMORIES_LORE.map(m => `
-        <div class="codex-card buff" style="text-align:left; padding:14px; border-left:4px solid #66fcf1; background:rgba(15,23,42,0.9);">
+      const memoryReqs = [1, 4, 7, 10, 15];
+      let unlockedMemCount = 0;
+
+      itemsHtml = TOWER_MEMORIES_LORE.map((m, idx) => {
+        const isUnlocked = maxFloorReached >= (memoryReqs[idx] || 1);
+        if (isUnlocked) unlockedMemCount++;
+
+        if (isUnlocked) {
+          return `
+            <div class="codex-card buff" style="text-align:left; padding:14px; border-left:4px solid #66fcf1; background:rgba(15,23,42,0.9);">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="font-size:1.4rem;">${m.icon}</span>
+                <strong style="color:#66fcf1; font-size:11.5px;">${m.title}</strong>
+              </div>
+              <div style="font-size:10.5px; color:#e2e8f0; line-height:1.5;">${m.text}</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="codex-card silhouette locked" style="text-align:left; padding:14px; opacity:0.65; background:rgba(10,14,24,0.9); border:1px solid #334155;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span style="font-size:1.6rem; font-weight:bold; color:#64748b;">?</span>
+                <div>
+                  <strong style="color:#94a3b8; font-size:11.5px;">??? CRÓNICA SELLADA</strong>
+                  <div style="font-size:9.5px; color:#64748b;">Alcanza el Piso ${memoryReqs[idx]} en la Torre para revelar esta memoria.</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join("");
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${unlockedMemCount} / ${TOWER_MEMORIES_LORE.length} MEMORIAS REVELADAS`;
+
+    } else if (tab === "collection") {
+      const ragnarokList = (typeof getRagnarokCards === "function") ? getRagnarokCards() : [];
+      let unlockedRagnarokCount = 0;
+
+      const cardsGridHtml = RAGNAROK_MONSTERS_CATALOG.map(m => {
+        const ownedCard = ragnarokList.find(c => {
+          if (!c) return false;
+          const cName = (c.name || "").toLowerCase();
+          const mName = m.name.toLowerCase();
+          return cName.includes(mName) || c.id === m.id || c.enemyName === m.name;
+        });
+
+        if (ownedCard) {
+          unlockedRagnarokCount++;
+          return `
+            <div class="codex-card buff" style="border:2px solid #ffd166; background:radial-gradient(circle at 10% 10%, rgba(255,209,102,0.22), rgba(15,23,42,0.95)); padding:10px; text-align:center;">
+              <div style="font-size:1.2rem; color:#ffd166; margin-bottom:2px;">👑</div>
+              <div style="font-size:2.2rem; margin:4px 0;">${m.sprite}</div>
+              <strong style="color:#ffd166; font-size:10.5px; display:block;">${m.name}</strong>
+              <span style="font-size:9px; color:#2a9d8f; font-weight:bold;">Colección Ragnarok</span>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="codex-card silhouette locked" style="border:1.5px dashed #334155; background:rgba(11,15,25,0.85); padding:10px; text-align:center; opacity:0.7;">
+              <div style="font-size:2rem; font-weight:bold; color:#64748b; margin:6px 0;">?</div>
+              <strong style="color:#94a3b8; font-size:10px; display:block;">??? Carta Oculta</strong>
+              <span style="font-size:8.5px; color:#64748b; display:block; margin-top:2px;">${m.hint}</span>
+            </div>
+          `;
+        }
+      }).join("");
+
+      itemsHtml = `
+        <div style="grid-column:1/-1; margin-bottom:8px;">
+          <h3 style="color:#ffd166; font-family:var(--font-pixel); font-size:11px; margin:0 0 6px 0;">👑 ÁLBUM DE CARTAS COSMÉTICAS RAGNAROK</h3>
+          <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Derrota a los monstruos de la Torre (comunes 1.5%, élites 3%, jefes 5%) para coleccionar sus cartas doradas con corona.</div>
+        </div>
+        ${cardsGridHtml}
+      `;
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${unlockedRagnarokCount} / ${RAGNAROK_MONSTERS_CATALOG.length} CARTAS RAGNAROK`;
+
+    } else if (tab === "enemies") {
+      itemsHtml = ENEMIES.map(e => {
+        const discovered = !!(codex.enemies && codex.enemies[e.name]);
+        if (discovered) {
+          const loreText = (typeof getEnemyLore === "function" ? getEnemyLore(e.name) : (window.ENEMY_LORE && window.ENEMY_LORE[e.name])) || (e.traitName || "");
+          return `
+            <div class="codex-card nerf" onclick="inspectCodexItem('${e.name}', 'enemy')" style="cursor:pointer;" title="Toca para ver ficha detallada">
+              <div class="codex-card-icon">${e.sprite}</div>
+              <div class="codex-card-body">
+                <div class="codex-card-title">${e.name}</div>
+                <div class="codex-card-desc" style="margin-bottom:4px;">${loreText}</div>
+                <div class="codex-card-desc" style="opacity:0.8;font-size: 9px;color:#ff758f;">${e.traitShort} — HP: ${e.hp} • PWR: ${e.pwr} • DEF: ${e.def}</div>
+                <div style="font-size: 9px;color:#ff758f;margin-top:2px;">🔍 Toca para inspeccionar</div>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="codex-card silhouette locked" onclick="inspectCodexItem('${e.name}', 'enemy')" style="cursor:pointer;" title="Toca para ver ficha">
+              <div class="codex-card-icon" style="font-size:1.8rem; font-weight:bold; color:#64748b;">?</div>
+              <div class="codex-card-body">
+                <div class="codex-card-title">??? Rival Enigmático</div>
+                <div class="codex-card-desc">Habita en los pisos superiores de la Torre. Enfréntalo para registrarlo.</div>
+              </div>
+            </div>
+          `;
+        }
+      }).join("");
+
+      const totalItems = ENEMIES.length;
+      const discoveredItems = Object.keys(codex.enemies || {}).length;
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} BESTIARIO`;
+
+    } else if (tab === "secrets") {
+      const secretsData = [
+        { icon: "🍷", title: "Mesa Sacrificial del Abismo", desc: "Altar arcano donde los más audaces entregan fragmentos de su salud máxima o reliquias a cambio de metamonedas de cripta y favores oscuros." },
+        { icon: "🛡️", title: "El Choque Sagrado: Parry 21 vs 21", desc: "Cuando jugador y rival obtienen un 21 simultáneo en la primera mano, se desata un Parry Épico: se anula el impacto mutuo y ambos duelistas obtienen +6 de Escudo." },
+        { icon: "🎲", title: "El Dado del Campeón y Mandinga", desc: "Al culminar cada Acto abatiendo a su Guardián, un dado con 50% de probabilidad bendice tu paso otorgando bonificaciones de oro masivo o pociones vitales." },
+        { icon: "🔥", title: "Muerte Súbita y Modo Furia", desc: "Superar el límite de 7 manos despierta la furia de la Torre: el daño de ambos contendientes se multiplica progresivamente por asalto ignorando bastiones." },
+        { icon: "⚗️", title: "Transmutación de Naipes y Sellos", desc: "El Bazar de la Torre y el Mercado de Héroes permiten incrustar sellos arcanos permanentes en las barajas exclusivas de cada uno de los 4 Jacks." }
+      ];
+
+      itemsHtml = secretsData.map(s => `
+        <div class="codex-card buff" style="text-align:left; padding:14px; border-left:4px solid #c77dff; background:rgba(15,23,42,0.92);">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span style="font-size:1.4rem;">${m.icon}</span>
-            <strong style="color:#66fcf1; font-size:11.5px;">${m.title}</strong>
+            <span style="font-size:1.4rem;">${s.icon}</span>
+            <strong style="color:#c77dff; font-size:11.5px;">${s.title}</strong>
           </div>
-          <div style="font-size:10.5px; color:#e2e8f0; line-height:1.5;">${m.text}</div>
+          <div style="font-size:10.5px; color:#e2e8f0; line-height:1.5;">${s.desc}</div>
         </div>
       `).join("");
 
       const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `5 / 5 MEMORIAS ACTIVAS`;
-
-    } else if (tab === "collection") {
-      const ragnarokList = (typeof getRagnarokCards === "function") ? getRagnarokCards() : [];
-      const extraCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards() : [];
-
-      let ragnarokCardsHtml = "";
-      if (ragnarokList.length > 0) {
-        ragnarokCardsHtml = ragnarokList.map(c => `
-          <div class="codex-card buff" style="border:2px solid #ffd166; background:radial-gradient(circle at 10% 10%, rgba(255,209,102,0.18), rgba(15,23,42,0.95)); padding:10px; text-align:center;">
-            <div style="font-size:1.1rem; color:#ffd166; margin-bottom:2px;">👑</div>
-            <div style="font-size:2rem; margin:4px 0;">${c.sprite || '👹'}</div>
-            <strong style="color:#ffd166; font-size:10px; display:block;">${c.name}</strong>
-            <span style="font-size:9px; color:#2a9d8f;">Colección Ragnarok</span>
-          </div>
-        `).join("");
-      } else {
-        ragnarokCardsHtml = `
-          <div style="grid-column:1/-1; padding:16px; text-align:center; color:#94a3b8; font-size:10.5px; background:rgba(0,0,0,0.3); border-radius:8px;">
-            Aún no has obtenido Cartas Cosméticas de rivales estilo Ragnarok.<br>
-            ¡Derrota rivales comunes (1.5%), élites (3%) o jefes (5%) para obtener sus cartas doradas con Corona!
-          </div>
-        `;
-      }
-
-      itemsHtml = `
-        <div style="grid-column:1/-1; margin-bottom:8px;">
-          <h3 style="color:#ffd166; font-family:var(--font-pixel); font-size:11px; margin:0 0 6px 0;">👑 CARTAS COSMÉTICAS RAGNAROK (${ragnarokList.length} OBTENIDAS)</h3>
-          <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Cartas coleccionables exclusivas con retratos de monstruos y corona distintiva.</div>
-        </div>
-        ${ragnarokCardsHtml}
-      `;
-
-      const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `${ragnarokList.length} CARTAS RAGNAROK`;
+      if (badgeEl) badgeEl.innerText = `5 SECRETOS ARCANOS`;
 
     } else if (tab === "relics") {
       itemsHtml = ALL_RELICS.map(r => {
@@ -6999,44 +7106,11 @@
       const discoveredItems = Object.keys(codex.amulets || {}).length;
       const badgeEl = document.getElementById("codex-count-badge");
       if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} ACCESORIOS`;
-
-    } else if (tab === "enemies") {
-      itemsHtml = ENEMIES.map(e => {
-        const discovered = !!(codex.enemies && codex.enemies[e.name]);
-        if (discovered) {
-          const loreText = (typeof getEnemyLore === "function" ? getEnemyLore(e.name) : (window.ENEMY_LORE && window.ENEMY_LORE[e.name])) || (e.traitName || "");
-          return `
-            <div class="codex-card nerf" onclick="inspectCodexItem('${e.name}', 'enemy')" style="cursor:pointer;" title="Toca para ver ficha detallada">
-              <div class="codex-card-icon">${e.sprite}</div>
-              <div class="codex-card-body">
-                <div class="codex-card-title">${e.name}</div>
-                <div class="codex-card-desc" style="margin-bottom:4px;">${loreText}</div>
-                <div class="codex-card-desc" style="opacity:0.8;font-size: 9px;color:#ff758f;">${e.traitShort} — HP: ${e.hp} • PWR: ${e.pwr} • DEF: ${e.def}</div>
-                <div style="font-size: 9px;color:#ff758f;margin-top:2px;">🔍 Toca para inspeccionar</div>
-              </div>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="codex-card silhouette" onclick="inspectCodexItem('${e.name}', 'enemy')" style="cursor:pointer;" title="Toca para ver ficha">
-              <div class="codex-card-icon">👤</div>
-              <div class="codex-card-body">
-                <div class="codex-card-title">??? Rival Enigmático</div>
-                <div class="codex-card-desc">Habita en los pisos superiores de la Torre. Enfréntalo para registrarlo.</div>
-              </div>
-            </div>
-          `;
-        }
-      }).join("");
-
-      const totalItems = ENEMIES.length;
-      const discoveredItems = Object.keys(codex.enemies || {}).length;
-      const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} BESTIARIO`;
     }
 
     grid.innerHTML = itemsHtml;
   }
+  window.switchCodexTab = switchCodexTab;
   window.switchCodexTab = switchCodexTab;
 
   /* ============================================================
@@ -12498,12 +12572,154 @@
     document.getElementById("screen-event").classList.remove("hidden");
   }
 
+  function refreshActiveHeroMarketUI(heroId) {
+    const marketModal = document.getElementById("screen-hero-market-modal");
+    if (marketModal && !marketModal.classList.contains("hidden")) {
+      renderHeroMarketModalContent(heroId);
+    }
+    const eventSc = document.getElementById("screen-event");
+    if (eventSc && !eventSc.classList.contains("hidden") && typeof showShopModal === "function") {
+      try { showShopModal(); } catch (_) {}
+    }
+    const coinEl = document.getElementById("ui-crypt-coins");
+    if (coinEl) {
+      coinEl.innerText = String((typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : (localStorage.getItem("bj_crypt_coins") || "0"));
+    }
+  }
+  window.refreshActiveHeroMarketUI = refreshActiveHeroMarketUI;
+
   function setShopSelectedHero(heroId) {
     window._shopSelectedHero = heroId;
     try { playButtonClickSound(); } catch (_) {}
-    showShopModal();
+    refreshActiveHeroMarketUI(heroId);
   }
   window.setShopSelectedHero = setShopSelectedHero;
+
+  function renderHeroMarketModalContent(heroId = "knight") {
+    const container = document.getElementById("hero-market-modal-body");
+    if (!container) return;
+    const currentHero = heroId || window._shopSelectedHero || "knight";
+    window._shopSelectedHero = currentHero;
+
+    const playerCryptCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const heroCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards(currentHero) : [];
+    const heroSeals = (typeof getPersistentDeckSeals === "function") ? getPersistentDeckSeals(currentHero) : {};
+    const heroSealsList = Object.keys(heroSeals);
+
+    const costNewCard = 25;
+    const costRerollCard = 10;
+    const costNewSeal = 20;
+    const costRerollSeal = 8;
+
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <!-- SELECTOR DE HÉROE -->
+        <div style="background:rgba(15,23,42,0.95); border:1px solid #ffd166; border-radius:10px; padding:10px; text-align:center;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-family:var(--font-pixel); font-size:11px; color:#ffd166; font-weight:bold;">👑 ELIGE EL HÉRALDO PARA TRANSMUTAR:</span>
+            <span style="background:rgba(230,57,70,0.18); border:1px solid #e63946; padding:4px 8px; border-radius:6px; font-size:10px; color:#ff758f; font-weight:bold;">
+              🗝️ ${playerCryptCoins} METAMONEDAS
+            </span>
+          </div>
+          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
+            ${[
+              { id: "knight", name: "Caballero", icon: "🛡️" },
+              { id: "rogue", name: "Pícaro", icon: "🗡️" },
+              { id: "monk", name: "Monje", icon: "🧘" },
+              { id: "necro", name: "Nigromante", icon: "☠️" }
+            ].map(h => `
+              <button onclick="setShopSelectedHero('${h.id}')" style="flex:1; min-width:76px; padding:8px 4px; border-radius:6px; font-family:var(--font-pixel); font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1.5px solid ${currentHero === h.id ? '#ffd166' : '#334155'}; background:${currentHero === h.id ? 'rgba(255,209,102,0.25)' : 'rgba(15,23,42,0.6)'}; color:${currentHero === h.id ? '#ffd166' : '#cbd5e1'};">
+                ${h.icon} ${h.name}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <!-- SECCIÓN 1: CARTAS TRANSMUTADAS -->
+        <div style="background:rgba(15,23,42,0.9); border:1px solid #66fcf1; border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div>
+              <strong style="color:#66fcf1; font-size:11px;">🃏 CARTAS TRANSMUTADAS (${heroCards.length}/${MAX_PERSISTENT_EXTRA_CARDS})</strong>
+              <div style="font-size:9.5px; color:#94a3b8;">Cartas arcanas exclusivas en el mazo de este héroe</div>
+            </div>
+            <button class="shop-action-btn buy" onclick="buyHeroTransmutedCard('${currentHero}')" style="padding:8px 12px; min-height:44px; font-size:10px; border-color:#66fcf1; color:#66fcf1; background:rgba(102,252,241,0.15);" ${playerCryptCoins < costNewCard ? 'disabled' : ''}>
+              + COMPRAR (${costNewCard} 🗝️)
+            </button>
+          </div>
+          ${heroCards.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${heroCards.map((c, idx) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#0b0f19; border:1px solid #334155; border-radius:6px; padding:8px 10px;">
+                  <div>
+                    <span style="font-weight:bold; color:#ffd166; font-size:12px;">${c.rank}${c.suit}</span>
+                    <span style="color:#f1faee; font-size:10.5px; margin-left:6px; font-weight:bold;">${c.name}</span>
+                    <div style="font-size:9.5px; color:#94a3b8; margin-top:2px;">${c.desc || 'Efecto arcano activo'}</div>
+                  </div>
+                  <button onclick="rerollHeroCardEffect('${currentHero}', ${idx})" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #ffd166; background:rgba(255,209,102,0.15); color:#ffd166;" ${playerCryptCoins < costRerollCard ? 'disabled' : ''}>
+                    🔄 RE-ROLLEAR (${costRerollCard} 🗝️)
+                  </button>
+                </div>
+              `).join("")}
+            </div>
+          ` : `
+            <div style="font-size:9.5px; color:#94a3b8; text-align:center; padding:10px;">Este héroe aún no tiene cartas transmutadas en su inventario.</div>
+          `}
+        </div>
+
+        <!-- SECCIÓN 2: SELLOS DE ALTO NIVEL -->
+        <div style="background:rgba(15,23,42,0.9); border:1px solid #ffd166; border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div>
+              <strong style="color:#ffd166; font-size:11px;">✨ SELLOS DE ALTO NIVEL (${heroSealsList.length})</strong>
+              <div style="font-size:9.5px; color:#94a3b8;">Sellos mágicos permanentes incrustados en sus naipes</div>
+            </div>
+            <button class="shop-action-btn buy gold-relic" onclick="buyHeroHighLevelSeal('${currentHero}')" style="padding:8px 12px; min-height:44px; font-size:10px;" ${playerCryptCoins < costNewSeal ? 'disabled' : ''}>
+              + COMPRAR SELLO (${costNewSeal} 🗝️)
+            </button>
+          </div>
+          ${heroSealsList.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${heroSealsList.map(cid => {
+                const s = heroSeals[cid];
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#0b0f19; border:1px solid #334155; border-radius:6px; padding:8px 10px;">
+                  <div>
+                    <span style="font-size:1.2rem;">${s.icon || '✨'}</span>
+                    <span style="font-weight:bold; color:#ffd166; margin-left:4px;">${cid}</span>
+                    <span style="color:#f1faee; font-size:10.5px; margin-left:6px; font-weight:bold;">${s.name}</span>
+                    <div style="font-size:9.5px; color:#94a3b8; margin-top:2px;">${s.desc || 'Efecto de maestría'}</div>
+                  </div>
+                  <button onclick="transmuteHeroSeal('${currentHero}', '${cid}')" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #2a9d8f; background:rgba(42,157,143,0.15); color:#2a9d8f;" ${playerCryptCoins < costRerollSeal ? 'disabled' : ''}>
+                    ⚗️ TRANSMUTAR (${costRerollSeal} 🗝️)
+                  </button>
+                </div>
+              `;}).join("")}
+            </div>
+          ` : `
+            <div style="font-size:9.5px; color:#94a3b8; text-align:center; padding:10px;">Este héroe no tiene sellos grabados en su baraja actualmente.</div>
+          `}
+        </div>
+      </div>
+    `;
+  }
+  window.renderHeroMarketModalContent = renderHeroMarketModalContent;
+
+  function openHeroMarketModal(heroId = "knight") {
+    const modal = document.getElementById("screen-hero-market-modal");
+    if (!modal) return;
+    const initialHero = heroId || window._shopSelectedHero || "knight";
+    renderHeroMarketModalContent(initialHero);
+    modal.classList.remove("hidden");
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.openHeroMarketModal = openHeroMarketModal;
+
+  function closeHeroMarketModal() {
+    const modal = document.getElementById("screen-hero-market-modal");
+    if (modal) modal.classList.add("hidden");
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.closeHeroMarketModal = closeHeroMarketModal;
 
   function buyHeroTransmutedCard(heroId) {
     const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
@@ -12545,7 +12761,7 @@
     spawnFloatingText("player-sprite", `+1 CARTA TRANSMUTADA (${heroId})`, "gold");
     addLog(`✨ Bazar: Compraste una nueva Carta Transmutada [${rndRank}${rndSuit}] para ${heroId}.`, "critical");
     try { playVictoryFanfareSound(); } catch (_) {}
-    showShopModal();
+    refreshActiveHeroMarketUI(heroId);
   }
   window.buyHeroTransmutedCard = buyHeroTransmutedCard;
 
@@ -12575,7 +12791,7 @@
     spawnFloatingText("player-sprite", `🔄 EFECTO RE-ROLLEADO (${heroId})`, "gold");
     addLog(`🔄 Re-roll arcano: El efecto de la carta de ${heroId} fue transmutado a ${eff.name}.`, "critical");
     try { playDiceRollSound(); } catch (_) {}
-    showShopModal();
+    refreshActiveHeroMarketUI(heroId);
   }
   window.rerollHeroCardEffect = rerollHeroCardEffect;
 
@@ -12606,7 +12822,7 @@
     spawnFloatingText("player-sprite", `✨ SELLO FORJADO [${cid}]`, "gold");
     addLog(`✨ Bazar: Sello de alto nivel [${seal.name}] forjado en ${cid} para ${heroId}.`, "critical");
     try { playVictoryFanfareSound(); } catch (_) {}
-    showShopModal();
+    refreshActiveHeroMarketUI(heroId);
   }
   window.buyHeroHighLevelSeal = buyHeroHighLevelSeal;
 
@@ -12631,7 +12847,7 @@
     spawnFloatingText("player-sprite", `⚗️ SELLO TRANSMUTADO [${cid}]`, "gold");
     addLog(`⚗️ Transmutación: Sello en ${cid} de ${heroId} transformado a ${newSeal.name}.`, "critical");
     try { playDiceRollSound(); } catch (_) {}
-    showShopModal();
+    refreshActiveHeroMarketUI(heroId);
   }
   window.transmuteHeroSeal = transmuteHeroSeal;
 
@@ -14122,9 +14338,14 @@
 
     const pMini = document.getElementById("player-stats-mini");
     if (pMini) {
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
       const effDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
-      pMini.innerHTML = `⚔️ ${p.pwr} <small>PWR</small> &nbsp;|&nbsp; 🛡️ ${effDef} <small>DEF</small>`;
-      pMini.title = `Poder de Ataque: ${p.pwr} PWR | Armadura Base: ${effDef} DEF`;
+      let extraStats = "";
+      if ((p.critChance || 0) > 0) extraStats += ` &nbsp;|&nbsp; ⚡ ${p.critChance}%`;
+      if ((p.dodgeChance || 0) > 0) extraStats += ` &nbsp;|&nbsp; 💨 ${p.dodgeChance}%`;
+      if ((p.thorns || 0) > 0) extraStats += ` &nbsp;|&nbsp; 🌵 ${p.thorns}`;
+      pMini.innerHTML = `⚔️ ${p.pwr} <small>PWR</small> &nbsp;|&nbsp; 🛡️ ${effDef} <small>DEF</small>${extraStats}`;
+      pMini.title = `Poder de Ataque: ${p.pwr} PWR | Armadura Base: ${effDef} DEF | Crítico: ${p.critChance || 0}% | Esquiva: ${p.dodgeChance || 0}% | Espinas: ${p.thorns || 0}`;
     }
 
     const eMini = document.getElementById("enemy-stats-mini");
@@ -14674,7 +14895,7 @@
 
   function switchTutorialTab(tab) {
     try { playButtonClickSound(); } catch (_) {}
-    const tabs = ['attacks', 'rules', 'lore'];
+    const tabs = ['attacks', 'rules', 'advanced', 'strategy', 'lore'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-btn-${t}`);
       const content = document.getElementById(`tut-content-${t}`);
@@ -14689,6 +14910,11 @@
     });
   }
   window.switchTutorialTab = switchTutorialTab;
+
+  function openTutorialTopic(topic) {
+    openTutorial(topic || 'advanced');
+  }
+  window.openTutorialTopic = openTutorialTopic;
 
   function showControls() {
     openTutorial('rules');
@@ -15852,16 +16078,12 @@
         addLog("🛡️ Guardia Táctica (<15): Golpe amortiguado (+4 Escudo defensivo).", "heal");
       }
 
-      // Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Desvinculado del 20/21 obligatorio)
-      const effectiveHeroKey = p.classKey || p.class || "knight";
-      const treeCritRanks = (typeof getHeroTalentTree === "function") ? (getHeroTalentTree(effectiveHeroKey).ranks || {}) : {};
-      const treeCritBonus = ((treeCritRanks.spades_2 || 0) * 4) + ((treeCritRanks.spades_1 || 0) * 2) + (p._treeCritChanceBonus || 0);
-      const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
-      const baseCritPct = (typeof calculateCritChance === "function") ? calculateCritChance(p.playerHand, gameState.deck || []) : 15;
-      const totalCritChance = Math.min(90, Math.max(5, (p.critChance || baseCritPct) + treeCritBonus + dexStatBonus));
-      const isRpgCrit = (Math.random() * 100 < totalCritChance);
+      // Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Basado en p.critChance del héroe)
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+      const totalCritChance = p.critChance || 0;
+      const isRpgCrit = (totalCritChance > 0 && Math.random() * 100 < totalCritChance);
 
-      if (isRpgCrit && dmg > 0) {
+      if ((isRpgCrit || isNatural21 || p.playerScore >= 20) && dmg > 0) {
         const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
         let critMultiplier = 1.5;
         if (isNatural21) {
@@ -16285,6 +16507,7 @@
       p._synergyExtraDodge = 0;
 
       // Stat RPG: Esquivar (dodgeChance % con cap en 45%)
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
       const effectiveDodge = Math.min(45, (p.dodgeChance || 0));
       if (rawDmg > 0 && effectiveDodge > 0 && (Math.random() * 100 < effectiveDodge)) {
         addLog(`💨 ¡ESQUIVADO (${effectiveDodge}%)! Tu agilidad eludió por completo el ataque rival.`, "heal");
@@ -21977,6 +22200,19 @@
     if (fillEl) fillEl.style.width = `${percent}%`;
     if (pctEl) pctEl.innerText = `${percent}%`;
     if (cntEl) cntEl.innerText = `${unlockedCount} / ${totalCount} Desafíos Completados`;
+
+    const catTitles = {
+      all: `🏆 TODOS LOS DESAFÍOS (${totalCount})`,
+      tower: "🏰 DESAFÍOS DE LA TORRE (PISOS Y ASCENSIÓN)",
+      combat: "⚔️ DESAFÍOS DE COMBATE (MAESTRÍA Y CRÍTICOS)",
+      economy: "🪙 DESAFÍOS DE ECONOMÍA (BOTÍN Y FORTUNA)",
+      collection: "🃏 DESAFÍOS DE COLECCIÓN (MAZOS Y CÓDICE)",
+      arena: "🥊 DESAFÍOS DE LA ARENA (DUELOS A K.O.)"
+    };
+    const catTitleEl = document.getElementById("ach-active-category-title");
+    if (catTitleEl) {
+      catTitleEl.innerText = catTitles[currentAchievementsFilter] || "🏆 DESAFÍOS";
+    }
 
     const filtered = currentAchievementsFilter === "all"
       ? ACHIEVEMENTS_CATALOG

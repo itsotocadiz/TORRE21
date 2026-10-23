@@ -211,7 +211,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.7.4</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.7.5</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -422,6 +422,9 @@
         </p>
 
         <div style="display:flex;flex-direction:column;gap:8px;max-width:320px;margin:0 auto;">
+          <button onclick="openHeroMarketModal()" style="background:radial-gradient(circle at center,rgba(102,252,241,0.22),rgba(15,23,42,0.96));border:1.5px solid #66fcf1;color:#66fcf1;padding:12px;font-family:var(--font-pixel);font-size:11px;font-weight:700;border-radius:8px;cursor:pointer;min-height:44px;box-shadow:0 0 12px rgba(102,252,241,0.25);">
+            ⚗️ MERCADO DE HÉROES • CARTAS Y SELLOS
+          </button>
           <button onclick="showIAPModal('starter')" style="background:linear-gradient(135deg,#f4a261,#e63946);color:#ffffff;border:none;padding:12px;font-family:var(--font-pixel);font-size:11px;font-weight:700;border-radius:8px;cursor:pointer;min-height:44px;box-shadow:0 0 12px rgba(244,162,97,0.4);">
             ⚡ TIENDA REAL (IAP) • VER OFERTAS
           </button>
@@ -480,7 +483,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.7.4 (BUILD 38)</span>
+          <span id="settings-version">📱 VERSIÓN v1.7.5 (BUILD 39)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -498,6 +501,8 @@
       <div class="tutorial-tabs">
         <button class="tut-tab active" id="tab-btn-attacks" onclick="switchTutorialTab('attacks')">⚔️ COMBATE D&D Y HUD</button>
         <button class="tut-tab" id="tab-btn-rules" onclick="switchTutorialTab('rules')">🃏 REGLAS Y PALOS</button>
+        <button class="tut-tab" id="tab-btn-advanced" onclick="switchTutorialTab('advanced')">⚡ MECÁNICAS AVANZADAS</button>
+        <button class="tut-tab" id="tab-btn-strategy" onclick="switchTutorialTab('strategy')">🧠 ESTRATEGIAS Y ECONOMÍA</button>
         <button class="tut-tab" id="tab-btn-lore" onclick="switchTutorialTab('lore')">👑 LOS 6 ACTOS Y EL MANDINGA</button>
         <button class="tut-tab" id="tab-btn-interactive-guide" onclick="closeTutorial(); openInteractiveTutorialModal('campaign');" style="color:#ffd166;border-color:rgba(255,209,102,0.4);">🎓 PASO A PASO</button>
       </div>
@@ -559,6 +564,39 @@
             • <b>Figuras (J, Q, K)</b>: Valen 10 puntos cada una.<br>
             • <b>As (A)</b>: Vale 1 u 11 automáticamente para optimizar tu mano.<br>
             • <b>Tirada de Salvación (Saving Throw)</b>: Al pasarte de 21, si tu Destreza (DEX) o Inteligencia (INT) es alta, tienes la oportunidad de descartar la carta fatal y salvar tu mano.
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-content hidden" id="tut-content-advanced">
+        <div class="tut-step">
+          <div class="tut-step-body">
+            <b style="color:#66fcf1;">⚔️ MECÁNICAS AVANZADAS DE COMBATE</b>:<br>
+            • <b>🛡️ Parry Épico (21 vs 21 en 1ª Mano)</b>: Si tanto tú como tu oponente obtienen 21 en la mano inicial, se desata un Parry Épico: se anula todo el daño del asalto y ambos duelistas obtienen <b>+6 de Escudo Azul</b> protector.<br>
+            • <b>⚡ Golpe Crítico RPG Dinámico</b>: Tu probabilidad de crítico escala desde 0% base a través del Árbol de Talentos y Reliquias. Se evalúa en cualquier mano ganadora (no solo en 21), infligiendo daño masivo e ignorando armadura.<br>
+            • <b>💨 Esquiva Táctica (Dodge %)</b>: Escala desde 0% base. Cuando el rival te ataca, tienes la probabilidad de evadir por completo el golpe entrante (¡0 daño sufrido!).<br>
+            • <b>🌵 Espinas (Thorns)</b>: El daño reflejado empieza en 0 y solo se obtiene mediante Talentos y Reliquias. Cada vez que recibes daño directo, devuelves daño punzante inmediato al atacante.<br>
+            • <b>🩸 Vampirismo & 🍀 Suerte</b>: El Vampirismo regenera tu salud en base al daño asestado; la Suerte incrementa las tiradas favorables de cartas y la calidad de las recompensas.<br>
+            • <b>🌳 Afinidades del Árbol de Talentos</b>: Cada rama elemental otorga pasivas únicas acumulativas que trascienden entre las runs de la Torre.
+          </div>
+        </div>
+        <div class="tut-step">
+          <div class="tut-step-body">
+            <b style="color:#ffd166;">🩸 MESA SACRIFICIAL DEL ABISMO</b>:<br>
+            En pisos intermedios encontrarás la Mesa Sacrificial: puedes renunciar a un fragmento de tu vida máxima (HP) o ceder una Reliquia a cambio de <b>Metamonedas de Cripta</b> y bendiciones oscuras para tu héroe.
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-content hidden" id="tut-content-strategy">
+        <div class="tut-step">
+          <div class="tut-step-body">
+            <b style="color:#ffd166;">🧠 ESTRATEGIAS DE COMBATE Y ECONOMÍA</b>:<br>
+            • <b>Gestión de Escudos</b>: Acumula cartas de ♦️ Diamantes para construir un colchón de Escudo antes de doblar apuestas o enfrentar turnos de Muerte Súbita.<br>
+            • <b>Cuándo Plantarse vs Pedir Carta</b>: La Regla del 16 es clave: si el rival muestra carta débil (4, 5 o 6), plantarse con 14–16 fuerza al enemigo a pedir y arriesgar BUST. Si el rival muestra 9, 10 o As, debes arriesgar para alcanzar al menos 17.<br>
+            • <b>🃏 Cartas Transmutadas y Sellos</b>: Personaliza el mazo único de cada Héroe en la Tienda / Mercado. Puedes comprar nuevas cartas arcanas o re-rollear sus efectos mágicos por menos metamonedas.<br>
+            • <b>🎲 Dado del Campeón (50% de Éxito)</b>: Al abatir a un Jefe de Acto, se activa la tirada del Dado del Campeón con 50% de probabilidad para multiplicar tu botín de oro y ganar reliquias adicionales.<br>
+            • <b>👑 Cartas Cosméticas Ragnarok</b>: Al derrotar rivales obtienes cartas coleccionables doradas con coronas y rostros para completar tu Álbum del Códice.
           </div>
         </div>
       </div>
@@ -830,14 +868,15 @@
         <div class="codex-count-badge" id="codex-count-badge">0 / 24 DESCUBIERTOS</div>
         <button class="inspect-close-btn" onclick="closeCodex()">✕</button>
       </div>
-      <div class="codex-tabs">
-        <button class="codex-tab-btn active" id="codex-tab-floors" onclick="switchCodexTab('floors')">🏰 PISOS</button>
-        <button class="codex-tab-btn" id="codex-tab-memories" onclick="switchCodexTab('memories')">📖 MEMORIAS</button>
-        <button class="codex-tab-btn" id="codex-tab-collection" onclick="switchCodexTab('collection')">👑 ÁLBUM RAGNAROK</button>
-        <button class="codex-tab-btn" id="codex-tab-relics" onclick="switchCodexTab('relics')">🏺 RELIQUIAS</button>
-        <button class="codex-tab-btn" id="codex-tab-amulets" onclick="switchCodexTab('amulets')">💍 ACCESORIOS</button>
-        <button class="codex-tab-btn" id="codex-tab-enemies" onclick="switchCodexTab('enemies')">👹 BESTIARIO</button>
-        <button class="codex-tab-btn" id="codex-tab-perks" onclick="openPerksCodexModal()">⚡ PERKS (15)</button>
+      <div class="codex-tabs" id="codex-tabs">
+        <button class="codex-tab-btn active" id="codex-tab-floors" onclick="switchCodexTab('floors')" title="Pisos de la Torre" aria-label="Pisos de la Torre">🏰</button>
+        <button class="codex-tab-btn" id="codex-tab-memories" onclick="switchCodexTab('memories')" title="Memorias Ocultas" aria-label="Memorias Ocultas">📜</button>
+        <button class="codex-tab-btn" id="codex-tab-collection" onclick="switchCodexTab('collection')" title="Álbum Ragnarok" aria-label="Álbum Ragnarok">👑</button>
+        <button class="codex-tab-btn" id="codex-tab-enemies" onclick="switchCodexTab('enemies')" title="Bestiario y Rivales" aria-label="Bestiario y Rivales">⚔️</button>
+        <button class="codex-tab-btn" id="codex-tab-secrets" onclick="switchCodexTab('secrets')" title="Secretos del Abismo" aria-label="Secretos del Abismo">🔮</button>
+      </div>
+      <div class="codex-section-header" id="codex-section-header">
+        <span class="codex-active-section-title" id="codex-active-section-title">🏰 PISOS DE LA TORRE</span>
       </div>
       <div class="codex-grid" id="codex-grid">
         <!-- Renderizado dinámicamente -->
@@ -2008,15 +2047,16 @@
       <div class="ach-progress-count" id="ach-progress-count">0 / 25 Desafíos Completados</div>
     </div>
 
-    <!-- FILTROS POR FAMILIA -->
+    <!-- FILTROS POR FAMILIA (SOLO SÍMBOLOS) -->
     <div class="ach-filters-nav" id="ach-filters-nav">
-      <button class="ach-filter-btn active" data-family="all" onclick="filterAchievementsFamily('all')">TODOS</button>
-      <button class="ach-filter-btn" data-family="tower" onclick="filterAchievementsFamily('tower')">🏰 TORRE</button>
-      <button class="ach-filter-btn" data-family="combat" onclick="filterAchievementsFamily('combat')">⚔️ COMBATE</button>
-      <button class="ach-filter-btn" data-family="economy" onclick="filterAchievementsFamily('economy')">🪙 ECONOMÍA</button>
-      <button class="ach-filter-btn" data-family="collection" onclick="filterAchievementsFamily('collection')">🃏 COLECCIÓN</button>
-      <button class="ach-filter-btn" data-family="arena" onclick="filterAchievementsFamily('arena')">🏆 ARENA</button>
+      <button class="ach-filter-btn active" data-family="all" onclick="filterAchievementsFamily('all')" title="Todos los Desafíos" aria-label="Todos los Desafíos">🏆</button>
+      <button class="ach-filter-btn" data-family="tower" onclick="filterAchievementsFamily('tower')" title="Desafíos de la Torre" aria-label="Desafíos de la Torre">🏰</button>
+      <button class="ach-filter-btn" data-family="combat" onclick="filterAchievementsFamily('combat')" title="Desafíos de Combate" aria-label="Desafíos de Combate">⚔️</button>
+      <button class="ach-filter-btn" data-family="economy" onclick="filterAchievementsFamily('economy')" title="Desafíos de Economía" aria-label="Desafíos de Economía">🪙</button>
+      <button class="ach-filter-btn" data-family="collection" onclick="filterAchievementsFamily('collection')" title="Desafíos de Colección" aria-label="Desafíos de Colección">🃏</button>
+      <button class="ach-filter-btn" data-family="arena" onclick="filterAchievementsFamily('arena')" title="Desafíos de Arena" aria-label="Desafíos de Arena">🥊</button>
     </div>
+    <div class="ach-active-category-title" id="ach-active-category-title">🏆 TODOS LOS DESAFÍOS (25)</div>
 
     <!-- LISTA DE LOGROS -->
     <div class="achievements-list" id="achievements-list"></div>
@@ -2056,13 +2096,28 @@
       <button class="inspect-close-btn" onclick="closeInteractiveTutorialModal()">✕</button>
     </div>
     <div class="tutorial-tabs-bar">
-      <button type="button" class="tutorial-tab-btn active" id="tut-tab-campaign" onclick="switchTutorialTab('campaign')">🏰 CAMPAÑA DE LA TORRE</button>
-      <button type="button" class="tutorial-tab-btn" id="tut-tab-pvp" onclick="switchTutorialTab('pvp')">⚔️ ARENA DUELOS A K.O.</button>
+      <button type="button" class="tutorial-tab-btn active" id="tut-tab-campaign" onclick="switchInteractiveTutorialTab('campaign')">🏰 CAMPAÑA DE LA TORRE</button>
+      <button type="button" class="tutorial-tab-btn" id="tut-tab-pvp" onclick="switchInteractiveTutorialTab('pvp')">⚔️ ARENA DUELOS A K.O.</button>
     </div>
     <div id="tutorial-content-body">
       <!-- Contenido dinámico del tutorial -->
     </div>
     <button type="button" class="aoc-confirm-btn" onclick="closeInteractiveTutorialModal()" style="margin-top:14px; min-height:44px;">¡ENTENDIDO, A JUGAR!</button>
+  </div>
+</div>
+
+<!-- MODAL MERCADO DE HÉROES: TRANSMUTACIONES Y SELLOS CON METAMONEDAS -->
+<div id="screen-hero-market-modal" class="overlay hidden modal-overlay-center" onclick="closeHeroMarketModal(event)">
+  <div class="hero-market-card" onclick="event.stopPropagation()">
+    <div class="hero-market-header">
+      <div class="hero-market-title-badge">
+        <span>⚗️</span> <b>MERCADO DE HÉROES • TRANSMUTACIONES Y SELLOS</b>
+      </div>
+      <button class="inspect-close-btn" onclick="closeHeroMarketModal()">✕</button>
+    </div>
+    <div id="hero-market-modal-body" style="padding:14px; max-height:75vh; overflow-y:auto;">
+      <!-- Renderizado dinámicamente por renderHeroMarketModalContent() -->
+    </div>
   </div>
 </div>
 
