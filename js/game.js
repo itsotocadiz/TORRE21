@@ -2678,6 +2678,16 @@
       }
     });
 
+    // 4. Aplicar cartas cosméticas persistentes como fondo full-art
+    const cosmeticBindings = (typeof getCosmeticDeckBindings === "function") ? getCosmeticDeckBindings() : {};
+    deck.forEach(c => {
+      const cKey = c.specialId || c.id || c.slot || `${c.suit}_${c.rank}`;
+      const cosId = cosmeticBindings[cKey] || (c.suit && c.rank ? cosmeticBindings[`${c.suit}_${c.rank}`] : null);
+      if (cosId && typeof getCosmeticById === "function") {
+        c.cosmetic = getCosmeticById(cosId);
+      }
+    });
+
     return deck;
   }
 
@@ -6975,22 +6985,306 @@
   ];
 
   const RAGNAROK_MONSTERS_CATALOG = [
-    { id: "goblin", name: "Duende Tahúr", sprite: "👺", hint: "Derrota Duendes Tahúres en la Torre" },
-    { id: "bat", name: "Murciélago Espectral", sprite: "🦇", hint: "Derrota Murciélagos Espectrales en las Criptas" },
-    { id: "skeleton", name: "Esqueleto Crupier", sprite: "💀", hint: "Vence Esqueletos Crupier en los primeros pisos" },
-    { id: "archer", name: "Ballestero Sombrío", sprite: "🏹", hint: "Vence Ballesteros Sombríos en los Cuarteles" },
-    { id: "ghost", name: "Fantasma Apostador", sprite: "👻", hint: "Vence Fantasmas Apostadores en la Torre" },
-    { id: "gargoyle", name: "Gárgola Guardiana", sprite: "🗿", hint: "Vence Gárgolas Guardianas en los pisos intermedios" },
-    { id: "cultist", name: "Cultista del 21", sprite: "🧙", hint: "Vence Cultistas del 21 en los santuarios" },
-    { id: "vampire", name: "Vampiro Crupier", sprite: "🧛", hint: "Vence Vampiros Crupier en los salones nobles" },
-    { id: "golem", name: "Gólem de Diamantes", sprite: "💎", hint: "Vence Gólems de Diamantes en las agujas" },
-    { id: "dante", name: "Dante de Picas", sprite: "👹", isBoss: true, hint: "Derrota a Dante de Picas (Jefe Acto I)" },
-    { id: "valkyrie", name: "Valquiria de Diamantes", sprite: "✨", isBoss: true, hint: "Derrota a la Valquiria de Diamantes (Jefa Acto II)" },
-    { id: "archmage", name: "Archimago del Trébol", sprite: "🔮", isBoss: true, hint: "Derrota al Archimago del Trébol (Jefe Acto III)" },
-    { id: "malfas", name: "Malfas del Vacío", sprite: "☠️", isBoss: true, hint: "Derrota a Malfas del Vacío (Jefe Acto IV)" },
-    { id: "mandinga", name: "Mandinga Señor del 21", sprite: "👑", isBoss: true, hint: "Derrota al Mandinga en la Cúspide de la Torre" }
+    { id: "goblin", name: "Duende Tahúr", sprite: "👺", img: "assets/svg/enemy_goblin.svg", tier: "common", hint: "Derrota Duendes Tahúres en la Torre" },
+    { id: "bat", name: "Murciélago Espectral", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", tier: "common", hint: "Derrota Murciélagos Espectrales en las Criptas" },
+    { id: "skeleton", name: "Esqueleto Crupier", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", tier: "common", hint: "Vence Esqueletos Crupier en los primeros pisos" },
+    { id: "archer", name: "Ballestero Sombrío", sprite: "🏹", img: "assets/svg/enemy_centurion.svg", tier: "common", hint: "Vence Ballesteros Sombríos en los Cuarteles" },
+    { id: "ghost", name: "Fantasma Apostador", sprite: "👻", img: "assets/svg/enemy_shadowbeast.svg", tier: "common", hint: "Vence Fantasmas Apostadores en la Torre" },
+    { id: "gargoyle", name: "Gárgola Guardiana", sprite: "🗿", img: "assets/svg/enemy_gargoyle.svg", tier: "common", hint: "Vence Gárgolas Guardianas en los pisos intermedios" },
+    { id: "cultist", name: "Cultista del 21", sprite: "🧙", img: "assets/svg/enemy_obsidian.svg", tier: "elite", hint: "Vence Cultistas del 21 en los santuarios" },
+    { id: "vampire", name: "Vampiro Crupier", sprite: "🧛", img: "assets/svg/enemy_necro_void.svg", tier: "elite", hint: "Vence Vampiros Crupier en los salones nobles" },
+    { id: "golem", name: "Gólem de Diamantes", sprite: "💎", img: "assets/svg/enemy_void_titan.svg", tier: "elite", hint: "Vence Gólems de Diamantes en las agujas" },
+    { id: "dante", name: "Dante de Picas", sprite: "👹", isBoss: true, tier: "boss", img: "assets/svg/enemy_dante_spades.svg", hint: "Derrota a Dante de Picas (Jefe Acto I)" },
+    { id: "valkyrie", name: "Valquiria de Diamantes", sprite: "✨", isBoss: true, tier: "boss", img: "assets/svg/enemy_valkyrie_diamonds.svg", hint: "Derrota a la Valquiria de Diamantes (Jefa Acto II)" },
+    { id: "archmage", name: "Archimago del Trébol", sprite: "🔮", isBoss: true, tier: "boss", img: "assets/svg/enemy_archmage_clubs.svg", hint: "Derrota al Archimago del Trébol (Jefe Acto III)" },
+    { id: "malfas", name: "Malfas del Vacío", sprite: "☠️", isBoss: true, tier: "boss", img: "assets/svg/enemy_necro_void.svg", hint: "Derrota a Malfas del Vacío (Jefe Acto IV)" },
+    { id: "mandinga", name: "Mandinga Señor del 21", sprite: "👑", isBoss: true, tier: "boss", img: "assets/svg/enemy_mandinga.svg", hint: "Derrota al Mandinga en la Cúspide de la Torre" }
   ];
   window.RAGNAROK_MONSTERS_CATALOG = RAGNAROK_MONSTERS_CATALOG;
+
+  /* ============================================================
+     GESTIÓN DE CARTAS COSMÉTICAS FULL-ART Y ASIGNACIÓN AL MAZO
+     ============================================================ */
+  const COSMETIC_DECK_BINDINGS_KEY = "torre21_cosmetic_deck_bindings";
+
+  function getEnemyCosmeticId(enemy) {
+    if (!enemy) return "rival";
+    if (enemy.id) return enemy.id;
+    const nameNorm = (enemy.name || "").toLowerCase();
+    if (nameNorm.includes("goblin") || nameNorm.includes("duende")) return "goblin";
+    if (nameNorm.includes("bat") || nameNorm.includes("murciélago") || nameNorm.includes("murcielago")) return "bat";
+    if (nameNorm.includes("skeleton") || nameNorm.includes("esqueleto")) return "skeleton";
+    if (nameNorm.includes("archer") || nameNorm.includes("ballestero")) return "archer";
+    if (nameNorm.includes("ghost") || nameNorm.includes("fantasma")) return "ghost";
+    if (nameNorm.includes("gargoyle") || nameNorm.includes("gárgola") || nameNorm.includes("gargola")) return "gargoyle";
+    if (nameNorm.includes("cultist") || nameNorm.includes("cultista")) return "cultist";
+    if (nameNorm.includes("vampire") || nameNorm.includes("vampiro")) return "vampire";
+    if (nameNorm.includes("golem") || nameNorm.includes("gólem")) return "golem";
+    if (nameNorm.includes("dante")) return "dante";
+    if (nameNorm.includes("valkyrie") || nameNorm.includes("valquiria")) return "valkyrie";
+    if (nameNorm.includes("archmage") || nameNorm.includes("archimago")) return "archmage";
+    if (nameNorm.includes("malfas")) return "malfas";
+    if (nameNorm.includes("mandinga")) return "mandinga";
+    if (nameNorm.includes("black")) return "black";
+    if (nameNorm.includes("dragon") || nameNorm.includes("dragón")) return "dragon";
+    if (nameNorm.includes("orc") || nameNorm.includes("orco")) return "orc";
+    return nameNorm.replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+  }
+  window.getEnemyCosmeticId = getEnemyCosmeticId;
+
+  function getEnemySvgFallback(id) {
+    const map = {
+      goblin: "assets/svg/enemy_goblin.svg",
+      bat: "assets/svg/enemy_gargoyle.svg",
+      skeleton: "assets/svg/enemy_skeleton.svg",
+      archer: "assets/svg/enemy_centurion.svg",
+      ghost: "assets/svg/enemy_shadowbeast.svg",
+      gargoyle: "assets/svg/enemy_gargoyle.svg",
+      cultist: "assets/svg/enemy_obsidian.svg",
+      vampire: "assets/svg/enemy_necro_void.svg",
+      golem: "assets/svg/enemy_void_titan.svg",
+      dante: "assets/svg/enemy_dante_spades.svg",
+      valkyrie: "assets/svg/enemy_valkyrie_diamonds.svg",
+      archmage: "assets/svg/enemy_archmage_clubs.svg",
+      malfas: "assets/svg/enemy_necro_void.svg",
+      mandinga: "assets/svg/enemy_mandinga.svg",
+      black: "assets/svg/enemy_black.svg",
+      dragon: "assets/svg/enemy_dragon.svg",
+      orc: "assets/svg/enemy_orc.svg"
+    };
+    return map[id] || "assets/svg/enemy_goblin.svg";
+  }
+  window.getEnemySvgFallback = getEnemySvgFallback;
+
+  function getCosmeticDeckBindings(heroKey) {
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey(heroKey) : (heroKey || "knight");
+    try {
+      const allBindings = JSON.parse(localStorage.getItem(COSMETIC_DECK_BINDINGS_KEY) || "{}");
+      return (allBindings && typeof allBindings === "object" && allBindings[hKey]) ? allBindings[hKey] : {};
+    } catch (_) { return {}; }
+  }
+  window.getCosmeticDeckBindings = getCosmeticDeckBindings;
+
+  function saveCosmeticDeckBindings(bindings, heroKey) {
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey(heroKey) : (heroKey || "knight");
+    try {
+      const allBindings = JSON.parse(localStorage.getItem(COSMETIC_DECK_BINDINGS_KEY) || "{}") || {};
+      allBindings[hKey] = bindings || {};
+      localStorage.setItem(COSMETIC_DECK_BINDINGS_KEY, JSON.stringify(allBindings));
+    } catch (_) {}
+  }
+  window.saveCosmeticDeckBindings = saveCosmeticDeckBindings;
+
+  function getCosmeticById(id) {
+    if (!id) return null;
+    const cards = (typeof getRagnarokCards === "function") ? getRagnarokCards() : [];
+    const owned = cards.find(c => c.id === id || c.enemyId === id);
+    if (owned) {
+      if (!owned.img) owned.img = getEnemySvgFallback(owned.id || owned.enemyId);
+      return owned;
+    }
+    const catalogItem = RAGNAROK_MONSTERS_CATALOG.find(m => m.id === id);
+    if (catalogItem) {
+      return {
+        id: catalogItem.id,
+        enemyId: catalogItem.id,
+        name: `Carta de ${catalogItem.name}`,
+        enemyName: catalogItem.name,
+        sprite: catalogItem.sprite || "👹",
+        img: catalogItem.img || getEnemySvgFallback(catalogItem.id),
+        tier: catalogItem.tier || (catalogItem.isBoss ? "boss" : "common"),
+        type: "cosmetic_monster"
+      };
+    }
+    return null;
+  }
+  window.getCosmeticById = getCosmeticById;
+
+  function setCosmeticDeckBinding(cardKey, cosmeticId, heroKey) {
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey(heroKey) : (heroKey || "knight");
+    const bindings = getCosmeticDeckBindings(hKey);
+    if (!cosmeticId) {
+      delete bindings[cardKey];
+    } else {
+      bindings[cardKey] = cosmeticId;
+    }
+    saveCosmeticDeckBindings(bindings, hKey);
+
+    const cosObj = cosmeticId ? getCosmeticById(cosmeticId) : null;
+    if (gameState && Array.isArray(gameState.deck)) {
+      gameState.deck.forEach(c => {
+        const k = c.specialId || c.id || `${c.suit}_${c.rank}`;
+        if (k === cardKey) c.cosmetic = cosObj;
+      });
+    }
+    if (gameState && gameState.player && Array.isArray(gameState.player.playerHand)) {
+      gameState.player.playerHand.forEach(c => {
+        const k = c.specialId || c.id || `${c.suit}_${c.rank}`;
+        if (k === cardKey) c.cosmetic = cosObj;
+      });
+      if (typeof renderCards === "function") renderCards();
+    }
+  }
+  window.setCosmeticDeckBinding = setCosmeticDeckBinding;
+
+  function getCosmeticForCard(card, heroKey) {
+    if (!card) return null;
+    if (card.cosmetic) return card.cosmetic;
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey(heroKey) : (heroKey || "knight");
+    const bindings = getCosmeticDeckBindings(hKey);
+    const k = card.specialId || card.id || card.slot || `${card.suit}_${card.rank}`;
+    const suitRank = (card.suit && card.rank) ? `${card.suit}_${card.rank}` : null;
+    const cosId = bindings[k] || (suitRank ? bindings[suitRank] : null);
+    if (cosId) return getCosmeticById(cosId);
+    return null;
+  }
+  window.getCosmeticForCard = getCosmeticForCard;
+
+  function autoAssignCosmeticToDeck(cosmetic, heroKey) {
+    if (!cosmetic) return;
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey(heroKey) : (heroKey || "knight");
+    const bindings = getCosmeticDeckBindings(hKey);
+    const cosId = cosmetic.id || cosmetic.enemyId;
+    if (Object.values(bindings).includes(cosId)) return;
+
+    const priorityKeys = [
+      "♠_A", "♥_A", "♦_A", "♣_A",
+      "♠_K", "♥_K", "♦_K", "♣_K",
+      "♠_Q", "♥_Q", "♦_Q", "♣_Q",
+      "♠_J", "♥_J", "♦_J", "♣_J",
+      "♠_10", "♥_10", "♦_10", "♣_10"
+    ];
+    let chosenKey = priorityKeys.find(k => !bindings[k]);
+    if (!chosenKey) {
+      for (const s of ["♠", "♥", "♦", "♣"]) {
+        for (const r of ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"]) {
+          const k = `${s}_${r}`;
+          if (!bindings[k]) { chosenKey = k; break; }
+        }
+        if (chosenKey) break;
+      }
+    }
+    if (chosenKey) {
+      setCosmeticDeckBinding(chosenKey, cosId, hKey);
+    }
+  }
+  window.autoAssignCosmeticToDeck = autoAssignCosmeticToDeck;
+
+  function openCosmeticAssignModal(cosmeticId) {
+    const cosmetic = getCosmeticById(cosmeticId);
+    if (!cosmetic) return;
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey() : "knight";
+    const bindings = getCosmeticDeckBindings(hKey);
+
+    const currentlyEquippedCards = Object.entries(bindings)
+      .filter(([k, v]) => v === cosmetic.id || v === cosmetic.enemyId)
+      .map(([k]) => k);
+
+    const isEquipped = currentlyEquippedCards.length > 0;
+    const currentStatus = isEquipped 
+      ? `Actualmente equipada en: <b>${currentlyEquippedCards.join(", ")}</b>`
+      : "No está equipada en ningún naipe actualmente.";
+
+    const options = [
+      { label: "As de Picas (A♠)", key: "♠_A" },
+      { label: "Rey de Picas (K♠)", key: "♠_K" },
+      { label: "As de Corazones (A♥)", key: "♥_A" },
+      { label: "Rey de Corazones (K♥)", key: "♥_K" },
+      { label: "As de Diamantes (A♦)", key: "♦_A" },
+      { label: "As de Tréboles (A♣)", key: "♣_A" }
+    ];
+
+    let modal = document.getElementById("screen-cosmetic-assign-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "screen-cosmetic-assign-modal";
+      modal.className = "overlay";
+      modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,7,12,0.85);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;";
+      document.body.appendChild(modal);
+    }
+
+    const bgImg = cosmetic.img || getEnemySvgFallback(cosmetic.id || cosmetic.enemyId);
+    const tierName = cosmetic.tier === "boss" ? "JEFE (LEGENDARIO)" : (cosmetic.tier === "elite" ? "ÉLITE (ARCANA)" : "COMÚN");
+    const tierColor = cosmetic.tier === "boss" ? "#ffd166" : (cosmetic.tier === "elite" ? "#66fcf1" : "#a8dadc");
+
+    modal.innerHTML = `
+      <div style="background:rgba(15,23,42,0.98); border:2px solid ${tierColor}; border-radius:14px; max-width:390px; width:100%; padding:16px; box-shadow:0 12px 35px rgba(0,0,0,0.85); color:#f1faee; text-align:center; position:relative;">
+        <button onclick="closeCosmeticAssignModal()" style="position:absolute; top:8px; right:10px; background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; min-width:44px; min-height:44px;">✕</button>
+        <div style="font-size:10px; color:${tierColor}; font-weight:bold; letter-spacing:1px; margin-bottom:4px;">👑 CARTA COSMÉTICA FULL-ART</div>
+        <h3 style="margin:0 0 4px 0; color:#ffd166; font-family:var(--font-pixel, monospace); font-size:13px;">${cosmetic.enemyName.toUpperCase()}</h3>
+        <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Categoría: <span style="color:${tierColor}; font-weight:bold;">${tierName}</span></div>
+
+        <!-- Vista previa full-art con legibilidad nítida -->
+        <div style="width:72px; height:98px; margin:0 auto 12px auto; border-radius:8px; border:2.5px solid ${tierColor}; box-shadow:0 0 12px ${tierColor}66; position:relative; overflow:hidden; background-color:#0b0f19;">
+          <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('${bgImg}') center/cover no-repeat; opacity:0.72;"></div>
+          <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:radial-gradient(circle at 50% 45%, rgba(15,23,42,0.3) 0%, rgba(10,14,24,0.65) 55%, rgba(0,0,0,0.92) 100%);"></div>
+          <span style="position:absolute; top:4px; left:6px; font-weight:900; font-size:14px; color:#fff; text-shadow:0 0 4px #000, 0 2px 4px #000; z-index:5;">A</span>
+          <span style="position:absolute; top:4px; right:6px; font-size:14px; color:#ffd166; text-shadow:0 0 4px #000; z-index:5;">♠</span>
+          <span style="position:absolute; bottom:3px; right:4px; font-size:10px; z-index:5;">👑</span>
+        </div>
+
+        <div style="font-size:10px; color:#cbd5e1; margin-bottom:12px; background:rgba(255,255,255,0.04); padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.08);">
+          ${currentStatus}
+        </div>
+
+        <div style="font-size:9.5px; color:#ffd166; font-weight:bold; margin-bottom:8px; text-align:left;">SELECCIONA EL NAIPE A VESTIR EN TU MAZO:</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+          ${options.map(opt => `
+            <button onclick="applyCosmeticToCard('${opt.key}', '${cosmetic.id}')" style="min-height:44px; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; background:${bindings[opt.key] === cosmetic.id ? 'rgba(255,209,102,0.25)' : 'rgba(255,255,255,0.05)'}; border:1.5px solid ${bindings[opt.key] === cosmetic.id ? '#ffd166' : '#334155'}; color:${bindings[opt.key] === cosmetic.id ? '#ffd166' : '#f1faee'};">
+              ${bindings[opt.key] === cosmetic.id ? '✓ ' : ''}${opt.label}
+            </button>
+          `).join("")}
+        </div>
+
+        <div style="display:flex; gap:8px; justify-content:center;">
+          ${isEquipped ? `
+            <button onclick="removeCosmeticFromDeck('${cosmetic.id}')" style="flex:1; min-height:44px; background:rgba(230,57,70,0.18); border:1.5px solid #e63946; color:#ff758f; border-radius:8px; font-size:10px; font-weight:bold; cursor:pointer;">
+              DESEQUIPAR DE MAZO
+            </button>
+          ` : ''}
+          <button onclick="closeCosmeticAssignModal()" style="flex:1; min-height:44px; background:rgba(255,255,255,0.08); border:1px solid #475569; color:#cbd5e1; border-radius:8px; font-size:10px; font-weight:bold; cursor:pointer;">
+            CERRAR
+          </button>
+        </div>
+      </div>
+    `;
+    modal.classList.remove("hidden");
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.openCosmeticAssignModal = openCosmeticAssignModal;
+
+  function closeCosmeticAssignModal() {
+    const modal = document.getElementById("screen-cosmetic-assign-modal");
+    if (modal) modal.classList.add("hidden");
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.closeCosmeticAssignModal = closeCosmeticAssignModal;
+
+  function applyCosmeticToCard(cardKey, cosmeticId) {
+    setCosmeticDeckBinding(cardKey, cosmeticId);
+    if (typeof showGameToast === "function") {
+      const cos = getCosmeticById(cosmeticId);
+      showGameToast(`👑 ${cos ? cos.enemyName : 'Carta'} equipada en ${cardKey}`);
+    }
+    closeCosmeticAssignModal();
+    if (typeof switchCodexTab === "function") switchCodexTab("collection");
+  }
+  window.applyCosmeticToCard = applyCosmeticToCard;
+
+  function removeCosmeticFromDeck(cosmeticId) {
+    const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey() : "knight";
+    const bindings = getCosmeticDeckBindings(hKey);
+    Object.keys(bindings).forEach(k => {
+      if (bindings[k] === cosmeticId) delete bindings[k];
+    });
+    saveCosmeticDeckBindings(bindings, hKey);
+    if (typeof showGameToast === "function") {
+      showGameToast("Carta Cosmética desequipada del mazo");
+    }
+    closeCosmeticAssignModal();
+    if (typeof switchCodexTab === "function") switchCodexTab("collection");
+  }
+  window.removeCosmeticFromDeck = removeCosmeticFromDeck;
 
   function switchCodexTab(tab = "collection") {
     currentCodexTab = tab;
@@ -7064,23 +7358,31 @@
     } else if (tab === "collection") {
       const ragnarokList = (typeof getRagnarokCards === "function") ? getRagnarokCards() : [];
       let unlockedRagnarokCount = 0;
+      const bindings = (typeof getCosmeticDeckBindings === "function") ? getCosmeticDeckBindings() : {};
 
       const cardsGridHtml = RAGNAROK_MONSTERS_CATALOG.map(m => {
         const ownedCard = ragnarokList.find(c => {
           if (!c) return false;
           const cName = (c.name || "").toLowerCase();
           const mName = m.name.toLowerCase();
-          return cName.includes(mName) || c.id === m.id || c.enemyName === m.name;
+          return cName.includes(mName) || c.id === m.id || c.enemyId === m.id || c.enemyName === m.name;
         });
 
         if (ownedCard) {
           unlockedRagnarokCount++;
+          const assignedCardKeys = Object.entries(bindings).filter(([k, v]) => v === m.id || (ownedCard && v === ownedCard.id)).map(([k]) => k);
+          const assignedBadge = assignedCardKeys.length > 0 
+            ? `<div style="font-size:8.5px; color:#ffd166; background:rgba(255,209,102,0.18); border:1px solid #ffd166; border-radius:4px; padding:2px 6px; margin-top:4px; font-weight:bold;">⚔️ En ${assignedCardKeys.join(", ")}</div>`
+            : `<div style="font-size:8.5px; color:#66fcf1; background:rgba(102,252,241,0.12); border:1px solid rgba(102,252,241,0.3); border-radius:4px; padding:2px 6px; margin-top:4px;">🎨 Toca para equipar</div>`;
+
+          const bgImg = m.img || (ownedCard && ownedCard.img) || getEnemySvgFallback(m.id);
           return `
-            <div class="codex-card buff" style="border:2px solid #ffd166; background:radial-gradient(circle at 10% 10%, rgba(255,209,102,0.22), rgba(15,23,42,0.95)); padding:10px; text-align:center;">
-              <div style="font-size:1.2rem; color:#ffd166; margin-bottom:2px;">👑</div>
-              <div style="font-size:2.2rem; margin:4px 0;">${m.sprite}</div>
+            <div class="codex-card buff" onclick="openCosmeticAssignModal('${m.id}')" style="border:2px solid #ffd166; background:radial-gradient(circle at 10% 10%, rgba(255,209,102,0.22), rgba(15,23,42,0.95)); padding:10px; text-align:center; cursor:pointer; position:relative; overflow:hidden;" title="Toca para equipar en tu mazo">
+              <div style="font-size:1.1rem; color:#ffd166; margin-bottom:2px;">👑</div>
+              <div style="width:48px; height:48px; margin:4px auto; background:url('${bgImg}') center/contain no-repeat; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));"></div>
               <strong style="color:#ffd166; font-size:10.5px; display:block;">${m.name}</strong>
               <span style="font-size:9px; color:#2a9d8f; font-weight:bold;">Carta Cosmética</span>
+              ${assignedBadge}
             </div>
           `;
         } else {
@@ -7096,7 +7398,7 @@
 
       itemsHtml = `
         <div style="grid-column:1/-1; margin-bottom:8px;">
-          <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Derrota a los monstruos de la Torre (comunes 1.5%, élites 3%, jefes 5%) para coleccionar sus cartas doradas con corona.</div>
+          <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Derrota a los monstruos de la Torre (comunes 10%, élites 5%, jefes 2% + Suerte) para coleccionar sus cartas full-art con ilustración de fondo. ¡Los duplicados se convierten automáticamente en Metamonedas (💀)!</div>
         </div>
         ${cardsGridHtml}
       `;
@@ -7769,7 +8071,11 @@
       const suitClass = card.suit === "♥" ? "suit-red suit-hearts" : (card.suit === "♦" ? "suit-diamonds" : (card.suit === "♣" ? "suit-clubs" : "suit-spades"));
       const isNewCard = !card._animPlayed;
       const dealClass = isNewCard ? "card-dealing" : "";
-      el.className = `card-face player-card interactive-card ${dealClass} ${suitClass}`.replace(/\s+/g, ' ').trim();
+
+      const cosmetic = card.cosmetic || (typeof getCosmeticForCard === "function" ? getCosmeticForCard(card) : null);
+      const cosmeticClass = cosmetic ? `card-cosmetic-fullart cosmetic-tier-${cosmetic.tier || 'common'}` : '';
+
+      el.className = `card-face player-card interactive-card ${dealClass} ${suitClass} ${cosmeticClass}`.replace(/\s+/g, ' ').trim();
       if (typeof card._tiltDeg !== "number") {
         const tiltPool = [-1.5, 1.2, -0.8, 1.8, -1.2, 1.5];
         card._tiltDeg = tiltPool[idx % tiltPool.length];
@@ -7795,12 +8101,25 @@
       }
       const effectiveVal = (typeof card.currentAdaptedValue === "number") ? card.currentAdaptedValue : card.value;
       const lootPill = card.badgeText ? `<span class="card-trait-pill ${card.badgeClass || ''}">${card.badgeText}</span>` : '';
+      const sealMarkup = card.enchantment ? `<span class="card-seal-icon">${card.enchantment.icon}</span>` : '';
+
+      let cosmeticMarkup = "";
+      if (cosmetic) {
+        const bgImg = cosmetic.img || getEnemySvgFallback(cosmetic.id || cosmetic.enemyId);
+        cosmeticMarkup = `
+          <div class="card-cosmetic-bg" style="background-image: url('${bgImg}');"></div>
+          <div class="card-cosmetic-vignette"></div>
+          <span class="card-cosmetic-crown" title="Carta Cosmética: ${cosmetic.enemyName}">👑</span>
+        `;
+      }
+
       if (card.enchantment) {
         const elType = card.enchantment.element || card.enchantment.type || "arcane";
         el.classList.add("enchanted", `seal-${card.enchantment.type || card.enchantment.id}`, `element-${elType}`);
         el.innerHTML = `
+          ${cosmeticMarkup}
           ${lootBadge}
-          <span class="card-seal-icon">${card.enchantment.icon}</span>
+          ${sealMarkup}
           <span class="card-value">${card.rank}</span>
           <span class="suit" style="font-size:14px;opacity:0.85;">${card.suit}</span>
           <span class="card-label">${effectiveVal}</span>
@@ -7808,6 +8127,7 @@
         `;
       } else {
         el.innerHTML = `
+          ${cosmeticMarkup}
           ${lootBadge}
           <span class="card-value">${card.rank}</span>
           <span class="suit" style="font-size:14px;opacity:0.85;">${card.suit}</span>
@@ -7823,7 +8143,8 @@
           name: card.name || null,
           desc: card.desc || null,
           badgeText: card.badgeText || null,
-          seal: card.enchantment || null
+          seal: card.enchantment || null,
+          cosmetic: cosmetic
         });
       };
       pHandEl.appendChild(el);
@@ -8458,32 +8779,64 @@
   }
   window.getRagnarokCards = getRagnarokCards;
 
-  function awardRagnarokMonsterCard(enemy) {
+  function awardRagnarokMonsterCard(enemy, options = {}) {
     if (!enemy) return;
     const cards = getRagnarokCards();
-    const enemyId = enemy.id || (enemy.name ? enemy.name.toLowerCase().replace(/\s+/g, "_") : "rival");
-    const existing = cards.find(c => c.enemyId === enemyId);
-    if (!existing) {
-      const newCard = {
-        enemyId: enemyId,
-        name: `Carta de ${enemy.name}`,
-        enemyName: enemy.name,
-        sprite: enemy.sprite || "👹",
-        img: enemy.img || null,
-        crown: "👑",
-        type: "cosmetic_monster",
-        acquiredAt: Date.now()
-      };
-      cards.push(newCard);
-      try {
-        localStorage.setItem(RAGNAROK_CARDS_KEY, JSON.stringify(cards));
-      } catch (_) {}
-      spawnFloatingText("player-sprite", "👑 CARTA RIVAL RAGNAROK", "crit");
-      addLog(`👑 ¡DROP RAGNAROK EXTRAORDINARIO! Obtuviste la Carta Cosmética de ${enemy.name} con Corona.`, "critical");
-      try { playVictoryFanfareSound(); } catch (_) {}
+    const enemyId = getEnemyCosmeticId(enemy);
+    const existing = cards.find(c => c.enemyId === enemyId || c.id === enemyId || (c.enemyName && c.enemyName.toLowerCase() === (enemy.name || "").toLowerCase()));
+
+    const isBoss = options.isBoss || !!enemy.isActBoss || !!enemy.isBoss || (enemy.trait === "dragon" || enemy.trait === "abyss" || (enemy.name && (enemy.name.includes("Mandinga") || enemy.name.includes("BLACK") || enemy.name.includes("Dante") || enemy.name.includes("Valquiria") || enemy.name.includes("Archimago") || enemy.name.includes("Malfas"))));
+    const isElite = !isBoss && (options.isElite || !!enemy.isElite || (enemy.pwr >= 4));
+    const tier = isBoss ? "boss" : (isElite ? "elite" : "common");
+
+    if (existing) {
+      // 4. Conversión Automática de Repetidas en Metamonedas (💀)
+      const convertedCoins = isBoss ? 25 : (isElite ? 12 : 5);
+      if (typeof addCryptCoins === "function") {
+        addCryptCoins(convertedCoins);
+      } else {
+        const curC = parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+        localStorage.setItem("bj_crypt_coins", String(curC + convertedCoins));
+      }
+      spawnFloatingText("enemy-sprite", `+${convertedCoins} 💀 CONVERTIDA`, "gold");
+      addLog(`🃏 Carta Cosmética repetida (${enemy.name}) ➔ Convertida en +${convertedCoins} 💀 Metamonedas.`, "gold");
+      if (typeof showGameToast === "function") {
+        showGameToast(`🃏 Carta Cosmética repetida (${enemy.name}) ➔ Convertida en +${convertedCoins} 💀 Metamonedas`);
+      }
+      try { playGoldCoinSound(); } catch (_) {}
+      return;
     }
+
+    // Desbloqueo de NUEVA Carta Cosmética
+    const newCard = {
+      id: enemyId,
+      enemyId: enemyId,
+      name: `Carta de ${enemy.name}`,
+      enemyName: enemy.name,
+      sprite: enemy.sprite || "👹",
+      img: enemy.img || getEnemySvgFallback(enemyId),
+      crown: "👑",
+      tier: tier,
+      type: "cosmetic_monster",
+      acquiredAt: Date.now()
+    };
+    cards.push(newCard);
+    try {
+      localStorage.setItem(RAGNAROK_CARDS_KEY, JSON.stringify(cards));
+    } catch (_) {}
+
+    // Auto-asignar como fondo a una carta del mazo para disfrute inmediato
+    autoAssignCosmeticToDeck(newCard);
+
+    spawnFloatingText("player-sprite", "👑 CARTA COSMÉTICA", "crit");
+    addLog(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA! Obtuviste la Carta Cosmética de ${enemy.name}. Vestirá el fondo de tu naipe en combate.`, "critical");
+    if (typeof showGameToast === "function") {
+      showGameToast(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA! (${enemy.name})`);
+    }
+    try { playVictoryFanfareSound(); } catch (_) {}
   }
   window.awardRagnarokMonsterCard = awardRagnarokMonsterCard;
+  window.awardCosmeticMonsterCard = awardRagnarokMonsterCard;
 
   function showChampionDiceModal(options = {}) {
     const bossName = options.bossName || "Jefe de la Torre";
@@ -8672,14 +9025,35 @@
       addLog(`💀 ¡Drop Arcano! ${e.name} dejó caer ${coinsDropped} Monedas de Cripta.`, "gold");
     }
 
-    // Drop de Cartas Cosméticas de Rivales Estilo Ragnarok (1.5% normal, 3% élite, 5% jefe)
-    const isActBossCheck = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : (gameState.floor === 3 || gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19);
-    const isBossRival = isActBossCheck || (e.trait === "dragon" || gameState.floor % 4 === 0);
-    const isEliteRival = !!e.isElite || (e.pwr >= 4);
-    const baseRagnarokChance = isBossRival ? 0.05 : (isEliteRival ? 0.03 : 0.015);
-    const effectiveRagnarokChance = baseRagnarokChance * (1 + ((p.luck || 0) / 100));
-    if (Math.random() < effectiveRagnarokChance) {
-      awardRagnarokMonsterCard(e);
+    // 2. Drop de Cartas Cosméticas de Rivales (Curva Inversa: 10% común / 5% élite / 2% jefe + Suerte)
+    const isActBossCheck = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : (gameState.floor === 3 || gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19 || gameState.floor === 21);
+    const isBossRival = isActBossCheck || !!e.isActBoss || !!e.isBoss || (e.trait === "dragon" || e.trait === "abyss" || (e.name && (e.name.includes("Mandinga") || e.name.includes("BLACK") || e.name.includes("Dante") || e.name.includes("Valquiria") || e.name.includes("Archimago") || e.name.includes("Malfas"))));
+    const isEliteRival = !isBossRival && (!!e.isElite || (e.pwr >= 4));
+    const isCommonRival = !isBossRival && !isEliteRival;
+
+    const baseCosmeticChance = isBossRival ? 0.02 : (isEliteRival ? 0.05 : 0.10);
+    const effectiveCosmeticChance = baseCosmeticChance * (1 + ((p.luck || 0) / 100));
+
+    // 3. Pity Timer de Primera Partida (Descubrimiento Garantizado)
+    const ownedCosmeticList = (typeof getRagnarokCards === "function") ? getRagnarokCards() : [];
+    const pityGranted = localStorage.getItem("torre21_first_cosmetic_granted") === "true";
+    let pityTriggered = false;
+
+    if (!pityGranted && ownedCosmeticList.length === 0) {
+      let pityCount = parseInt(localStorage.getItem("torre21_first_cosmetic_pity_count") || "0", 10);
+      if (isCommonRival) {
+        pityCount++;
+        localStorage.setItem("torre21_first_cosmetic_pity_count", String(pityCount));
+      }
+      if (pityCount >= 4 || gameState.floor >= 3) {
+        pityTriggered = true;
+      }
+    }
+
+    if (Math.random() < effectiveCosmeticChance || pityTriggered) {
+      awardRagnarokMonsterCard(e, { isBoss: isBossRival, isElite: isEliteRival, isCommon: isCommonRival, isPity: pityTriggered });
+      localStorage.setItem("torre21_first_cosmetic_granted", "true");
+      localStorage.removeItem("torre21_first_cosmetic_pity_count");
     }
 
     // Comprobar si el piso cuenta con oleadas múltiples pendientes
@@ -13488,6 +13862,29 @@
       }
       if (descEl) descEl.innerText = "Naipe de la baraja básica. Puedes impregnarle sellos arcanos en los Sobres del Bazar.";
       if (synergyEl) synergyEl.innerText = "Forma parejas (Duplas) para ganar +2 de Defensa de armadura.";
+    }
+
+    if (data.cosmetic && cardPreview) {
+      cardPreview.classList.add("card-cosmetic-fullart", `cosmetic-tier-${data.cosmetic.tier || 'common'}`);
+      const bgImg = data.cosmetic.img || getEnemySvgFallback(data.cosmetic.id || data.cosmetic.enemyId);
+      cardPreview.querySelectorAll(".card-cosmetic-bg, .card-cosmetic-vignette, .card-cosmetic-crown").forEach(el => el.remove());
+      const bgEl = document.createElement("div");
+      bgEl.className = "card-cosmetic-bg";
+      bgEl.style.backgroundImage = `url('${bgImg}')`;
+      const vigEl = document.createElement("div");
+      vigEl.className = "card-cosmetic-vignette";
+      const crEl = document.createElement("span");
+      crEl.className = "card-cosmetic-crown";
+      crEl.innerText = "👑";
+      cardPreview.prepend(vigEl);
+      cardPreview.prepend(bgEl);
+      cardPreview.appendChild(crEl);
+      if (synergyEl) {
+        synergyEl.innerHTML = `<span style="color:#ffd166; font-weight:bold;">👑 Aspecto Full-Art: ${data.cosmetic.enemyName}.</span> ` + (synergyEl.innerHTML || "");
+      }
+    } else if (cardPreview) {
+      cardPreview.classList.remove("card-cosmetic-fullart", "cosmetic-tier-boss", "cosmetic-tier-elite", "cosmetic-tier-common");
+      cardPreview.querySelectorAll(".card-cosmetic-bg, .card-cosmetic-vignette, .card-cosmetic-crown").forEach(el => el.remove());
     }
 
     modal.classList.remove("hidden");
@@ -22511,13 +22908,29 @@
       const colorClass = isRed ? "card-red" : "card-black";
       const arcaneClass = arcane ? "card-transmuted-arcane card-holographic" : "";
       const badge = arcane ? '<span class="card-loot-badge arcane-sigil" title="Naipe Arcano">✦</span>' : '';
+
+      const cosmetic = card.cosmetic || (typeof getCosmeticForCard === "function" ? getCosmeticForCard(card) : null);
+      const cosmeticClass = cosmetic ? `card-cosmetic-fullart cosmetic-tier-${cosmetic.tier || 'common'}` : '';
+
+      let cosmeticBgHtml = "";
+      if (cosmetic) {
+        const bgImg = cosmetic.img || getEnemySvgFallback(cosmetic.id || cosmetic.enemyId);
+        cosmeticBgHtml = `
+          <div class="card-cosmetic-bg" style="background-image: url('${bgImg}');"></div>
+          <div class="card-cosmetic-vignette"></div>
+          <span class="card-cosmetic-crown" title="Carta Cosmética: ${cosmetic.enemyName}">👑</span>
+        `;
+      }
+
       const bonusDesc = card.fusion ? `Fusión: ${card.fusion.name || 'Arcana'}` :
                         (card.modifier ? `Mod: ${card.modifier.name || card.modifier.type}` :
                         (card.operator ? `Op: ${card.operator.label || card.operator.type}` :
-                        (arcane ? 'Naipe de Jefe' : 'Naipe Común')));
+                        (cosmetic ? `👑 ${cosmetic.enemyName}` :
+                        (arcane ? 'Naipe de Jefe' : 'Naipe Común'))));
 
       return `
-        <div class="deck-card-item ${arcaneClass} ${colorClass}">
+        <div class="deck-card-item ${arcaneClass} ${colorClass} ${cosmeticClass}">
+          ${cosmeticBgHtml}
           <div class="deck-card-top">
             <span class="deck-card-rank">${card.rank || card.value}</span>
             <span class="deck-card-suit">${card.suit}</span>

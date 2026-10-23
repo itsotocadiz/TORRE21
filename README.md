@@ -288,6 +288,32 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * 4 nuevos sprites temáticos Paper Cutout: `enemy_void_titan.svg`, `enemy_astral_herald.svg`, `enemy_chronos_specter.svg` y `enemy_chaos_chimera.svg`.
   * Rotación procedural de sub-jefes cada 5 pisos y jefes supremos del Abismo cada 10 pisos (Mandinga del Abismo, Sombra del 21 Ascendida, Titán del Vacío Eterno).
 
+### [v1.7.6] — Octubre 2026
+* **Estabilidad del Primer Combate y Prevención Defensiva de Crashes:**
+  * Implementación de la rutina de salvaguarda defensiva `ensureBattleStateInitialized()`, garantizando la instanciación segura de las estadísticas del héroe (`recalculatePlayerStats`), baraja inicial, enemigo activo y escudo antes de invocar el cálculo táctico del HUD o la predicción de daño.
+  * Protección con fallbacks y bloques `try/catch` en `calculateTacticalAttackRange()` y `updateTacticalOddsHUD()` frente a elementos de DOM o barajas en transición asíncrona.
+* **Corrección de Selección de Bendiciones Iniciales y Persistencia del Códice:**
+  * Desacoplada y tipificada estrictamente la selección por identificador canónico (`selectStarterBlessing(id)`), corrigiendo discrepancias de tipos de datos en la comparación de bendiciones activas (`p.starterBlessing`).
+  * Registro y persistencia automática en el almacén local (`torre21_unlocked_blessings`) para su catálogo y consulta permanente en el Códice.
+* **Códice Arcano 100% Coleccionable (5 Pestañas Temáticas):**
+  * Reestructuración formal de la interfaz del Códice en 5 categorías coleccionables estilo roguelike con siluetas y estados incógnita `?`:
+    * `📜 Memorias`: Fragmentos de lore, pergaminos de crónicas y secretos desbloqueados por victoria.
+    * `👑 Cartas Cosméticas`: Álbum completo de cartas cosméticas de rivales estilo Ragnarok con arte e insignia real. Se corrigió la duplicación de títulos.
+    * `✨ Bendiciones`: Catálogo interactivo de las 8 Bendiciones Arcanas de inicio con estadísticas, efectos pasivos e inspección táctil.
+    * `🏺 Reliquias`: Compendio de Reliquias Arcanas y Reliquias Demoníacas de Acto con descripción detallada y estado de descubrimiento.
+    * `⚔️ Bestiario`: Fichas completas de todos los enemigos, élites y jefes de la torre con debilidades, afinidades y lore.
+  * Eliminado el botón redundante de revivir prólogo del panel de Códice en el Menú Principal.
+* **Sistema de Cartas Cosméticas Full-Art de Rivales:**
+  * Las cartas cosméticas ahora visten visualmente el fondo de los naipes en combate (`.card-cosmetic-fullart`), en el visor de baraja y en el modal de detalle con degradado radial y viñeta oscura para preservar al 100% la legibilidad del índice y palo.
+  * Curva de drop inversa ajustada para incentivar la colección: **10% en rivales comunes**, **5% en élites** y **2% en jefes** (+ bonificación de Suerte).
+  * *Pity Timer* de primera partida garantizado: si un jugador novato no obtiene ninguna carta en sus primeros combates, el 4º rival común o el final del Acto I garantiza el primer drop cosmético.
+  * *Conversión Automática de Repetidas:* Al vencer a un rival cuya carta cosmética ya se posee, se transmuta automáticamente en **💀 Metamonedas** (+5 por común, +12 por élite, +25 por jefe) con notificación en pantalla.
+* **Unificación de Iconografía de Metamoneda (Calavera 💀):**
+  * Reemplazados todos los iconos arcaicos de llave (`🗝️` / `🔑`) por el símbolo canónico de Metamoneda (`💀`) en la tienda del bazar, transmutaciones de cartas, compras de sellos arcanos y HUD.
+* **Verificación e Integridad Total:**
+  * Sincronización estricta de las 3 copias del proyecto (`node scripts/sync-all.js`).
+  * Superadas las 42 suites de pruebas unitarias (`npm run verify`) con 0 errores y 0 advertencias.
+
 ### [v1.6.2] — Octubre 2026
 * **Aislamiento Estructural de la Arena PvP y Menús Principales:**
   * Corregido el cierre omitido de `<div id="screen-arena-pvp-modal">` en `index.html`. Debido a este tag faltante, todos los modales subsiguientes (Árbol de Talentos, Manual del Tahúr/Tutoriales, Selector de Vestiduras/Skins, Salón de Logros y Cinemáticas) quedaban atrapados como elementos hijos de la Arena, provocando que no respondieran en el Menú Principal y aparecieran indebidamente dentro del Coliseo PvP.
