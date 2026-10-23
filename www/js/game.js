@@ -3764,12 +3764,19 @@
       dmg = Math.max(1, Math.round(dmg * 0.50));
     }
 
-    // Crítico predictivo RPG: Rango 19-21 garantiza Golpe Crítico (x1.5 o x2.0)
+    // Crítico predictivo RPG: Rango 19-21 garantiza Golpe Crítico (x1.5, x2.0 o x3.0)
     let isCrit = false;
     let critMult = 1.0;
-    if (score >= 19 && score <= 21) {
+    const isNatBJ = (score === 21 && (playerHand || []).length === 2);
+    if (isNatBJ) {
       isCrit = true;
-      critMult = (score === 21) ? 2.0 : 1.5;
+      critMult = 3.0;
+    } else if (score === 21) {
+      isCrit = true;
+      critMult = 2.0;
+    } else if (score >= 19) {
+      isCrit = true;
+      critMult = 1.5;
     }
 
     if (isCrit && dmg > 0) {
@@ -3836,7 +3843,12 @@
     let maxDmg = minDmg;
     let label = "";
 
-    if (score === 21) {
+    const isNatBJ = (score === 21 && (playerHand || []).length === 2);
+    if (isNatBJ) {
+      minDmg = Math.round(baseDmg * 3.0 * doubleMult);
+      maxDmg = minDmg;
+      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
+    } else if (score === 21) {
       minDmg = Math.round(baseDmg * 2.0 * doubleMult);
       maxDmg = minDmg;
       label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
@@ -14355,7 +14367,8 @@
     updateCombatState();
     updateHUDHandNumber();
 
-    addLog(`MANO ${p.handNumber + 1}/${TURNS_PER_FLOOR} — Apuesta: ${p.betAmount} HP`, "info");
+    const betInfo = (p.betAmount && p.betAmount > 0) ? ` — Apuesta: ${p.betAmount} HP` : "";
+    addLog(`MANO ${p.handNumber + 1}/${TURNS_PER_FLOOR}${betInfo}`, "info");
 
     // Reparto animado: tus 2 primeras cartas y las del rival
     await animateInitialDeal();
@@ -15008,9 +15021,12 @@
 
       if (isRpgCrit && dmg > 0) {
         const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
-        let critMultiplier = (p.playerScore === 21 || isNatural21) ? 2.0 : 1.5;
-        // Cuchillas Gemelas (Talento spades_6)
-        if (p._spadesTwinBlades && handSpadesTotal >= 2) {
+        let critMultiplier = 1.5;
+        if (isNatural21) {
+          critMultiplier = (p.gem === "blackjack_heritage") ? 4.0 : 3.0;
+        } else if (p.playerScore === 21) {
+          critMultiplier = 2.0;
+        } else if (p._spadesTwinBlades && handSpadesTotal >= 2) {
           critMultiplier = 2.2;
         }
         dmg = Math.round(dmg * critMultiplier);
@@ -15219,13 +15235,11 @@
           triggerHaptic("blackjack");
           triggerScreenShake("heavy");
           if (p.gem === "blackjack_heritage") {
-            dmg *= 4;
             p.hp = Math.min(p.maxHp, p.hp + 16);
             spawnFloatingText("player-sprite", "+16 HP", "heal");
-            addLog("❤️‍🔥 ¡BLACKJACK HEREDADO! Daño x4 = " + dmg + " y +16 HP.", "critical");
+            addLog("❤️‍🔥 ¡BLACKJACK HEREDADO! Impacto Vorpal x4 = " + dmg + " y +16 HP restaurados.", "critical");
           } else {
-            dmg *= 3;
-            addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Daño crítico x3 = " + dmg + ".", "critical");
+            addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Impacto Vorpal x3 = " + dmg + ".", "critical");
           }
           // SPRINT 4 — Perk Táctico [Corazón de Diamante]: siguiente BJ x4
           if (pendingNextBJx4) {
@@ -15243,7 +15257,8 @@
         setPlayerSpriteState("strike");
         const suddenTag = isSuddenDeath ? ` [🔥FURIA x${suddenMult}]` : "";
         const levelTag = p.level > 1 ? ` (x${levelMult.toFixed(2)} Nvl ${p.level})` : "";
-        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}! PWR (${p.pwr}) + Apuesta (${bet}) + Margen (+${marginBonus})${levelTag} - DEF (${effectiveEnemyDef}) = ${dmg} daño.`, "heal");
+        const betTag = (bet && bet > 0) ? ` + Apuesta (${bet})` : "";
+        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}! PWR (${p.pwr})${betTag} + Margen (+${marginBonus})${levelTag} - DEF (${effectiveEnemyDef}) = ${dmg} daño.`, "heal");
         // Naipes de Botín: Potenciador Multiplicador x2
         const multCard = p.playerHand && p.playerHand.find(c => c && c.operator === "mult");
         if (multCard) {

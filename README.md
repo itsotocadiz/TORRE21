@@ -65,6 +65,10 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v1.7.4] — Octubre 2026 (Actual)
+* **Balanceo de Daño Vorpal y Sincronización Predictiva en Blackjack Natural:**
+  * Corregido el solapamiento multiplicativo involuntario en Blackjack Natural (`isNatural21`), donde el multiplicador RPG base (x2.0) se aplicaba conjuntamente con el multiplicador Vorpal (x3.0 / x4.0), provocando picos desmedidos de 140+ HP de daño contra jerarcas. Ahora se aplica un multiplicador vorpal unificado y directo de **x3.0** (o **x4.0** con *Blackjack Heredado*), preservando la letalidad épica sin desvirtuar la progresión táctica.
+  * Sincronizados los cálculos predictivos del HUD (`calculateTacticalAttackRange` y `calculateExactTacticalDamage`) con el multiplicador real x3.0 para 2 cartas que suman 21, y x2.0 para 21 con 3 o más cartas.
+  * **Erradicación del Residuo de Apuesta Cero en el Log:** Eliminadas las etiquetas `Apuesta: 0 HP` y `+ Apuesta (0)` en el historial de combate cuando no existe una apuesta activa de vida (la cual solo entra en juego bajo el *Juramento del Gran Tahúr* o en el Coliseo Arena).
 * **Árbol de Talentos Elemental Expandido (28 Maestrías en 4 Ramas D&D):**
   * Cada rama elemental (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) se expande a **7 Tiers escalonados** (28 maestrías en total) con costes de 1 a 4 puntos y requisitos de inversión acumulada por rama (`reqBranch`), permitiendo una especialización RPG profunda para cada héroe:
     * **♠️ Filo (Picas):** Afinidad del Filo (daño perforante), Ojo Crítico (+4% crítico por rango), Mella de Armadura (-DEF rival por pica en mano), Estocada Vorpal (+15% daño físico con 20/21), Filo Vampírico (12% robo de vida al asestar crítico), Cuchillas Gemelas (multiplicador crítico x2.2 al ganar con 2+ picas) y Sentencia de Muerte (ejecución fulminante del rival con Blackjack si tiene 25% o menos HP).
