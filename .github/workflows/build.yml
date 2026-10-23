@@ -65,10 +65,20 @@ jobs:
         continue-on-error: true
         with:
           tag_name: build-${{ github.run_number }}
-          name: Black Jack Torre 21 (Build #${{ github.run_number }})
+          name: Black Jack Torre 21 — v1.7.4 (Build #${{ github.run_number }})
           body: |
-            ### ♠ Black Jack: La Torre del 21 (v1.0)
-            Compilación automática generada en GitHub Actions.
+            ### ♠ Black Jack: La Torre del 21 — v1.7.4 (BUILD 38)
+            Compilación continua generada automáticamente en GitHub Actions para Android.
             
-            * Toca `BlackjackTorre21.apk` para instalar o actualizar el juego en tu celular.
+            * Toca `BlackjackTorre21.apk` para instalar o actualizar el juego en tu dispositivo móvil.
+            * Novedades v1.7.4:
+              - Daño matemático táctico puro sin escalado por nivel (`levelMult`).
+              - Crítico dinámico RPG evaluado en cualquier mano ganadora.
+              - Parry Celestial al empatar con 21 en primera mano.
+              - Dado del Destino del Campeón (D100) tras abatir jefes de acto.
+              - Cartas coleccionables de monstruo estilo Ragnarok con corona dorada `👑`.
+              - Altar Sacrificial con opción de renuncia (-15% metamonedas).
+              - Corrección del límite de 2 compras en la tienda y bloqueo táctil.
+              - Mazos y sellos aislados por héroe en el Mercado de Metamonedas de la tienda.
+              - Códice de la Torre ampliado a 6 secciones y lore conciso de 2 líneas.
           files: BlackjackTorre21.apk

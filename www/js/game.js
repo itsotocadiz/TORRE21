@@ -1,6 +1,8 @@
 "use strict";
+  const GAME_VERSION = "v1.7.4";
+  window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.7.4)
      ============================================================ */
 
   const HERO_DATA = {
@@ -2717,7 +2719,29 @@
       }
     }
 
-    const card = drawPile.pop();
+    let card = drawPile.pop();
+
+    // Stat Suerte (Manipulación de Destino): ayuda a robar cartas favorables entre 15 y 20
+    const p = gameState && gameState.player;
+    if (p && p.playerHand && p.playerHand.length > 0 && (p.luck || 0) > 0 && !p.stand && drawPile.length > 0) {
+      const curScore = calculateHandScore(p.playerHand);
+      if (curScore >= 15 && curScore <= 20) {
+        const testHand = [...p.playerHand, card];
+        if (calculateHandScore(testHand) > 21 && Math.random() * 100 < p.luck) {
+          const safeIdx = drawPile.findIndex(c => calculateHandScore([...p.playerHand, c]) <= 21);
+          if (safeIdx !== -1) {
+            const safeCard = drawPile.splice(safeIdx, 1)[0];
+            drawPile.push(card);
+            card = safeCard;
+            try {
+              addLog("🍀 Manipulación de Destino (Suerte): El mazo te concede una carta favorable.", "heal");
+              spawnFloatingText("player-sprite", "🍀 SUERTE", "crit");
+            } catch (_) {}
+          }
+        }
+      }
+    }
+
     if (card && gameState.player && gameState.player.cardEnchantments) {
       const cid = card.specialId || card.id || card.slot || `${card.suit}_${card.rank}`;
       const suitRankId = (card.suit && card.rank) ? `${card.suit}_${card.rank}` : null;
@@ -3750,7 +3774,6 @@
     if (score > 21) return { dmg: 0, isCrit: false, critMult: 1.0, score };
 
     const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
-    const levelMult = 1 + ((player.level || 1) - 1) * 0.12;
 
     // Bono de Atributo RPG de Fuerza (STR)
     let bonus = 0;
@@ -3766,60 +3789,60 @@
     const scoreMargin = Math.max(0, score - enemyScore);
     const marginBonus = Math.floor(scoreMargin * 0.75);
 
-    const bet = player.currentBet || 0;
-    let baseStrike = (player.pwr || 2) + bet + marginBonus + bonus + (player.cardBonusDamage || 0);
-    let rawPlayerDmg = Math.round(baseStrike * levelMult);
-    let dmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
+    const bet = player.currentBet || player.betAmount || 0;
+    const handDmg = bet + marginBonus + (player.cardBonusDamage || 0);
+    const baseAtk = (player.pwr || 2) + bonus;
+
+    // FÓRMULA LIMPIA: (Daño por Mano + Ataque Base) - Defensa Rival
+    let rawSum = handDmg + baseAtk;
+    let baseDmg = Math.max(0, rawSum - effectiveEnemyDef);
 
     // Guardia Táctica D&D (<15): Golpe amortiguado
     if (score < 15) {
-      dmg = Math.max(1, Math.round(dmg * 0.50));
+      baseDmg = Math.max(1, Math.round(baseDmg * 0.50));
     }
 
-    // Crítico predictivo RPG: Rango 19-21 garantiza Golpe Crítico (x1.5, x2.0 o x3.0)
+    // Afinidad Elemental de Picas (♠): Solo si Tier 1 de talentos está activo
+    let spadeBonus = 0;
+    const hasSpadeAffinity = !!(player && player.affinitySpades);
+    if (hasSpadeAffinity) {
+      const spadeRank = (player._spadesRank || 1);
+      (playerHand || []).forEach(c => {
+        if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += (spadeRank + 1);
+      });
+    }
+    baseDmg += spadeBonus;
+
+    // Crítico dinámico basado en probabilidad del personaje (desvinculado de forzar 20/21)
     let isCrit = false;
     let critMult = 1.0;
     const isNatBJ = (score === 21 && (playerHand || []).length === 2);
     if (isNatBJ) {
       isCrit = true;
       critMult = 3.0;
-    } else if (score === 21) {
-      isCrit = true;
-      critMult = 2.0;
-    } else if (score >= 19) {
-      isCrit = true;
-      critMult = 1.5;
+    } else {
+      const critChance = player.critChance || 25;
+      if (Math.random() * 100 < critChance) {
+        isCrit = true;
+        critMult = (score === 21) ? 2.0 : 1.5;
+      }
     }
 
-    if (isCrit && dmg > 0) {
-      dmg = Math.round(dmg * critMult);
-    }
+    let mult = (isDouble || player.turnDoubleDamage ? 2.0 : 1.0) * (isCrit ? critMult : 1.0);
+    let dmg = Math.round(baseDmg * mult);
 
-    // Afinidad Elemental de Picas (♠): daño de corte perforante predictivo
-    let spadeBonus = 0;
-    (playerHand || []).forEach(c => {
-      if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += 2;
-    });
-    dmg += spadeBonus;
-
-    // Multiplicador de Doblar
-    if (isDouble || player.turnDoubleDamage) {
-      dmg = Math.round(dmg * 2);
-    }
-
-    return { dmg, isCrit, critMult, score };
+    return { dmg, isCrit, critMult, score, handDmg, baseAtk, mult, baseDmg };
   }
   window.calculateExactTacticalDamage = calculateExactTacticalDamage;
 
   function calculateTacticalAttackRange(player, enemy, playerHand = [], isDouble = false) {
-    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ ATAQUE: 0 HP", score: 0 };
+    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ [Mano: 0] + [Atq: 0] × 1x = 0 HP", score: 0 };
     const score = calculateHandScore(playerHand);
     if (score > 21) {
-      return { minDmg: 0, maxDmg: 0, text: "⚔️ ATAQUE: 0 HP (BUST)", isBust: true, score };
+      return { minDmg: 0, maxDmg: 0, text: "⚔️ [BUST] Ataque: 0 HP", isBust: true, score };
     }
 
     const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
-    const levelMult = 1 + ((player.level || 1) - 1) * 0.12;
 
     let bonus = 0;
     const strMod = (player.attributes && player.attributes.str > 10) ? Math.floor((player.attributes.str - 10) / 2) : 0;
@@ -3833,51 +3856,45 @@
     const scoreMargin = Math.max(0, score - enemyScore);
     const marginBonus = Math.floor(scoreMargin * 0.75);
 
-    const bet = player.currentBet || 0;
-    let baseStrike = (player.pwr || 2) + bet + marginBonus + bonus + (player.cardBonusDamage || 0);
-    let rawPlayerDmg = Math.round(baseStrike * levelMult);
-    let baseDmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
+    const bet = player.currentBet || player.betAmount || 0;
+    const handDmg = bet + marginBonus + (player.cardBonusDamage || 0);
+    const baseAtk = (player.pwr || 2) + bonus;
+
+    // FÓRMULA LIMPIA: (Daño por Mano + Ataque Base) - Defensa Rival
+    let rawSum = handDmg + baseAtk;
+    let baseDmg = Math.max(0, rawSum - effectiveEnemyDef);
 
     if (score < 15) {
       baseDmg = Math.max(1, Math.round(baseDmg * 0.50));
     }
 
-    // Afinidad Elemental Picas (♠)
+    // Afinidad Elemental Picas (♠) - Solo activa si Tier 1 desbloqueado
     let spadeBonus = 0;
-    (playerHand || []).forEach(c => {
-      if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += 2;
-    });
+    const hasSpadeAffinity = !!(player && player.affinitySpades);
+    if (hasSpadeAffinity) {
+      const spadeRank = (player._spadesRank || 1);
+      (playerHand || []).forEach(c => {
+        if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += (spadeRank + 1);
+      });
+    }
     baseDmg += spadeBonus;
 
-    const doubleMult = (isDouble || player.turnDoubleDamage) ? 2 : 1;
-
-    let minDmg = Math.round(baseDmg * doubleMult);
-    let maxDmg = minDmg;
-    let label = "";
-
+    const doubleMult = (isDouble || player.turnDoubleDamage) ? 2.0 : 1.0;
     const isNatBJ = (score === 21 && (playerHand || []).length === 2);
-    if (isNatBJ) {
-      minDmg = Math.round(baseDmg * 3.0 * doubleMult);
-      maxDmg = minDmg;
-      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
-    } else if (score === 21) {
-      minDmg = Math.round(baseDmg * 2.0 * doubleMult);
-      maxDmg = minDmg;
-      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
-    } else if (score >= 19) {
-      minDmg = Math.round(baseDmg * 1.5 * doubleMult);
-      maxDmg = minDmg;
-      label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
+
+    let minMult = doubleMult;
+    let maxMult = doubleMult * (isNatBJ ? 3.0 : (score === 21 ? 2.0 : 1.5));
+    let minDmg = Math.round(baseDmg * minMult);
+    let maxDmg = Math.round(baseDmg * maxMult);
+
+    let label = "";
+    if (minDmg === maxDmg) {
+      label = `⚔️ [Mano: ${handDmg}] + [Atq: ${baseAtk}] × ${minMult.toFixed(1)}x = ${minDmg} HP`;
     } else {
-      maxDmg = Math.round(baseDmg * 1.5 * doubleMult);
-      if (minDmg === maxDmg) {
-        label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg} HP` : `⚔️ ATAQUE: ${minDmg} HP`;
-      } else {
-        label = doubleMult > 1 ? `⚡ ATAQUE x2: ${minDmg}–${maxDmg} HP` : `⚔️ ATAQUE: ${minDmg}–${maxDmg} HP`;
-      }
+      label = `⚔️ [Mano: ${handDmg}] + [Atq: ${baseAtk}] × [${minMult}x–${maxMult}x] = ${minDmg}–${maxDmg} HP`;
     }
 
-    return { minDmg, maxDmg, text: label, score, baseDmg };
+    return { minDmg, maxDmg, text: label, score, baseDmg, handDmg, baseAtk, minMult, maxMult };
   }
   window.calculateTacticalAttackRange = calculateTacticalAttackRange;
 
@@ -4923,6 +4940,16 @@
     const tree = getHeroTalentTree(heroKey);
     const ranks = tree.ranks || {};
 
+    // Inicialización estricta: ninguna afinidad de palo activa por defecto sin el nodo Tier 1
+    p.affinitySpades = !!(ranks["spades_1"] && ranks["spades_1"] > 0);
+    p.affinityDiamonds = !!(ranks["diamonds_1"] && ranks["diamonds_1"] > 0);
+    p.affinityHearts = !!(ranks["hearts_1"] && ranks["hearts_1"] > 0);
+    p.affinityClubs = !!(ranks["clubs_1"] && ranks["clubs_1"] > 0);
+    p._spadesRank = ranks["spades_1"] || 0;
+    p._diamondsRank = ranks["diamonds_1"] || 0;
+    p._heartsRank = ranks["hearts_1"] || 0;
+    p._clubsRank = ranks["clubs_1"] || 0;
+
     // ♠️ Picas (Filo)
     if (ranks["spades_1"]) p.pwr = (p.pwr || 10) + Math.round((p.pwr || 10) * (ranks["spades_1"] * 0.03));
     if (ranks["spades_2"]) p._treeCritChanceBonus = (ranks["spades_2"] || 0) * 4;
@@ -4968,9 +4995,83 @@
     if (ranks["clubs_4"]) p._clubsFloorRerolls = (ranks["clubs_4"] || 0) * 1;
     if (ranks["clubs_5"]) p._clubsFreePotionChance = 0.25;
     if (ranks["clubs_6"]) p._clubsDoublePayout = true;
-    if (ranks["clubs_7"]) p._clubsSovereignJack = true;
+    recalculatePlayerStats(p);
   }
   window.applyHeroTalentsToPlayer = applyHeroTalentsToPlayer;
+
+  function recalculatePlayerStats(p) {
+    if (!p) p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+    if (!p) return;
+
+    const heroKey = p.classKey || p.class || "knight";
+
+    // Bases según arquetipo de héroe
+    let baseDodge = 5;
+    let baseLuck = 5;
+    let baseLifesteal = 0;
+    let baseThorns = 0;
+    let baseCrit = 15;
+
+    if (heroKey === "rogue") {
+      baseDodge = 15;
+      baseLuck = 12;
+      baseCrit = 25;
+    } else if (heroKey === "monk") {
+      baseDodge = 10;
+      baseLifesteal = 10;
+      baseThorns = 5;
+    } else if (heroKey === "knight") {
+      baseThorns = 15;
+      baseDodge = 5;
+    } else if (heroKey === "necromancer") {
+      baseLifesteal = 12;
+      baseLuck = 10;
+    }
+
+    // Atributos RPG
+    if (p.attributes) {
+      if (p.attributes.dex > 10) {
+        const extraDex = p.attributes.dex - 10;
+        baseDodge += Math.floor(extraDex * 0.8);
+        baseCrit += Math.floor(extraDex * 1.5);
+      }
+      if (p.attributes.int > 10) {
+        baseLuck += Math.floor((p.attributes.int - 10) * 0.8);
+      }
+      if (p.attributes.vit > 10) {
+        baseThorns += Math.floor((p.attributes.vit - 10) * 0.5);
+      }
+    }
+
+    // Talentos del héroe
+    if (p._treeCritChanceBonus) baseCrit += p._treeCritChanceBonus;
+    if (p._spadesCritLifesteal) baseLifesteal += Math.round(p._spadesCritLifesteal * 100);
+    if (p._diamondsThornReflect) baseThorns += Math.round(p._diamondsThornReflect * 100);
+    if (p._clubsClutchLuck) baseLuck += Math.round(p._clubsClutchLuck * 100);
+
+    // Reliquias estándar y Reliquias Demoníacas de Jefes
+    const allRelics = [
+      ...(p.artifacts || []),
+      ...(p.relics || []),
+      ...(p.demonRelics || [])
+    ];
+
+    allRelics.forEach(r => {
+      if (!r) return;
+      const rid = r.id || "";
+      if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") baseDodge += 10;
+      if (rid.includes("luck") || rid === "lucky_charm") baseLuck += 10;
+      if (rid.includes("vampire") || rid === "bloody_chalice") baseLifesteal += 10;
+      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 12;
+    });
+
+    p.dodgeChance = Math.min(45, Math.max(0, baseDodge));
+    p.critChance = Math.min(90, Math.max(5, baseCrit));
+    p.luck = Math.min(50, Math.max(0, baseLuck));
+    p.lifesteal = Math.min(50, Math.max(0, baseLifesteal));
+    p.thorns = Math.min(50, Math.max(0, baseThorns));
+  }
+  window.recalculatePlayerStats = recalculatePlayerStats;
 
   /* ============================================================
      TUTORIALES INTERACTIVOS PASO A PASO (HISTORIA & ARENA PVP)
@@ -5137,9 +5238,13 @@
     const relic = pool[relicIndex];
     const p = gameState.player;
     if (relic && p) {
+      p.demonRelics = p.demonRelics || [];
+      p.demonRelics.push({ id: relic.id, name: relic.name, icon: relic.icon, desc: relic.desc });
       p.artifacts = p.artifacts || [];
       p.artifacts.push({ id: relic.id, name: relic.name, icon: relic.icon });
       if (typeof relic.apply === "function") relic.apply(p);
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+      updateHud();
       addLog(`👹 Reliquia Demoníaca reclamada: ${relic.name}.`, "critical");
       spawnFloatingText("player-sprite", relic.icon + " RECLAMADO", "crit");
       try { playVictoryFanfareSound(); } catch (_) {}
@@ -5157,16 +5262,22 @@
   }
   window.getTotalTowerWins = getTotalTowerWins;
 
+  const ENDLESS_UNLOCK_ASCENSION = 2;
+  window.ENDLESS_UNLOCK_ASCENSION = ENDLESS_UNLOCK_ASCENSION;
+
   function isDifficultyUnlocked(diffKey) {
     if (diffKey === "normal") return true;
+    const curAscension = parseInt(localStorage.getItem("blackjack_ascension_level") || "1", 10);
     const wins = getTotalTowerWins();
     const hasWonAny = (localStorage.getItem("blackjack_has_won_run") === "true");
-    const campaignNormalWon = (localStorage.getItem("bj_campaign_completed_normal") === "true");
-    const campaignNightmareWon = (localStorage.getItem("bj_campaign_completed_nightmare") === "true");
-    if (diffKey === "hard") return wins >= 1 || hasWonAny || campaignNormalWon;
-    if (diffKey === "mythic") return wins >= 2 || campaignNormalWon;
-    if (diffKey === "nightmare") return wins >= 3 || campaignNormalWon;
-    if (diffKey === "hell") return wins >= 4 || (wins >= 3 && hasWonAny) || campaignNightmareWon;
+
+    if (diffKey === "hard") return curAscension >= 2 || wins >= 1 || hasWonAny;
+    if (diffKey === "mythic") return curAscension >= 3 || wins >= 2;
+    if (diffKey === "nightmare") return curAscension >= 4 || wins >= 3;
+    if (diffKey === "hell") {
+      // Modo Endless (Infinito): se desbloquea al superar Ascensión 2 (Nivel >= 3) o con 4+ victorias de torre
+      return curAscension > ENDLESS_UNLOCK_ASCENSION || curAscension >= 3 || wins >= 4;
+    }
     return false;
   }
   window.isDifficultyUnlocked = isDifficultyUnlocked;
@@ -6669,9 +6780,9 @@
     }
   }
 
-  let currentCodexTab = "relics";
+  let currentCodexTab = "floors";
   function openCodex() {
-    switchCodexTab("relics");
+    switchCodexTab("floors");
     const m = document.getElementById("screen-codex");
     if (m) m.classList.remove("hidden");
     triggerHaptic("button_click");
@@ -6685,10 +6796,45 @@
   }
   window.closeCodex = closeCodex;
 
-  function switchCodexTab(tab = "relics") {
+  /* ============================================================
+     LORE Y CRÓNICAS DE LA TORRE (21 PISOS & MEMORIAS OCULTAS)
+     ============================================================ */
+  const TOWER_FLOOR_LORE = [
+    { floor: 1, title: "Los Umbrales Olvidados", icon: "🚪", desc: "El vestíbulo donde los condenados despiertan sin memoria, empuñando únicamente la baraja de su destino." },
+    { floor: 2, title: "Criptas de la Podredumbre", icon: "💀", desc: "Galerías subterráneas anegadas por cenizas arcanas donde los murciélagos y espectros acechan." },
+    { floor: 3, title: "La Primera Cúspide: Baluarte de Dante", icon: "👹", desc: "El trono del Guardián del Umbral. Al derrotarlo, se abren los portales del Acto II." },
+    { floor: 4, title: "Los Cuarteles de Hierro", icon: "⚔️", desc: "Armerías de acero oxidado custodiadas por falanges veteranas y ballesteros desalmados." },
+    { floor: 5, title: "Las Catacumbas del Desafío", icon: "🛡️", desc: "Pasajes laberínticos donde cada paso resuena con los juramentos rotos de antiguos caballeros." },
+    { floor: 6, title: "Salas de Tortura del Croupier", icon: "⛓️", desc: "Potros de castigo donde las almas que bustearon en el 21 pagan su deuda eterna." },
+    { floor: 7, title: "El Altar de las Valquirias", icon: "✨", desc: "Santuario de mármol ensangrentado custodiado por centinelas aladas de devoción ciega." },
+    { floor: 8, title: "Joyería Secreta de la Torre", icon: "💍", desc: "Bóveda oculta repleta de gemas arcanas y talismanes forjados en el fuego primordial." },
+    { floor: 9, title: "Los Salones Dorados de la Nobleza", icon: "👑", desc: "Banquete perpetuo de copas envenenadas y cortesanos corrompidos por el oro negro." },
+    { floor: 10, title: "La Galería de los Espejos Deformes", icon: "🎭", desc: "Cristales que reflejan las peores derrotas del jugador, distorsionando la realidad del 21." },
+    { floor: 11, title: "Observatorio del Archimago", icon: "🔮", desc: "Cúpula astronómica donde el cosmos se doblega ante los conjuros de los naipes." },
+    { floor: 12, title: "El Barranco Celestial", icon: "🌪️", desc: "Vientos gélidos y puentes colgantes sobre abismos insondables de pura nada." },
+    { floor: 13, title: "El Balcón del Vértigo", icon: "⚡", desc: "Tormentas eléctricas azotan la aguja de piedra mientras los gárgolas despiertan." },
+    { floor: 14, title: "La Biblioteca Prohibida", icon: "📜", desc: "Tomos encuadernados en piel de dragón que narran la creación del Mazo Primigenio." },
+    { floor: 15, title: "El Foso de Malfas", icon: "☠️", desc: "Nidada de sombras y necromancia donde los muertos vivientes sirven al Mandinga." },
+    { floor: 16, title: "El Pasaje de los Pecadores", icon: "🕯️", desc: "Corredor iluminado por velas de cera negra que se consumen al ritmo de tus latidos." },
+    { floor: 17, title: "Las Agujas de Obsidiana", icon: "💎", desc: "Estructuras afiladas como navajas que conducen hacia los cielos más oscuros." },
+    { floor: 18, title: "El Santuario del Sacrificio", icon: "🍷", desc: "Mesa milenaria donde la Torre cobra su tributo de sangre a cambio de franquear el paso." },
+    { floor: 19, title: "La Antesala del Trono", icon: "🏰", desc: "Los últimos heraldos del Mandinga se interponen entre el Campeón y la gloria final." },
+    { floor: 20, title: "La Espiral del Fin", icon: "🌀", desc: "El tiempo se detiene; solo quedan el jugador, el tapete y la certeza del 21." },
+    { floor: 21, title: "La Cúspide: El Dragón Ancestral y BLACK", icon: "🐉", desc: "La cima absoluta de la Torre del 21 donde el Mandinga y el Dragón aguardan al Heraldo Supremo." }
+  ];
+
+  const TOWER_MEMORIES_LORE = [
+    { title: "El Pacto del Mandinga", icon: "📜", text: "Dicen que el Mandinga no construyó la Torre: la Torre lo invocó a él. Cansado de ganar almas en cruces de caminos solitarios, creó un santuario donde cada pecador apuesta voluntariamente su propia vida en cada mano de blackjack." },
+    { title: "El Secreto del Jack de Picas", icon: "♠️", text: "Rogue no sube la Torre por la gloria ni por el oro. Su único objetivo es recuperar el naipe que le arrebataron en su juventud: el As de Picas Primigenio, capaz de cortar el hilo del destino de cualquier tirano." },
+    { title: "El Voto del Jack de Corazones", icon: "♥", text: "Monk renunció a la violencia armada, descubriendo que la verdadera fuerza reside en canalizar la energía curativa de los Corazones. Cada mano ganada restaura el espíritu de los caídos." },
+    { title: "El Baluarte del Jack de Diamantes", icon: "♦", text: "Knight fue el capitán de la guardia que no pudo impedir la caída del Reino del 21. Ahora, cubierto de placas de diamantes impenetrables, busca expiar su culpa venciendo al Dragón Ancestral." },
+    { title: "La Maldición del Jack de Tréboles", icon: "♣", text: "Necro domina las artes prohibidas del Abismo. Para él, los naipes no son cartón, sino relicarios donde yacen cautivas las almas de antiguos tahúres sedientos de venganza." }
+  ];
+
+  function switchCodexTab(tab = "floors") {
     currentCodexTab = tab;
-    const tabs = ["relics", "amulets", "enemies"];
-    tabs.forEach(t => {
+    const allTabIds = ["floors", "memories", "collection", "relics", "amulets", "enemies"];
+    allTabIds.forEach(t => {
       const btn = document.getElementById("codex-tab-" + t);
       if (btn) {
         if (t === tab) btn.classList.add("active");
@@ -6701,7 +6847,94 @@
     if (!grid) return;
 
     let itemsHtml = "";
-    if (tab === "relics") {
+    const maxFloorReached = Math.max(
+      parseInt(localStorage.getItem("bj_max_floor_reached") || "1", 10),
+      (typeof gameState !== "undefined" && gameState && gameState.floor) ? gameState.floor : 1
+    );
+
+    if (tab === "floors") {
+      itemsHtml = TOWER_FLOOR_LORE.map(f => {
+        const unlocked = maxFloorReached >= f.floor;
+        if (unlocked) {
+          return `
+            <div class="codex-card buff" style="text-align:left; padding:12px; border-left:4px solid #ffd166;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <span style="font-size:1.4rem;">${f.icon}</span>
+                <div>
+                  <strong style="color:#ffd166; font-size:11px;">PISO ${f.floor} — ${f.title.toUpperCase()}</strong>
+                  <div style="font-size:9px; color:#2a9d8f;">CONQUISTADO</div>
+                </div>
+              </div>
+              <div style="font-size:10px; color:#cbd5e1; line-height:1.4; margin-top:4px;">${f.desc}</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="codex-card silhouette" style="text-align:left; padding:12px; opacity:0.6;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.4rem;">🔒</span>
+                <div>
+                  <strong style="color:#94a3b8; font-size:11px;">PISO ${f.floor} — OCULTO</strong>
+                  <div style="font-size:9px; color:#64748b;">Alcanza el Piso ${f.floor} para revelar su historia</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join("");
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${Math.min(21, maxFloorReached)} / 21 PISOS REVELADOS`;
+
+    } else if (tab === "memories") {
+      itemsHtml = TOWER_MEMORIES_LORE.map(m => `
+        <div class="codex-card buff" style="text-align:left; padding:14px; border-left:4px solid #66fcf1; background:rgba(15,23,42,0.9);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span style="font-size:1.4rem;">${m.icon}</span>
+            <strong style="color:#66fcf1; font-size:11.5px;">${m.title}</strong>
+          </div>
+          <div style="font-size:10.5px; color:#e2e8f0; line-height:1.5;">${m.text}</div>
+        </div>
+      `).join("");
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `5 / 5 MEMORIAS ACTIVAS`;
+
+    } else if (tab === "collection") {
+      const ragnarokList = (typeof getRagnarokCards === "function") ? getRagnarokCards() : [];
+      const extraCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards() : [];
+
+      let ragnarokCardsHtml = "";
+      if (ragnarokList.length > 0) {
+        ragnarokCardsHtml = ragnarokList.map(c => `
+          <div class="codex-card buff" style="border:2px solid #ffd166; background:radial-gradient(circle at 10% 10%, rgba(255,209,102,0.18), rgba(15,23,42,0.95)); padding:10px; text-align:center;">
+            <div style="font-size:1.1rem; color:#ffd166; margin-bottom:2px;">👑</div>
+            <div style="font-size:2rem; margin:4px 0;">${c.sprite || '👹'}</div>
+            <strong style="color:#ffd166; font-size:10px; display:block;">${c.name}</strong>
+            <span style="font-size:9px; color:#2a9d8f;">Colección Ragnarok</span>
+          </div>
+        `).join("");
+      } else {
+        ragnarokCardsHtml = `
+          <div style="grid-column:1/-1; padding:16px; text-align:center; color:#94a3b8; font-size:10.5px; background:rgba(0,0,0,0.3); border-radius:8px;">
+            Aún no has obtenido Cartas Cosméticas de rivales estilo Ragnarok.<br>
+            ¡Derrota rivales comunes (1.5%), élites (3%) o jefes (5%) para obtener sus cartas doradas con Corona!
+          </div>
+        `;
+      }
+
+      itemsHtml = `
+        <div style="grid-column:1/-1; margin-bottom:8px;">
+          <h3 style="color:#ffd166; font-family:var(--font-pixel); font-size:11px; margin:0 0 6px 0;">👑 CARTAS COSMÉTICAS RAGNAROK (${ragnarokList.length} OBTENIDAS)</h3>
+          <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Cartas coleccionables exclusivas con retratos de monstruos y corona distintiva.</div>
+        </div>
+        ${ragnarokCardsHtml}
+      `;
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${ragnarokList.length} CARTAS RAGNAROK`;
+
+    } else if (tab === "relics") {
       itemsHtml = ALL_RELICS.map(r => {
         const discovered = !!(codex.relics && codex.relics[r.id]);
         if (discovered) {
@@ -6728,6 +6961,12 @@
           `;
         }
       }).join("");
+
+      const totalItems = ALL_RELICS.length;
+      const discoveredItems = Object.keys(codex.relics || {}).length;
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} RELIQUIAS`;
+
     } else if (tab === "amulets") {
       itemsHtml = Object.keys(AMULET_INFO).map(key => {
         const info = AMULET_INFO[key];
@@ -6755,6 +6994,12 @@
           `;
         }
       }).join("");
+
+      const totalItems = Object.keys(AMULET_INFO).length;
+      const discoveredItems = Object.keys(codex.amulets || {}).length;
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} ACCESORIOS`;
+
     } else if (tab === "enemies") {
       itemsHtml = ENEMIES.map(e => {
         const discovered = !!(codex.enemies && codex.enemies[e.name]);
@@ -6783,17 +7028,14 @@
           `;
         }
       }).join("");
-    }
-    grid.innerHTML = itemsHtml;
 
-    // Calcular progreso total
-    const totalItems = ALL_RELICS.length + Object.keys(AMULET_INFO).length + ENEMIES.length;
-    const discoveredItems = Object.keys(codex.relics || {}).length + Object.keys(codex.amulets || {}).length + Object.keys(codex.enemies || {}).length;
-    const badgeEl = document.getElementById("codex-count-badge");
-    if (badgeEl) {
-      const pct = Math.round((discoveredItems / totalItems) * 100);
-      badgeEl.innerText = `${discoveredItems} / ${totalItems} (${pct}%)`;
+      const totalItems = ENEMIES.length;
+      const discoveredItems = Object.keys(codex.enemies || {}).length;
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} BESTIARIO`;
     }
+
+    grid.innerHTML = itemsHtml;
   }
   window.switchCodexTab = switchCodexTab;
 
@@ -7318,7 +7560,7 @@
       if (p.bust) el.classList.add("bust");
       if (p.blackjack) el.classList.add("blackjack");
       const isLoot = !!card.isWonCard || !!card.fusion || !!card.modifier || !!card.operator || (Array.isArray(card.dynamicValues) && card.dynamicValues.length > 0);
-      const lootBadge = isLoot ? '<span class="card-loot-badge" title="Naipe Arcano de Jefe">👑</span>' : '';
+      const lootBadge = isLoot ? '<span class="card-loot-badge arcane-sigil" title="Naipe Arcano de Jefe">✦</span>' : '';
       if (isLoot) el.classList.add("won-loot-card", "card-transmuted-arcane");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
       else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId || isLoot) el.classList.add("card-holographic");
@@ -7958,6 +8200,9 @@
       e.enemyScore = calculateHandScore(e.enemyHand);
       e.bust = e.enemyScore > BUST_LIMIT;
       e.blackjack = (e.enemyScore === 21 && e.enemyHand.length === 2);
+      if (e.enemyScore === 21) {
+        setButtonsDisabled(true);
+      }
       renderCards();
       await sleep(550); // Pacing pausado y legible al robar cartas
       attempts++;
@@ -7979,6 +8224,174 @@
   /* ============================================================
      PLAYER ATTACK — mediante apuesta de vida (7 manos)
      ============================================================ */
+  /* ============================================================
+     CARTAS COSMÉTICAS DE RIVALES (ESTILO RAGNAROK) & DADO DEL CAMPEÓN
+     ============================================================ */
+  const RAGNAROK_CARDS_KEY = "torre21_ragnarok_cards";
+
+  function getRagnarokCards() {
+    try {
+      return JSON.parse(localStorage.getItem(RAGNAROK_CARDS_KEY) || "[]") || [];
+    } catch (_) { return []; }
+  }
+  window.getRagnarokCards = getRagnarokCards;
+
+  function awardRagnarokMonsterCard(enemy) {
+    if (!enemy) return;
+    const cards = getRagnarokCards();
+    const enemyId = enemy.id || (enemy.name ? enemy.name.toLowerCase().replace(/\s+/g, "_") : "rival");
+    const existing = cards.find(c => c.enemyId === enemyId);
+    if (!existing) {
+      const newCard = {
+        enemyId: enemyId,
+        name: `Carta de ${enemy.name}`,
+        enemyName: enemy.name,
+        sprite: enemy.sprite || "👹",
+        img: enemy.img || null,
+        crown: "👑",
+        type: "cosmetic_monster",
+        acquiredAt: Date.now()
+      };
+      cards.push(newCard);
+      try {
+        localStorage.setItem(RAGNAROK_CARDS_KEY, JSON.stringify(cards));
+      } catch (_) {}
+      spawnFloatingText("player-sprite", "👑 CARTA RIVAL RAGNAROK", "crit");
+      addLog(`👑 ¡DROP RAGNAROK EXTRAORDINARIO! Obtuviste la Carta Cosmética de ${enemy.name} con Corona.`, "critical");
+      try { playVictoryFanfareSound(); } catch (_) {}
+    }
+  }
+  window.awardRagnarokMonsterCard = awardRagnarokMonsterCard;
+
+  function showChampionDiceModal(options = {}) {
+    const bossName = options.bossName || "Jefe de la Torre";
+    const onResult = options.onResult || (() => {});
+    const m = document.getElementById("screen-event");
+    const titleEl = document.getElementById("event-title");
+    const descEl = document.getElementById("event-desc");
+    const optEl = document.getElementById("event-options");
+    if (!m || !optEl) { onResult(false); return; }
+
+    m.classList.remove("hidden");
+    if (titleEl) {
+      titleEl.innerText = "🎲 DADO DEL DESTINO DEL CAMPEÓN";
+      titleEl.style.color = "#ffd166";
+    }
+    if (descEl) {
+      descEl.innerText = `¡Has abatido a ${bossName}! Como Campeón, lanza el Dado del Destino para definir si obtienes la legendaria Carta Especial del Jefe (50% de probabilidad):`;
+    }
+
+    optEl.innerHTML = `
+      <div class="champion-dice-container" style="text-align:center; padding:15px; max-width:400px; margin:0 auto; background:rgba(15,23,42,0.95); border:2px solid #ffd166; border-radius:12px; box-shadow:0 0 20px rgba(255,209,102,0.3);">
+        <div id="champion-dice-box" style="width:90px; height:90px; line-height:90px; margin:10px auto; background:linear-gradient(135deg, #1f2937, #111827); border:2px solid #ffd166; border-radius:16px; font-size:2.4rem; font-weight:bold; color:#ffd166; box-shadow:0 0 15px rgba(255,209,102,0.4); transition:all 0.3s;">
+          🎲
+        </div>
+        <div id="champion-dice-status" style="font-size:0.95rem; color:#f1faee; margin:10px 0; font-family:var(--font-pixel, sans-serif);">
+          Obtén 50 o más en el Dado D100 para reclamar la Carta de Jefe
+        </div>
+        <button id="btn-roll-champion-dice" onclick="rollChampionDestinyDice()" style="background:linear-gradient(135deg,#ffd166,#e76f51); color:#111827; border:none; padding:12px 24px; border-radius:8px; font-size:1.05rem; font-weight:bold; cursor:pointer; font-family:var(--font-pixel, sans-serif); box-shadow:0 4px 12px rgba(255,209,102,0.4); width:100%;">
+          🎲 LANZAR DADO DEL DESTINO
+        </button>
+      </div>
+    `;
+
+    window._championDiceCallback = onResult;
+  }
+  window.showChampionDiceModal = showChampionDiceModal;
+
+  function rollChampionDestinyDice() {
+    const btn = document.getElementById("btn-roll-champion-dice");
+    const diceBox = document.getElementById("champion-dice-box");
+    if (btn) btn.disabled = true;
+
+    try { playTone(520, 0.08, "sine", 0.3); } catch (_) {}
+
+    let ticks = 0;
+    const interval = setInterval(() => {
+      ticks++;
+      const tempRoll = Math.floor(Math.random() * 100) + 1;
+      if (diceBox) {
+        diceBox.innerText = tempRoll;
+        diceBox.style.transform = `rotate(${ticks * 30}deg) scale(1.1)`;
+      }
+      if (ticks >= 12) {
+        clearInterval(interval);
+        if (diceBox) diceBox.style.transform = "none";
+        finishChampionDiceRoll();
+      }
+    }, 70);
+  }
+  window.rollChampionDestinyDice = rollChampionDestinyDice;
+
+  function finishChampionDiceRoll() {
+    const p = gameState.player;
+    const luckBonus = Math.round((p && p.luck ? p.luck : 0) * 0.2);
+    const rawRoll = Math.floor(Math.random() * 100) + 1;
+    const finalRoll = Math.min(100, rawRoll + luckBonus);
+
+    const diceBox = document.getElementById("champion-dice-box");
+    const statusEl = document.getElementById("champion-dice-status");
+    const btn = document.getElementById("btn-roll-champion-dice");
+
+    if (diceBox) diceBox.innerText = finalRoll;
+
+    const won = finalRoll >= 50;
+    if (won) {
+      try { playVictoryFanfareSound(); } catch (_) {}
+      if (diceBox) {
+        diceBox.style.borderColor = "#2a9d8f";
+        diceBox.style.color = "#2a9d8f";
+        diceBox.style.boxShadow = "0 0 25px rgba(42,157,143,0.7)";
+      }
+      if (statusEl) {
+        statusEl.innerHTML = `<span style="color:#2a9d8f; font-weight:bold; font-size:1.1rem;">🎉 ¡TIRADA VICTORIOSA! (${finalRoll} ≥ 50)</span><br>¡Has obtenido la Carta Especial del Jefe!`;
+      }
+      if (btn) {
+        btn.innerText = "✨ RECLAMAR CARTA DE JEFE";
+        btn.style.background = "#2a9d8f";
+        btn.style.color = "#ffffff";
+        btn.disabled = false;
+        btn.onclick = () => {
+          const m = document.getElementById("screen-event");
+          if (m) m.classList.add("hidden");
+          const cb = window._championDiceCallback;
+          window._championDiceCallback = null;
+          if (typeof cb === "function") cb(true);
+        };
+      }
+    } else {
+      try { playBustSound(); } catch (_) {}
+      // Consuelo de campeón
+      gameState.gold = (gameState.gold || 0) + 25;
+      if (typeof addCryptCoins === "function") addCryptCoins(3);
+      else {
+        const curC = parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+        localStorage.setItem("bj_crypt_coins", String(curC + 3));
+      }
+      if (diceBox) {
+        diceBox.style.borderColor = "#e63946";
+        diceBox.style.color = "#ff758f";
+      }
+      if (statusEl) {
+        statusEl.innerHTML = `<span style="color:#ff758f; font-weight:bold;">TIRADA: ${finalRoll} (&lt; 50)</span><br>¡Consuelo del Campeón otorgado: +25 Oro y +3 Criptas!`;
+      }
+      if (btn) {
+        btn.innerText = "CONTINUAR ASCENSIÓN";
+        btn.style.background = "#45a29e";
+        btn.style.color = "#ffffff";
+        btn.disabled = false;
+        btn.onclick = () => {
+          const m = document.getElementById("screen-event");
+          if (m) m.classList.add("hidden");
+          const cb = window._championDiceCallback;
+          window._championDiceCallback = null;
+          if (typeof cb === "function") cb(false);
+        };
+      }
+    }
+  }
+  window.finishChampionDiceRoll = finishChampionDiceRoll;
+
   /* ============================================================
      ENEMIGO DERROTADO
      ============================================================ */
@@ -8021,6 +8434,31 @@
     const boostNote = mult > 1 ? ` (x${mult.toFixed(2)} por Artefactos)` : "";
     addLog(`🎓 ¡Eliminaste a ${e.name}! Ganaste +${finalKillExp} EXP${boostNote}.`, "critical");
     await gainExp(finalKillExp);
+
+    // Drop de Metamonedas en combate (20% de probabilidad escalada con Suerte)
+    const metacoinChance = 0.20 + ((p.luck || 0) * 0.005);
+    if (Math.random() < metacoinChance) {
+      const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
+      const coinsDropped = Math.min(5, Math.floor(Math.random() * 2) + Math.min(3, curAct));
+      if (typeof addCryptCoins === "function") {
+        addCryptCoins(coinsDropped);
+      } else {
+        const curC = parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+        localStorage.setItem("bj_crypt_coins", String(curC + coinsDropped));
+      }
+      spawnFloatingText("enemy-sprite", `+${coinsDropped} 🗝️ METAMONEDAS`, "gold");
+      addLog(`🗝️ ¡Drop Arcano! ${e.name} dejó caer ${coinsDropped} Monedas de Cripta.`, "gold");
+    }
+
+    // Drop de Cartas Cosméticas de Rivales Estilo Ragnarok (1.5% normal, 3% élite, 5% jefe)
+    const isActBossCheck = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : (gameState.floor === 3 || gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19);
+    const isBossRival = isActBossCheck || (e.trait === "dragon" || gameState.floor % 4 === 0);
+    const isEliteRival = !!e.isElite || (e.pwr >= 4);
+    const baseRagnarokChance = isBossRival ? 0.05 : (isEliteRival ? 0.03 : 0.015);
+    const effectiveRagnarokChance = baseRagnarokChance * (1 + ((p.luck || 0) / 100));
+    if (Math.random() < effectiveRagnarokChance) {
+      awardRagnarokMonsterCard(e);
+    }
 
     // Comprobar si el piso cuenta con oleadas múltiples pendientes
     if (gameState.floorEnemies && gameState.floorEnemies.length > 1 && gameState.currentEnemyIndex < gameState.floorEnemies.length - 1) {
@@ -8070,7 +8508,17 @@
         unlockCampaignWaypoint(diffKey, 2);
         addLog("🗺️ ¡ACTO I SUPERADO! Waypoint al Acto II desbloqueado.", "heal");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO I VENCIDO", "crit");
-        showDemonicRelicDraftModal(1, () => finishFloor(true));
+        showChampionDiceModal({
+          bossName: e.name,
+          onResult: (won) => {
+            const proceed = () => showDemonicRelicDraftModal(1, () => finishFloor(true));
+            if (won) {
+              showVictoryCardsModal(proceed, 1, true);
+            } else {
+              proceed();
+            }
+          }
+        });
         return;
       } else if (gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19) {
         const nextAct = gameState.floor === 7 ? 3 : (gameState.floor === 11 ? 4 : (gameState.floor === 15 ? 5 : 6));
@@ -8083,15 +8531,19 @@
           showDemonicRelicDraftModal(actNum, () => finishFloor(true));
         };
 
-        // Recompensa del 50% de Transmutación Arcana al abatir al Jefe de Acto
-        const wonBossDrop = Math.random() < 0.50;
-        if (wonBossDrop) {
-          addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
-          spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
-          showVictoryCardsModal(proceedWithRelics, 1, true);
-        } else {
-          proceedWithRelics();
-        }
+        // Recompensa del 50% resuelta mediante el Dado Interactivo del Campeón
+        showChampionDiceModal({
+          bossName: e.name,
+          onResult: (won) => {
+            if (won) {
+              addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
+              spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
+              showVictoryCardsModal(proceedWithRelics, 1, true);
+            } else {
+              proceedWithRelics();
+            }
+          }
+        });
         return;
       } else if (gameState.floor >= 21) {
         localStorage.setItem("bj_campaign_completed_" + diffKey, "true");
@@ -8110,13 +8562,19 @@
 
     // Botín 50% de jefe fuera de modo campaña en pisos clave (7, 11, 15, 19, 20)
     if (typeof isActBossFloor === "function" && isActBossFloor(gameState.floor) && gameState.floor >= 7) {
-      const nonCampDrop = Math.random() < 0.50;
-      if (nonCampDrop) {
-        addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
-        spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
-        showVictoryCardsModal(() => finishFloor(true), 1, true);
-        return;
-      }
+      showChampionDiceModal({
+        bossName: e.name,
+        onResult: (won) => {
+          if (won) {
+            addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
+            spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
+            showVictoryCardsModal(() => finishFloor(true), 1, true);
+          } else {
+            finishFloor(true);
+          }
+        }
+      });
+      return;
     }
 
     // Cada 5 rivales eliminados → Rueda del Destino (buff/nerf permanente)
@@ -11866,10 +12324,112 @@
       </div>
     `;
 
-    let activeTabContent = consumablesHtml;
+    let currentShopHero = window._shopSelectedHero || (p.classKey || p.class || "knight");
+    window._shopSelectedHero = currentShopHero;
+
+    const heroCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards(currentShopHero) : [];
+    const heroSeals = (typeof getPersistentDeckSeals === "function") ? getPersistentDeckSeals(currentShopHero) : {};
+    const heroSealsList = Object.keys(heroSeals);
+    const playerCryptCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+
+    const costNewCard = 25;
+    const costRerollCard = 10;
+    const costNewSeal = 20;
+    const costRerollSeal = 8;
+
+    const heroMarketHtml = `
+      <div class="shop-hero-market-container" style="text-align:left; width:100%;">
+        <!-- SELECTOR DE PERSONAJE -->
+        <div style="background:rgba(0,0,0,0.5); border:1px solid #ffd166; border-radius:10px; padding:10px; margin-bottom:12px;">
+          <div style="font-family:var(--font-pixel); font-size:10px; color:#ffd166; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <span>👤 PERSONAJE RECEPTOR:</span>
+            <span style="color:#66fcf1; font-weight:bold;">🗝️ ${playerCryptCoins} METAMONEDAS</span>
+          </div>
+          <div class="hero-selector-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
+            ${[
+              { id: "knight", name: "Caballero", icon: "🛡️" },
+              { id: "rogue", name: "Pícaro", icon: "🗡️" },
+              { id: "monk", name: "Monje", icon: "💍" },
+              { id: "necro", name: "Nigromante", icon: "☠️" }
+            ].map(h => `
+              <button onclick="setShopSelectedHero('${h.id}')" style="flex:1; min-width:80px; padding:8px 6px; border-radius:6px; font-family:var(--font-pixel); font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1.5px solid ${currentShopHero === h.id ? '#ffd166' : '#334155'}; background:${currentShopHero === h.id ? 'rgba(255,209,102,0.25)' : 'rgba(15,23,42,0.6)'}; color:${currentShopHero === h.id ? '#ffd166' : '#cbd5e1'};">
+                ${h.icon} ${h.name}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <!-- SECCIÓN 1: CARTAS TRANSMUTADAS -->
+        <div style="background:rgba(15,23,42,0.9); border:1px solid #66fcf1; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div>
+              <strong style="color:#66fcf1; font-size:11px;">🃏 CARTAS TRANSMUTADAS (${heroCards.length}/${MAX_PERSISTENT_EXTRA_CARDS})</strong>
+              <div style="font-size:9.5px; color:#94a3b8;">Cartas arcanas exclusivas de este héroe</div>
+            </div>
+            <button class="shop-action-btn buy" onclick="buyHeroTransmutedCard('${currentShopHero}')" style="padding:8px 12px; min-height:44px; font-size:10px; border-color:#66fcf1; color:#66fcf1; background:rgba(102,252,241,0.15);" ${playerCryptCoins < costNewCard ? 'disabled' : ''}>
+              + COMPRAR (${costNewCard} 🗝️)
+            </button>
+          </div>
+          ${heroCards.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${heroCards.map((c, idx) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#0b0f19; border:1px solid #334155; border-radius:6px; padding:6px 10px;">
+                  <div>
+                    <span style="font-weight:bold; color:#ffd166;">${c.rank}${c.suit}</span>
+                    <span style="color:#f1faee; font-size:10px; margin-left:6px;">${c.name}</span>
+                    <div style="font-size:9px; color:#94a3b8;">${c.desc || 'Efecto arcano activo'}</div>
+                  </div>
+                  <button onclick="rerollHeroCardEffect('${currentShopHero}', ${idx})" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #ffd166; background:rgba(255,209,102,0.15); color:#ffd166;" ${playerCryptCoins < costRerollCard ? 'disabled' : ''}>
+                    🔄 RE-ROLLEAR (${costRerollCard} 🗝️)
+                  </button>
+                </div>
+              `).join("")}
+            </div>
+          ` : `
+            <div style="font-size:9.5px; color:#94a3b8; text-align:center; padding:8px;">Este héroe aún no tiene cartas transmutadas en su inventario.</div>
+          `}
+        </div>
+
+        <!-- SECCIÓN 2: SELLOS DE ALTO NIVEL -->
+        <div style="background:rgba(15,23,42,0.9); border:1px solid #ffd166; border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div>
+              <strong style="color:#ffd166; font-size:11px;">✨ SELLOS DE ALTO NIVEL (${heroSealsList.length})</strong>
+              <div style="font-size:9.5px; color:#94a3b8;">Sellos permanentes grabados en cartas de este héroe</div>
+            </div>
+            <button class="shop-action-btn buy gold-relic" onclick="buyHeroHighLevelSeal('${currentShopHero}')" style="padding:8px 12px; min-height:44px; font-size:10px;" ${playerCryptCoins < costNewSeal ? 'disabled' : ''}>
+              + COMPRAR SELLO (${costNewSeal} 🗝️)
+            </button>
+          </div>
+          ${heroSealsList.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${heroSealsList.map(cid => {
+                const s = heroSeals[cid];
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#0b0f19; border:1px solid #334155; border-radius:6px; padding:6px 10px;">
+                  <div>
+                    <span style="font-size:1.1rem;">${s.icon || '✨'}</span>
+                    <span style="font-weight:bold; color:#ffd166; margin-left:4px;">${cid}</span>
+                    <span style="color:#f1faee; font-size:10px; margin-left:6px;">${s.name}</span>
+                    <div style="font-size:9px; color:#94a3b8;">${s.desc || 'Efecto de maestría'}</div>
+                  </div>
+                  <button onclick="transmuteHeroSeal('${currentShopHero}', '${cid}')" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #2a9d8f; background:rgba(42,157,143,0.15); color:#2a9d8f;" ${playerCryptCoins < costRerollSeal ? 'disabled' : ''}>
+                    ⚗️ TRANSMUTAR (${costRerollSeal} 🗝️)
+                  </button>
+                </div>
+              `;}).join("")}
+            </div>
+          ` : `
+            <div style="font-size:9.5px; color:#94a3b8; text-align:center; padding:8px;">Este héroe no tiene sellos grabados en su baraja actualmente.</div>
+          `}
+        </div>
+      </div>
+    `;
+
     if (currentShopTab === "artifacts") activeTabContent = artifactsHtml;
     else if (currentShopTab === "cards") activeTabContent = cardsBoosterHtml;
     else if (currentShopTab === "forge") activeTabContent = forgeTabHtml;
+    else if (currentShopTab === "hero_market") activeTabContent = heroMarketHtml;
     else if (currentShopTab === "iap") {
       activeTabContent = Object.keys(ROYAL_PERKS).map(id => {
         const pk = ROYAL_PERKS[id];
@@ -11919,6 +12479,7 @@
           <button class="shop-tab-btn ${currentShopTab === 'artifacts' ? 'active' : ''}" onclick="switchShopTab('artifacts')">🎴 ARTEFACTOS (${p.artifacts.length}/${maxSlots})</button>
           <button class="shop-tab-btn ${currentShopTab === 'cards' ? 'active' : ''}" onclick="switchShopTab('cards')">📦 SOBRES (${enchantedList.length})</button>
           <button class="shop-tab-btn ${currentShopTab === 'forge' ? 'active' : ''}" onclick="switchShopTab('forge')">🔨 FORJA (${ownedUpgrades.length})</button>
+          <button class="shop-tab-btn ${currentShopTab === 'hero_market' ? 'active' : ''}" onclick="switchShopTab('hero_market')">🗝️ METAMONEDAS</button>
           <button class="shop-tab-btn ${currentShopTab === 'iap' ? 'active' : ''}" onclick="switchShopTab('iap')">👑 TESORO REAL</button>
         </div>
 
@@ -11936,6 +12497,143 @@
     `;
     document.getElementById("screen-event").classList.remove("hidden");
   }
+
+  function setShopSelectedHero(heroId) {
+    window._shopSelectedHero = heroId;
+    try { playButtonClickSound(); } catch (_) {}
+    showShopModal();
+  }
+  window.setShopSelectedHero = setShopSelectedHero;
+
+  function buyHeroTransmutedCard(heroId) {
+    const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const cost = 25;
+    if (curCoins < cost) {
+      spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
+      return;
+    }
+    const cards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards(heroId) : [];
+    if (cards.length >= MAX_PERSISTENT_EXTRA_CARDS) {
+      spawnFloatingText("player-sprite", "INVENTARIO AL MÁXIMO", "shield");
+      return;
+    }
+    localStorage.setItem("bj_crypt_coins", String(curCoins - cost));
+
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const RANKS = ["A", "K", "Q", "J", "10", "9", "8", "7"];
+    const rndSuit = SUITS[Math.floor(Math.random() * SUITS.length)];
+    const rndRank = RANKS[Math.floor(Math.random() * RANKS.length)];
+    const effects = [
+      { name: "Impacto Vorpal", desc: "+8 de daño crítico al jugar esta carta." },
+      { name: "Barrera Titánica", desc: "+6 de Escudo protector al entrar en mano." },
+      { name: "Drenaje Arcano", desc: "+5 HP drenados del rival al ganar la mano." },
+      { name: "Fortuna de Cripta", desc: "+12 Oro y +1 Metamoneda por victoria con este naipe." }
+    ];
+    const eff = effects[Math.floor(Math.random() * effects.length)];
+    const newCard = {
+      rank: rndRank,
+      suit: rndSuit,
+      value: (rndRank === "A" ? 11 : (["K", "Q", "J"].includes(rndRank) ? 10 : parseInt(rndRank, 10))),
+      isWonCard: true,
+      specialId: `transmuted_${heroId}_${Date.now()}`,
+      name: `${eff.name} [${rndRank}${rndSuit}]`,
+      desc: eff.desc,
+      rarity: "epic",
+      sealTheme: "arcane"
+    };
+    savePersistentExtraCards([newCard], heroId);
+    spawnFloatingText("player-sprite", `+1 CARTA TRANSMUTADA (${heroId})`, "gold");
+    addLog(`✨ Bazar: Compraste una nueva Carta Transmutada [${rndRank}${rndSuit}] para ${heroId}.`, "critical");
+    try { playVictoryFanfareSound(); } catch (_) {}
+    showShopModal();
+  }
+  window.buyHeroTransmutedCard = buyHeroTransmutedCard;
+
+  function rerollHeroCardEffect(heroId, cardIndex) {
+    const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const cost = 10;
+    if (curCoins < cost) {
+      spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
+      return;
+    }
+    const store = (typeof getHeroDeckStore === "function") ? getHeroDeckStore() : {};
+    const cards = (store[heroId] && store[heroId].extraCards) ? store[heroId].extraCards : [];
+    if (!cards[cardIndex]) return;
+
+    localStorage.setItem("bj_crypt_coins", String(curCoins - cost));
+    const effects = [
+      { name: "Cuchilla Espectral", desc: "Ignora 4 DEF de armadura rival al golpear." },
+      { name: "Resonancia Sagrada", desc: "Cura +8 HP y anula venenos si la mano suma 20 o 21." },
+      { name: "Aura de Obsidiana", desc: "+8 Escudo azul reactivo al plantarte con ella." },
+      { name: "Destello Relámpago", desc: "+10 de daño eléctrico demoledor en manos ganadoras." }
+    ];
+    const eff = effects[Math.floor(Math.random() * effects.length)];
+    cards[cardIndex].name = `${eff.name} [${cards[cardIndex].rank}${cards[cardIndex].suit}]`;
+    cards[cardIndex].desc = eff.desc;
+    if (typeof saveHeroDeckStore === "function") saveHeroDeckStore(store);
+
+    spawnFloatingText("player-sprite", `🔄 EFECTO RE-ROLLEADO (${heroId})`, "gold");
+    addLog(`🔄 Re-roll arcano: El efecto de la carta de ${heroId} fue transmutado a ${eff.name}.`, "critical");
+    try { playDiceRollSound(); } catch (_) {}
+    showShopModal();
+  }
+  window.rerollHeroCardEffect = rerollHeroCardEffect;
+
+  function buyHeroHighLevelSeal(heroId) {
+    const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const cost = 20;
+    if (curCoins < cost) {
+      spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
+      return;
+    }
+    localStorage.setItem("bj_crypt_coins", String(curCoins - cost));
+
+    const RANKS = ["A", "K", "Q", "J", "10", "7"];
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const targetRank = RANKS[Math.floor(Math.random() * RANKS.length)];
+    const targetSuit = SUITS[Math.floor(Math.random() * SUITS.length)];
+    const cid = `${targetSuit}_${targetRank}`;
+
+    const seals = [
+      { name: "Sello de Furia Ancestral", icon: "🔥", desc: "+6 de daño y +25% crítico al jugar este naipe." },
+      { name: "Sello de Baluarte Sagrado", icon: "🛡️", desc: "+8 de Escudo azul protector al entrar en combate." },
+      { name: "Sello de Éter Carmesí", icon: "🩸", desc: "+7 HP drenados del enemigo por mano ganadora." },
+      { name: "Sello de Fortuna Cósmica", icon: "⭐", desc: "+15 Oro y multiplica x2 bonos de afinidad." }
+    ];
+    const seal = seals[Math.floor(Math.random() * seals.length)];
+    savePersistentDeckSeal(cid, seal, heroId);
+
+    spawnFloatingText("player-sprite", `✨ SELLO FORJADO [${cid}]`, "gold");
+    addLog(`✨ Bazar: Sello de alto nivel [${seal.name}] forjado en ${cid} para ${heroId}.`, "critical");
+    try { playVictoryFanfareSound(); } catch (_) {}
+    showShopModal();
+  }
+  window.buyHeroHighLevelSeal = buyHeroHighLevelSeal;
+
+  function transmuteHeroSeal(heroId, cid) {
+    const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const cost = 8;
+    if (curCoins < cost) {
+      spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
+      return;
+    }
+    localStorage.setItem("bj_crypt_coins", String(curCoins - cost));
+
+    const seals = [
+      { name: "Sello de la Tempestad", icon: "⚡", desc: "Aplica +3 de electrocución e ignora armadura." },
+      { name: "Sello de Obsidiana", icon: "💎", desc: "+10 de Escudo reactivo con espinas reflejadas." },
+      { name: "Sello del Dragón Celestial", icon: "🐉", desc: "Daño x2 si la mano es 20 o 21 exacto." },
+      { name: "Sello de Midas", icon: "🪙", desc: "+20 Oro y +2 Metamonedas por ronda ganada." }
+    ];
+    const newSeal = seals[Math.floor(Math.random() * seals.length)];
+    savePersistentDeckSeal(cid, newSeal, heroId);
+
+    spawnFloatingText("player-sprite", `⚗️ SELLO TRANSMUTADO [${cid}]`, "gold");
+    addLog(`⚗️ Transmutación: Sello en ${cid} de ${heroId} transformado a ${newSeal.name}.`, "critical");
+    try { playDiceRollSound(); } catch (_) {}
+    showShopModal();
+  }
+  window.transmuteHeroSeal = transmuteHeroSeal;
 
   function buyArtifact(id) {
     const p = gameState.player;
@@ -13007,6 +13705,9 @@
     shuffleArray(poolCopy);
     currentAltarPacts = poolCopy.slice(0, 3);
 
+    const curMetacoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const renounceCost = Math.max(2, Math.ceil(curMetacoins * 0.15));
+
     document.getElementById("event-options").innerHTML = `
       <div class="altar-ritual-chamber">
         <!-- ESCENA VISUAL DEL ALTAR -->
@@ -13045,11 +13746,44 @@
             </div>
           `).join("")}
         </div>
+
+        <!-- BOTÓN DE RENUNCIA PROPORCIONAL -->
+        <div class="altar-renounce-container" style="margin-top:16px; text-align:center;">
+          <button class="altar-renounce-btn" onclick="renounceAltarSacrifice(${renounceCost})" style="background:rgba(30,15,25,0.92); border:1.5px solid #ff758f; color:#ffd166; font-family:var(--font-pixel, sans-serif); font-size:11px; font-weight:bold; padding:10px 18px; border-radius:8px; cursor:pointer; min-height:44px; box-shadow:0 0 10px rgba(255,117,143,0.3);">
+            🚪 RENUNCIAR AL SACRIFICIO (-${renounceCost} 🗝️ METAMONEDAS)
+          </button>
+          <div style="font-size:10px; color:#94a3b8; margin-top:5px;">
+            Paga un 15% de tus metamonedas actuales (mín. 2) para eludir el pacto y marcharte sin maldición.
+          </div>
+        </div>
       </div>
     `;
     document.getElementById("screen-event").classList.remove("hidden");
   }
   window.showCurseAltar = showCurseAltar;
+
+  function renounceAltarSacrifice(cost) {
+    try { playButtonClickSound(); } catch (_) {}
+    const p = gameState.player;
+    const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+    const actualCost = Math.min(curCoins, cost || 2);
+    const newBalance = Math.max(0, curCoins - actualCost);
+    localStorage.setItem("bj_crypt_coins", String(newBalance));
+
+    addLog(`🚪 Has renunciado al pacto del altar oscuro pagando ${actualCost} Monedas de Cripta de rescate.`, "heal");
+    spawnFloatingText("player-sprite", `-${actualCost} 🗝️ RESCATE`, "gold");
+
+    gameState.curseTakenOnFloor[gameState.floor] = true;
+    updateHud();
+    document.getElementById("screen-event").classList.add("hidden");
+    if (p) {
+      p.turnShieldBonus = 0;
+      p.turnDoubleDamage = false;
+      p.duplaDef = 0;
+    }
+    initFloor();
+  }
+  window.renounceAltarSacrifice = renounceAltarSacrifice;
 
   function selectCurse(curseType) {
     try { playSwordClashSound(); } catch (_) {}
@@ -13389,8 +14123,8 @@
     const pMini = document.getElementById("player-stats-mini");
     if (pMini) {
       const effDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
-      const shieldStr = gameState.status.playerShield > 0 ? ` <span style="color:#48cae4;font-weight:bold;">(+${gameState.status.playerShield})</span>` : "";
-      pMini.innerHTML = `⚔️ ${p.pwr} &nbsp; 🛡️ ${effDef}${shieldStr}`;
+      pMini.innerHTML = `⚔️ ${p.pwr} <small>PWR</small> &nbsp;|&nbsp; 🛡️ ${effDef} <small>DEF</small>`;
+      pMini.title = `Poder de Ataque: ${p.pwr} PWR | Armadura Base: ${effDef} DEF`;
     }
 
     const eMini = document.getElementById("enemy-stats-mini");
@@ -13447,9 +14181,12 @@
     const pShieldText = document.getElementById("player-shield-text");
     const pShieldWrapper = document.getElementById("player-shield-wrapper");
     if (pShieldBar && pShieldText) {
+      const effDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
       const pct = pShield > 0 ? Math.min(100, Math.max(12, (pShield / 15) * 100)) : 0;
       pShieldBar.style.width = `${pct}%`;
-      pShieldText.innerText = `🛡️ ${pShield}`;
+      pShieldText.innerHTML = pShield > 0
+        ? `🛡️ ${pShield} <span style="font-size:0.75em;opacity:0.85;font-weight:normal;">(Turno: ${pShield} | Arm: ${effDef})</span>`
+        : `🛡️ 0 <span style="font-size:0.75em;opacity:0.85;font-weight:normal;">(Arm: ${effDef})</span>`;
       if (pShieldWrapper) {
         if (pShield > 0) pShieldWrapper.classList.add("has-shield");
         else pShieldWrapper.classList.remove("has-shield");
@@ -14468,12 +15205,32 @@
 
     // Comprobación reglamentaria de Blackjack Natural en el reparto
     if (p.blackjack && e.blackjack) {
-      addLog("🤝 ¡BLACKJACK SIMULTÁNEO! Ambos contendientes tienen 21.", "info");
-      await resolveHandResult("push");
+      // MECÁNICA DE PARRY ÉPICO (21 vs 21 en 1ra Mano)
+      setButtonsDisabled(true);
+      showCombatBanner("⚔️ ¡PARRY CELESTIAL! DESTINOS CRUZADOS", "¡CHOQUE DE 21 NATURAL! (21 vs 21)", "tie");
+      triggerScreenShake("heavy");
+      try { playWeaponClashPushSound(); playVictorySound(); } catch (_) {}
+      try { triggerHaptic("blackjack"); } catch (_) {}
+      spawnFloatingText("player-sprite", "🛡️ ¡PARRY CELESTIAL!", "shield");
+
+      const pLvl = p.level || 1;
+      const reflectPct = 0.15 + (0.05 * pLvl);
+      const enemyBaseAtk = e.pwr + (p.betAmount || 0);
+      const reflectedDmg = Math.max(1, Math.round(enemyBaseAtk * reflectPct));
+
+      e.hp = Math.max(0, e.hp - reflectedDmg);
+      if (typeof trackRunStat === "function") trackRunStat("damageDealt", reflectedDmg);
+      spawnFloatingText("enemy-sprite", `⚡ -${reflectedDmg} PARRY REFLEJADO`, "crit");
+      addLog(`⚔️ ¡PARRY CELESTIAL! Ambos obtienen 21 natural en primera mano. Recibes 0 daño y devuelves ${Math.round(reflectPct * 100)}% del ataque enemigo (${reflectedDmg} daño reflejado al rival).`, "critical");
+      updateHud();
+      await sleep(1300);
+      showNextRoundButton();
+      return;
     } else if (p.blackjack && p.playerHand.length === 2) {
       try { playBlackjackFanfareSound(); } catch (_) {}
       await resolveHandResult(true);
     } else if (e.blackjack && e.enemyHand.length === 2) {
+      setButtonsDisabled(true);
       addLog(`💀 ¡${e.name} tiene Blackjack Natural de entrada!`, "damage");
       await resolveHandResult(false);
     } else if (p.bust) {
@@ -15059,9 +15816,6 @@
       const scoreMargin = Math.max(0, p.playerScore - (e.bust ? 15 : e.enemyScore));
       const marginBonus = Math.floor(scoreMargin * 0.75);
 
-      // 2. Escalado por Porcentaje de Nivel (+12% de daño directo por cada nivel de tu Jack)
-      const levelMult = 1 + ((p.level || 1) - 1) * 0.12;
-
       // Bono de Atributo RPG de Fuerza (STR)
       const strMod = (p.attributes && p.attributes.str > 10) ? Math.floor((p.attributes.str - 10) / 2) : 0;
       if (strMod > 0) bonus += strMod;
@@ -15076,9 +15830,12 @@
         }
       }
 
-      // 3. FÓRMULA DE DAÑO: Base = PWR normal + Apuesta + Margen de Mano + Reliquias / Mejoras de Cartas
-      let baseStrike = p.pwr + bet + marginBonus + bonus + (p.cardBonusDamage || 0);
-      let rawPlayerDmg = Math.round(baseStrike * levelMult);
+      // 3. FÓRMULA LIMPIA DE DAÑO (Sin levelMultiplier):
+      // Daño Mano = Apuesta + Margen
+      // Ataque Base = PWR + Atributos / Reliquias / Cartas
+      const handDmgComponent = bet + marginBonus;
+      const baseAtkComponent = p.pwr + bonus + (p.cardBonusDamage || 0);
+      let rawPlayerDmg = handDmgComponent + baseAtkComponent;
       let dmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
 
       // Estocada Vorpal (Talento spades_4): +15% de Daño en manos de 20 o 21
@@ -15095,14 +15852,14 @@
         addLog("🛡️ Guardia Táctica (<15): Golpe amortiguado (+4 Escudo defensivo).", "heal");
       }
 
-      // Sistema de Golpe Crítico RPG: Escala con Destreza (DEX) y Rama del Filo (Picas)
+      // Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Desvinculado del 20/21 obligatorio)
       const effectiveHeroKey = p.classKey || p.class || "knight";
       const treeCritRanks = (typeof getHeroTalentTree === "function") ? (getHeroTalentTree(effectiveHeroKey).ranks || {}) : {};
       const treeCritBonus = ((treeCritRanks.spades_2 || 0) * 4) + ((treeCritRanks.spades_1 || 0) * 2) + (p._treeCritChanceBonus || 0);
       const dexStatBonus = (p.attributes && p.attributes.dex > 10) ? Math.floor((p.attributes.dex - 10) * 2) : 0;
-      const baseCritPct = (typeof calculateCritChance === "function") ? calculateCritChance(p.playerHand, gameState.deck || []) : 25;
-      const totalCritChance = Math.min(90, Math.max(10, baseCritPct + treeCritBonus + dexStatBonus));
-      const isRpgCrit = (p.playerScore >= 19) || (Math.random() * 100 < totalCritChance);
+      const baseCritPct = (typeof calculateCritChance === "function") ? calculateCritChance(p.playerHand, gameState.deck || []) : 15;
+      const totalCritChance = Math.min(90, Math.max(5, (p.critChance || baseCritPct) + treeCritBonus + dexStatBonus));
+      const isRpgCrit = (Math.random() * 100 < totalCritChance);
 
       if (isRpgCrit && dmg > 0) {
         const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
@@ -15120,21 +15877,24 @@
         }
         dmg = Math.round(dmg * critMultiplier);
         spawnFloatingText("player-sprite", `⚡ x${critMultiplier} ¡CRÍTICO!`, "crit");
-        const reportedCritChance = (p.playerScore >= 19) ? 100 : totalCritChance;
-        addLog(`⚡ ¡Impacto Crítico (${reportedCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
+        addLog(`⚡ ¡Impacto Crítico (${totalCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
         if (typeof showCombatCritSignal === "function") {
           showCombatCritSignal(critMultiplier);
         }
-        // Filo Vampírico (Talento spades_5)
-        if (p._spadesCritLifesteal) {
-          const leechHp = Math.max(1, Math.round(dmg * p._spadesCritLifesteal));
+      }
+
+      // Vampirismo / Robo de Alma (Stat Lifesteal)
+      if (dmg > 0 && ((p.lifesteal || 0) > 0 || (p._spadesCritLifesteal && isRpgCrit))) {
+        const lsPct = Math.max((p.lifesteal || 0), (isRpgCrit && p._spadesCritLifesteal ? Math.round(p._spadesCritLifesteal * 100) : 0));
+        if (lsPct > 0) {
+          const leechHp = Math.max(1, Math.round(dmg * (lsPct / 100)));
           p.hp = Math.min(p.maxHp, p.hp + leechHp);
-          spawnFloatingText("player-sprite", `+${leechHp} HP VAMPIRO ♠`, "heal");
-          addLog(`🗡️ Filo Vampírico (♠): +${leechHp} HP drenados por Impacto Crítico.`, "heal");
+          spawnFloatingText("player-sprite", `+${leechHp} HP VAMPIRISMO`, "heal");
+          addLog(`🩸 Vampirismo (${lsPct}%): +${leechHp} HP recuperados tras asestar tu impacto.`, "heal");
         }
       }
 
-      // Afinidad Elemental de Naipes en la Torre (Activada mediante Tier 1 del Árbol de Talentos)
+      // Afinidad Elemental de Naipes en la Torre (Activada estrictamente mediante Tier 1 del Árbol de Talentos)
       const treeHeroKey = p.classKey || p.class || "knight";
       const treeRanks = (typeof getHeroTalentTree === "function") ? (getHeroTalentTree(treeHeroKey).ranks || {}) : {};
       const spadesRank = treeRanks.spades_1 || 0;
@@ -15152,14 +15912,14 @@
         else if (s === "♣" || s === "clubs") suitClubs++;
       });
 
-      if (suitSpades > 0 && (spadesRank > 0 || p._spadesEclipseBonus)) {
+      if (suitSpades > 0 && ((spadesRank > 0 && p.affinitySpades) || p._spadesEclipseBonus)) {
         const perSpade = (spadesRank > 0 ? (spadesRank + 1) : 2) + (p._spadesEclipseBonus || 0);
         const pierceDmg = suitSpades * perSpade;
         dmg += pierceDmg;
         spawnFloatingText("enemy-sprite", `🗡️ -${pierceDmg} PERFORACIÓN ♠`, "crit");
         addLog(`🗡️ Afinidad de Picas (♠ Nivel ${spadesRank}): +${pierceDmg} daño de corte perforante (${suitSpades} cartas${p._spadesEclipseBonus ? ' • Eclipse +3' : ''}).`, "critical");
       }
-      if (suitDiamonds > 0 && diamondsRank > 0) {
+      if (suitDiamonds > 0 && diamondsRank > 0 && p.affinityDiamonds) {
         let dShield = suitDiamonds * (diamondsRank + 1);
         if (p._diamondsAceShield && (p.playerHand || []).some(c => (c.suit === "♦" || c.suit === "diamonds") && (c.value === 11 || c.rank === "A"))) {
           dShield += p._diamondsAceShield;
@@ -15170,7 +15930,7 @@
         spawnFloatingText("player-sprite", `🛡️ +${dShield} ESCUDO ♦`, "shield");
         addLog(`🛡️ Afinidad de Diamantes (♦ Nivel ${diamondsRank}): +${dShield} Baluarte defensivo (${suitDiamonds} cartas).`, "heal");
       }
-      if (suitHearts > 0 && (heartsRank > 0 || p._heartsTideBonus)) {
+      if (suitHearts > 0 && ((heartsRank > 0 && p.affinityHearts) || p._heartsTideBonus)) {
         const perHeart = (heartsRank > 0 ? (heartsRank + 1) : 2) + (p._heartsTideBonus || 0);
         let hHeal = suitHearts * perHeart;
         if (p._heartsDoubleTide && suitHearts >= 2) {
@@ -15182,7 +15942,7 @@
         spawnFloatingText("player-sprite", `❤️ +${hHeal} HP ♥`, "heal");
         addLog(`❤️ Afinidad de Corazones (♥ Nivel ${heartsRank}): +${hHeal} HP regenerados (${suitHearts} cartas${p._heartsTideBonus ? ' • Marea +3' : ''}).`, "heal");
       }
-      if (suitClubs > 0 && clubsRank > 0) {
+      if (suitClubs > 0 && clubsRank > 0 && p.affinityClubs) {
         const goldMult = (p._cloverNebulaMult || 1);
         const cGold = suitClubs * (clubsRank + 1) * goldMult;
         gameState.gold = (gameState.gold || 0) + cGold;
@@ -15346,9 +16106,11 @@
         await sleep(100);
         setPlayerSpriteState("strike");
         const suddenTag = isSuddenDeath ? ` [🔥FURIA x${suddenMult}]` : "";
-        const levelTag = p.level > 1 ? ` (x${levelMult.toFixed(2)} Nvl ${p.level})` : "";
         const betTag = (bet && bet > 0) ? ` + Apuesta (${bet})` : "";
-        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}! PWR (${p.pwr})${betTag} + Margen (+${marginBonus})${levelTag} - DEF (${effectiveEnemyDef}) = ${dmg} daño.`, "heal");
+        const rawSum = handDmgComponent + baseAtkComponent;
+        const multDisplay = rawSum > 0 ? (dmg / Math.max(1, rawSum - effectiveEnemyDef)).toFixed(1) : "1.0";
+        const multText = (parseFloat(multDisplay) > 1.0) ? ` × [Mult: ${multDisplay}x]` : "";
+        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}! [Daño Mano: ${handDmgComponent}] + [Ataque Base: ${baseAtkComponent}]${multText} - DEF (${effectiveEnemyDef}) = ${dmg} daño total.`, "heal");
         // Naipes de Botín: Potenciador Multiplicador x2
         const multCard = p.playerHand && p.playerHand.find(c => c && c.operator === "mult");
         if (multCard) {
@@ -15522,6 +16284,16 @@
       }
       p._synergyExtraDodge = 0;
 
+      // Stat RPG: Esquivar (dodgeChance % con cap en 45%)
+      const effectiveDodge = Math.min(45, (p.dodgeChance || 0));
+      if (rawDmg > 0 && effectiveDodge > 0 && (Math.random() * 100 < effectiveDodge)) {
+        addLog(`💨 ¡ESQUIVADO (${effectiveDodge}%)! Tu agilidad eludió por completo el ataque rival.`, "heal");
+        spawnFloatingText("player-sprite", "¡ESQUIVADO!", "crit");
+        try { playDodgeSound(); } catch (_) {}
+        setPlayerSpriteState("dodge");
+        rawDmg = 0;
+      }
+
       // FASE 3 (R-02): Evasión por Velo de Niebla (Vestidura Fantasma)
       if (p._skinDodgeActive && rawDmg > 0 && Math.random() < (p._skinDodgeChance || 0.25)) {
         addLog("💨 [Vestidura: Fantasma de la Niebla] ¡Esquivaste el contraataque envuelto en bruma espectral!", "heal");
@@ -15602,11 +16374,13 @@
           setPlayerSpriteState("block");
           spawnFloatingText("player-sprite", `🛡️ -${absorbed} ESCUDO`, "shield");
           addLog(`¡Tu Escudo azul absorbió ${absorbed} de daño! (Quedan ${gameState.status.playerShield} escudo)`, "heal");
-          if (p._diamondsThornReflect && absorbed > 0) {
-            const reflectDmg = Math.max(1, Math.round(absorbed * p._diamondsThornReflect));
+          if (((p.thorns || 0) > 0 || p._diamondsThornReflect) && absorbed > 0) {
+            const thornPct = (p.thorns || 0) / 100;
+            const reflectPct = Math.max(p._diamondsThornReflect || 0, thornPct);
+            const reflectDmg = Math.max(1, Math.round(absorbed * reflectPct));
             e.hp = Math.max(0, e.hp - reflectDmg);
-            spawnFloatingText("enemy-sprite", `💎 -${reflectDmg} REFLEJO`, "crit");
-            addLog(`♦️ Reflejo Diamantino (♦): Devuelves ${reflectDmg} de daño reflejado al rival.`, "critical");
+            spawnFloatingText("enemy-sprite", `🌵 -${reflectDmg} ESPINAS`, "crit");
+            addLog(`🌵 Espinas (${p.thorns || 0}%): Devuelves ${reflectDmg} de daño reflejado al rival.`, "critical");
           }
           playShieldSound();
           const pShieldWrap = document.getElementById("player-shield-wrapper");
@@ -18223,46 +18997,91 @@
   window.updateTacticalDamagePredictor = updateTacticalDamagePredictor;
 
   /* ============================================================
-     PERSISTENCIA DE SELLOS Y CARTAS ADICIONALES DE BARAJA
+     PERSISTENCIA DE SELLOS Y CARTAS ADICIONALES POR HÉROE (TORRE21)
      ============================================================ */
   const PERSISTENT_SEALS_KEY = "blackjack_persistent_deck_seals";
   const PERSISTENT_EXTRA_CARDS_KEY = "blackjack_persistent_extra_cards";
+  const TORRE21_HERO_DECKS_KEY = "torre21_hero_decks";
 
-  function getPersistentDeckSeals() {
+  function getTargetHeroKey(heroKey) {
+    if (heroKey) return heroKey;
+    const p = (typeof gameState !== "undefined" && gameState && gameState.player) ? gameState.player : null;
+    return (p && (p.classKey || p.class)) || (typeof currentHeroKey !== "undefined" && currentHeroKey) || localStorage.getItem("torre21_selected_hero") || "knight";
+  }
+
+  function getHeroDeckStore() {
     try {
-      return JSON.parse(localStorage.getItem(PERSISTENT_SEALS_KEY) || "{}") || {};
-    } catch (_) { return {}; }
+      const data = JSON.parse(localStorage.getItem(TORRE21_HERO_DECKS_KEY) || "{}");
+      if (data && typeof data === "object") return data;
+    } catch (_) {}
+    return {};
+  }
+
+  function saveHeroDeckStore(store) {
+    try {
+      localStorage.setItem(TORRE21_HERO_DECKS_KEY, JSON.stringify(store));
+    } catch (_) {}
+  }
+
+  function getPersistentDeckSeals(heroKey) {
+    const hKey = getTargetHeroKey(heroKey);
+    const store = getHeroDeckStore();
+    if (store[hKey] && store[hKey].seals) {
+      return store[hKey].seals;
+    }
+    // Fallback/migración inicial desde clave global si no hay datos por héroe
+    try {
+      const legacy = JSON.parse(localStorage.getItem(PERSISTENT_SEALS_KEY) || "{}") || {};
+      if (hKey === "knight" && Object.keys(legacy).length > 0) return legacy;
+    } catch (_) {}
+    return {};
   }
   window.getPersistentDeckSeals = getPersistentDeckSeals;
 
-  function savePersistentDeckSeal(cid, seal) {
-    const seals = getPersistentDeckSeals();
-    seals[cid] = Object.assign({}, seal);
+  function savePersistentDeckSeal(cid, seal, heroKey) {
+    const hKey = getTargetHeroKey(heroKey);
+    const store = getHeroDeckStore();
+    if (!store[hKey]) store[hKey] = { seals: {}, extraCards: [] };
+    if (!store[hKey].seals) store[hKey].seals = {};
+    store[hKey].seals[cid] = Object.assign({}, seal);
+    saveHeroDeckStore(store);
     try {
-      localStorage.setItem(PERSISTENT_SEALS_KEY, JSON.stringify(seals));
+      localStorage.setItem(PERSISTENT_SEALS_KEY, JSON.stringify(store[hKey].seals));
     } catch (_) {}
   }
   window.savePersistentDeckSeal = savePersistentDeckSeal;
 
   function getPersistentExtraCards() {
+    const heroKey = arguments[0];
+    const hKey = getTargetHeroKey(heroKey);
+    const store = getHeroDeckStore();
+    if (store[hKey] && Array.isArray(store[hKey].extraCards)) {
+      return store[hKey].extraCards;
+    }
     try {
-      const arr = JSON.parse(localStorage.getItem(PERSISTENT_EXTRA_CARDS_KEY) || "[]");
-      return Array.isArray(arr) ? arr : [];
-    } catch (_) { return []; }
+      const legacy = JSON.parse(localStorage.getItem(PERSISTENT_EXTRA_CARDS_KEY) || "[]");
+      if (hKey === "knight" && Array.isArray(legacy) && legacy.length > 0) return legacy;
+    } catch (_) {}
+    return [];
   }
   window.getPersistentExtraCards = getPersistentExtraCards;
 
   const MAX_PERSISTENT_EXTRA_CARDS = 12;
   window.MAX_PERSISTENT_EXTRA_CARDS = MAX_PERSISTENT_EXTRA_CARDS;
 
-  function savePersistentExtraCard(card) {
+  function savePersistentExtraCard(card, heroKey) {
     if (!card) return;
-    savePersistentExtraCards([card]);
+    savePersistentExtraCards([card], heroKey);
   }
   window.savePersistentExtraCard = savePersistentExtraCard;
 
-  function savePersistentExtraCards(cards) {
-    const list = getPersistentExtraCards();
+  function savePersistentExtraCards(cards, heroKey) {
+    const hKey = getTargetHeroKey(heroKey);
+    const store = getHeroDeckStore();
+    if (!store[hKey]) store[hKey] = { seals: {}, extraCards: [] };
+    if (!Array.isArray(store[hKey].extraCards)) store[hKey].extraCards = [];
+    const list = store[hKey].extraCards;
+
     if (Array.isArray(cards)) {
       cards.forEach(c => {
         if (!c) return;
@@ -18302,6 +19121,7 @@
         }
       });
     }
+    saveHeroDeckStore(store);
     try {
       localStorage.setItem(PERSISTENT_EXTRA_CARDS_KEY, JSON.stringify(list));
     } catch (_) {}
@@ -18309,6 +19129,13 @@
   window.savePersistentExtraCards = savePersistentExtraCards;
 
   function clearPersistentExtraCards() {
+    const heroKey = arguments[0];
+    const hKey = getTargetHeroKey(heroKey);
+    const store = getHeroDeckStore();
+    if (store[hKey]) {
+      store[hKey].extraCards = [];
+      saveHeroDeckStore(store);
+    }
     try {
       localStorage.removeItem(PERSISTENT_EXTRA_CARDS_KEY);
     } catch (_) {}
@@ -21253,7 +22080,7 @@
       const isRed = (card.suit === "♥" || card.suit === "♦" || card.suit === "hearts" || card.suit === "diamonds");
       const colorClass = isRed ? "card-red" : "card-black";
       const arcaneClass = arcane ? "card-transmuted-arcane card-holographic" : "";
-      const badge = arcane ? '<span class="card-loot-badge">👑</span>' : '';
+      const badge = arcane ? '<span class="card-loot-badge arcane-sigil" title="Naipe Arcano">✦</span>' : '';
       const bonusDesc = card.fusion ? `Fusión: ${card.fusion.name || 'Arcana'}` :
                         (card.modifier ? `Mod: ${card.modifier.name || card.modifier.type}` :
                         (card.operator ? `Op: ${card.operator.label || card.operator.type}` :

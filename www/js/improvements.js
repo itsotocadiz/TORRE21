@@ -319,10 +319,18 @@
 
   function updateShopPurchaseBadge() {
     const badge = document.getElementById("shop-purchase-badge");
-    if (!badge) return;
     const rem = getShopPurchasesRemaining();
-    badge.textContent = rem > 0 ? rem + " compra" + (rem !== 1 ? "s" : "") + " restante" : "Sin compras disponibles";
-    badge.style.color = rem > 0 ? "#ffd166" : "#ff758f";
+    if (badge) {
+      badge.textContent = rem > 0 ? rem + " compra" + (rem !== 1 ? "s" : "") + " restante" + (rem !== 1 ? "s" : "") : "0 compras restantes (Límite alcanzado)";
+      badge.style.color = rem > 0 ? "#ffd166" : "#ff758f";
+    }
+    if (rem <= 0) {
+      document.querySelectorAll(".shop-action-btn.buy").forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add("shop-locked");
+        btn.setAttribute("title", "Límite de compras alcanzado en este bazar");
+      });
+    }
   }
   window.updateShopPurchaseBadge = updateShopPurchaseBadge;
 
@@ -579,38 +587,38 @@
      ============================================================ */
   const ENEMY_LORE = {
     // Nombres exactos de ENEMIES en game.js
-    "Duende Pilluelo":             "Alimaña desterrada a los vertederos del fango. Sobrevive hurtando fichas de oro a los cautivos moribundos para pagar ofrendas a los centinelas de BLACK.",
-    "Esqueleto Maldito":           "Restos de un caballero errante que pereció en un duelo de 21 siglos atrás. Atado por un juramento que ni la muerte disolvió, sus huesos se reensamblan al primer llamado de la derrota.",
-    "Orco Berserker":              "Belicista colosal reclutado en los valles del norte. El dolor físico estimula su frenesí sanguíneo; cada mano perdida no hace más que afilar la ferocidad de su garrote.",
-    "Gárgola Pétrea":              "Centinela de granito vivo esculpida por la Orden Arcana. Su piel de roca encantada deflecta golpes menores como si fuesen brisas de otoño.",
-    "Bestia de las Sombras":       "Engendro nacido del vacío entre las barajas. Sus naipes se funden con la penumbra más absoluta, impidiendo anticipar sus jugadas hasta que el zarpazo es letal.",
-    "Centurión Espectral":         "Ectoplasma del comandante supremo de la guardia pretoriana. Mantiene intacta la disciplina de falange: jamás cede terreno ni se planta por debajo del 18.",
-    "Guardián de Obsidiana":       "Monolito viviente forjado en las fraguas volcánicas del abismo. Su coraza de cristal volcánico está erizada de espinas que devuelven el dolor infligido a su agresor.",
-    "Dragón Guardián":             "Soberano ígneo subyugado hace 300 años por las cadenas arcanas de BLACK. Su aliento calcina las barajas y custodia el acceso a la cámara suprema.",
-    "👑 BLACK (El Jack Supremo)": "El primer mortal corrompido por el Mazo Primigenio. Gobierna el destino de la Torre desde su trono del Piso 13, apostando las almas de los caídos por toda la eternidad.",
+    "Duende Pilluelo":             "Alimaña voraz del fango que sobrevive hurtando oro a los caídos.",
+    "Esqueleto Maldito":           "Guerrero atado por un voto arcano que reensambla sus huesos al caer.",
+    "Orco Berserker":              "Belicista implacable cuyo frenesí sanguíneo aumenta con cada herida.",
+    "Gárgola Pétrea":              "Centinela de roca encantada que vigila los salientes, deflectando con desdén golpes leves.",
+    "Bestia de las Sombras":       "Engendro del vacío que oculta sus naipes entre las tinieblas de la mesa.",
+    "Centurión Espectral":         "Comandante pretoriano disciplinado que jamás cede antes del 18.",
+    "Guardián de Obsidiana":       "Monolito de roca volcánica cuyas espinas devuelven cada golpe sufrido.",
+    "Dragón Guardián":             "Soberano ígneo cuyo ardiente aliento calcina las barajas desafiantes.",
+    "👑 BLACK (El Jack Supremo)": "Tirano corrompido que empuña el Mazo Primigenio, apostando las almas desafiantes.",
 
     // Rivales y Jefes de Campaña por Actos (Diablo II / 21 Pisos)
-    "Alimaña de Cripta":           "Roedor infectado por miasmas de ultratumba. Sus mordeduras inoculan ponzoña pútrida que desgasta lentamente a los aventureros descuidados.",
-    "Dante de Picas":              "Comandante implacable de las falanges de espadas. Portador del Filo Veloz, sus estocadas de Picas perforan defensas con ferocidad aristocrática.",
-    "Escarabajo de Arena":         "Coloso quitinoso que habita las dunas subterráneas. Su caparazón diamantino repele impactos y convierte la arena en escudo protector.",
-    "Valquiria de Diamantes":      "Antigua guardiana celestial atrapada en el pacto de la Torre. Su Baluarte Sagrado crea escudos impenetrables al inicio de cada mano.",
-    "Víbora del Pantano":          "Ofidio colosal alimentado con efluvios alquímicos del Trébol. Su veneno corroe tanto la carne como la concentración del jugador.",
-    "Archimago del Trébol":        "Maestro de las artes prohibidas de transmutación y cartas trampa. Con su Ojo Arcano, drena la energía Overdrive y manipula el destino de las manos.",
-    "Malfas del Vacío":            "Nigromante supremo del abismo que gobierna la Ciudadela. Cosecha las almas de cada carta robada por su adversario para regenerar su vitalidad.",
-    "Asesino de la Escarcha":      "Fantasma silencioso de las cumbres nevadas. Sus dagas de hielo rúnico congelan la iniciativa del rival antes de asestar el golpe de gracia.",
-    "Sombra del 21":               "Entidad quimérica forjada con los fracasos y cartas perdidas de miles de apostadores. Oculta el valor de sus cartas y desata golpes críticos devastadores.",
-    "Dragón de Ébano (Guardián del Sagrario)": "Coloso milenario de escamas oscuras y aliento infernal. Custodio indiscutible del umbral que conduce al trono del Mandinga.",
-    "👑 El Mandinga (Señor del 21)": "El artífice supremo de la Torre del 21. Entidad infernal que convirtió la baraja en un juicio eterno de almas. Su Juicio Final castiga con críticos vorpales que anulan toda resurrección.",
-    "El Mandinga (Señor del 21)":  "El artífice supremo de la Torre del 21. Entidad infernal que convirtió la baraja en un juicio eterno de almas. Su Juicio Final castiga con críticos vorpales que anulan toda resurrección.",
-    "El Mandinga":                 "El artífice supremo de la Torre del 21. Entidad infernal que convirtió la baraja en un juicio eterno de almas. Su Juicio Final castiga con críticos vorpales que anulan toda resurrección.",
+    "Alimaña de Cripta":           "Roedor infectado cuya mordedura ponzoñosa drena la vida lentamente.",
+    "Dante de Picas":              "Comandante aristócrata cuyas estocadas de Picas perforan toda defensa.",
+    "Escarabajo de Arena":         "Coloso quitinoso que transforma las dunas en un baluarte impenetrable.",
+    "Valquiria de Diamantes":      "Guardiana celestial que erige muros sagrados al comenzar cada mano.",
+    "Víbora del Pantano":          "Serpiente colosal que destila venenos corrosivos sobre la concentración rival.",
+    "Archimago del Trébol":        "Amo de la alquimia que manipula el flujo de naipes y drena el destino.",
+    "Malfas del Vacío":            "Nigromante que cosecha las almas de cada carta para saciar su vitalidad.",
+    "Asesino de la Escarcha":      "Sombra glacial cuyas dagas de escarcha congelan el ímpetu enemigo.",
+    "Sombra del 21":               "Eco espectral que oculta sus valores para desatar impactos devastadores.",
+    "Dragón de Ébano (Guardián del Sagrario)": "Coloso titánico que custodia el umbral final hacia el salón del trono.",
+    "👑 El Mandinga (Señor del 21)": "Señor absoluto del destino que somete las almas al Juicio del 21.",
+    "El Mandinga (Señor del 21)":  "Señor absoluto del destino que somete las almas al Juicio del 21.",
+    "El Mandinga":                 "Señor absoluto del destino que somete las almas al Juicio del 21.",
 
     // Claves históricas / sin acentos ni emojis para retrocompatibilidad
-    "Gargola Petrea":              "Centinela de granito vivo esculpida por la Orden Arcana. Su piel de roca encantada deflecta golpes menores como si fuesen brisas de otoño.",
-    "Centurion Espectral":         "Ectoplasma del comandante supremo de la guardia pretoriana. Mantiene intacta la disciplina de falange: jamás cede terreno ni se planta por debajo del 18.",
-    "Guardian de Obsidiana":       "Monolito viviente forjado en las fraguas volcánicas del abismo. Su coraza de cristal volcánico está erizada de espinas que devuelven el dolor infligido a su agresor.",
-    "Dragon Guardian":             "Soberano ígneo subyugado hace 300 años por las cadenas arcanas de BLACK. Su aliento calcina las barajas y custodia el acceso a la cámara suprema.",
-    "BLACK (El Jack Supremo)":     "El primer mortal corrompido por el Mazo Primigenio. Gobierna el destino de la Torre desde su trono del Piso 13, apostando las almas de los caídos por toda la eternidad.",
-    "BLACK":                       "El primer mortal corrompido por el Mazo Primigenio. Gobierna el destino de la Torre desde su trono del Piso 13, apostando las almas de los caídos por toda la eternidad."
+    "Gargola Petrea":              "Centinela de roca encantada que vigila los salientes, deflectando con desdén golpes leves.",
+    "Centurion Espectral":         "Comandante pretoriano disciplinado que jamás cede antes del 18.",
+    "Guardian de Obsidiana":       "Monolito de roca volcánica cuyas espinas devuelven cada golpe sufrido.",
+    "Dragon Guardian":             "Soberano ígneo cuyo ardiente aliento calcina las barajas desafiantes.",
+    "BLACK (El Jack Supremo)":     "Tirano corrompido que empuña el Mazo Primigenio, apostando las almas desafiantes.",
+    "BLACK":                       "Tirano corrompido que empuña el Mazo Primigenio, apostando las almas desafiantes."
   };
   window.ENEMY_LORE = ENEMY_LORE;
 
@@ -1361,8 +1369,13 @@
     });
     if (typeof window.showShopModal === "function" && !window.showShopModal.__shopReset) {
       const _origShop = window.showShopModal;
+      let _lastShopFloor = null;
       const wrappedShop = function () {
-        resetShopPurchaseCount();
+        const curFloor = (window.gameState && window.gameState.floor);
+        if (_lastShopFloor !== curFloor) {
+          _lastShopFloor = curFloor;
+          resetShopPurchaseCount();
+        }
         return _origShop.apply(this, arguments);
       };
       wrappedShop.__shopReset = true;

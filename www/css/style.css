@@ -13820,3 +13820,97 @@ body.sudden-death-active #stage {
   background: #475569;
   border-color: #ffd700;
 }
+
+/* ==========================================================================
+   v1.7.4 ENHANCEMENTS: DADO DEL DESTINO, ALTAR Y MERCADO DE METAMONEDAS
+   ========================================================================== */
+
+/* DADO DEL DESTINO DEL CAMPEÓN */
+.champion-dice-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#champion-dice-box {
+  user-select: none;
+  animation: dicePulseGlow 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes dicePulseGlow {
+  0% {
+    box-shadow: 0 0 12px rgba(255, 209, 102, 0.3);
+    border-color: #ffd166;
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(231, 111, 81, 0.6);
+    border-color: #e76f51;
+  }
+}
+
+#btn-roll-champion-dice {
+  min-height: 48px;
+  min-width: 44px;
+  transition: all 0.2s ease;
+}
+
+#btn-roll-champion-dice:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 209, 102, 0.6);
+}
+
+#btn-roll-champion-dice:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* BOTÓN RENUNCIA ALTAR SACRIFICIAL */
+.altar-renounce-btn {
+  min-height: 44px;
+  min-width: 44px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.altar-renounce-btn:hover {
+  background: rgba(50, 20, 40, 0.95) !important;
+  border-color: #ff4d6d !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 77, 109, 0.5) !important;
+}
+
+.altar-renounce-btn:active {
+  transform: translateY(0);
+}
+
+/* MERCADO DE METAMONEDAS POR HÉROE EN TIENDA */
+.shop-hero-market-container {
+  box-sizing: border-box;
+}
+
+.hero-selector-pills button {
+  min-height: 44px;
+  transition: all 0.2s ease;
+}
+
+.hero-selector-pills button:hover {
+  border-color: #ffd166 !important;
+  transform: translateY(-1px);
+}
+
+/* CARTAS RAGNAROK Y MONSTRUO DROP */
+.ragnarok-monster-card {
+  border: 1.5px solid #ffd700 !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+  background: linear-gradient(135deg, rgba(26, 16, 40, 0.95), rgba(15, 23, 42, 0.95)) !important;
+}
+
+.ragnarok-badge-crown {
+  color: #ffd700;
+  text-shadow: 0 0 6px rgba(255, 215, 0, 0.8);
+}
+

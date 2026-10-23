@@ -8,10 +8,11 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**
+👉 **[Descargar última versión v1.7.4 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
-2. Ábrelo para instalar o actualizar (permite la instalación de aplicaciones de fuentes confiables si tu dispositivo lo solicita).
+2. Ábrelo para instalar o actualizar (permite la instalación de aplicaciones de fuentes confiables si tu dispositivo lo solicita). Preserva intactos todos tus progresos, talentos y partidas guardadas.
 3. ¡Asciende por la Torre!
 
 ---
@@ -65,22 +66,48 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v1.7.4] — Octubre 2026 (Actual)
-* **Balanceo de Daño Vorpal y Sincronización Predictiva en Blackjack Natural:**
-  * Corregido el solapamiento multiplicativo involuntario en Blackjack Natural (`isNatural21`), donde el multiplicador RPG base (x2.0) se aplicaba conjuntamente con el multiplicador Vorpal (x3.0 / x4.0), provocando picos desmedidos de 140+ HP de daño contra jerarcas. Ahora se aplica un multiplicador vorpal unificado y directo de **x3.0** (o **x4.0** con *Blackjack Heredado*), preservando la letalidad épica sin desvirtuar la progresión táctica.
-  * Sincronizados los cálculos predictivos del HUD (`calculateTacticalAttackRange` y `calculateExactTacticalDamage`) con el multiplicador real x3.0 para 2 cartas que suman 21, y x2.0 para 21 con 3 o más cartas.
-  * **Erradicación del Residuo de Apuesta Cero en el Log:** Eliminadas las etiquetas `Apuesta: 0 HP` y `+ Apuesta (0)` en el historial de combate cuando no existe una apuesta activa de vida (la cual solo entra en juego bajo el *Juramento del Gran Tahúr* o en el Coliseo Arena).
-* **Árbol de Talentos Elemental Expandido (28 Maestrías en 4 Ramas D&D):**
-  * Cada rama elemental (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) se expande a **7 Tiers escalonados** (28 maestrías en total) con costes de 1 a 4 puntos y requisitos de inversión acumulada por rama (`reqBranch`), permitiendo una especialización RPG profunda para cada héroe:
-    * **♠️ Filo (Picas):** Afinidad del Filo (daño perforante), Ojo Crítico (+4% crítico por rango), Mella de Armadura (-DEF rival por pica en mano), Estocada Vorpal (+15% daño físico con 20/21), Filo Vampírico (12% robo de vida al asestar crítico), Cuchillas Gemelas (multiplicador crítico x2.2 al ganar con 2+ picas) y Sentencia de Muerte (ejecución fulminante del rival con Blackjack si tiene 25% o menos HP).
-    * **♦️ Baluarte (Diamantes):** Afinidad del Baluarte (escudo azul por diamantes), Placas Reactivas (-2 mitigación de contragolpes rivales por rango), Baluarte Inicial (+8 escudo azul de piso por rango), Reflejo Diamantino (devuelve 25% del impacto sufrido si tienes escudo activo), Muralla Inamovible (+2 DEF base permanente), Fortaleza de Ases (+10 escudo al plantarte con As de diamantes) y Égida Inexpugnable (revive a 1 HP con +30 escudo tras un golpe letal, 1 vez por combate).
-    * **♥️ Vitalidad (Corazones):** Afinidad Vital (curación por corazones al ganar), Segundo Aliento (+4 HP por rango al ascender de piso), Vigor de Titán (+15 HP Máx permanente por rango), Alquimia Solar (+35% curación de pociones y purga inmediata de Veneno y Quemadura), Sangre de Fénix (+8 HP al derrotar cualquier enemigo), Marea Carmesí (curación x2 duplicada al ganar con 2+ corazones) y Renacimiento Solar (+15 HP y purificación total de dolencias con Blackjack).
-    * **♣️ Fortuna (Tréboles):** Afinidad de la Fortuna (oro de cripta por tréboles), Trébol Afortunado (+6% probabilidad clutch en robo de cartas 10/As), Bolsa de la Cripta (+20 oro inicial al arrancar la expedición por rango), Alquimia de Dados (+1 Dado de Reroll gratuito al inicio de cada piso por rango), Mano del Tahúr (25% probabilidad de conservar poción al beberla), Doble o Nada (+25 oro extra y +1 Moneda de Cripta al ganar doblando) y Soberanía Tahúr (+25 oro y +1 Dado de Reroll al lograr Blackjack con tréboles).
-* **Integración Total en el Motor de Combate y Transición de Pisos:**
-  * Cableados todos los disparadores pasivos y de combate en `resolveHandResult`, `initFloor`, `startTowerAscent`, `usePotion` y en la tirada clutch de `hit`.
-* **Rebalanceo de Artefactos de Tienda:**
-  * Orbe del Nigromante restaura 100% HP al subir de nivel; Blasón del Desafío inflige 6 daño y otorga +6 escudo en empate; Espuela de Celeridad otorga +8 daño y +15 oro en la primera mano; Daga del Vampiro drena hasta 6 HP en manos ganadoras de 20+.
+* **Revolución Matemática del Combate y Eliminación de `levelMult`:**
+  * Eliminado el escalado artificial por nivel (`levelMult`) en `calculateExactTacticalDamage`, `calculateTacticalAttackRange` y `resolveHandResult`. El daño es completamente predecible y fiel a las estadísticas puras del héroe y la mano de naipes:
+    $$\text{Daño Total} = [\text{Daño Mano} + \text{Ataque Base}] \times [\text{Multiplicador}] - \text{DEF Rival}$$
+  * Desglose matemático exhaustivo e instantáneo en el historial de combate: `[Daño Mano: X] + [Ataque Base: Y] × [Mult: Zx] - DEF (W) = V`.
+* **Crítico Dinámico RPG y Afinidades Condicionadas:**
+  * Desvinculación del crítico de las manos fijas de 20/21: cualquier mano ganadora ahora tira contra la probabilidad de crítico total (`totalCritChance = baseCrit + talentos + perks`), disparando el letal multiplicador x2.0 con señal visual y destello.
+  * Las bonificaciones de los 4 palos (♠️ Perforación, ♦️ Escudo, ♥️ Regeneración, ♣️ Fortuna) ahora están estrictamente condicionadas a que el héroe tenga talentos activos en esa rama Y posea al menos una carta del palo respectivo en la mano jugada.
+* **Estadísticas RPG Vivas y Defensas Dinámicas:**
+  * **Esquiva (`dodgeChance`):** Probabilidad de finta ágil (tope balanceado al 45%) que anula completamente el impacto rival con notificación flotante `¡ESQUIVADO!`.
+  * **Espinas (`thorns`):** Daño reactivo devuelto al atacante tras mitigar el golpe con armadura y escudo.
+  * **Vampirismo (`lifesteal`):** Drenaje porcentual de vida al acertar golpes directos contra la salud del adversario.
+  * **Suerte Heroica (`luck`):** Intervención providencial en el robo de cartas (`hit`) que evita el BUST si en la baraja restante existe al menos un naipe seguro.
+* **Mecánica de Parry Épico y Bloqueo Táctico ante 21:**
+  * Si el jugador y el rival alcanzan un 21 simultáneo en la primera mano, se desata un **Parry Celestial**: el jugador sufre 0 daño, se proyecta un banner dorado y se refleja el 100% del daño del asalto hacia el rival.
+  * Bloqueo inmediato de los botones de acción (`hit`/`stand`/`double`) cuando el adversario tiene un 21 descubierto sobre el tapete, impidiendo robos accidentales hacia un BUST certero.
+* **Unificación de Baluarte y Escudo en HUD:**
+  * Simplificado `#player-stats-mini` a `⚔️ PWR | 🛡️ DEF`, erradicando el segundo escudo redundante que generaba confusión visual.
+  * `#player-shield-text` muestra ahora el desglose unificado: `🛡️ X (Turno: A | Arm: B)`.
+* **Dado del Destino del Campeón (D100 Post-Jefe):**
+  * Al derrotar al jerarca de cada acto, se despliega el modal interactivo del Dado del Destino con tirada física d100.
+  * Puntuaciones $\ge 50$ otorgan una codiciada Carta Transmutada de Jefe a elegir; tiradas $< 50$ entregan un consuelo de +25 de oro y +3 Monedas de Cripta.
+* **Cartas Cosméticas de Monstruo (Estilo Ragnarok) y Metamonedas en Combate:**
+  * Drop probabilístico de cartas coleccionables al vencer enemigos (1.5% comunes, 3% élites, 5% jefes + bono de suerte).
+  * Distinción visual estricta: la corona dorada `👑` queda reservada en exclusiva para las cartas coleccionables Ragnarok, sustituyendo las cartas mecánicas de jefes por el sigilo arcano `✦`.
+  * Drops dinámicos de metamonedas (20% de probabilidad al vencer un rival, otorgando 1-3 Monedas de Cripta).
+* **Altar Sacrificial con Opción de Renuncia:**
+  * Los aventureros pueden rechazar el pacto de sangre pagando un 15% de sus metamonedas actuales (mínimo 2 🗝️), conservando su vida intacta sin penalizaciones permanentes.
+* **Límite de 2 Compras en Tienda y Persistencia de Piso:**
+  * Reparado el bug de reseteo prematuro de compras dentro del mismo piso mediante `_lastShopFloor`.
+  * Bloqueo visual y táctil mediante `.shop-locked` y `disabled` en todos los botones del bazar una vez alcanzado el tope de compras.
+* **Progresión de Ascensión Secuencial y Desbloqueo del Modo Endless:**
+  * Dificultades estructuradas en estricta secuencia (Normal → Heroico → Mítico → Pesadilla).
+  * El modo *Endless / Infierno* requiere haber completado con éxito al menos la Ascensión Mítica (Ascensión 2+).
+* **Aislamiento de Mazos por Héroe & Mercado de Metamonedas en Tienda:**
+  * Cada clase (Caballero, Pícaro, Monje, Nigromante) almacena ahora sus cartas transmutadas y sellos de forma completamente aislada en `torre21_hero_decks`.
+  * Nueva pestaña `🗝️ METAMONEDAS` en el Bazar con selector de héroe activo para adquirir cartas transmutadas (25 🗝️), re-rollear efectos arcanos (10 🗝️), comprar sellos mayores (20 🗝️) y transmutar sellos (8 🗝️).
+* **Códice de la Torre Renovado y Lore Directo:**
+  * Reestructuración del Códice con 6 secciones dedicadas: Pisos (narrativa de los 21 pisos), Memorias de los Jacks, Colección Ragnarok, Reliquias, Amuletos y Bestiario.
+  * `ENEMY_LORE` reescrito con descripciones concisas de 2 líneas, directas, oscuras y evocadoras.
+  * Versión del juego actualizada formalmente a `v1.7.4 (BUILD 38)`.
 
-### [v1.7.4] — Octubre 2026
+### [v1.7.3] — Octubre 2026
 * **Auto-Curación y Persistencia Integral de Actos de Campaña:**
   * Implementada la auto-curación proactiva (`autoHealAllCampaignWaypoints` y `autoHealCampaignWaypointsForFloor`) que analiza el piso alcanzado en la partida guardada y las estadísticas históricas en todas las dificultades: si el jugador se encuentra en el Piso 14, los Actos 1, 2 y 3 se auto-reparan y se marcan como **✔ VENCIDOS**, dejando el Acto 4 como **⚡ ENTRANTE**.
   * Al vencer la Torre (Piso 21), se desbloquea el Waypoint 7 marcando los 6 Actos como **✔ VENCIDOS**.

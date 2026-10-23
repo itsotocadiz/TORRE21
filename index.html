@@ -369,7 +369,7 @@
           🏆 SALÓN DE LOGROS (25 DESAFÍOS)
         </button>
         <button onclick="openCodex()" class="btn-glow-gold" style="border-color:#48cae4;color:#48cae4;padding:12px;font-size:11px;font-weight:700;min-height:44px;">
-          📜 CÓDICE DE LA TORRE (BESTIARIO Y ARTEFACTOS)
+          📜 CÓDICE DE LA TORRE (PISOS, MEMORIAS Y COLECCIÓN)
         </button>
         <button onclick="showControls()" style="padding:12px;font-size:11px;font-weight:700;border-color:#66fcf1;color:#66fcf1;min-height:44px;">
           📖 REGLAS DEL BLACKJACK Y GUÍA DE COMBATE
@@ -480,7 +480,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span>📱 VERSIÓN 1.0.0 (BUILD 36)</span>
+          <span id="settings-version">📱 VERSIÓN v1.7.4 (BUILD 38)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -831,7 +831,10 @@
         <button class="inspect-close-btn" onclick="closeCodex()">✕</button>
       </div>
       <div class="codex-tabs">
-        <button class="codex-tab-btn active" id="codex-tab-relics" onclick="switchCodexTab('relics')">🏺 ARTEFACTOS</button>
+        <button class="codex-tab-btn active" id="codex-tab-floors" onclick="switchCodexTab('floors')">🏰 PISOS</button>
+        <button class="codex-tab-btn" id="codex-tab-memories" onclick="switchCodexTab('memories')">📖 MEMORIAS</button>
+        <button class="codex-tab-btn" id="codex-tab-collection" onclick="switchCodexTab('collection')">👑 ÁLBUM RAGNAROK</button>
+        <button class="codex-tab-btn" id="codex-tab-relics" onclick="switchCodexTab('relics')">🏺 RELIQUIAS</button>
         <button class="codex-tab-btn" id="codex-tab-amulets" onclick="switchCodexTab('amulets')">💍 ACCESORIOS</button>
         <button class="codex-tab-btn" id="codex-tab-enemies" onclick="switchCodexTab('enemies')">👹 BESTIARIO</button>
         <button class="codex-tab-btn" id="codex-tab-perks" onclick="openPerksCodexModal()">⚡ PERKS (15)</button>
