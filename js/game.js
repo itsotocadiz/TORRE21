@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.7.5";
+  const GAME_VERSION = "v1.7.6";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.7.5)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.7.6)
      ============================================================ */
 
   const HERO_DATA = {
@@ -3835,9 +3835,164 @@
   }
   window.calculateExactTacticalDamage = calculateExactTacticalDamage;
 
+  /* ============================================================
+     VALIDACIÓN DEFENSIVA DE ESTADO DE COMBATE (v1.7.6)
+     Previene crashes por condiciones de carrera o referencias nulas
+     en el WebView de Android/Capacitor al entrar al primer combate.
+     ============================================================ */
+  function ensureBattleStateInitialized() {
+    try {
+      if (!window.gameState || typeof window.gameState !== "object") {
+        window.gameState = {};
+      }
+      const gs = window.gameState;
+      if (!gs.player || typeof gs.player !== "object") {
+        gs.player = {
+          name: "Jack",
+          class: "knight",
+          hp: 100,
+          maxHp: 100,
+          pwr: 5,
+          def: 2,
+          level: 1,
+          exp: 0,
+          potions: 2,
+          rerollsAvailable: 0,
+          handNumber: 0,
+          betAmount: 0,
+          playerHand: [],
+          deck: [],
+          artifacts: [],
+          cardUpgrades: [],
+          cardEnchantments: {}
+        };
+      }
+      const p = gs.player;
+      p.hp = (typeof p.hp === "number" && !isNaN(p.hp)) ? p.hp : (p.maxHp || 100);
+      p.maxHp = Math.max(1, (typeof p.maxHp === "number" && !isNaN(p.maxHp)) ? p.maxHp : 100);
+      p.pwr = (typeof p.pwr === "number" && !isNaN(p.pwr)) ? p.pwr : 5;
+      p.def = (typeof p.def === "number" && !isNaN(p.def)) ? p.def : 2;
+      p.critChance = Number(p.critChance) || 0;
+      p.dodgeChance = Number(p.dodgeChance) || 0;
+      p.thorns = Number(p.thorns) || 0;
+      p.handNumber = Number(p.handNumber) || 0;
+      p.betAmount = Number(p.betAmount) || 0;
+      if (!Array.isArray(p.playerHand)) p.playerHand = [];
+      if (!Array.isArray(p.deck)) p.deck = [];
+      if (!Array.isArray(p.artifacts)) p.artifacts = [];
+      if (!Array.isArray(p.cardUpgrades)) p.cardUpgrades = [];
+      if (!p.cardEnchantments || typeof p.cardEnchantments !== "object") p.cardEnchantments = {};
+      if (!p.attributes || typeof p.attributes !== "object") {
+        p.attributes = { str: 10, dex: 10, int: 10, con: 10, fth: 10, cha: 10 };
+      }
+
+      if (!gs.status || typeof gs.status !== "object") {
+        gs.status = {};
+      }
+      gs.status.playerShield = Number(gs.status.playerShield) || 0;
+      gs.status.enemyShield = Number(gs.status.enemyShield) || 0;
+      gs.status.playerPoison = Number(gs.status.playerPoison) || 0;
+      gs.status.enemyPoison = Number(gs.status.enemyPoison) || 0;
+      gs.status.playerBurn = Number(gs.status.playerBurn) || 0;
+      gs.status.enemyBurn = Number(gs.status.enemyBurn) || 0;
+
+      if (!gs.enemy || typeof gs.enemy !== "object" || !gs.enemy.name) {
+        if (Array.isArray(gs.floorEnemies) && gs.floorEnemies.length > 0 && gs.floorEnemies[gs.currentEnemyIndex || 0]) {
+          gs.enemy = Object.assign({}, gs.floorEnemies[gs.currentEnemyIndex || 0]);
+        } else {
+          gs.enemy = {
+            name: "Espectro de la Torre",
+            sprite: "💀",
+            hp: 60,
+            maxHp: 60,
+            pwr: 3,
+            def: 1,
+            enemyHand: []
+          };
+        }
+      }
+      const e = gs.enemy;
+      e.maxHp = Math.max(1, (typeof e.maxHp === "number" && !isNaN(e.maxHp)) ? e.maxHp : 60);
+      e.hp = (typeof e.hp === "number" && !isNaN(e.hp)) ? e.hp : e.maxHp;
+      e.pwr = (typeof e.pwr === "number" && !isNaN(e.pwr)) ? e.pwr : 3;
+      e.def = (typeof e.def === "number" && !isNaN(e.def)) ? e.def : 0;
+      if (!Array.isArray(e.enemyHand)) e.enemyHand = [];
+
+      // Validar mazo de robo
+      if (typeof drawPile !== "undefined" && (!Array.isArray(drawPile) || drawPile.length < 4)) {
+        if (typeof rebuildDrawPile === "function") rebuildDrawPile();
+      }
+
+      // Validar persistencia de mazos por héroe para evitar lecturas de undefined
+      try {
+        const storedDecks = localStorage.getItem("torre21_hero_decks");
+        if (!storedDecks) {
+          localStorage.setItem("torre21_hero_decks", "{}");
+        }
+      } catch (_) {}
+
+      return true;
+    } catch (err) {
+      console.warn("ensureBattleStateInitialized catch fallback:", err);
+      return false;
+    }
+  }
+  window.ensureBattleStateInitialized = ensureBattleStateInitialized;
+
+  /* ============================================================
+     ÁLBUMES DE BENDICIONES Y RELIQUIAS COLECCIONABLES (v1.7.6)
+     ============================================================ */
+  function getUnlockedBlessings() {
+    try {
+      const raw = localStorage.getItem("torre21_unlocked_blessings") || localStorage.getItem("bj_unlocked_blessings") || "[]";
+      const list = JSON.parse(raw);
+      return Array.isArray(list) ? list : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  window.getUnlockedBlessings = getUnlockedBlessings;
+
+  function unlockBlessingInCodex(id) {
+    if (!id || typeof id !== "string") return;
+    try {
+      const list = getUnlockedBlessings();
+      if (!list.includes(id)) {
+        list.push(id);
+        localStorage.setItem("torre21_unlocked_blessings", JSON.stringify(list));
+        localStorage.setItem("bj_unlocked_blessings", JSON.stringify(list));
+      }
+    } catch (_) {}
+  }
+  window.unlockBlessingInCodex = unlockBlessingInCodex;
+
+  function getUnlockedRelics() {
+    try {
+      const raw = localStorage.getItem("torre21_unlocked_relics") || localStorage.getItem("bj_unlocked_relics") || "[]";
+      const list = JSON.parse(raw);
+      return Array.isArray(list) ? list : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  window.getUnlockedRelics = getUnlockedRelics;
+
+  function unlockRelicInCodex(id) {
+    if (!id || typeof id !== "string") return;
+    try {
+      const list = getUnlockedRelics();
+      if (!list.includes(id)) {
+        list.push(id);
+        localStorage.setItem("torre21_unlocked_relics", JSON.stringify(list));
+        localStorage.setItem("bj_unlocked_relics", JSON.stringify(list));
+      }
+    } catch (_) {}
+  }
+  window.unlockRelicInCodex = unlockRelicInCodex;
+
   function calculateTacticalAttackRange(player, enemy, playerHand = [], isDouble = false) {
     if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ Daño: 0 HP", score: 0 };
-    const score = calculateHandScore(playerHand);
+    const score = calculateHandScore(playerHand || []);
     if (score > 21) {
       return { minDmg: 0, maxDmg: 0, text: "⚔️ Daño: 0 HP (BUST)", isBust: true, score };
     }
@@ -3849,8 +4004,9 @@
     if (strMod > 0) bonus += strMod;
 
     let enemyScore = 17;
-    if (enemy && enemy.hand && enemy.hand.length > 0) {
-      const eScore = calculateHandScore(enemy.hand);
+    const enemyHandCards = (enemy && (enemy.enemyHand || enemy.hand)) || [];
+    if (enemyHandCards.length > 0) {
+      const eScore = calculateHandScore(enemyHandCards);
       if (eScore <= 21) enemyScore = eScore;
     }
     const scoreMargin = Math.max(0, score - enemyScore);
@@ -6767,9 +6923,9 @@
     }
   }
 
-  let currentCodexTab = "floors";
+  let currentCodexTab = "collection";
   function openCodex() {
-    switchCodexTab("floors");
+    switchCodexTab("collection");
     const m = document.getElementById("screen-codex");
     if (m) m.classList.remove("hidden");
     triggerHaptic("button_click");
@@ -6836,9 +6992,9 @@
   ];
   window.RAGNAROK_MONSTERS_CATALOG = RAGNAROK_MONSTERS_CATALOG;
 
-  function switchCodexTab(tab = "floors") {
+  function switchCodexTab(tab = "collection") {
     currentCodexTab = tab;
-    const allTabIds = ["floors", "memories", "collection", "enemies", "secrets", "relics", "amulets"];
+    const allTabIds = ["memories", "collection", "blessings", "relics", "enemies"];
     allTabIds.forEach(t => {
       const btn = document.getElementById("codex-tab-" + t);
       if (btn) {
@@ -6849,13 +7005,11 @@
 
     const sectionTitleEl = document.getElementById("codex-active-section-title");
     const tabHeaders = {
-      floors: "🏰 PISOS Y CRÓNICAS DE LA TORRE",
       memories: "📜 CRÓNICAS Y MEMORIAS OCULTAS",
-      collection: "👑 ÁLBUM DE CARTAS COSMÉTICAS RAGNAROK",
-      enemies: "⚔️ BESTIARIO Y RIVALES DE LA TORRE",
-      secrets: "🔮 SECRETOS Y PACTOS DEL ABISMO",
-      relics: "🏺 RELIQUIAS MÍSTICAS DE LA TORRE",
-      amulets: "💍 ACCESORIOS Y AMULETOS SAGRADOS"
+      collection: "👑 CARTAS COSMÉTICAS",
+      blessings: "✨ BENDICIONES DEL DESTINO",
+      relics: "🏺 RELIQUIAS DE LA TORRE",
+      enemies: "⚔️ BESTIARIO Y RIVALES DE LA TORRE"
     };
     if (sectionTitleEl) {
       sectionTitleEl.innerText = tabHeaders[tab] || "📜 CÓDICE DE LA TORRE";
@@ -6871,41 +7025,7 @@
       (typeof gameState !== "undefined" && gameState && gameState.floor) ? gameState.floor : 1
     );
 
-    if (tab === "floors") {
-      itemsHtml = TOWER_FLOOR_LORE.map(f => {
-        const unlocked = maxFloorReached >= f.floor;
-        if (unlocked) {
-          return `
-            <div class="codex-card buff" style="text-align:left; padding:12px; border-left:4px solid #ffd166;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                <span style="font-size:1.4rem;">${f.icon}</span>
-                <div>
-                  <strong style="color:#ffd166; font-size:11px;">PISO ${f.floor} — ${f.title.toUpperCase()}</strong>
-                  <div style="font-size:9px; color:#2a9d8f;">CONQUISTADO</div>
-                </div>
-              </div>
-              <div style="font-size:10px; color:#cbd5e1; line-height:1.4; margin-top:4px;">${f.desc}</div>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="codex-card silhouette locked" style="text-align:left; padding:12px; opacity:0.65;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:1.6rem; color:#64748b; font-weight:bold;">?</span>
-                <div>
-                  <strong style="color:#94a3b8; font-size:11px;">PISO ${f.floor} — OCULTO</strong>
-                  <div style="font-size:9px; color:#64748b;">Alcanza el Piso ${f.floor} para revelar su historia</div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-      }).join("");
-
-      const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `${Math.min(21, maxFloorReached)} / 21 PISOS REVELADOS`;
-
-    } else if (tab === "memories") {
+    if (tab === "memories") {
       const memoryReqs = [1, 4, 7, 10, 15];
       let unlockedMemCount = 0;
 
@@ -6960,7 +7080,7 @@
               <div style="font-size:1.2rem; color:#ffd166; margin-bottom:2px;">👑</div>
               <div style="font-size:2.2rem; margin:4px 0;">${m.sprite}</div>
               <strong style="color:#ffd166; font-size:10.5px; display:block;">${m.name}</strong>
-              <span style="font-size:9px; color:#2a9d8f; font-weight:bold;">Colección Ragnarok</span>
+              <span style="font-size:9px; color:#2a9d8f; font-weight:bold;">Carta Cosmética</span>
             </div>
           `;
         } else {
@@ -6976,14 +7096,131 @@
 
       itemsHtml = `
         <div style="grid-column:1/-1; margin-bottom:8px;">
-          <h3 style="color:#ffd166; font-family:var(--font-pixel); font-size:11px; margin:0 0 6px 0;">👑 ÁLBUM DE CARTAS COSMÉTICAS RAGNAROK</h3>
           <div style="font-size:9.5px; color:#94a3b8; margin-bottom:10px;">Derrota a los monstruos de la Torre (comunes 1.5%, élites 3%, jefes 5%) para coleccionar sus cartas doradas con corona.</div>
         </div>
         ${cardsGridHtml}
       `;
 
       const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `${unlockedRagnarokCount} / ${RAGNAROK_MONSTERS_CATALOG.length} CARTAS RAGNAROK`;
+      if (badgeEl) badgeEl.innerText = `${unlockedRagnarokCount} / ${RAGNAROK_MONSTERS_CATALOG.length} CARTAS COSMÉTICAS`;
+
+    } else if (tab === "blessings") {
+      const blessingsList = (typeof STARTER_BLESSINGS !== "undefined") ? STARTER_BLESSINGS : [];
+      let unlockedBlessingIds = [];
+      try {
+        const stored = localStorage.getItem("torre21_unlocked_blessings") || localStorage.getItem("bj_unlocked_blessings") || "[]";
+        unlockedBlessingIds = JSON.parse(stored);
+      } catch (_) { unlockedBlessingIds = []; }
+      if (!Array.isArray(unlockedBlessingIds)) unlockedBlessingIds = [];
+
+      let unlockedCount = 0;
+      itemsHtml = blessingsList.map(b => {
+        const isUnlocked = unlockedBlessingIds.includes(b.id) ||
+          !!(codex.blessings && codex.blessings[b.id]) ||
+          (gameState.player && (
+            (typeof gameState.player.starterBlessing === "string" && gameState.player.starterBlessing === b.id) ||
+            (gameState.player.starterBlessing && gameState.player.starterBlessing.id === b.id)
+          ));
+
+        if (isUnlocked) {
+          unlockedCount++;
+          return `
+            <div class="codex-card buff" onclick="inspectCodexItem('${b.id}', 'blessing')" style="cursor:pointer; text-align:left; padding:12px; border-left:4px solid #ffd166;" title="Toca para inspeccionar">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <span style="font-size:1.6rem;">${b.icon || "✨"}</span>
+                <div>
+                  <strong style="color:#ffd166; font-size:11px;">${b.name.toUpperCase()}</strong>
+                  <div style="font-size:9px; color:#2a9d8f;">DESCUBIERTA</div>
+                </div>
+              </div>
+              <div style="font-size:10px; color:#cbd5e1; line-height:1.4; margin-top:4px;">${b.desc}</div>
+              <div style="font-size:9px; color:#ffd166; margin-top:4px;">🔍 Toca para inspeccionar</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="codex-card silhouette locked" style="text-align:left; padding:12px; opacity:0.65;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.6rem; color:#64748b; font-weight:bold;">?</span>
+                <div>
+                  <strong style="color:#94a3b8; font-size:11px;">??? BENDICIÓN OCULTA</strong>
+                  <div style="font-size:9px; color:#64748b;">Elige esta bendición antes de ascender la Torre para registrarla en el Códice.</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join("");
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${unlockedCount} / ${blessingsList.length} BENDICIONES`;
+
+    } else if (tab === "relics") {
+      const relicPool = [];
+      const seenRelics = new Set();
+      if (typeof ALL_RELICS !== "undefined" && Array.isArray(ALL_RELICS)) {
+        ALL_RELICS.forEach(r => {
+          if (r && r.id && !seenRelics.has(r.id)) {
+            seenRelics.add(r.id);
+            relicPool.push(r);
+          }
+        });
+      }
+      if (typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+        Object.values(DEMONIC_RELICS_BY_ACT).forEach(list => {
+          if (Array.isArray(list)) {
+            list.forEach(r => {
+              if (r && r.id && !seenRelics.has(r.id)) {
+                seenRelics.add(r.id);
+                relicPool.push(r);
+              }
+            });
+          }
+        });
+      }
+
+      let unlockedRelicsStored = [];
+      try {
+        const stored = localStorage.getItem("torre21_unlocked_relics") || localStorage.getItem("bj_unlocked_relics") || "[]";
+        unlockedRelicsStored = JSON.parse(stored);
+      } catch (_) { unlockedRelicsStored = []; }
+      if (!Array.isArray(unlockedRelicsStored)) unlockedRelicsStored = [];
+
+      let discoveredRelicsCount = 0;
+      itemsHtml = relicPool.map(r => {
+        const discovered = !!(codex.relics && codex.relics[r.id]) ||
+          unlockedRelicsStored.includes(r.id) ||
+          (gameState.player && Array.isArray(gameState.player.artifacts) && gameState.player.artifacts.some(a => (a.id || a) === r.id)) ||
+          (gameState.player && Array.isArray(gameState.player.relics) && gameState.player.relics.some(a => (a.id || a) === r.id));
+
+        if (discovered) {
+          discoveredRelicsCount++;
+          const typeCls = r.type === "nerf" ? "nerf" : "buff";
+          return `
+            <div class="codex-card ${typeCls}" onclick="inspectCodexItem('${r.id}', 'relic')" style="cursor:pointer;" title="Toca para ver ficha detallada">
+              <div class="codex-card-icon">${r.icon || "🏺"}</div>
+              <div class="codex-card-body">
+                <div class="codex-card-title">${r.name}</div>
+                <div class="codex-card-desc">${r.desc}</div>
+                <div style="font-size: 9px;color:#66fcf1;margin-top:2px;">🔍 Toca para inspeccionar</div>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="codex-card silhouette" onclick="inspectCodexItem('${r.id}', 'relic')" style="cursor:pointer;" title="Toca para ver ficha">
+              <div class="codex-card-icon">❓</div>
+              <div class="codex-card-body">
+                <div class="codex-card-title">??? Reliquia Oculta</div>
+                <div class="codex-card-desc">Se ofrece como recompensa mística al superar pisos y actos de la Torre.</div>
+              </div>
+            </div>
+          `;
+        }
+      }).join("");
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${discoveredRelicsCount} / ${relicPool.length} RELIQUIAS`;
 
     } else if (tab === "enemies") {
       itemsHtml = ENEMIES.map(e => {
@@ -7007,7 +7244,7 @@
               <div class="codex-card-icon" style="font-size:1.8rem; font-weight:bold; color:#64748b;">?</div>
               <div class="codex-card-body">
                 <div class="codex-card-title">??? Rival Enigmático</div>
-                <div class="codex-card-desc">Habita en los pisos superiores de la Torre. Enfréntalo para registrarlo.</div>
+                <div class="codex-card-desc">Habita en los pisos de la Torre. Enfréntalo para registrarlo.</div>
               </div>
             </div>
           `;
@@ -7018,99 +7255,10 @@
       const discoveredItems = Object.keys(codex.enemies || {}).length;
       const badgeEl = document.getElementById("codex-count-badge");
       if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} BESTIARIO`;
-
-    } else if (tab === "secrets") {
-      const secretsData = [
-        { icon: "🍷", title: "Mesa Sacrificial del Abismo", desc: "Altar arcano donde los más audaces entregan fragmentos de su salud máxima o reliquias a cambio de metamonedas de cripta y favores oscuros." },
-        { icon: "🛡️", title: "El Choque Sagrado: Parry 21 vs 21", desc: "Cuando jugador y rival obtienen un 21 simultáneo en la primera mano, se desata un Parry Épico: se anula el impacto mutuo y ambos duelistas obtienen +6 de Escudo." },
-        { icon: "🎲", title: "El Dado del Campeón y Mandinga", desc: "Al culminar cada Acto abatiendo a su Guardián, un dado con 50% de probabilidad bendice tu paso otorgando bonificaciones de oro masivo o pociones vitales." },
-        { icon: "🔥", title: "Muerte Súbita y Modo Furia", desc: "Superar el límite de 7 manos despierta la furia de la Torre: el daño de ambos contendientes se multiplica progresivamente por asalto ignorando bastiones." },
-        { icon: "⚗️", title: "Transmutación de Naipes y Sellos", desc: "El Bazar de la Torre y el Mercado de Héroes permiten incrustar sellos arcanos permanentes en las barajas exclusivas de cada uno de los 4 Jacks." }
-      ];
-
-      itemsHtml = secretsData.map(s => `
-        <div class="codex-card buff" style="text-align:left; padding:14px; border-left:4px solid #c77dff; background:rgba(15,23,42,0.92);">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span style="font-size:1.4rem;">${s.icon}</span>
-            <strong style="color:#c77dff; font-size:11.5px;">${s.title}</strong>
-          </div>
-          <div style="font-size:10.5px; color:#e2e8f0; line-height:1.5;">${s.desc}</div>
-        </div>
-      `).join("");
-
-      const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `5 SECRETOS ARCANOS`;
-
-    } else if (tab === "relics") {
-      itemsHtml = ALL_RELICS.map(r => {
-        const discovered = !!(codex.relics && codex.relics[r.id]);
-        if (discovered) {
-          const typeCls = r.type === "buff" ? "buff" : "nerf";
-          return `
-            <div class="codex-card ${typeCls}" onclick="inspectCodexItem('${r.id}', 'relic')" style="cursor:pointer;" title="Toca para ver ficha detallada">
-              <div class="codex-card-icon">${r.icon}</div>
-              <div class="codex-card-body">
-                <div class="codex-card-title">${r.name}</div>
-                <div class="codex-card-desc">${r.desc}</div>
-                <div style="font-size: 9px;color:#66fcf1;margin-top:2px;">🔍 Toca para inspeccionar</div>
-              </div>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="codex-card silhouette" onclick="inspectCodexItem('${r.id}', 'relic')" style="cursor:pointer;" title="Toca para ver ficha">
-              <div class="codex-card-icon">❓</div>
-              <div class="codex-card-body">
-                <div class="codex-card-title">??? Reliquia Oculta</div>
-                <div class="codex-card-desc">Se ofrece como recompensa mística al superar pisos de la Torre.</div>
-              </div>
-            </div>
-          `;
-        }
-      }).join("");
-
-      const totalItems = ALL_RELICS.length;
-      const discoveredItems = Object.keys(codex.relics || {}).length;
-      const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} RELIQUIAS`;
-
-    } else if (tab === "amulets") {
-      itemsHtml = Object.keys(AMULET_INFO).map(key => {
-        const info = AMULET_INFO[key];
-        const discovered = !!(codex.amulets && codex.amulets[key]);
-        if (discovered) {
-          return `
-            <div class="codex-card buff" onclick="inspectCodexItem('${key}', 'amulet')" style="cursor:pointer;" title="Toca para ver ficha detallada">
-              <div class="codex-card-icon">${info.icon}</div>
-              <div class="codex-card-body">
-                <div class="codex-card-title">${info.name}</div>
-                <div class="codex-card-desc">${info.desc}</div>
-                <div style="font-size: 9px;color:#ffd166;margin-top:2px;">🔍 Toca para inspeccionar</div>
-              </div>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="codex-card silhouette" onclick="inspectCodexItem('${key}', 'amulet')" style="cursor:pointer;" title="Toca para ver ficha">
-              <div class="codex-card-icon">🔒</div>
-              <div class="codex-card-body">
-                <div class="codex-card-title">??? Amuleto Legendario</div>
-                <div class="codex-card-desc">Disponible en la Joyería Secreta de la Torre (Piso 8).</div>
-              </div>
-            </div>
-          `;
-        }
-      }).join("");
-
-      const totalItems = Object.keys(AMULET_INFO).length;
-      const discoveredItems = Object.keys(codex.amulets || {}).length;
-      const badgeEl = document.getElementById("codex-count-badge");
-      if (badgeEl) badgeEl.innerText = `${discoveredItems} / ${totalItems} ACCESORIOS`;
     }
 
     grid.innerHTML = itemsHtml;
   }
-  window.switchCodexTab = switchCodexTab;
   window.switchCodexTab = switchCodexTab;
 
   /* ============================================================
@@ -8520,8 +8668,8 @@
         const curC = parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
         localStorage.setItem("bj_crypt_coins", String(curC + coinsDropped));
       }
-      spawnFloatingText("enemy-sprite", `+${coinsDropped} 🗝️ METAMONEDAS`, "gold");
-      addLog(`🗝️ ¡Drop Arcano! ${e.name} dejó caer ${coinsDropped} Monedas de Cripta.`, "gold");
+      spawnFloatingText("enemy-sprite", `+${coinsDropped} 💀 METAMONEDAS`, "gold");
+      addLog(`💀 ¡Drop Arcano! ${e.name} dejó caer ${coinsDropped} Monedas de Cripta.`, "gold");
     }
 
     // Drop de Cartas Cosméticas de Rivales Estilo Ragnarok (1.5% normal, 3% élite, 5% jefe)
@@ -10017,8 +10165,9 @@
   window.STARTER_BLESSINGS = STARTER_BLESSINGS;
 
   function hasStarterBlessing(id) {
-    if (!gameState.player || !gameState.player.starterBlessing) return false;
-    return gameState.player.starterBlessing.id === id;
+    if (!gameState || !gameState.player || !gameState.player.starterBlessing) return false;
+    const sb = gameState.player.starterBlessing;
+    return (typeof sb === "string" ? sb : sb.id) === id;
   }
   window.hasStarterBlessing = hasStarterBlessing;
 
@@ -10189,12 +10338,12 @@
     const heroMeta = meta[heroClass] || { totalExp: 0, masteryLevel: 1 };
     const mLevel = heroMeta.level || heroMeta.masteryLevel || (p && p.masteryLevel) || 1;
 
-    // Filter available blessings unlocked up to player's permanent mastery level
+    // Filtrar bendiciones disponibles desbloqueadas por nivel de maestría
     const available = STARTER_BLESSINGS.filter(b => (b.unlockLevel || 1) <= mLevel);
     const shuffled = [...available].sort(() => 0.5 - Math.random());
     const choices = shuffled.slice(0, 3);
 
-    // If fewer than 3, complete with tier 1 commons
+    // Si hay menos de 3, completar con comunes tier 1
     if (choices.length < 3) {
       const commons = STARTER_BLESSINGS.filter(b => (b.tier || 1) === 1);
       for (const c of commons) {
@@ -10208,7 +10357,7 @@
     const grid = document.querySelector(".starter-blessings-grid");
     if (grid) {
       grid.innerHTML = choices.map(b => `
-        <div class="starter-option-row tier-${b.tier || 1}" onclick="selectStarterBlessing('${b.id}')">
+        <div class="starter-option-row tier-${b.tier || 1}" data-blessing-id="${b.id}" onclick="selectStarterBlessing('${b.id}')">
           <div class="starter-opt-left">
             <div class="starter-opt-icon">${b.icon}</div>
             <div class="starter-opt-tier">${b.tierLabel || ('T' + b.tier)}</div>
@@ -10232,13 +10381,26 @@
   window.showStarterBlessingModal = showStarterBlessingModal;
 
   function selectStarterBlessing(id) {
+    if (!id || typeof id !== "string") {
+      initFloor();
+      return;
+    }
     const blessing = STARTER_BLESSINGS.find(b => b.id === id);
     if (!blessing) {
       initFloor();
       return;
     }
     const p = gameState.player;
-    p.starterBlessing = blessing;
+    p.starterBlessing = Object.assign({}, blessing);
+    p.activeBlessing = blessing.id;
+    if (!Array.isArray(p.blessings)) p.blessings = [];
+    if (!p.blessings.includes(blessing.id)) p.blessings.push(blessing.id);
+
+    // Registro permanente en el álbum del Códice
+    if (typeof unlockBlessingInCodex === "function") {
+      unlockBlessingInCodex(blessing.id);
+    }
+
     if (typeof blessing.apply === "function") {
       blessing.apply(p);
     }
@@ -12417,7 +12579,7 @@
         <div style="background:rgba(0,0,0,0.5); border:1px solid #ffd166; border-radius:10px; padding:10px; margin-bottom:12px;">
           <div style="font-family:var(--font-pixel); font-size:10px; color:#ffd166; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
             <span>👤 PERSONAJE RECEPTOR:</span>
-            <span style="color:#66fcf1; font-weight:bold;">🗝️ ${playerCryptCoins} METAMONEDAS</span>
+            <span style="color:#66fcf1; font-weight:bold;">💀 ${playerCryptCoins} METAMONEDAS</span>
           </div>
           <div class="hero-selector-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
             ${[
@@ -12441,7 +12603,7 @@
               <div style="font-size:9.5px; color:#94a3b8;">Cartas arcanas exclusivas de este héroe</div>
             </div>
             <button class="shop-action-btn buy" onclick="buyHeroTransmutedCard('${currentShopHero}')" style="padding:8px 12px; min-height:44px; font-size:10px; border-color:#66fcf1; color:#66fcf1; background:rgba(102,252,241,0.15);" ${playerCryptCoins < costNewCard ? 'disabled' : ''}>
-              + COMPRAR (${costNewCard} 🗝️)
+              + COMPRAR (${costNewCard} 💀)
             </button>
           </div>
           ${heroCards.length > 0 ? `
@@ -12454,7 +12616,7 @@
                     <div style="font-size:9px; color:#94a3b8;">${c.desc || 'Efecto arcano activo'}</div>
                   </div>
                   <button onclick="rerollHeroCardEffect('${currentShopHero}', ${idx})" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #ffd166; background:rgba(255,209,102,0.15); color:#ffd166;" ${playerCryptCoins < costRerollCard ? 'disabled' : ''}>
-                    🔄 RE-ROLLEAR (${costRerollCard} 🗝️)
+                    🔄 RE-ROLLEAR (${costRerollCard} 💀)
                   </button>
                 </div>
               `).join("")}
@@ -12472,7 +12634,7 @@
               <div style="font-size:9.5px; color:#94a3b8;">Sellos permanentes grabados en cartas de este héroe</div>
             </div>
             <button class="shop-action-btn buy gold-relic" onclick="buyHeroHighLevelSeal('${currentShopHero}')" style="padding:8px 12px; min-height:44px; font-size:10px;" ${playerCryptCoins < costNewSeal ? 'disabled' : ''}>
-              + COMPRAR SELLO (${costNewSeal} 🗝️)
+              + COMPRAR SELLO (${costNewSeal} 💀)
             </button>
           </div>
           ${heroSealsList.length > 0 ? `
@@ -12488,7 +12650,7 @@
                     <div style="font-size:9px; color:#94a3b8;">${s.desc || 'Efecto de maestría'}</div>
                   </div>
                   <button onclick="transmuteHeroSeal('${currentShopHero}', '${cid}')" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #2a9d8f; background:rgba(42,157,143,0.15); color:#2a9d8f;" ${playerCryptCoins < costRerollSeal ? 'disabled' : ''}>
-                    ⚗️ TRANSMUTAR (${costRerollSeal} 🗝️)
+                    ⚗️ TRANSMUTAR (${costRerollSeal} 💀)
                   </button>
                 </div>
               `;}).join("")}
@@ -12553,7 +12715,7 @@
           <button class="shop-tab-btn ${currentShopTab === 'artifacts' ? 'active' : ''}" onclick="switchShopTab('artifacts')">🎴 ARTEFACTOS (${p.artifacts.length}/${maxSlots})</button>
           <button class="shop-tab-btn ${currentShopTab === 'cards' ? 'active' : ''}" onclick="switchShopTab('cards')">📦 SOBRES (${enchantedList.length})</button>
           <button class="shop-tab-btn ${currentShopTab === 'forge' ? 'active' : ''}" onclick="switchShopTab('forge')">🔨 FORJA (${ownedUpgrades.length})</button>
-          <button class="shop-tab-btn ${currentShopTab === 'hero_market' ? 'active' : ''}" onclick="switchShopTab('hero_market')">🗝️ METAMONEDAS</button>
+          <button class="shop-tab-btn ${currentShopTab === 'hero_market' ? 'active' : ''}" onclick="switchShopTab('hero_market')">💀 METAMONEDAS</button>
           <button class="shop-tab-btn ${currentShopTab === 'iap' ? 'active' : ''}" onclick="switchShopTab('iap')">👑 TESORO REAL</button>
         </div>
 
@@ -12618,7 +12780,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <span style="font-family:var(--font-pixel); font-size:11px; color:#ffd166; font-weight:bold;">👑 ELIGE EL HÉRALDO PARA TRANSMUTAR:</span>
             <span style="background:rgba(230,57,70,0.18); border:1px solid #e63946; padding:4px 8px; border-radius:6px; font-size:10px; color:#ff758f; font-weight:bold;">
-              🗝️ ${playerCryptCoins} METAMONEDAS
+              💀 ${playerCryptCoins} METAMONEDAS
             </span>
           </div>
           <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
@@ -12643,7 +12805,7 @@
               <div style="font-size:9.5px; color:#94a3b8;">Cartas arcanas exclusivas en el mazo de este héroe</div>
             </div>
             <button class="shop-action-btn buy" onclick="buyHeroTransmutedCard('${currentHero}')" style="padding:8px 12px; min-height:44px; font-size:10px; border-color:#66fcf1; color:#66fcf1; background:rgba(102,252,241,0.15);" ${playerCryptCoins < costNewCard ? 'disabled' : ''}>
-              + COMPRAR (${costNewCard} 🗝️)
+              + COMPRAR (${costNewCard} 💀)
             </button>
           </div>
           ${heroCards.length > 0 ? `
@@ -12656,7 +12818,7 @@
                     <div style="font-size:9.5px; color:#94a3b8; margin-top:2px;">${c.desc || 'Efecto arcano activo'}</div>
                   </div>
                   <button onclick="rerollHeroCardEffect('${currentHero}', ${idx})" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #ffd166; background:rgba(255,209,102,0.15); color:#ffd166;" ${playerCryptCoins < costRerollCard ? 'disabled' : ''}>
-                    🔄 RE-ROLLEAR (${costRerollCard} 🗝️)
+                    🔄 RE-ROLLEAR (${costRerollCard} 💀)
                   </button>
                 </div>
               `).join("")}
@@ -12674,7 +12836,7 @@
               <div style="font-size:9.5px; color:#94a3b8;">Sellos mágicos permanentes incrustados en sus naipes</div>
             </div>
             <button class="shop-action-btn buy gold-relic" onclick="buyHeroHighLevelSeal('${currentHero}')" style="padding:8px 12px; min-height:44px; font-size:10px;" ${playerCryptCoins < costNewSeal ? 'disabled' : ''}>
-              + COMPRAR SELLO (${costNewSeal} 🗝️)
+              + COMPRAR SELLO (${costNewSeal} 💀)
             </button>
           </div>
           ${heroSealsList.length > 0 ? `
@@ -12690,7 +12852,7 @@
                     <div style="font-size:9.5px; color:#94a3b8; margin-top:2px;">${s.desc || 'Efecto de maestría'}</div>
                   </div>
                   <button onclick="transmuteHeroSeal('${currentHero}', '${cid}')" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #2a9d8f; background:rgba(42,157,143,0.15); color:#2a9d8f;" ${playerCryptCoins < costRerollSeal ? 'disabled' : ''}>
-                    ⚗️ TRANSMUTAR (${costRerollSeal} 🗝️)
+                    ⚗️ TRANSMUTAR (${costRerollSeal} 💀)
                   </button>
                 </div>
               `;}).join("")}
@@ -13659,7 +13821,7 @@
         ? AMULET_INFO[p.accessory]
         : (p.accessory ? { name: p.accessory, icon: "💍", desc: "Accesorio equipado." } : null);
       const blessingInfo = (p.starterBlessing && typeof STARTER_BLESSINGS !== "undefined")
-        ? STARTER_BLESSINGS.find(b => b.id === p.starterBlessing)
+        ? (typeof p.starterBlessing === "object" ? p.starterBlessing : STARTER_BLESSINGS.find(b => b.id === p.starterBlessing))
         : (p.gem ? { name: p.gem.toUpperCase(), icon: "💎", desc: "Bendición activa." } : null);
 
       heroDossierEl.innerHTML = `
@@ -13966,7 +14128,7 @@
         <!-- BOTÓN DE RENUNCIA PROPORCIONAL -->
         <div class="altar-renounce-container" style="margin-top:16px; text-align:center;">
           <button class="altar-renounce-btn" onclick="renounceAltarSacrifice(${renounceCost})" style="background:rgba(30,15,25,0.92); border:1.5px solid #ff758f; color:#ffd166; font-family:var(--font-pixel, sans-serif); font-size:11px; font-weight:bold; padding:10px 18px; border-radius:8px; cursor:pointer; min-height:44px; box-shadow:0 0 10px rgba(255,117,143,0.3);">
-            🚪 RENUNCIAR AL SACRIFICIO (-${renounceCost} 🗝️ METAMONEDAS)
+            🚪 RENUNCIAR AL SACRIFICIO (-${renounceCost} 💀 METAMONEDAS)
           </button>
           <div style="font-size:10px; color:#94a3b8; margin-top:5px;">
             Paga un 15% de tus metamonedas actuales (mín. 2) para eludir el pacto y marcharte sin maldición.
@@ -13987,7 +14149,7 @@
     localStorage.setItem("bj_crypt_coins", String(newBalance));
 
     addLog(`🚪 Has renunciado al pacto del altar oscuro pagando ${actualCost} Monedas de Cripta de rescate.`, "heal");
-    spawnFloatingText("player-sprite", `-${actualCost} 🗝️ RESCATE`, "gold");
+    spawnFloatingText("player-sprite", `-${actualCost} 💀 RESCATE`, "gold");
 
     gameState.curseTakenOnFloor[gameState.floor] = true;
     updateHud();
@@ -14223,6 +14385,7 @@
   let _lastEnemyHpPct = null;
 
   function updateHud() {
+    if (typeof ensureBattleStateInitialized === "function") ensureBattleStateInitialized();
     const p = gameState.player;
     const e = gameState.enemy;
 
@@ -14577,7 +14740,7 @@
       : (p && p.accessory ? { name: p.accessory, icon: "💍" } : null);
     const artCount = (p && p.artifacts && Array.isArray(p.artifacts)) ? p.artifacts.length : 0;
     const blessingInfo = (p && p.starterBlessing && typeof STARTER_BLESSINGS !== "undefined")
-      ? STARTER_BLESSINGS.find(b => b.id === p.starterBlessing)
+      ? (typeof p.starterBlessing === "object" ? p.starterBlessing : STARTER_BLESSINGS.find(b => b.id === p.starterBlessing))
       : (p && p.gem ? { name: p.gem.toUpperCase(), icon: "💎" } : null);
 
     const row = (icon, label, value) => `
@@ -15274,6 +15437,7 @@
   const BET_COLORS = ["#45a29e", "#e63946", "#f4a261", "#a8dadc", "#ff6b6b"];
 
   function showBetScreen(forceModal = false) {
+    if (typeof ensureBattleStateInitialized === "function") ensureBattleStateInitialized();
     const p = gameState.player;
     const e = gameState.enemy;
     const desc = document.getElementById("bet-desc");
@@ -15367,6 +15531,7 @@
      INICIAR NUEVA MANO
      ============================================================ */
   async function startNewHand() {
+    if (typeof ensureBattleStateInitialized === "function") ensureBattleStateInitialized();
     const p = gameState.player;
     const e = gameState.enemy;
 
@@ -16243,7 +16408,7 @@
         if (p._clubsDoublePayout) {
           gameState.gold = (gameState.gold || 0) + 25;
           if (typeof addCryptCoins === "function") addCryptCoins(1);
-          spawnFloatingText("player-sprite", "+25 🪙 +1 🗝️", "gold");
+          spawnFloatingText("player-sprite", "+25 🪙 +1 💀", "gold");
           addLog("♣️ Doble o Nada (Talento ♣️): +25 Oro adicional y +1 Moneda de Cripta por ganar doblando.", "gold");
         }
       }
@@ -17485,6 +17650,7 @@
   window.initEnemyForCombat = initEnemyForCombat;
 
   async function initFloor() {
+    if (typeof ensureBattleStateInitialized === "function") ensureBattleStateInitialized();
     _lastEnemyHpPct = null;
     gameState.isRolling = false;
     document.body.classList.remove("sudden-death-active");
@@ -17824,6 +17990,7 @@
      INICIO DE COMBATE MANUAL (REQUERIMIENTO 1)
      ============================================================ */
   function showCombatStartPrompt() {
+    if (typeof ensureBattleStateInitialized === "function") ensureBattleStateInitialized();
     const p = gameState.player;
     const e = gameState.enemy;
 
@@ -17901,6 +18068,7 @@
   window.showCombatStartPrompt = showCombatStartPrompt;
 
   function confirmStartCombat() {
+    if (typeof ensureBattleStateInitialized === "function") ensureBattleStateInitialized();
     try { stopIntroMusic(); } catch (_) {}
     try { startCombatMusic(); } catch (_) {}
     try {
@@ -19978,21 +20146,47 @@
         `;
       }
       if (tipEl) tipEl.innerHTML = `💡 <b>Estrategia:</b> ${enemy.traitShort || 'Plántate cerca del 21 para contrarrestar su poder.'}`;
+    } else if (type === "blessing") {
+      const blessing = (typeof STARTER_BLESSINGS !== "undefined" ? STARTER_BLESSINGS.find(b => b.id === id) : null) || { icon: "✨", name: id, desc: "Bendición del destino." };
+      if (typeEl) typeEl.innerText = "BENDICIÓN DEL DESTINO";
+      if (iconEl) iconEl.innerText = blessing.icon || "✨";
+      if (nameEl) nameEl.innerText = blessing.name.toUpperCase();
+      if (metaEl) metaEl.innerText = "ELECCIÓN AL INICIAR ASCENSO";
+      if (loreEl) loreEl.innerText = blessing.desc || "Bendición ancestral concedida a los heraldos.";
+      if (statsEl) {
+        statsEl.innerHTML = `
+          <div class="cdd-stat-box" style="grid-column:span 3;">Efecto activo permanente durante toda la partida en la Torre</div>
+        `;
+      }
+      if (tipEl) tipEl.innerHTML = `💡 Selecciona esta bendición al iniciar la partida para personalizar tu estilo táctico.`;
     } else if (type === "relic") {
-      const relic = ALL_RELICS.find(r => r.id === id) || ALL_RELICS[0];
-      if (typeEl) typeEl.innerText = "ARTEFACTO ARCANO DE LA TORRE";
-      if (iconEl) iconEl.innerText = relic.icon || "🎴";
+      let relic = null;
+      if (typeof ALL_RELICS !== "undefined" && Array.isArray(ALL_RELICS)) {
+        relic = ALL_RELICS.find(r => r.id === id);
+      }
+      if (!relic && typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+        for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
+          if (Array.isArray(list)) {
+            const found = list.find(r => r.id === id);
+            if (found) { relic = found; break; }
+          }
+        }
+      }
+      if (!relic) relic = (typeof ALL_RELICS !== "undefined" && ALL_RELICS[0]) || { icon: "🏺", name: id, desc: "Reliquia de la Torre.", type: "buff" };
+
+      if (typeEl) typeEl.innerText = "RELIQUIA MÍSTICA DE LA TORRE";
+      if (iconEl) iconEl.innerText = relic.icon || "🏺";
       if (nameEl) nameEl.innerText = relic.name.toUpperCase();
-      if (metaEl) metaEl.innerText = relic.type === "buff" ? "ARTEFACTO BENDITO" : "MALDICIÓN DEL PACTO";
+      if (metaEl) metaEl.innerText = relic.type === "buff" ? "RELIQUIA BENDITA" : (relic.type === "nerf" ? "MALDICIÓN DEL PACTO" : "RELIQUIA ARCANAS");
       if (loreEl) loreEl.innerText = relic.desc || "Artefacto milenario.";
       if (statsEl) {
         statsEl.innerHTML = `
           <div class="cdd-stat-box" style="grid-column:span 3;">Efecto pasivo constante durante toda la run</div>
         `;
       }
-      if (tipEl) tipEl.innerHTML = `💡 Combina con cartas del mismo elemento para multiplicar su eficacia.`;
+      if (tipEl) tipEl.innerHTML = `💡 Combina con cartas y talentos de tu clase para multiplicar su eficacia.`;
     } else if (type === "amulet") {
-      const acc = AMULET_INFO[id] || { icon: "💍", name: id, desc: "" };
+      const acc = (typeof AMULET_INFO !== "undefined" ? AMULET_INFO[id] : null) || { icon: "💍", name: id, desc: "" };
       if (typeEl) typeEl.innerText = "ACCESORIO DE EQUIPAMIENTO";
       if (iconEl) iconEl.innerText = acc.icon || "💍";
       if (nameEl) nameEl.innerText = acc.name.toUpperCase();

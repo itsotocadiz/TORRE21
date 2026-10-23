@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.7.5 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.7.6 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,23 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.7.5] — Octubre 2026 (Actual)
+### [v1.7.6] — Octubre 2026 (Actual)
+* **Blindaje Total de Inicialización de Batalla (`ensureBattleStateInitialized`):**
+  * Validación previa defensiva ante condiciones de carrera y desreferencias nulas en la entrada al primer combate tras la selección de héroe o bendición (`startNewHand`, `updateHud`, `updateTacticalOddsHUD`, `calculateTacticalAttackRange`).
+  * Comprobación segura y asignación de fallbacks para atributos de jugador, vida, mazo de naipes, escudo y enemigos antes de ejecutar cualquier cálculo táctico.
+* **Normalización y Persistencia de Bendiciones del Destino:**
+  * Flujo unificado `selectStarterBlessing(id)` que garantiza persistencia limpia por ID y correspondencia unívoca entre la bendición elegida, la inspección y el efecto aplicado en combate.
+  * Registro automático de toda bendición seleccionada en `torre21_unlocked_blessings` (y `bj_unlocked_blessings`) para su seguimiento en el Códice.
+  * Subsanadas las comparaciones de tipo objeto vs ID de texto (`b.id === p.starterBlessing`).
+* **Códice 100% Coleccionable (5 Pestañas con Ranuras `?`):**
+  * Barra horizontal de navegación de 5 pestañas exclusivas de coleccionables: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
+  * Renombrado oficial de "Cartas Ragnarok" / "Álbum Ragnarok" a **"Cartas Cosméticas"** y eliminación del doble título inyectado en la vista.
+  * Retirada completa de pestañas no coleccionables ("Pisos" y "Secretos") y del botón de prólogo del panel de códice.
+  * Incorporación de las pestañas de **Bendiciones** (`STARTER_BLESSINGS`) y **Reliquias** (`ALL_RELICS` + `DEMONIC_RELICS_BY_ACT`) con ranuras oscuras `?` para items no descubiertos y modal interactivo de inspección táctil (`inspectCodexItem`) para elementos desbloqueados.
+* **Estandarización de Iconografía de Metamoneda (`💀`):**
+  * Reemplazados todos los iconos de llave (`🗝️`/`🔑`) en contadores, cabeceras, botones de compra del Mercado de Héroes, forja de naipes y transmutación de sellos por el icono oficial de Calavera `💀`.
+
+### [v1.7.5] — Octubre 2026
 * **Reestructuración Visual de Lore con 5 Pestañas de Símbolos:**
   * Barra horizontal de 5 pestañas representadas únicamente por iconos intuitivos (`🏰 Pisos`, `📜 Memorias`, `👑 Álbum Ragnarok`, `⚔️ Bestiario/Rivales`, `🔮 Secretos del Abismo`) que garantizan cero rupturas de interfaz en smartphones.
   * Encabezado activo dinámico (`#codex-active-section-title`) que indica la crónica seleccionada y organiza el contenido en tarjetas limpias y legibles.
