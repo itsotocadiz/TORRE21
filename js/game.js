@@ -2631,6 +2631,7 @@
     }
 
     // 2. Integrar cartas persistentes ganadas en Ascensos (BUG-02)
+    // Se reemplaza la carta común homóloga en el mazo de 52 cartas para mantener exactamente 52 cartas oficiales
     if (Array.isArray(extraCards) && extraCards.length > 0) {
       extraCards.forEach((c, idx) => {
         if (!c) return;
@@ -2654,7 +2655,12 @@
           cardObj.enchantment = Object.assign({}, cardSeal);
         }
 
-        deck.push(cardObj);
+        const matchIdx = deck.findIndex(base => base.rank === cardObj.rank && base.suit === cardObj.suit);
+        if (matchIdx !== -1) {
+          deck[matchIdx] = cardObj;
+        } else {
+          deck.push(cardObj);
+        }
       });
     }
 
@@ -2672,6 +2678,12 @@
 
     return deck;
   }
+
+  function peekNextCard() {
+    if (!drawPile || drawPile.length === 0) return null;
+    return drawPile[drawPile.length - 1];
+  }
+  window.peekNextCard = peekNextCard;
 
   function rebuildDrawPile() {
     drawPile = buildStandardDeck();
@@ -4516,12 +4528,60 @@
   function unlockCampaignWaypoint(diffKey, chapterNum) {
     const wp = getCampaignWaypoints();
     if (!wp[diffKey] || chapterNum > wp[diffKey]) {
-      wp[diffKey] = Math.min(6, Math.max(wp[diffKey] || 1, chapterNum));
+      wp[diffKey] = Math.min(7, Math.max(wp[diffKey] || 1, chapterNum));
       try { localStorage.setItem(CAMPAIGN_WAYPOINTS_KEY, JSON.stringify(wp)); } catch (_) {}
     }
     return wp;
   }
   window.unlockCampaignWaypoint = unlockCampaignWaypoint;
+
+  function autoHealCampaignWaypointsForFloor(floor, diffKey = "normal") {
+    const diff = diffKey || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
+    const wp = getCampaignWaypoints();
+    let targetWaypoint = wp[diff] || 1;
+
+    // Verificar si la dificultad ya tiene la campaña completada o victorias previas en la torre
+    const campaignDiffWon = (localStorage.getItem(`bj_campaign_completed_${diff}`) === "true");
+    const towerWinsOnDiff = parseInt(localStorage.getItem(`bj_victory_knight_${diff}`) || "0", 10) +
+                            parseInt(localStorage.getItem(`bj_victory_mage_${diff}`) || "0", 10) +
+                            parseInt(localStorage.getItem(`bj_victory_rogue_${diff}`) || "0", 10) +
+                            parseInt(localStorage.getItem(`bj_victory_paladin_${diff}`) || "0", 10) +
+                            parseInt(localStorage.getItem(`bj_victory_necro_${diff}`) || "0", 10);
+    if (campaignDiffWon || towerWinsOnDiff > 0) {
+      targetWaypoint = Math.max(targetWaypoint, 7);
+    }
+
+    if (floor && floor >= 1) {
+      if (floor >= 22) targetWaypoint = Math.max(targetWaypoint, 7);
+      else if (floor >= 20) targetWaypoint = Math.max(targetWaypoint, 6);
+      else if (floor >= 16) targetWaypoint = Math.max(targetWaypoint, 5);
+      else if (floor >= 12) targetWaypoint = Math.max(targetWaypoint, 4);
+      else if (floor >= 8) targetWaypoint = Math.max(targetWaypoint, 3);
+      else if (floor >= 4) targetWaypoint = Math.max(targetWaypoint, 2);
+    }
+
+    if (targetWaypoint > (wp[diff] || 1)) {
+      unlockCampaignWaypoint(diff, targetWaypoint);
+    }
+  }
+  window.autoHealCampaignWaypointsForFloor = autoHealCampaignWaypointsForFloor;
+
+  function autoHealAllCampaignWaypoints() {
+    const diffs = ["normal", "hard", "mythic", "nightmare", "hell"];
+    try {
+      const savedRun = JSON.parse(localStorage.getItem(MID_RUN_STORAGE_KEY) || "null");
+      diffs.forEach(d => {
+        const floorToHeal = (savedRun && (savedRun.diff === d || (!savedRun.diff && d === "normal"))) ? savedRun.floor : 1;
+        autoHealCampaignWaypointsForFloor(floorToHeal, d);
+      });
+    } catch (_) {
+      diffs.forEach(d => autoHealCampaignWaypointsForFloor(1, d));
+    }
+    if (typeof renderCampaignChaptersUI === "function") {
+      renderCampaignChaptersUI();
+    }
+  }
+  window.autoHealAllCampaignWaypoints = autoHealAllCampaignWaypoints;
 
   function startCampaignRun(diffKey, chapterNum = 1) {
     const wp = getCampaignWaypoints();
@@ -6763,6 +6823,8 @@
         wheelMode: gameState.wheelMode || "death",
         pityPacksWithoutEpic: gameState.pityPacksWithoutEpic || 0,
         diff: gameState.diff,
+        isCampaignMode: (gameState.isCampaignMode !== undefined) ? gameState.isCampaignMode : true,
+        chapter: gameState.chapter || ((typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1),
         status: gameState.status,
         player: gameState.player,
         enemy: gameState.enemy,
@@ -6851,6 +6913,17 @@
       gameState.wheelMode = saved.wheelMode || "death";
       gameState.pityPacksWithoutEpic = saved.pityPacksWithoutEpic || 0;
       gameState.diff = saved.diff || "normal";
+      gameState.isCampaignMode = (saved.isCampaignMode !== undefined) ? saved.isCampaignMode : true;
+      gameState.chapter = saved.chapter || ((typeof getActForFloor === "function") ? getActForFloor(saved.floor) : 1);
+      
+      // Auto-curar waypoints de campaña: si la partida reanudada ya superó jefes de acto, desbloquear waypoints
+      if (typeof autoHealCampaignWaypointsForFloor === "function") {
+        autoHealCampaignWaypointsForFloor(gameState.floor, gameState.diff);
+      }
+      if (typeof renderCampaignChaptersUI === "function") {
+        renderCampaignChaptersUI();
+      }
+
       gameState.status = Object.assign({
         playerShield: 0, playerPoison: 0, playerBurn: 0,
         enemyShield: 0, enemyPoison: 0, enemyBurn: 0, enemyRevived: false
@@ -7244,11 +7317,11 @@
       }
       if (p.bust) el.classList.add("bust");
       if (p.blackjack) el.classList.add("blackjack");
-      const isLoot = !!card.isWonCard;
-      const lootBadge = isLoot ? '<span class="card-loot-badge" title="Naipe de Botín de Torre">⭐</span>' : '';
-      if (isLoot) el.classList.add("won-loot-card");
+      const isLoot = !!card.isWonCard || !!card.fusion || !!card.modifier || !!card.operator || (Array.isArray(card.dynamicValues) && card.dynamicValues.length > 0);
+      const lootBadge = isLoot ? '<span class="card-loot-badge" title="Naipe Arcano de Jefe">👑</span>' : '';
+      if (isLoot) el.classList.add("won-loot-card", "card-transmuted-arcane");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
-      else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId) el.classList.add("card-holographic");
+      else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId || isLoot) el.classList.add("card-holographic");
       if (card.cardType === "ability" || card.abilityAction || card.fusion) {
         el.classList.add("card-has-ability");
       }
@@ -7314,10 +7387,10 @@
         el.style.animationDelay = `${i * 90}ms`;
         card._animPlayed = true;
       }
-      if (e.bust) el.classList.add("bust");
-      if (e.blackjack) el.classList.add("blackjack");
+      const isEnemyLoot = !!card.isWonCard || !!card.fusion || !!card.modifier || !!card.operator || (Array.isArray(card.dynamicValues) && card.dynamicValues.length > 0);
+      if (isEnemyLoot) el.classList.add("won-loot-card", "card-transmuted-arcane");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
-      else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId) el.classList.add("card-holographic");
+      else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId || isEnemyLoot) el.classList.add("card-holographic");
 
       if ((i === 0 && !showAll && !e.stand) || fogged) {
         el.className = "card-face cover";
@@ -7411,8 +7484,9 @@
         hitBtn.innerText = "🃏 PEDIR CARTA";
       }
     }
+    const maxDoubleHandSize = p._pactExtraStartingCard ? 3 : 2;
     if (standBtn) standBtn.disabled = false;
-    if (doubleBtn) doubleBtn.disabled = p.stand || (p.playerHand && p.playerHand.length !== 2) || (p.playerScore >= 21);
+    if (doubleBtn) doubleBtn.disabled = p.stand || (p.playerHand && p.playerHand.length !== maxDoubleHandSize && p.playerHand.length !== 2) || (p.playerScore >= 21);
     if (rerollBtn) rerollBtn.disabled = (p.rerollsAvailable <= 0);
     if (potionBtn) potionBtn.disabled = (p.potions <= 0);
 
@@ -7526,9 +7600,10 @@
     }
 
     if (action === "double") {
-      if (p.bust || p.stand || (p.playerHand && p.playerHand.length !== 2)) {
+      const maxInitialCards = p._pactExtraStartingCard ? 3 : 2;
+      if (p.bust || p.stand || (p.playerHand && p.playerHand.length !== maxInitialCards && p.playerHand.length !== 2)) {
         triggerHaptic("button_click");
-        addLog("Solo puedes Doblar la apuesta con tus 2 primeras cartas.", "warning");
+        addLog("Solo puedes Doblar la apuesta con tus cartas iniciales.", "warning");
         return;
       }
 
@@ -7986,8 +8061,10 @@
       return;
     }
 
-    // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto en modo Campaña
-    if (gameState.isCampaignMode) {
+    // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto (Campaña y Modo Torre)
+    const isActBossEncounter = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : (gameState.floor === 3 || gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19);
+    if (gameState.isCampaignMode || isActBossEncounter) {
+      gameState.isCampaignMode = true;
       const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
       if (gameState.floor === 3) {
         unlockCampaignWaypoint(diffKey, 2);
@@ -12488,6 +12565,8 @@
     if (screenTitle) screenTitle.classList.remove("hidden");
     if (typeof updateResumeRunButton === "function") updateResumeRunButton();
     if (typeof checkResumeRunButton === "function") checkResumeRunButton();
+    if (typeof autoHealAllCampaignWaypoints === "function") autoHealAllCampaignWaypoints();
+    if (typeof renderCampaignChaptersUI === "function") renderCampaignChaptersUI();
     if (typeof renderHeroBook === "function") renderHeroBook();
     try { playTitleMusic(); } catch (_) {}
   }
@@ -13679,6 +13758,12 @@
     // Guardar victorias totales globales de la Torre para desbloqueo de dificultades (Heroico, Mítico, Pesadilla)
     const totalWins = (typeof getTotalTowerWins === "function") ? getTotalTowerWins() : parseInt(localStorage.getItem("bj_tower_total_wins") || "0", 10);
     localStorage.setItem("bj_tower_total_wins", (totalWins + 1).toString());
+
+    // Completar campaña y desbloquear todos los 6 Actos (waypoint 7)
+    if (typeof unlockCampaignWaypoint === "function") {
+      unlockCampaignWaypoint(diffKey, 7);
+    }
+    try { localStorage.setItem(`bj_campaign_completed_${diffKey}`, "true"); } catch (_) {}
 
     // Progresión de Torre: al vencer al Jack de la Torre actual, la siguiente es:
     // normal (Novato, 7 pisos) -> hard (Heroico, 9 pisos) -> mythic (Mítico, 11 pisos) -> nightmare (Pesadilla, 13 pisos)
@@ -15023,9 +15108,13 @@
         const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
         let critMultiplier = 1.5;
         if (isNatural21) {
-          critMultiplier = (p.gem === "blackjack_heritage") ? 4.0 : 3.0;
+          if (pendingNextBJx4) {
+            critMultiplier = (p.gem === "blackjack_heritage") ? 4.5 : 4.0;
+          } else {
+            critMultiplier = (p.gem === "blackjack_heritage") ? 4.0 : 3.0;
+          }
         } else if (p.playerScore === 21) {
-          critMultiplier = 2.0;
+          critMultiplier = pendingNextBJx4 ? 3.0 : 2.0;
         } else if (p._spadesTwinBlades && handSpadesTotal >= 2) {
           critMultiplier = 2.2;
         }
@@ -15243,8 +15332,9 @@
           }
           // SPRINT 4 — Perk Táctico [Corazón de Diamante]: siguiente BJ x4
           if (pendingNextBJx4) {
-            dmg = Math.round(dmg * 4);
-            addLog("💎 Perk Táctico [Corazón de Diamante]: tu Blackjack se multiplica x4 adicional. Daño = " + dmg + ".", "critical");
+            addLog("💎 Perk Táctico [Corazón de Diamante]: Impacto Vorpal amplificado a x4 (Daño = " + dmg + ").", "critical");
+            p._synergyNextBJx4 = false;
+            p._consumedBJx4ThisHand = true;
           }
           playBlackjackSound();
         } else {
@@ -17796,6 +17886,12 @@
   try {
     updateHud();
     updateHeroSelectUI();
+    try {
+      if (typeof autoHealAllCampaignWaypoints === "function") {
+        autoHealAllCampaignWaypoints();
+      }
+    } catch (_) {}
+    if (typeof renderCampaignChaptersUI === "function") renderCampaignChaptersUI();
   } catch (err) {
     console.error("Error in init:", err);
   }
@@ -18536,7 +18632,17 @@
       cardsToAdd.forEach(transmuted => {
         const matchIdx = gameState.deck.findIndex(c => c.rank === transmuted.rank && c.suit === transmuted.suit);
         if (matchIdx !== -1) {
-          gameState.deck[matchIdx] = Object.assign({}, gameState.deck[matchIdx], transmuted);
+          gameState.deck[matchIdx] = Object.assign({}, gameState.deck[matchIdx], transmuted, { isWonCard: true });
+        }
+      });
+    }
+
+    // Sincronizar también la pila de robo activa (drawPile) de la mano y piso en curso
+    if (typeof drawPile !== "undefined" && Array.isArray(drawPile)) {
+      cardsToAdd.forEach(transmuted => {
+        const dpIdx = drawPile.findIndex(c => c.rank === transmuted.rank && c.suit === transmuted.suit);
+        if (dpIdx !== -1) {
+          drawPile[dpIdx] = Object.assign({}, drawPile[dpIdx], transmuted, { isWonCard: true });
         }
       });
     }
@@ -21066,3 +21172,104 @@
     }).join("");
   }
   window.renderAchievementsList = renderAchievementsList;
+
+  /* ============================================================
+     VISOR DE BARAJA DEL JUGADOR (52 CARTAS ACTIVAS)
+     ============================================================ */
+  let currentDeckViewerFilter = "all";
+
+  function openDeckViewerModal() {
+    const modal = document.getElementById("screen-deck-viewer");
+    if (!modal) return;
+    currentDeckViewerFilter = "all";
+    const filterBtns = modal.querySelectorAll(".deck-filter-btn");
+    filterBtns.forEach(btn => {
+      if (btn.getAttribute("data-filter") === "all" || btn.innerText.includes("TODAS")) btn.classList.add("active");
+      else btn.classList.remove("active");
+    });
+    renderDeckViewerContent();
+    modal.classList.remove("hidden");
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.openDeckViewerModal = openDeckViewerModal;
+
+  function closeDeckViewerModal(e) {
+    if (e && e.target && e.target.id !== "screen-deck-viewer" && !e.target.classList.contains("inspect-close-btn") && !e.target.classList.contains("deck-close-action")) {
+      return;
+    }
+    const modal = document.getElementById("screen-deck-viewer");
+    if (modal) modal.classList.add("hidden");
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.closeDeckViewerModal = closeDeckViewerModal;
+
+  function filterDeckViewer(filterKey, btnEl) {
+    currentDeckViewerFilter = filterKey;
+    const modal = document.getElementById("screen-deck-viewer");
+    if (modal) {
+      modal.querySelectorAll(".deck-filter-btn").forEach(b => b.classList.remove("active"));
+    }
+    if (btnEl) btnEl.classList.add("active");
+    renderDeckViewerContent();
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.filterDeckViewer = filterDeckViewer;
+
+  function renderDeckViewerContent() {
+    const grid = document.getElementById("deck-viewer-grid");
+    const summary = document.getElementById("deck-viewer-summary");
+    if (!grid) return;
+
+    let deck = (gameState && Array.isArray(gameState.deck) && gameState.deck.length > 0)
+      ? gameState.deck
+      : ((typeof buildStandardDeck === "function") ? buildStandardDeck() : []);
+
+    const isCardArcane = (c) => !!c.isWonCard || !!c.fusion || !!c.modifier || !!c.operator || (Array.isArray(c.dynamicValues) && c.dynamicValues.length > 0) || !!c.specialId;
+    const arcaneCount = deck.filter(isCardArcane).length;
+    if (summary) {
+      summary.innerHTML = `Baraja Activa: <b>${deck.length} Cartas</b> • <b>${arcaneCount} Naipes Arcanos de Jefe</b>`;
+    }
+
+    let filtered = deck;
+    if (currentDeckViewerFilter === "spades") {
+      filtered = deck.filter(c => c.suit === "♠" || c.suit === "spades");
+    } else if (currentDeckViewerFilter === "hearts") {
+      filtered = deck.filter(c => c.suit === "♥" || c.suit === "hearts");
+    } else if (currentDeckViewerFilter === "diamonds") {
+      filtered = deck.filter(c => c.suit === "♦" || c.suit === "diamonds");
+    } else if (currentDeckViewerFilter === "clubs") {
+      filtered = deck.filter(c => c.suit === "♣" || c.suit === "clubs");
+    } else if (currentDeckViewerFilter === "arcane") {
+      filtered = deck.filter(isCardArcane);
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="deck-viewer-empty">No hay cartas en este filtro.</div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(card => {
+      const arcane = isCardArcane(card);
+      const isRed = (card.suit === "♥" || card.suit === "♦" || card.suit === "hearts" || card.suit === "diamonds");
+      const colorClass = isRed ? "card-red" : "card-black";
+      const arcaneClass = arcane ? "card-transmuted-arcane card-holographic" : "";
+      const badge = arcane ? '<span class="card-loot-badge">👑</span>' : '';
+      const bonusDesc = card.fusion ? `Fusión: ${card.fusion.name || 'Arcana'}` :
+                        (card.modifier ? `Mod: ${card.modifier.name || card.modifier.type}` :
+                        (card.operator ? `Op: ${card.operator.label || card.operator.type}` :
+                        (arcane ? 'Naipe de Jefe' : 'Naipe Común')));
+
+      return `
+        <div class="deck-card-item ${arcaneClass} ${colorClass}">
+          <div class="deck-card-top">
+            <span class="deck-card-rank">${card.rank || card.value}</span>
+            <span class="deck-card-suit">${card.suit}</span>
+            ${badge}
+          </div>
+          <div class="deck-card-center">${card.suit}</div>
+          <div class="deck-card-desc">${bonusDesc}</div>
+        </div>
+      `;
+    }).join("");
+  }
+  window.renderDeckViewerContent = renderDeckViewerContent;

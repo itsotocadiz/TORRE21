@@ -867,6 +867,14 @@
           <span class="p-text">CONTINUAR COMBATE</span>
         </button>
 
+        <button class="pause-btn deck-view" onclick="openDeckViewerModal()">
+          <span class="p-icon">🃏</span>
+          <div class="p-info">
+            <span class="p-title">MI BARAJA (52 CARTAS)</span>
+            <span class="p-sub">Ver naipes arcanos de jefes, sellos y baraja de combate</span>
+          </div>
+        </button>
+
         <button class="pause-btn restart" onclick="askRestartRun()">
           <span class="p-icon">🔄</span>
           <div class="p-info">
@@ -952,6 +960,35 @@
       <div class="pause-footer-links">
         <button class="pause-link-btn" onclick="openPerksCodexModal()">💡 Guía de Perks Tácticos (15 Combos)</button>
         <button class="pause-link-btn" onclick="openTutorial('attacks')">📖 Ver Reglas y Guía de Ataque</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISOR DE BARAJA ACTIVA (52 CARTAS) -->
+  <div id="screen-deck-viewer" class="overlay hidden" onclick="closeDeckViewerModal(event)">
+    <div class="deck-viewer-card" onclick="event.stopPropagation()">
+      <div class="deck-viewer-header">
+        <div>
+          <div class="deck-viewer-title">🃏 BARAJA DEL JUGADOR (52 CARTAS)</div>
+          <div class="deck-viewer-sub" id="deck-viewer-summary">52 cartas • 0 transmutaciones arcanas</div>
+        </div>
+        <button class="inspect-close-btn" onclick="closeDeckViewerModal()">✕</button>
+      </div>
+      <div class="deck-viewer-filters">
+        <button class="deck-filter-btn active" data-filter="all" onclick="filterDeckViewer('all', this)">TODAS (52)</button>
+        <button class="deck-filter-btn" data-filter="spades" onclick="filterDeckViewer('spades', this)">♠ PICAS</button>
+        <button class="deck-filter-btn" data-filter="hearts" onclick="filterDeckViewer('hearts', this)">♥ CORAZONES</button>
+        <button class="deck-filter-btn" data-filter="diamonds" onclick="filterDeckViewer('diamonds', this)">♦ DIAMANTES</button>
+        <button class="deck-filter-btn" data-filter="clubs" onclick="filterDeckViewer('clubs', this)">♣ TRÉBOLES</button>
+        <button class="deck-filter-btn" data-filter="arcane" onclick="filterDeckViewer('arcane', this)">👑 ARCANAS / JEFES</button>
+      </div>
+      <div class="deck-viewer-scroll-wrap">
+        <div class="deck-viewer-grid" id="deck-viewer-grid">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+      <div class="deck-viewer-footer">
+        <button class="deck-close-action" onclick="closeDeckViewerModal()">◀ VOLVER AL MENÚ DE PAUSA</button>
       </div>
     </div>
   </div>

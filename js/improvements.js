@@ -129,7 +129,7 @@
     },
     { id: "diamond_heart",  name: "CORAZÓN DE DIAMANTE",  icon: "💎",
       desc: "HP>80% + Escudo>8 -> siguiente BJ x4",
-      check: (p, gs) => p.hp >= p.maxHp * 0.80 && (gs.status.playerShield || 0) >= 8,
+      check: (p, gs) => p.hp >= p.maxHp * 0.80 && (gs.status.playerShield || 0) >= 8 && !p._consumedBJx4ThisHand,
       apply: (p) => { p._synergyNextBJx4 = true; }
     },
     { id: "dark_harvest",   name: "COSECHA OSCURA",        icon: "💀",
@@ -1513,31 +1513,52 @@
     if (e && p._pactEnemyExtraCard) {
       e.enemyHand = e.enemyHand || [];
       if (!e.blackjack && !e.bust) {
-        const card = drawCard();
-        const next = calculateHandScore(e.enemyHand.concat([card]));
-        if (next <= BUST_LIMIT) {
-          e.enemyHand.push(card);
-          e.enemyScore = next;
-          e.bust = false;
-          e.blackjack = (next === 21 && e.enemyHand.length === 2);
-          try { addLog(`👻 Mano Fantasma: ${e.name} recibe una carta extra (${next}).`, "warning"); } catch (_) {}
+        let peekCard = null;
+        if (typeof peekNextCard === "function") {
+          peekCard = peekNextCard();
+        } else if (typeof drawPile !== "undefined" && Array.isArray(drawPile) && drawPile.length > 0) {
+          peekCard = drawPile[drawPile.length - 1];
+        }
+        let peekScore = peekCard ? calculateHandScore(e.enemyHand.concat([peekCard])) : null;
+        if (peekScore === null || peekScore <= BUST_LIMIT) {
+          const card = drawCard();
+          const next = calculateHandScore(e.enemyHand.concat([card]));
+          if (next <= BUST_LIMIT) {
+            e.enemyHand.push(card);
+            e.enemyScore = next;
+            e.bust = false;
+            e.blackjack = (next === 21 && e.enemyHand.length === 2);
+            const scoreLabel = e.enemyRevealed ? ` (${next})` : "";
+            try { addLog(`👻 Mano Fantasma: ${e.name} recibe una carta extra${scoreLabel}.`, "warning"); } catch (_) {}
+          }
         }
       }
     }
     if (p._pactExtraStartingCard) {
       p.playerHand = p.playerHand || [];
       if (!p.blackjack && !p.bust) {
-        const card = drawCard();
-        const next = calculateHandScore(p.playerHand.concat([card]));
-        if (next <= BUST_LIMIT) {
-          p.playerHand.push(card);
-          p.playerScore = next;
-          p.bust = false;
-          p.blackjack = (next === 21 && p.playerHand.length === 2);
-          try { addLog(`👻 Mano Fantasma: recibes una carta extra (${next}).`, "critical"); } catch (_) {}
-          try { renderCards(); } catch (_) {}
-        } else {
+        let peekCard = null;
+        if (typeof peekNextCard === "function") {
+          peekCard = peekNextCard();
+        } else if (typeof drawPile !== "undefined" && Array.isArray(drawPile) && drawPile.length > 0) {
+          peekCard = drawPile[drawPile.length - 1];
+        }
+        let peekScore = peekCard ? calculateHandScore(p.playerHand.concat([peekCard])) : null;
+        if (peekCard && peekScore > BUST_LIMIT) {
           try { addLog("👻 Mano Fantasma: ninguna carta extra cabe en tu mano sin pasarte.", "info"); } catch (_) {}
+        } else {
+          const card = drawCard();
+          const next = calculateHandScore(p.playerHand.concat([card]));
+          if (next <= BUST_LIMIT) {
+            p.playerHand.push(card);
+            p.playerScore = next;
+            p.bust = false;
+            p.blackjack = (next === 21 && p.playerHand.length === 2);
+            try { addLog(`👻 Mano Fantasma: recibes una carta extra (${next}).`, "critical"); } catch (_) {}
+            try { renderCards(); } catch (_) {}
+          } else {
+            try { addLog("👻 Mano Fantasma: ninguna carta extra cabe en tu mano sin pasarte.", "info"); } catch (_) {}
+          }
         }
       }
     }

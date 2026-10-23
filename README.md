@@ -80,6 +80,27 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Rebalanceo de Artefactos de Tienda:**
   * Orbe del Nigromante restaura 100% HP al subir de nivel; Blasón del Desafío inflige 6 daño y otorga +6 escudo en empate; Espuela de Celeridad otorga +8 daño y +15 oro en la primera mano; Daga del Vampiro drena hasta 6 HP en manos ganadoras de 20+.
 
+### [v1.7.4] — Octubre 2026
+* **Auto-Curación y Persistencia Integral de Actos de Campaña:**
+  * Implementada la auto-curación proactiva (`autoHealAllCampaignWaypoints` y `autoHealCampaignWaypointsForFloor`) que analiza el piso alcanzado en la partida guardada y las estadísticas históricas en todas las dificultades: si el jugador se encuentra en el Piso 14, los Actos 1, 2 y 3 se auto-reparan y se marcan como **✔ VENCIDOS**, dejando el Acto 4 como **⚡ ENTRANTE**.
+  * Al vencer la Torre (Piso 21), se desbloquea el Waypoint 7 marcando los 6 Actos como **✔ VENCIDOS**.
+  * `saveMidRunState` y `resumeSavedRun` persisten y restauran fielmente `isCampaignMode` y el `chapter` activo.
+  * La derrota de jefes de acto en los pisos clave (3, 7, 11, 15, 19) desbloquea automáticamente el siguiente acto tanto en modo Campaña como en ascensión tradicional de la Torre.
+* **Perfeccionamiento de la Mano Fantasma (`pact_ghost`):**
+  * Mecánica de anticipación sin descarte: el motor inspecciona la carta superior con `peekNextCard()` antes de robar. Si la carta causaría BUST (>21), se reserva en la baraja sin perderse ni quemarse.
+  * Privacidad de cartas encubiertas: el log de combate ya no revela la puntuación numérica del rival mientras mantenga cartas ocultas.
+  * Compatibilidad táctica total con la acción **¡DOBLAR!**: el jugador puede duplicar la apuesta con sus cartas iniciales repartidas (incluyendo la 3ª carta de la Mano Fantasma).
+* **Equilibrio y Desduplicación de Perks Tácticos (Corazón de Diamante):**
+  * *Corazón de Diamante* (`diamond_heart`) amplifica limpia y justamente el daño crítico Vorpal a x4 sin multiplicar dos veces ($3 \times 4 = 12$, 144+ daño).
+  * Blindaje con el flag `_consumedBJx4ThisHand` que erradica la doble activación/notificación en una misma mano.
+* **Visor de Baraja Activa (52 Cartas) y Distinción Visual de Naipes Arcanos de Jefe:**
+  * Nuevo botón interactivo **`🃏 MI BARAJA (52 CARTAS)`** incorporado en el menú de pausa de combate (`#screen-ingame-pause`).
+  * Modal ergonómico `#screen-deck-viewer` con filtrado por palos (♠ Picas, ♥ Corazones, ♦ Diamantes, ♣ Tréboles) y filtro exclusivo para naipes de jefes (`👑 ARCANAS / JEFES`).
+  * Nuevo diseño de naipe transmutado (`.card-face.card-transmuted-arcane`): degradado amatista cósmico, borde foil dorado con resplandor radiante, corona dorada `👑` y destellos luminosos.
+  * Sincronización inmediata entre la baraja general `gameState.deck` y la pila de robo activa `drawPile`.
+* **Seguridad de Datos y Actualización Transparente de la APK:**
+  * La instalación de la nueva APK sobre la instalada (sin desinstalar la app previa) preserva el 100% de `localStorage` y la partida guardada del Piso 14 intacta.
+
 ### [v1.7.3] — Octubre 2026
 * **Afinidad Elemental Despertada por el Árbol de Talentos (Tier 1):**
   * Las afinidades elementales de los 4 palos ya no se activan todas a la vez por defecto en cada combate.
