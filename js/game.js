@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.7.6";
+  const GAME_VERSION = "v1.8.0";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.7.6)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.0)
      ============================================================ */
 
   const HERO_DATA = {
@@ -16,11 +16,11 @@
       imgHurt: "assets/svg/knight_hurt.svg",
       imgDead: "assets/svg/knight_dead.svg",
       maxHp: 80,
-      pwr: 2,
-      def: 2,
-      startingShield: 4,
+      pwr: 14,
+      def: 3,
+      startingShield: 6,
       styleClass: "shield-bio",
-      desc: "Baluarte de Diamantes: Comienza cada piso con 4 de Escudo protector. Trascendencia del 21: Lograr 21 con tus 2 primeras cartas otorga +15 de Escudo Sagrado."
+      desc: "Baluarte de Diamantes: Comienza cada piso con 6 de Escudo protector. Trascendencia del 21: Lograr 21 con tus 2 primeras cartas otorga +15 de Escudo Sagrado."
     },
     rogue: {
       name: "Pícaro",
@@ -32,7 +32,7 @@
       imgHurt: "assets/svg/rogue_hurt.svg",
       imgDead: "assets/svg/rogue_dead.svg",
       maxHp: 65,
-      pwr: 4,
+      pwr: 18,
       def: 1,
       styleClass: "blood-bio",
       desc: "Golpe Bajo: Trascendencia del 21: Lograr 21 natural con tus 2 primeras cartas asesta una estocada vorpal que ignora el 100% de la armadura rival."
@@ -47,8 +47,8 @@
       imgHurt: "assets/svg/monk_hurt.svg",
       imgDead: "assets/svg/monk_dead.svg",
       maxHp: 75,
-      pwr: 3,
-      def: 1,
+      pwr: 13,
+      def: 2,
       styleClass: "zen-bio",
       desc: "Concentración Zen: Si te plantas con 18 o 19, tu mente se enfoca otorgándote +1 punto automático a tu puntuación. Trascendencia del 21: Lograr 21 natural restaura +20 HP de vida."
     },
@@ -62,7 +62,7 @@
       imgHurt: "assets/svg/necro_hurt.svg",
       imgDead: "assets/svg/necro_dead.svg",
       maxHp: 70,
-      pwr: 3,
+      pwr: 16,
       def: 1,
       styleClass: "blood-bio",
       desc: "Devorador de Almas: Al derrotar a cualquier enemigo cosechas su esencia restaurando +8 HP. Trascendencia del 21: Lograr 21 natural drena 10 HP al rival y le inocula 5 de Veneno residual."
@@ -166,15 +166,15 @@
   window.HERO_LORES = HERO_LORES;
 
   const ENEMIES = [
-    { name: "Duende Pilluelo",         sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 28, pwr: 4, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
-    { name: "Esqueleto Maldito",      sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 34, pwr: 5, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive una vez con 15 HP)" },
-    { name: "Orco Berserker",         sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 44, pwr: 2, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
-    { name: "Gárgola Pétrea",        sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 68, pwr: 3, def: 3, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes de ≤3 daño)" },
-    { name: "Bestia de las Sombras",  sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 82, pwr: 4, def: 3, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas 100% ocultas)" },
-    { name: "Centurión Espectral",    sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 95, pwr: 4, def: 4, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
-    { name: "Guardián de Obsidiana",  sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 110, pwr: 5, def: 5, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al ser golpeado)" },
-    { name: "Dragón Guardián",        sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 140, pwr: 5, def: 5, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" },
-    { name: "👑 BLACK (El Jack Supremo)", sprite: "👑", img: "assets/svg/enemy_black.svg", hp: 185, pwr: 6, def: 5, trait: "abyss", traitShort: "★ ABISMO 21", traitName: "Abismo 21 (Todo Blackjack drena 10 HP; inmune a veneno)" }
+    { name: "Duende Pilluelo",         sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
+    { name: "Esqueleto Maldito",      sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive una vez con 15 HP)" },
+    { name: "Orco Berserker",         sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 65, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
+    { name: "Gárgola Pétrea",        sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 80, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes de ≤3 daño)" },
+    { name: "Bestia de las Sombras",  sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 110, pwr: 20, def: 5, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas 100% ocultas)" },
+    { name: "Centurión Espectral",    sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 130, pwr: 21, def: 6, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
+    { name: "Guardián de Obsidiana",  sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 155, pwr: 23, def: 7, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al ser golpeado)" },
+    { name: "Dragón Guardián",        sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 260, pwr: 36, def: 9, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" },
+    { name: "👑 BLACK (El Jack Supremo)", sprite: "👑", img: "assets/svg/enemy_black.svg", hp: 320, pwr: 32, def: 8, trait: "abyss", traitShort: "★ ABISMO 21", traitName: "Abismo 21 (Todo Blackjack drena 10 HP; inmune a veneno)" }
   ];
 
   const gameState = {
@@ -191,7 +191,7 @@
     revivesUsed: 0,
     curseTakenOnFloor: {},
     status: {
-      playerShield: 0,
+      playerShield: 6,
       playerPoison: 0,
       playerBurn: 0,
       enemyShield: 0,
@@ -208,8 +208,8 @@
       sprite: "🛡️",
       maxHp: 80,
       hp: 80,
-      pwr: 2,
-      def: 2,
+      pwr: 14,
+      def: 3,
       potions: 2,
       rerollsAvailable: 0,
       gem: null,
@@ -230,10 +230,10 @@
     enemy: {
       name: "Duende Pilluelo",
       sprite: "👺",
-      maxHp: 28,
-      hp: 28,
-      pwr: 4,
-      def: 0,
+      maxHp: 35,
+      hp: 35,
+      pwr: 10,
+      def: 1,
       trait: "thief",
       traitName: "Robo (te roba 5 oro si gana)",
       enemyHand: [],
@@ -3779,69 +3779,100 @@
   window.calculateCritChance = calculateCritChance;
 
   function calculateExactTacticalDamage(player, enemy, playerHand = [], isDouble = false) {
-    if (!player) return { dmg: 0, isCrit: false, critMult: 1.0, score: 0 };
-    const score = calculateHandScore(playerHand);
-    if (score > 21) return { dmg: 0, isCrit: false, critMult: 1.0, score };
+    if (!player) return { dmg: 0, isCrit: false, critMult: 1.0, baseAtk: 0, flatBonus: 0, rawAtk: 0, buffMultiplier: 1.0, totalAttack: 0 };
+    const score = calculateHandScore(playerHand || []);
+    if (score > 21) {
+      return { dmg: 0, isCrit: false, critMult: 1.0, isBust: true, baseAtk: player.pwr || 14, flatBonus: 0, rawAtk: 0, buffMultiplier: 1.0, totalAttack: 0, score };
+    }
 
-    const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
+    // 1. Ataque Base del Personaje
+    const baseAtk = player.pwr || 14;
 
-    // Bono de Atributo RPG de Fuerza (STR)
-    let bonus = 0;
+    // 2. Bonos Planos de Cartas/Sellos/Reliquias/Afinidades
+    let flatBonus = 0;
+
+    // Atributos RPG: Modificador de Fuerza (STR)
     const strMod = (player.attributes && player.attributes.str > 10) ? Math.floor((player.attributes.str - 10) / 2) : 0;
-    if (strMod > 0) bonus += strMod;
+    flatBonus += strMod;
 
-    // Margen de mano estimado frente a la banca rival (17 o mano rival visible si tiene)
-    let enemyScore = 17;
-    if (enemy && enemy.hand && enemy.hand.length > 0) {
-      const eScore = calculateHandScore(enemy.hand);
-      if (eScore <= 21) enemyScore = eScore;
-    }
-    const scoreMargin = Math.max(0, score - enemyScore);
-    const marginBonus = Math.floor(scoreMargin * 0.75);
+    // Bonos planos de cartas/sellos en mano
+    flatBonus += (player.cardBonusDamage || 0);
 
-    const bet = player.currentBet || player.betAmount || 0;
-    const handDmg = bet + marginBonus + (player.cardBonusDamage || 0);
-    const baseAtk = (player.pwr || 2) + bonus;
-
-    // FÓRMULA LIMPIA: (Daño por Mano + Ataque Base) - Defensa Rival
-    let rawSum = handDmg + baseAtk;
-    let baseDmg = Math.max(0, rawSum - effectiveEnemyDef);
-
-    // Guardia Táctica D&D (<15): Golpe amortiguado
-    if (score < 15) {
-      baseDmg = Math.max(1, Math.round(baseDmg * 0.50));
-    }
-
-    // Afinidad Elemental de Picas (♠): Solo si Tier 1 de talentos está activo
+    // Afinidad Elemental de Picas (♠)
     let spadeBonus = 0;
     const hasSpadeAffinity = !!(player && player.affinitySpades);
     if (hasSpadeAffinity) {
       const spadeRank = (player._spadesRank || 1);
       (playerHand || []).forEach(c => {
-        if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += (spadeRank + 1);
+        if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += (spadeRank + 2);
       });
+      if (player._spadesEclipseBonus) spadeBonus += player._spadesEclipseBonus;
     }
-    baseDmg += spadeBonus;
+    flatBonus += spadeBonus;
 
-    // Crítico dinámico basado en probabilidad del personaje (desvinculado de forzar 20/21)
+    // Reliquias y accesorios
+    if (typeof hasArtifact === "function") {
+      if (hasArtifact("warriors_ring")) flatBonus += 3;
+      if (hasArtifact("fury_bracer") && player.furyBracerStreak) flatBonus += player.furyBracerStreak;
+    }
+    if (player.accessory === "mercury_band") flatBonus += 2;
+    if (player.gem === "topaz") flatBonus += 2;
+    if (player._synergyBonusPwr) flatBonus += player._synergyBonusPwr;
+
+    const rawAtk = baseAtk + flatBonus;
+
+    // 3. Porcentaje de Buffs - Porcentaje de Nerfs
+    let buffPct = 0;
+    const gs = window.gameState;
+    if (gs && gs.playerStreak >= 3) {
+      buffPct += 1.0; // Racha On Fire x2.0 (+100%)
+    } else if (gs && gs.playerStreak === 2) {
+      buffPct += 0.5; // Racha On Fire x1.5 (+50%)
+    }
+    if (player._spadesVorpalBonus && (score === 20 || score === 21)) {
+      buffPct += player._spadesVorpalBonus; // +15%
+    }
+    if (typeof hasStarterBlessing === "function" && hasStarterBlessing("berserker_rage") && (score === 20 || score === 21)) {
+      buffPct += 0.30; // +30%
+    }
+    const buffMultiplier = Math.max(0.1, 1 + buffPct);
+
+    // 4. Multiplicador Crítico (2.0 normal o más con Blackjack / reliquias)
+    const isNatBJ = (score === 21 && (playerHand || []).length === 2);
     let isCrit = false;
     let critMult = 1.0;
-    const isNatBJ = (score === 21 && (playerHand || []).length === 2);
-    if (isNatBJ) {
+    const critChance = player.critChance || 25;
+    if (isNatBJ || score === 21) {
       isCrit = true;
-      critMult = 3.0;
-    } else {
-      const critChance = player.critChance || 25;
-      if (Math.random() * 100 < critChance) {
-        isCrit = true;
-        critMult = (score === 21) ? 2.0 : 1.5;
-      }
+      critMult = isNatBJ ? (player.gem === "blackjack_heritage" ? 3.0 : 2.5) : 2.0;
+    } else if (critChance > 0 && Math.random() * 100 < critChance) {
+      isCrit = true;
+      critMult = 2.0;
     }
 
-    let mult = (isDouble || player.turnDoubleDamage ? 2.0 : 1.0) * (isCrit ? critMult : 1.0);
-    let dmg = Math.round(baseDmg * mult);
+    // 5. Multiplicador de Doblar
+    const doubleMult = (isDouble || player.turnDoubleDamage) ? 2.0 : 1.0;
 
-    return { dmg, isCrit, critMult, score, handDmg, baseAtk, mult, baseDmg };
+    // Daño Total antes de armadura
+    const totalAttack = Math.round(rawAtk * buffMultiplier * doubleMult * (isCrit ? critMult : 1.0));
+
+    // Mitigación por Defensa Rival
+    const effectiveEnemyDef = enemy ? Math.max(0, (enemy.def || 0) - (player.sharpArmorPierce || 0)) : 0;
+    const dmg = Math.max(0, totalAttack - effectiveEnemyDef);
+
+    return {
+      dmg,
+      totalAttack,
+      isCrit,
+      critMult,
+      score,
+      baseAtk,
+      flatBonus,
+      rawAtk,
+      buffMultiplier,
+      doubleMult,
+      effectiveEnemyDef
+    };
   }
   window.calculateExactTacticalDamage = calculateExactTacticalDamage;
 
@@ -4001,66 +4032,95 @@
   window.unlockRelicInCodex = unlockRelicInCodex;
 
   function calculateTacticalAttackRange(player, enemy, playerHand = [], isDouble = false) {
-    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ Daño: 0 HP", score: 0 };
+    if (!player) return { minDmg: 0, maxDmg: 0, text: "⚔️ ATAQUE: 0", score: 0 };
     const score = calculateHandScore(playerHand || []);
     if (score > 21) {
-      return { minDmg: 0, maxDmg: 0, text: "⚔️ Daño: 0 HP (BUST)", isBust: true, score };
+      return { minDmg: 0, maxDmg: 0, text: "⚔️ ATAQUE: 0 (BUST)", isBust: true, score };
     }
 
-    const effectiveEnemyDef = enemy ? Math.max(0, enemy.def || 0) : 0;
+    // 1. Ataque Base del Personaje
+    const baseAtk = player.pwr || 14;
 
-    let bonus = 0;
+    // 2. Bonos Planos
+    let flatBonus = 0;
     const strMod = (player.attributes && player.attributes.str > 10) ? Math.floor((player.attributes.str - 10) / 2) : 0;
-    if (strMod > 0) bonus += strMod;
+    flatBonus += strMod;
+    flatBonus += (player.cardBonusDamage || 0);
 
-    let enemyScore = 17;
-    const enemyHandCards = (enemy && (enemy.enemyHand || enemy.hand)) || [];
-    if (enemyHandCards.length > 0) {
-      const eScore = calculateHandScore(enemyHandCards);
-      if (eScore <= 21) enemyScore = eScore;
-    }
-    const scoreMargin = Math.max(0, score - enemyScore);
-    const marginBonus = Math.floor(scoreMargin * 0.75);
-
-    const bet = player.currentBet || player.betAmount || 0;
-    const handDmg = bet + marginBonus + (player.cardBonusDamage || 0);
-    const baseAtk = (player.pwr || 2) + bonus;
-
-    // FÓRMULA LIMPIA: (Daño por Mano + Ataque Base) - Defensa Rival
-    let rawSum = handDmg + baseAtk;
-    let baseDmg = Math.max(0, rawSum - effectiveEnemyDef);
-
-    if (score < 15) {
-      baseDmg = Math.max(1, Math.round(baseDmg * 0.50));
-    }
-
-    // Afinidad Elemental Picas (♠) - Solo activa si Tier 1 desbloqueado
     let spadeBonus = 0;
     const hasSpadeAffinity = !!(player && player.affinitySpades);
     if (hasSpadeAffinity) {
       const spadeRank = (player._spadesRank || 1);
       (playerHand || []).forEach(c => {
-        if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += (spadeRank + 1);
+        if (c && (c.suit === "♠" || c.suit === "spades")) spadeBonus += (spadeRank + 2);
       });
+      if (player._spadesEclipseBonus) spadeBonus += player._spadesEclipseBonus;
     }
-    baseDmg += spadeBonus;
+    flatBonus += spadeBonus;
 
+    if (typeof hasArtifact === "function") {
+      if (hasArtifact("warriors_ring")) flatBonus += 3;
+      if (hasArtifact("fury_bracer") && player.furyBracerStreak) flatBonus += player.furyBracerStreak;
+    }
+    if (player.accessory === "mercury_band") flatBonus += 2;
+    if (player.gem === "topaz") flatBonus += 2;
+    if (player._synergyBonusPwr) flatBonus += player._synergyBonusPwr;
+
+    const rawAtk = baseAtk + flatBonus;
+
+    // 3. Porcentaje de Buffs
+    let buffPct = 0;
+    const gs = window.gameState;
+    if (gs && gs.playerStreak >= 3) {
+      buffPct += 1.0;
+    } else if (gs && gs.playerStreak === 2) {
+      buffPct += 0.5;
+    }
+    if (player._spadesVorpalBonus && (score === 20 || score === 21)) {
+      buffPct += player._spadesVorpalBonus;
+    }
+    if (typeof hasStarterBlessing === "function" && hasStarterBlessing("berserker_rage") && (score === 20 || score === 21)) {
+      buffPct += 0.30;
+    }
+    const buffMultiplier = Math.max(0.1, 1 + buffPct);
+
+    // 4. Doblar
     const doubleMult = (isDouble || player.turnDoubleDamage) ? 2.0 : 1.0;
+
+    // Mitigación por Defensa Rival
+    const effectiveEnemyDef = enemy ? Math.max(0, (enemy.def || 0) - (player.sharpArmorPierce || 0)) : 0;
+
+    // Ataque Normal (Crítico x1.0)
+    const normalAttack = Math.round(rawAtk * buffMultiplier * doubleMult);
+    const minDmg = Math.max(0, normalAttack - effectiveEnemyDef);
+
+    // Ataque Crítico (Crítico x2.0 / x2.5 BJ)
     const isNatBJ = (score === 21 && (playerHand || []).length === 2);
+    const critMult = isNatBJ ? 2.5 : 2.0;
+    const critAttack = Math.round(rawAtk * buffMultiplier * doubleMult * critMult);
+    const maxDmg = Math.max(0, critAttack - effectiveEnemyDef);
 
-    let minMult = doubleMult;
-    let maxMult = doubleMult * (isNatBJ ? 3.0 : (score === 21 ? 2.0 : 1.5));
-    let minDmg = Math.round(baseDmg * minMult);
-    let maxDmg = Math.round(baseDmg * maxMult);
-
+    const critChance = (typeof recalculatePlayerStats === "function" ? (recalculatePlayerStats(player), player.critChance) : player.critChance) || 25;
+    const prefix = (doubleMult > 1.0) ? "⚡ ATAQUE x2:" : "⚔️ ATAQUE:";
     let label = "";
-    if (minDmg === maxDmg) {
-      label = `⚔️ Daño: ${minDmg} HP`;
+    if (critChance > 0 || isNatBJ || score === 21) {
+      label = `${prefix} ${minDmg} (Crítico: ${maxDmg})`;
     } else {
-      label = `⚔️ Daño: ${minDmg} – ${maxDmg} HP`;
+      label = `${prefix} ${minDmg}`;
     }
 
-    return { minDmg, maxDmg, text: label, score, baseDmg, handDmg, baseAtk, minMult, maxMult };
+    return {
+      minDmg,
+      maxDmg,
+      text: label,
+      score,
+      baseAtk,
+      flatBonus,
+      rawAtk,
+      buffMultiplier,
+      doubleMult,
+      effectiveEnemyDef
+    };
   }
   window.calculateTacticalAttackRange = calculateTacticalAttackRange;
 
@@ -4086,12 +4146,12 @@
   function calculateProjectedDamage(playerPwr, rivalDef, playerHand = [], deck = []) {
     const curScore = calculateHandScore(playerHand);
     if (curScore > 21) return { currentDmg: 0, crit21Dmg: 0 };
-    const mockP = { pwr: playerPwr, level: 1, currentBet: 0 };
-    const mockE = { def: rivalDef };
+    const mockP = { pwr: playerPwr || 14, level: 1, currentBet: 0 };
+    const mockE = { def: rivalDef || 0 };
     const exactCurrent = calculateExactTacticalDamage(mockP, mockE, playerHand, false);
     return {
       currentDmg: exactCurrent.dmg,
-      crit21Dmg: Math.round(exactCurrent.dmg * 1.5)
+      crit21Dmg: Math.round(exactCurrent.dmg * 2.0)
     };
   }
   window.calculateProjectedDamage = calculateProjectedDamage;
@@ -4100,22 +4160,22 @@
     if (type === "crit") {
       showGameAlert(
         "⚡ PROBABILIDAD DE GOLPE CRÍTICO\n\n" +
-        "Indica la probabilidad de asestar un Golpe Crítico demoledor (rango 19 a 21 puntos / Nat 20).\n\n" +
-        "¿CÓMO AUMENTAR TU CRÍTICO PROBABLE?\n" +
+        "Indica la probabilidad de asestar un Golpe Crítico demoledor (daño x2.0).\n\n" +
+        "¿CÓMO POTENCIAR TU CRÍTICO?\n" +
         "1. 🌳 ÁRBOL DE TALENTOS: Invierte en la 'Rama del Filo' (Picas) para ganar probabilidad crítica y daño vorpal permanente.\n" +
-        "2. 🃏 COMBINACIÓN DE CARTAS: Los Ases y Figuras en tu mano aumentan tu acceso al rango crítico.\n" +
+        "2. 🃏 COMBINACIÓN DE CARTAS: Lograr 21 o Blackjack garantiza un 100% de Golpe Crítico.\n" +
         "3. 🔮 SELLOS ARCANOS: Graba Sellos de Picas y Sobrecarga para forzar impactos vorpales.",
         "TÁCTICA: GOLPE CRÍTICO"
       );
     } else if (type === "dmg") {
       showGameAlert(
-        "⚔️ CÁLCULO DE ATAQUE EN RANGO (PREDICTIVO)\n\n" +
-        "Muestra el daño proyectado que asestarás al rival al plantarte:\n\n" +
-        "• Muestra el rango Mín–Máx (crítico): el valor mínimo es tu impacto normal y el valor máximo refleja el daño si asestas Golpe Crítico.\n" +
-        "• Con 19 a 21 de mano, el Golpe Crítico está 100% asegurado (x1.5 o x2.0 con 21).\n" +
-        "• La Afinidad de Picas (♠) añade +2 daño de corte perforante por carta.\n" +
-        "• Al pulsar '¡DOBLAR!', todo el rango de ataque se duplica x2 automáticamente.",
-        "TÁCTICA: RANGO DE ATAQUE"
+        "⚔️ CÁLCULO DE ATAQUE EN TIEMPO REAL\n\n" +
+        "Muestra el daño exacto que infligirás al ganar la mano de Blackjack:\n\n" +
+        "• FÓRMULA DIRECTA: (Ataque Base + Bonos de Cartas/Sellos/Afinidades) * Buffs - DEF Rival.\n" +
+        "• ¡Las cartas suman puntos para ganar la ronda de Blackjack, pero nunca se suman como daño!\n" +
+        "• El valor entre paréntesis (Crítico) muestra tu impacto devastador si se activa el Golpe Crítico (x2.0).\n" +
+        "• Al pulsar '¡DOBLAR!', tu ataque se duplica x2 automáticamente.",
+        "TÁCTICA: PODER DE ATAQUE"
       );
     }
   }
@@ -4129,7 +4189,6 @@
         const p = (window.gameState && window.gameState.player);
         const e = (window.gameState && window.gameState.enemy);
         if (!p || !p.playerHand) return;
-        const deck = (window.gameState && window.gameState.deck) || [];
         const curScore = calculateHandScore(p.playerHand);
 
         const critEl = document.getElementById("dnd-crit-odds");
@@ -4143,25 +4202,30 @@
           critText = `💀 BUST (0%)`;
         } else {
           if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
-          const totalCrit = p.critChance || 0;
+          const totalCrit = p.critChance || 25;
           critText = `⚡ CRÍTICO: ${totalCrit}%`;
         }
 
-        // 2. Rango de ataque predictivo (con crítico)
+        // 2. Poder de golpe actual exacto en tiempo real (Bloque 4)
         const isDoubled = !!(p && p.turnDoubleDamage);
         const rangeData = calculateTacticalAttackRange(p, e, p.playerHand, isDoubled);
 
-        if (critEl) critEl.innerText = critText;
-        if (dmgEl) dmgEl.innerText = rangeData.text;
+        if (critEl) {
+          critEl.style.display = "inline-flex";
+          critEl.innerText = critText;
+        }
+        if (dmgEl) {
+          dmgEl.style.display = "inline-flex";
+          dmgEl.innerText = rangeData.text;
+        }
       } else if (zone === "arena") {
         const hud = document.getElementById("arena-dnd-odds-hud");
         if (!hud || !window.arenaMatch) return;
         const hand = window.arenaMatch.playerHand || [];
-        const deck = window.arenaMatch.deck || [];
         const curScore = calculateHandScore(hand);
-        const pwr = (window.arenaMatch.playerStats && window.arenaMatch.playerStats.pwr) || 12;
+        const pwr = (window.arenaMatch.playerStats && window.arenaMatch.playerStats.pwr) || 16;
         const def = (window.arenaMatch.rival && window.arenaMatch.rival.def) || 6;
-        const mockP = { pwr, level: 1, currentBet: 0 };
+        const mockP = { pwr, def: (window.arenaMatch.playerStats && window.arenaMatch.playerStats.def) || 3, critChance: 25 };
         const mockE = { def };
         const isDoubledArena = !!(window.arenaMatch && window.arenaMatch.isDoubled);
         const rangeData = calculateTacticalAttackRange(mockP, mockE, hand, isDoubledArena);
@@ -4170,14 +4234,17 @@
         const dmgEl = document.getElementById("arena-dnd-projected-dmg");
 
         if (critEl) {
+          critEl.style.display = "inline-flex";
           if (curScore >= 19 && curScore <= 21) {
             critEl.innerText = `⚡ CRÍTICO: 100% (ACTIVO)`;
           } else {
-            const baseCrit = calculateCritChance(hand, deck);
-            critEl.innerText = `⚡ CRÍTICO: ${Math.max(10, baseCrit)}%`;
+            critEl.innerText = `⚡ CRÍTICO: 25%`;
           }
         }
-        if (dmgEl) dmgEl.innerText = rangeData.text;
+        if (dmgEl) {
+          dmgEl.style.display = "inline-flex";
+          dmgEl.innerText = rangeData.text;
+        }
       }
     } catch (_) {}
   }
@@ -4544,7 +4611,7 @@
       sprite: "🗡️",
       img: "assets/svg/enemy_dante_spades.svg",
       hp: 120,
-      pwr: 5,
+      pwr: 15,
       def: 3,
       trait: "spade_lord",
       traitShort: "★ FILO VELOZ",
@@ -4555,7 +4622,7 @@
       sprite: "🛡️",
       img: "assets/svg/enemy_valkyrie_diamonds.svg",
       hp: 160,
-      pwr: 8,
+      pwr: 19,
       def: 5,
       trait: "diamond_aegis",
       traitShort: "★ BALUARTE",
@@ -4566,7 +4633,7 @@
       sprite: "🔮",
       img: "assets/svg/enemy_archmage_clubs.svg",
       hp: 210,
-      pwr: 11,
+      pwr: 23,
       def: 5,
       trait: "arcane_burst",
       traitShort: "★ OJO ARCANO",
@@ -4577,7 +4644,7 @@
       sprite: "💀",
       img: "assets/svg/enemy_necro_void.svg",
       hp: 260,
-      pwr: 14,
+      pwr: 27,
       def: 7,
       trait: "void_drain",
       traitShort: "★ COSECHA",
@@ -4588,7 +4655,7 @@
       sprite: "🎭",
       img: "assets/svg/enemy_black.svg",
       hp: 320,
-      pwr: 17,
+      pwr: 32,
       def: 8,
       trait: "shadow_gamble",
       traitShort: "★ ILUSIÓN 21",
@@ -4599,7 +4666,7 @@
       sprite: "👑",
       img: "assets/svg/enemy_mandinga.svg",
       hp: 420,
-      pwr: 22,
+      pwr: 38,
       def: 10,
       trait: "mandinga_abyss",
       traitShort: "★ JUICIO FINAL",
@@ -4613,44 +4680,44 @@
      ============================================================ */
   const ACT_ENEMY_POOLS = {
     1: [
-      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 28, pwr: 4, def: 0, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
-      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 26, pwr: 4, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+1 Veneno al impactar)" },
-      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 34, pwr: 5, def: 1, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
+      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
+      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 32, pwr: 11, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+1 Veneno al impactar)" },
+      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
     ],
     2: [
-      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 55, pwr: 6, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
-      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 65, pwr: 7, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
-      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 75, pwr: 6, def: 4, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes ≤3 daño)" }
+      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 65, pwr: 14, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
+      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 75, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
+      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 85, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes ≤3 daño)" }
     ],
     3: [
-      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 90, pwr: 9, def: 4, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+2 Veneno al impactar)" },
-      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 105, pwr: 10, def: 5, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas ocultas)" },
-      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 120, pwr: 11, def: 6, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
+      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 100, pwr: 18, def: 4, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+2 Veneno al impactar)" },
+      { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 115, pwr: 20, def: 5, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas ocultas)" },
+      { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 135, pwr: 21, def: 6, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
     ],
     4: [
-      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 140, pwr: 13, def: 6, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al recibir golpe)" },
-      { name: "Centurión Espectral Élite", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 155, pwr: 14, def: 7, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
-      { name: "Esqueleto Segador", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 145, pwr: 15, def: 5, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 25 HP)" }
+      { name: "Guardián de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 155, pwr: 23, def: 7, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al recibir golpe)" },
+      { name: "Centurión Espectral Élite", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 170, pwr: 25, def: 7, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
+      { name: "Esqueleto Segador", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 160, pwr: 26, def: 6, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 25 HP)" }
     ],
     5: [
-      { name: "Asesino de la Escarcha", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 175, pwr: 16, def: 7, trait: "frost", traitShort: "★ ESCARCHA", traitName: "Escarcha (drena 1 punto de aguante)" },
-      { name: "Quimera de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 190, pwr: 17, def: 8, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (cartas ocultas)" },
-      { name: "Coloso de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 210, pwr: 18, def: 9, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 3 daño)" }
+      { name: "Asesino de la Escarcha", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 190, pwr: 28, def: 7, trait: "frost", traitShort: "★ ESCARCHA", traitName: "Escarcha (drena 1 punto de aguante)" },
+      { name: "Quimera de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 205, pwr: 30, def: 8, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (cartas ocultas)" },
+      { name: "Coloso de Obsidiana", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 230, pwr: 32, def: 9, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 3 daño)" }
     ],
     6: [
-      { name: "Dragón Guardián Primigenio", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 280, pwr: 20, def: 9, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" },
-      { name: "Centurión Espectral Élite", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 260, pwr: 19, def: 9, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
+      { name: "Dragón Guardián Primigenio", sprite: "🐉", img: "assets/svg/enemy_dragon.svg", hp: 300, pwr: 36, def: 9, trait: "dragon", traitShort: "★ ALIENTO ÍGNEO", traitName: "Aliento Dracónico (quema 3 HP; Blackjack x3)" },
+      { name: "Centurión Espectral Élite", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 280, pwr: 34, def: 9, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
     ],
     // --- BIOMAS TEMÁTICOS PARA EL MODO SIN FIN (ENDLESS / PISOS > 21) ---
     7: [
-      { name: "Heraldo Astral del 21", sprite: "🌌", img: "assets/svg/enemy_astral_herald.svg", hp: 320, pwr: 22, def: 10, trait: "astral_drain", traitShort: "★ ÉTER ASTRAL", traitName: "Resplandor Astral (drena 15 Overdrive al ganar mano)" },
-      { name: "Espectro del Tiempo", sprite: "⏳", img: "assets/svg/enemy_chronos_specter.svg", hp: 300, pwr: 21, def: 9, trait: "stealth", traitShort: "★ DISTORSIÓN", traitName: "Distorsión Temporal (cartas ocultas; planta en 18+)" },
-      { name: "Coloso de Obsidiana Ancestral", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 350, pwr: 23, def: 12, trait: "thorns", traitShort: "★ ESPINAS VORPALES", traitName: "Espinas de Obsidiana (devuelve 4 daño al ser golpeado)" }
+      { name: "Heraldo Astral del 21", sprite: "🌌", img: "assets/svg/enemy_astral_herald.svg", hp: 350, pwr: 38, def: 10, trait: "astral_drain", traitShort: "★ ÉTER ASTRAL", traitName: "Resplandor Astral (drena 15 Overdrive al ganar mano)" },
+      { name: "Espectro del Tiempo", sprite: "⏳", img: "assets/svg/enemy_chronos_specter.svg", hp: 330, pwr: 36, def: 9, trait: "stealth", traitShort: "★ DISTORSIÓN", traitName: "Distorsión Temporal (cartas ocultas; planta en 18+)" },
+      { name: "Coloso de Obsidiana Ancestral", sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 380, pwr: 40, def: 12, trait: "thorns", traitShort: "★ ESPINAS VORPALES", traitName: "Espinas de Obsidiana (devuelve 4 daño al ser golpeado)" }
     ],
     8: [
-      { name: "Titán del Vacío Eterno", sprite: "🕳️", img: "assets/svg/enemy_void_titan.svg", hp: 390, pwr: 25, def: 12, trait: "void_shatter", traitShort: "★ RUPTURA ABISAL", traitName: "Ruptura Abisal (anula 50% de escudos y golpea con daño puro)" },
-      { name: "Quimera del Caos Primordial", sprite: "🔥", img: "assets/svg/enemy_chaos_chimera.svg", hp: 370, pwr: 24, def: 11, trait: "chaos_fury", traitShort: "★ FURIA DEL CAOS", traitName: "Furia del Caos (Blackjack x3; +2 PWR permanente por mano perdida)" },
-      { name: "Asesino de la Escarcha Abisal", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 330, pwr: 23, def: 10, trait: "frost", traitShort: "★ HIELO PERPETUO", traitName: "Escarcha Abisal (drena 2 puntos de aguante)" }
+      { name: "Titán del Vacío Eterno", sprite: "🕳️", img: "assets/svg/enemy_void_titan.svg", hp: 420, pwr: 44, def: 12, trait: "void_shatter", traitShort: "★ RUPTURA ABISAL", traitName: "Ruptura Abisal (anula 50% de escudos y golpea con daño puro)" },
+      { name: "Quimera del Caos Primordial", sprite: "🔥", img: "assets/svg/enemy_chaos_chimera.svg", hp: 400, pwr: 42, def: 11, trait: "chaos_fury", traitShort: "★ FURIA DEL CAOS", traitName: "Furia del Caos (Blackjack x3; +2 PWR permanente por mano perdida)" },
+      { name: "Asesino de la Escarcha Abisal", sprite: "❄️", img: "assets/svg/enemy_frost_assassin.svg", hp: 360, pwr: 40, def: 10, trait: "frost", traitShort: "★ HIELO PERPETUO", traitName: "Escarcha Abisal (drena 2 puntos de aguante)" }
     ]
   };
   window.ACT_ENEMY_POOLS = ACT_ENEMY_POOLS;
@@ -7840,8 +7907,8 @@
     p.hp = p.maxHp;
     p.expMultiplier = 1;
     p.bonusKillExp = 0;
-    p.pwr = ((typeof heroMeta.basePwr === "number" && heroMeta.basePwr >= 0) ? heroMeta.basePwr : (hero.pwr + masteryBonuses.pwr)) + legPwr;
-    p.def = ((typeof heroMeta.baseDef === "number" && heroMeta.baseDef >= 0) ? heroMeta.baseDef : (hero.def + masteryBonuses.def)) + legDef;
+    p.pwr = Math.max(hero.pwr, ((typeof heroMeta.basePwr === "number" && heroMeta.basePwr >= hero.pwr) ? heroMeta.basePwr : hero.pwr) + (masteryBonuses.pwr || 0)) + legPwr;
+    p.def = Math.max(hero.def, ((typeof heroMeta.baseDef === "number" && heroMeta.baseDef >= hero.def) ? heroMeta.baseDef : hero.def) + (masteryBonuses.def || 0)) + legDef;
     p.potions = 2 + (masteryBonuses.potions || 0) + ((gameState.chapter > 1) ? Math.floor(gameState.chapter / 2) : 0);
     p.rerollsAvailable = (masteryBonuses.rerolls || 0);
     p.gem = null;
@@ -8285,7 +8352,7 @@
 
   let _lastPlayerActionTime = 0;
   async function playerAction(action) {
-    if (gameState.isRolling) return;
+    if (gameState.isRolling || window.gamePaused || gamePaused) return;
     const _now = Date.now();
     if (_now - _lastPlayerActionTime < 350) return;
     _lastPlayerActionTime = _now;
@@ -13907,6 +13974,63 @@
   var gamePaused = false;
   window.gamePaused = gamePaused;
 
+  function renderPauseHeroStats(p) {
+    const container = document.getElementById("pause-hero-stats-container");
+    if (!container) return;
+    if (!p) {
+      container.innerHTML = "";
+      return;
+    }
+    if (typeof recalculatePlayerStats === "function") {
+      recalculatePlayerStats(p);
+    }
+
+    const baseAtk = p.pwr || 14;
+    let bonusAtk = 0;
+    const strMod = (p.attributes && p.attributes.str > 10) ? Math.floor((p.attributes.str - 10) / 2) : 0;
+    bonusAtk += strMod;
+    bonusAtk += (p.cardBonusDamage || 0);
+    if (p.accessory === "mercury_band") bonusAtk += 2;
+    if (p.gem === "topaz") bonusAtk += 2;
+    if (typeof hasArtifact === "function") {
+      if (hasArtifact("warriors_ring")) bonusAtk += 3;
+      if (hasArtifact("fury_bracer") && p.furyBracerStreak) bonusAtk += p.furyBracerStreak;
+    }
+    if (p._synergyBonusPwr) bonusAtk += p._synergyBonusPwr;
+
+    const baseDef = p.def || 3;
+    let bonusDef = (p.turnShieldBonus || 0) + (p.duplaDef || 0) + (p.accessory === "mercury_band" ? 1 : 0);
+    if (p._synergyBonusDef) bonusDef += p._synergyBonusDef;
+
+    const critPct = p.critChance || 25;
+    const dodgePct = Math.min(45, (p.dodgeChance || 0));
+    const lifestealPct = p.lifesteal || 0;
+    const thornsPct = p.thorns || 0;
+
+    let atkDisplay = bonusAtk > 0 ? `${baseAtk} (+${bonusAtk})` : `${baseAtk}`;
+    let defDisplay = bonusDef > 0 ? `${baseDef} (+${bonusDef})` : `${baseDef}`;
+
+    let extraPills = "";
+    if (lifestealPct > 0) {
+      extraPills += `<div class="pause-stat-item"><span class="psi-icon">🩸</span><span class="psi-lbl">VAMPIRISMO:</span><span class="psi-val">${lifestealPct}%</span></div>`;
+    }
+    if (thornsPct > 0) {
+      extraPills += `<div class="pause-stat-item"><span class="psi-icon">🌵</span><span class="psi-lbl">ESPINAS:</span><span class="psi-val">${thornsPct}%</span></div>`;
+    }
+
+    container.innerHTML = `
+      <div class="pause-hero-stats-title">⚔️ ESTADÍSTICAS EN TIEMPO REAL</div>
+      <div class="pause-hero-stats-grid">
+        <div class="pause-stat-item"><span class="psi-icon">⚔️</span><span class="psi-lbl">ATAQUE:</span><span class="psi-val">${atkDisplay}</span></div>
+        <div class="pause-stat-item"><span class="psi-icon">🛡️</span><span class="psi-lbl">DEFENSA:</span><span class="psi-val">${defDisplay}</span></div>
+        <div class="pause-stat-item"><span class="psi-icon">⚡</span><span class="psi-lbl">CRÍTICO:</span><span class="psi-val">${critPct}%</span></div>
+        <div class="pause-stat-item"><span class="psi-icon">💨</span><span class="psi-lbl">ESQUIVAR:</span><span class="psi-val">${dodgePct}%</span></div>
+        ${extraPills}
+      </div>
+    `;
+  }
+  window.renderPauseHeroStats = renderPauseHeroStats;
+
   function openInGamePauseMenu() {
     gamePaused = true;
     window.gamePaused = true;
@@ -13920,6 +14044,8 @@
     if (metaEl && p) {
       metaEl.innerText = `PISO ${gameState.floor} / ${maxF} • ${(p.name || 'JACK').toUpperCase()} • NVL ${p.level || 1} (🪙 ${gameState.gold} ORO)`;
     }
+
+    if (p) renderPauseHeroStats(p);
 
     const soundBtn = document.getElementById("pause-btn-sound");
     if (soundBtn) {
@@ -16600,11 +16726,8 @@
         addLog(`⚡ Perk Táctico: +${p._synergyBonusPwr} de daño de impacto en este golpe.`, "critical");
       }
 
-      // 1. Margen de victoria en las cartas (más aplastante la victoria en la mano = más impacto)
-      const scoreMargin = Math.max(0, p.playerScore - (e.bust ? 15 : e.enemyScore));
-      const marginBonus = Math.floor(scoreMargin * 0.75);
-
-      // Bono de Atributo RPG de Fuerza (STR)
+      // 1. ATAQUE LIMPIO (v1.8.0): Las cartas no son daño; determinan la victoria del asalto.
+      // Ataque Base del Personaje + Bonos Planos (Reliquias, Sellos, Cartas, Atributos)
       const strMod = (p.attributes && p.attributes.str > 10) ? Math.floor((p.attributes.str - 10) / 2) : 0;
       if (strMod > 0) bonus += strMod;
 
@@ -16618,54 +16741,54 @@
         }
       }
 
-      // 3. FÓRMULA LIMPIA DE DAÑO (Sin levelMultiplier):
-      // Daño Mano = Apuesta + Margen
-      // Ataque Base = PWR + Atributos / Reliquias / Cartas
-      const handDmgComponent = bet + marginBonus;
-      const baseAtkComponent = p.pwr + bonus + (p.cardBonusDamage || 0);
-      let rawPlayerDmg = handDmgComponent + baseAtkComponent;
-      let dmg = Math.max(0, rawPlayerDmg - effectiveEnemyDef);
+      const baseAtkComponent = p.pwr || 14;
+      const flatBonuses = bonus + (p.cardBonusDamage || 0);
+      let rawPlayerAtk = baseAtkComponent + flatBonuses;
 
-      // Estocada Vorpal (Talento spades_4): +15% de Daño en manos de 20 o 21
+      // 2. Porcentaje de Buffs
+      let buffPct = 0;
       if (p._spadesVorpalBonus && (p.playerScore === 20 || p.playerScore === 21)) {
-        dmg = Math.round(dmg * (1 + p._spadesVorpalBonus));
+        buffPct += p._spadesVorpalBonus;
         addLog("🗡️ Estocada Vorpal (♠): +15% daño físico por puntuación 20/21.", "critical");
       }
-
-      // D&D: Golpe Amortiguado si la mano ganadora fue tímida (< 15)
-      if (p.playerScore < 15) {
-        dmg = Math.max(1, Math.round(dmg * 0.50));
-        if (!gameState.status) gameState.status = {};
-        gameState.status.playerShield = (gameState.status.playerShield || 0) + 4;
-        addLog("🛡️ Guardia Táctica (<15): Golpe amortiguado (+4 Escudo defensivo).", "heal");
+      if (hasStarterBlessing("berserker_rage") && (p.playerScore === 20 || p.playerScore === 21)) {
+        buffPct += 0.30;
+        addLog("⚡ Ira del Berserker: ¡Daño amplificado +30% por puntuación 20/21!", "critical");
       }
+      const buffMultiplier = Math.max(0.1, 1 + buffPct);
 
-      // Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Basado en p.critChance del héroe)
+      // 3. Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Basado en p.critChance del héroe)
       if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
-      const totalCritChance = p.critChance || 0;
+      const totalCritChance = p.critChance || 25;
       const isRpgCrit = (totalCritChance > 0 && Math.random() * 100 < totalCritChance);
+      const isCrit = (isRpgCrit || isNatural21 || p.playerScore === 21);
 
-      if ((isRpgCrit || isNatural21 || p.playerScore >= 20) && dmg > 0) {
+      let critMultiplier = 1.0;
+      if (isCrit) {
         const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
-        let critMultiplier = 1.5;
         if (isNatural21) {
           if (pendingNextBJx4) {
             critMultiplier = (p.gem === "blackjack_heritage") ? 4.5 : 4.0;
           } else {
-            critMultiplier = (p.gem === "blackjack_heritage") ? 4.0 : 3.0;
+            critMultiplier = (p.gem === "blackjack_heritage") ? 3.5 : 2.5;
           }
         } else if (p.playerScore === 21) {
           critMultiplier = pendingNextBJx4 ? 3.0 : 2.0;
         } else if (p._spadesTwinBlades && handSpadesTotal >= 2) {
           critMultiplier = 2.2;
+        } else {
+          critMultiplier = 2.0;
         }
-        dmg = Math.round(dmg * critMultiplier);
         spawnFloatingText("player-sprite", `⚡ x${critMultiplier} ¡CRÍTICO!`, "crit");
-        addLog(`⚡ ¡Impacto Crítico (${totalCritChance}%)! Daño multiplicado x${critMultiplier} = ${dmg} HP.`, "critical");
+        addLog(`⚡ ¡Impacto Crítico (${totalCritChance}%)! Ataque multiplicado x${critMultiplier}.`, "critical");
         if (typeof showCombatCritSignal === "function") {
           showCombatCritSignal(critMultiplier);
         }
       }
+
+      // Daño total antes de mitigación
+      let totalPlayerAttack = Math.round(rawPlayerAtk * buffMultiplier * critMultiplier);
+      let dmg = Math.max(0, totalPlayerAttack - effectiveEnemyDef);
 
       // Vampirismo / Robo de Alma (Stat Lifesteal)
       if (dmg > 0 && ((p.lifesteal || 0) > 0 || (p._spadesCritLifesteal && isRpgCrit))) {
@@ -16858,7 +16981,7 @@
       }
 
       if (dmg === 0) {
-        addLog(`🛡️ ¡GOLPE RESISTIDO! La armadura de ${e.name} (DEF ${effectiveEnemyDef}) bloqueó tu ataque (${rawPlayerDmg} vs ${effectiveEnemyDef} DEF). ¡0 daño infligido!`, "warning");
+        addLog(`🛡️ ¡GOLPE RESISTIDO! La armadura de ${e.name} (DEF ${effectiveEnemyDef}) bloqueó tu ataque (${totalPlayerAttack} vs ${effectiveEnemyDef} DEF). ¡0 daño infligido!`, "warning");
         showCombatBanner("🛡️ ¡GOLPE RESISTIDO!", `${e.name} resistió tu impacto con su armadura (DEF ${effectiveEnemyDef})`, "tie");
         spawnFloatingText("enemy-sprite", "🛡️ BLOQUEADO (0)", "shield");
         playShieldSound();
@@ -16872,7 +16995,7 @@
             spawnFloatingText("player-sprite", "+16 HP", "heal");
             addLog("❤️‍🔥 ¡BLACKJACK HEREDADO! Impacto Vorpal x4 = " + dmg + " y +16 HP restaurados.", "critical");
           } else {
-            addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Impacto Vorpal x3 = " + dmg + ".", "critical");
+            addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Impacto Vorpal x2.5 = " + dmg + ".", "critical");
           }
           // SPRINT 4 — Perk Táctico [Corazón de Diamante]: siguiente BJ x4
           if (pendingNextBJx4) {
@@ -16890,11 +17013,8 @@
         await sleep(100);
         setPlayerSpriteState("strike");
         const suddenTag = isSuddenDeath ? ` [🔥FURIA x${suddenMult}]` : "";
-        const betTag = (bet && bet > 0) ? ` + Apuesta (${bet})` : "";
-        const rawSum = handDmgComponent + baseAtkComponent;
-        const multDisplay = rawSum > 0 ? (dmg / Math.max(1, rawSum - effectiveEnemyDef)).toFixed(1) : "1.0";
-        const multText = (parseFloat(multDisplay) > 1.0) ? ` × [Mult: ${multDisplay}x]` : "";
-        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}! [Daño Mano: ${handDmgComponent}] + [Ataque Base: ${baseAtkComponent}]${multText} - DEF (${effectiveEnemyDef}) = ${dmg} daño total.`, "heal");
+        const critTag = isCrit ? ` [⚡CRÍTICO x${critMultiplier}]` : "";
+        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}${critTag}! [Ataque Base: ${baseAtkComponent}] + [Bonos: ${flatBonuses}] - DEF (${effectiveEnemyDef}) = ${dmg} daño total.`, "heal");
         // Naipes de Botín: Potenciador Multiplicador x2
         const multCard = p.playerHand && p.playerHand.find(c => c && c.operator === "mult");
         if (multCard) {
@@ -17009,9 +17129,8 @@
         addLog(`🛡️ Perk Táctico [Muralla de Hierro]: +${p._synergyBonusDef} DEF frente a este contraataque (DEF total ${totalDef}).`, "critical");
         p._synergyBonusDef = 0;
       }
-      const enemyScoreMargin = Math.max(0, (e.bust ? 15 : e.enemyScore) - (p.bust ? 15 : p.playerScore));
-      const enemyMarginBonus = Math.floor(enemyScoreMargin * 0.75);
-      let rawDmg = e.pwr + enemyMarginBonus + bet;
+      // 1. ATAQUE LIMPIO DEL RIVAL (v1.8.0): Las cartas no son daño.
+      let rawDmg = e.pwr || 10;
       if (p.turnDoubleDamage) {
         rawDmg = Math.round(rawDmg * 2.0);
         spawnFloatingText("player-sprite", "⚡ x2 CONTRAATAQUE", "damage");
@@ -17023,7 +17142,7 @@
         totalDef = Math.max(0, totalDef - 4);
         triggerScreenShake("heavy");
         spawnFloatingText("enemy-sprite", "👹 ¡21 CRÍTICO VORPAL!", "crit");
-        addLog(`👹 ¡${e.name} DESATA UN 21 CRÍTICO! Perfora 4 DEF e inflige daño vorpal directo.`, "damage");
+        addLog(`👹 ¡${e.name} DESATA UN 21 CRÍTICO! Perfora 4 DEF e inflige impacto vorpal.`, "damage");
       }
 
       if (isSuddenDeath) {
@@ -17138,6 +17257,15 @@
         if (pShieldWrap) {
           pShieldWrap.classList.add("shield-hit");
           setTimeout(() => pShieldWrap.classList.remove("shield-hit"), 400);
+        }
+        if (((p.thorns || 0) > 0 || p._diamondsThornReflect) && rawDmg > 0) {
+          const thornPct = (p.thorns || 0) / 100;
+          const reflectPct = Math.max(p._diamondsThornReflect || 0, thornPct);
+          const reflectDmg = Math.max(1, Math.round(rawDmg * reflectPct));
+          e.hp = Math.max(0, e.hp - reflectDmg);
+          spawnFloatingText("enemy-sprite", `🌵 -${reflectDmg} ESPINAS`, "crit");
+          addLog(`🌵 Espinas (${p.thorns || 0}%): Devuelves ${reflectDmg} de daño reflejado al rival tras bloquear.`, "critical");
+          updateHud();
         }
         await sleep(350);
         setEnemySpriteState("idle");

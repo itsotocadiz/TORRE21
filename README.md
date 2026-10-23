@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.7.6 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.8.0 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,27 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.7.6] — Octubre 2026 (Actual)
+### [v1.8.0] — Octubre 2026 (Actual)
+* **Auditoría e Integridad del Códice Coleccionable (100% Colecciones):**
+  * Verificación exhaustiva de las 5 colecciones del Códice: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
+  * Estandarización de ranuras misteriosas `?` para todos los elementos no desbloqueados con pistas de obtención in-game.
+  * Inspección táctil modal interactiva (`inspectCodexItem`) al tocar cualquier carta, bendición o reliquia descubierta.
+* **Sistema de Combate Limpio y Predictivo (Las Cartas Determinan la Victoria, No el Daño):**
+  * Desvinculación de los puntos de la mano del cálculo numérico del daño: el valor de las cartas hacia el 21 determina estrictamente la victoria, empate o derrota del asalto.
+  * El daño asestado al ganar es directamente el **Ataque del Héroe** (`player.pwr` / `pwr`) más sus bonificaciones reales activas (modificadores de atributos, afinidades elementales por palos, reliquias y cartas arcanas).
+  * El contraataque enemigo al perder se basa directamente en el **Ataque del Rival** (`enemy.pwr`), mitigado por la **Defensa/Armadura** del jugador (`player.def`) y escudos.
+  * Indicador predictivo reactivo en el HUD (`⚔️ ATAQUE: X HP` o `⚔️ ATAQUE: X – Y HP` o `⚡ ATAQUE x2:` al doblar la apuesta) sincronizado en vivo al robar o descartar.
+* **Estadísticas del Héroe en Tiempo Real en el Menú de Pausa:**
+  * Al desplegar el menú de pausa in-game (`openInGamePauseMenu`), se recomputan las estadísticas llamando formalmente a `recalculatePlayerStats(player)`.
+  * Nuevo panel visual `#pause-hero-stats-container` con desglose dinámico:
+    * ⚔️ **Ataque:** Base + Bonos activos
+    * 🛡️ **Defensa:** Base + Bonos activos
+    * ⚡ **Crítico:** % real calculado
+    * 💨 **Esquivar:** % real calculado
+    * 🩸 **Vampirismo** y 🌵 **Espinas:** reflejados en tiempo real si aplican.
+  * Congelación estricta del combate (`window.gamePaused = true` / `gamePaused = true`) que inhabilita los botones de acción (`playerAction`) mientras la pausa permanezca activa.
+
+### [v1.7.6] — Octubre 2026
 * **Blindaje Total de Inicialización de Batalla (`ensureBattleStateInitialized`):**
   * Validación previa defensiva ante condiciones de carrera y desreferencias nulas en la entrada al primer combate tras la selección de héroe o bendición (`startNewHand`, `updateHud`, `updateTacticalOddsHUD`, `calculateTacticalAttackRange`).
   * Comprobación segura y asignación de fallbacks para atributos de jugador, vida, mazo de naipes, escudo y enemigos antes de ejecutar cualquier cálculo táctico.

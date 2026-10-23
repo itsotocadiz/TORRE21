@@ -5503,6 +5503,57 @@ body.sudden-death-active #stage {
   font-weight: 600;
 }
 
+.pause-hero-stats-box {
+  background: rgba(11, 19, 43, 0.65);
+  border: 1px solid rgba(102, 252, 241, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 4px 0 6px 0;
+}
+
+.pause-hero-stats-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: #66fcf1;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.pause-hero-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.pause-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #c5c6c7;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pause-stat-item .psi-icon {
+  font-size: 11px;
+}
+
+.pause-stat-item .psi-lbl {
+  font-weight: 600;
+  color: #8892b0;
+  font-size: 9px;
+}
+
+.pause-stat-item .psi-val {
+  font-weight: bold;
+  color: #ffd166;
+  margin-left: auto;
+}
+
 .pause-actions-group {
   display: flex;
   flex-direction: column;

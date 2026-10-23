@@ -211,7 +211,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.7.6</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.0</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -480,7 +480,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.7.6 (BUILD 40)</span>
+          <span id="settings-version">📱 VERSIÓN v1.8.0 (BUILD 41)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -889,6 +889,9 @@
         <div class="pause-run-meta" id="pause-run-meta">PISO 1 • CABALLERO • NVL 1</div>
         <button class="inspect-close-btn" onclick="closeInGamePauseMenu()">✕</button>
       </div>
+
+      <!-- ESTADÍSTICAS DEL HÉROE EN VIVO (v1.8.0) -->
+      <div class="pause-hero-stats-box" id="pause-hero-stats-container"></div>
 
       <!-- Cuadro de confirmación contextual (reiniciar / salir) -->
       <div id="pause-confirm-box" class="pause-confirm-box hidden">
