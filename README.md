@@ -66,23 +66,30 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v1.8.1] — Noviembre 2026 (Actual)
-* **Blindaje Defensivo contra Crashes en Primer Combate (`ensureBattleStateInitialized`):**
-  * Resuelta la condición de carrera al entrar a la primera batalla de una sesión: pre-inicialización obligatoria y defensiva de atributos (`STR/DEX/INT/VIT`), baraja (`deck`), estado del rival (`enemy`), escudos, afinidades y referencias de DOM antes de ejecutar rutinas de cálculo táctico y HUD.
-* **Corrección de Selección y Registro de Bendiciones (`STARTER_BLESSINGS`):**
-  * Solucionada la inconsistencia de selección de bendiciones: pase estricto por `id`, asignación de objeto normalizado y desduplicación de inspección.
-  * Persistencia automática de bendiciones seleccionadas en el Códice (`torre21_unlocked_blessings` y `bj_unlocked_blessings`).
-* **Reestructuración Integral del Códice (100% Coleccionables Roguelike):**
-  * Códice rediseñado con 5 pestañas de coleccionables puros: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
-  * Oficialmente renombrada la colección a *"Cartas Cosméticas"* y eliminado el doble título redundante.
-  * Eliminadas las pestañas obsoletas de "Pisos" y "Secretos del Abismo", así como el botón "Revivir el Cómic del Prólogo".
-  * Nuevas ranuras coleccionables con silueta `?` para bendiciones (`STARTER_BLESSINGS`) y reliquias (`ALL_RELICS` + `DEMONIC_RELICS_BY_ACT`).
-* **Unificación de Moneda de Metajuego (Calavera de Cripta 💀):**
-  * Reemplazados todos los iconos de llave (`🔑` / `🗝️`) en la Tienda del Héroe, contadores, botones de compra y transmutación de cartas/sellos por la calavera de cripta `💀`.
-* **Ficha de Combate Precisa y Traducida al Español:**
-  * Eliminada la mención de `(+12% por Nvl X)` inexistente en el cálculo de daño.
-  * Traducción completa al español y con iconos de todas las reliquias, artefactos, accesorios y bendiciones (`getItemSpanishName`).
-  * Desglose dinámico de atributos RPG en combate: Crítico, Esquivar, Espinas, Vampirismo y Suerte.
-  * Ocultado el contador de bajas duplicado `ui-kills` en la barra superior.
+* **Eliminación del Cartel Flotante de Reglas / Tips de Blackjack en Combate:**
+  * Eliminado por completo el banner flotante superior de consejos (`#first-run-combat-hints`), liberando espacio visual vertical crítico en pantallas móviles.
+* **Rediseño Limpio de Barra de Escudo y Desduplicación de Chips:**
+  * Eliminado el chip suelto redundante de escudo bajo `PWR | DEF` tanto para el jugador como para el rival.
+  * Formato unificado y limpio para la barra azul de escudo: etiqueta `🛡️ ESCUDO` a la izquierda y número entero total a la derecha, manteniendo la explicación táctica accesible al tocar la propia barra.
+* **Eliminación Completa de "Tributo del Campeón":**
+  * Suprimidos los banners y textos confusos de "Tributo del Campeón" que aparecían erróneamente en los pisos de inicio de acto (4, 8, etc.).
+  * Transición de victoria de piso inmediata, limpia y unificada con los 3 cofres/puertas de recompensa.
+* **Optimización del Layout de Batalla y Textos Flotantes:**
+  * Flujo Flexbox mejorado en el escenario de combate con espaciado garantizado para evitar cualquier solapamiento del registro de combate (`#log-container`) con las estadísticas fijas.
+  * Reubicado el badge de racha (`#player-streak-badge` `🔥 x1.5`) fuera del sprite, posicionado limpiamente en la cabecera del héroe.
+  * Desplazamiento lateral de textos de combate flotantes (`spawnFloatingText`) para evitar que obstruyan el contador de cartas o el indicador de `BUST`.
+* **Unificación de Alertas de "Perk Táctico Activado":**
+  * Eliminado el banner redundante en el centro de la pantalla; ahora se notifica exclusivamente mediante un toast compacto no invasivo y entrada clara en el registro de combate.
+  * Cierre automático de toasts de perks tácticos al abrir cualquier modal de juego.
+* **Notificaciones de Botín Cosmético / Metamonedas y Naipe Customizado:**
+  * Alertas destacadas en pantalla al desbloquear Cartas Cosméticas o Metamonedas (`💀`).
+  * Iluminación y contraste mejorados en las cartas de arte completo (`.card-cosmetic-fullart`), destacando el fondo del monstruo con claridad detrás del palo y rango.
+  * Limpieza de miniaturas residuales en el modal de detalle de cartas.
+* **Corrección de Navegación en Actos de Ascensión al Pulsar "Volver":**
+  * Garantizada la visibilidad y renderizado (`display: grid`) del panel de Actos al regresar desde confirmaciones, modales o cambios de pestaña.
+* **Limpieza Residual y Versión Oficial:**
+  * Eliminado texto residual de daño escalable obsoleto en la opción `FURIA DE JACK` del modal de subida de nivel.
+  * Versión formalmente actualizada a `v1.8.1 (BUILD 42)` en todo el ecosistema (`index.html`, `js/game.js`, `js/improvements.js`, `README.md`).
 
 ### [v1.8.0] — Octubre 2026
 * **Auditoría e Integridad del Códice Coleccionable (100% Colecciones):**
@@ -366,26 +373,6 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Verificación e Integridad Total:**
   * Sincronización estricta de las 3 copias del proyecto (`node scripts/sync-all.js`).
   * Superadas las 42 suites de pruebas unitarias (`npm run verify`) con 0 errores y 0 advertencias.
-
-### [v1.8.1] — Noviembre 2026
-* **Blindaje Defensivo contra Crashes en Primer Combate (`ensureBattleStateInitialized`):**
-  * Resuelta la condición de carrera al entrar a la primera batalla de una sesión: pre-inicialización obligatoria y defensiva de atributos (`STR/DEX/INT/VIT`), baraja (`deck`), estado del rival (`enemy`), escudos, afinidades y referencias de DOM antes de ejecutar rutinas de cálculo táctico y HUD.
-  * Añadidos chequeos nulos (`?.` y fallbacks) en `updateTacticalOddsHUD`, `calculateTacticalAttackRange`, `renderBattlefieldState` y `recalculatePlayerStats`.
-* **Corrección de Selección y Registro de Bendiciones (`STARTER_BLESSINGS`):**
-  * Solucionada la inconsistencia de selección de bendiciones: pase estricto por `id`, asignación de objeto normalizado y desduplicación de inspección.
-  * Persistencia automática de bendiciones seleccionadas en el Códice (`torre21_unlocked_blessings` y `bj_unlocked_blessings`).
-* **Reestructuración Integral del Códice (100% Coleccionables Roguelike):**
-  * Códice rediseñado con 5 pestañas de coleccionables puros: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
-  * Oficialmente renombrada la colección a *"Cartas Cosméticas"* y eliminado el doble título redundante.
-  * Eliminadas las pestañas obsoletas de "Pisos" y "Secretos del Abismo", así como el botón "Revivir el Cómic del Prólogo".
-  * Nuevas ranuras coleccionables con silueta `?` para bendiciones (`STARTER_BLESSINGS`) y reliquias (`ALL_RELICS` + `DEMONIC_RELICS_BY_ACT`).
-* **Unificación de Moneda de Metajuego (Calavera de Cripta 💀):**
-  * Reemplazados todos los iconos de llave (`🔑` / `🗝️`) en la Tienda del Héroe, contadores, botones de compra y transmutación de cartas/sellos por la calavera de cripta `💀`.
-* **Ficha de Combate Precisa y Traducida al Español:**
-  * Eliminada la mención de `(+12% por Nvl X)` inexistente en el cálculo de daño.
-  * Traducción completa al español y con iconos de todas las reliquias, artefactos, accesorios y bendiciones (`getItemSpanishName`).
-  * Desglose dinámico de atributos RPG en combate: Crítico, Esquivar, Espinas, Vampirismo y Suerte.
-  * Ocultado el contador de bajas duplicado `ui-kills` en la barra superior.
 
 ### [v1.8.0] — Octubre 2026
 * **Campaña Integral de 6 Actos y Sistema de Crecimiento Exponencial:**

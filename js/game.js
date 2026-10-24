@@ -25,7 +25,7 @@
       lifesteal: 0,
       luck: 0,
       styleClass: "shield-bio",
-      desc: "Baluarte y Contraataque: Tanque indestructible (110 HP, 5 DEF, 15% Espinas de base). Devuelve daño al rival al mitigar golpes. Inicia con 6 de Escudo azul."
+      desc: "Baluarte y Contraataque: Tanque indestructible. Devuelve daño al rival al mitigar golpes gracias a sus Espinas e inicia cada combate con Escudo protector."
     },
     rogue: {
       name: "Pícaro",
@@ -46,7 +46,7 @@
       lifesteal: 0,
       luck: 0,
       styleClass: "blood-bio",
-      desc: "Filo Sombrío y Evasión: Asesino ágil (15 PWR, 15% Crítico, 12% Esquivar). Asesta estocadas críticas letales y esquiva contraataques mortales."
+      desc: "Filo Sombrío y Evasión: Asesino letal y ágil. Asesta estocadas críticas devastadoras y esquiva contraataques mortales."
     },
     monk: {
       name: "Monje",
@@ -67,7 +67,7 @@
       lifesteal: 12,
       luck: 0,
       styleClass: "zen-bio",
-      desc: "Guerrero Carmesí y Sostén: Equilibrio vital (95 HP, 12% Vampirismo, 5% Esquivar). Drena vida en cada impacto y enfoca su mente (+1 punto al plantarse con 18/19)."
+      desc: "Guerrero Carmesí y Sostén: Equilibrio vital. Drena vida en cada impacto mediante Vampirismo y enfoca su mente (+1 punto al plantarse con 18/19)."
     },
     necromancer: {
       name: "Nigromante",
@@ -88,7 +88,7 @@
       lifesteal: 0,
       luck: 15,
       styleClass: "blood-bio",
-      desc: "Arcanista del Destino: Máximo poder arcano (17 PWR, 15% Suerte, 10% Crítico). Manipulador del azar que devora el alma de rivales abatidos (+8 HP)."
+      desc: "Arcanista del Destino: Maestro de la magia y la fortuna. Manipulador del azar que devora el alma de rivales abatidos (+8 HP)."
     }
   };
   HERO_DATA.necro = HERO_DATA.necromancer;
@@ -2954,8 +2954,15 @@
     const el = document.createElement("div");
     el.className = `floating-text ${type}`;
     el.innerText = text;
-    el.style.left = `${Math.max(10, rect.left - stageRect.left + (rect.width / 2) - 30)}px`;
-    el.style.top = `${Math.max(10, rect.top - stageRect.top)}px`;
+    // Si el objetivo es el héroe o enemigo, desplazar ligeramente al centro del cuerpo del sprite para no tapar los puntajes de cartas
+    const isPlayer = (target.id && target.id.includes("player")) || (target.classList && target.classList.contains("player-fighter"));
+    const isEnemy = (target.id && target.id.includes("enemy")) || (target.classList && target.classList.contains("enemy-fighter"));
+    let xOffset = (rect.width / 2) - 24;
+    if (isPlayer) xOffset -= 8;
+    else if (isEnemy) xOffset += 8;
+
+    el.style.left = `${Math.max(10, rect.left - stageRect.left + xOffset)}px`;
+    el.style.top = `${Math.max(10, rect.top - stageRect.top + (rect.height * 0.35))}px`;
     stage.appendChild(el);
     setTimeout(() => {
       if (el.parentNode) el.parentNode.removeChild(el);
@@ -3027,9 +3034,21 @@
     const p = gameState.player;
     const e = gameState.enemy;
 
+    // Soporte táctil directo en barra de escudo (desduplicado en v1.8.1): onclick="explainCombatStatus('shield', false)" y onclick="explainCombatStatus('shield', true)"
+    const pShieldWrap = document.getElementById("player-shield-wrapper");
+    if (pShieldWrap) {
+      pShieldWrap.setAttribute("onclick", "explainCombatStatus('shield', false)");
+      pShieldWrap.style.cursor = "pointer";
+    }
+    const eShieldWrap = document.getElementById("enemy-shield-wrapper");
+    if (eShieldWrap) {
+      eShieldWrap.setAttribute("onclick", "explainCombatStatus('shield', true)");
+      eShieldWrap.style.cursor = "pointer";
+    }
+
     if (pBadges) {
       let html = "";
-      if (st.playerShield > 0) html += `<div class="status-badge shield" onclick="explainCombatStatus('shield', false)" style="cursor:pointer;" title="Escudo que absorbe daño (Toca para ver)">🛡️ ${st.playerShield}</div>`;
+      // Chip de escudo suelto eliminado en v1.8.1 (el valor unificado se consulta en la barra de escudo limpia)
       if (st.playerPoison > 0) html += `<div class="status-badge poison" onclick="explainCombatStatus('poison', false)" style="cursor:pointer;" title="Veneno residual (Toca para ver)">☠️ ${st.playerPoison}</div>`;
       if (st.playerBurn > 0) html += `<div class="status-badge burn" onclick="explainCombatStatus('burn', false)" style="cursor:pointer;" title="Quemadura activa (Toca para ver)">🔥 ${st.playerBurn}</div>`;
       if (p && p.turnDoubleDamage) html += `<div class="status-badge fury" onclick="explainCombatStatus('fury', false)" style="cursor:pointer;" title="Golpe Traicionero x2 (Toca para ver)">⚡ x2</div>`;
@@ -3056,7 +3075,7 @@
 
     if (eBadges) {
       let html = "";
-      if (st.enemyShield > 0) html += `<div class="status-badge shield" onclick="explainCombatStatus('shield', true)" style="cursor:pointer;" title="Escudo rival (Toca para ver)">🛡️ ${st.enemyShield}</div>`;
+      // Chip de escudo suelto rival eliminado en v1.8.1
       if (st.enemyPoison > 0) html += `<div class="status-badge poison" onclick="explainCombatStatus('poison', true)" style="cursor:pointer;" title="Veneno rival (Toca para ver)">☠️ ${st.enemyPoison}</div>`;
       if (st.enemyBurn > 0) html += `<div class="status-badge burn" onclick="explainCombatStatus('burn', true)" style="cursor:pointer;" title="Quemadura rival (Toca para ver)">🔥 ${st.enemyBurn}</div>`;
       eBadges.innerHTML = html;
@@ -3929,6 +3948,7 @@
           cardEnchantments: {}
         };
       }
+      const p = gs.player;
       const heroKey = p.classKey || p.class || "knight";
       const heroCfg = (typeof HERO_DATA !== "undefined" && HERO_DATA[heroKey]) ? HERO_DATA[heroKey] : (HERO_DATA.knight || {});
       p.hp = (typeof p.hp === "number" && !isNaN(p.hp)) ? p.hp : (p.maxHp || 100);
@@ -4865,7 +4885,20 @@
         message: `¿Deseas iniciar tu expedición en "${curChapter.name}" (Piso ${startFloor}) con tu héroe actual?`,
         okLabel: "⚡ ENTRAR AL ACTO",
         cancelLabel: "◀ VOLVER",
-        onConfirm: launchRun
+        onConfirm: launchRun,
+        onCancel: () => {
+          const panel = document.getElementById("campaign-chapters-panel");
+          if (panel) {
+            panel.classList.remove("hidden");
+            panel.style.display = "";
+          }
+          const grid = document.getElementById("campaign-chapters-grid");
+          if (grid) {
+            grid.classList.remove("hidden");
+            grid.style.display = "";
+          }
+          renderCampaignChaptersUI();
+        }
       });
       return true;
     }
@@ -4876,8 +4909,15 @@
   window.startCampaignRun = startCampaignRun;
 
   function renderCampaignChaptersUI() {
+    const panel = document.getElementById("campaign-chapters-panel");
+    if (panel) {
+      panel.classList.remove("hidden");
+      panel.style.display = "";
+    }
     const grid = document.getElementById("campaign-chapters-grid");
     if (!grid) return;
+    grid.classList.remove("hidden");
+    grid.style.display = "grid";
     const curDiff = (typeof getGameDifficulty === "function") ? getGameDifficulty() : "normal";
     const wp = getCampaignWaypoints();
     const highestWp = wp[curDiff] || 1;
@@ -4904,16 +4944,14 @@
   function toggleCampaignChapters(show) {
     const panel = document.getElementById("campaign-chapters-panel");
     if (!panel) return;
-    if (show === undefined) {
-      panel.classList.toggle("hidden");
-    } else if (show) {
-      panel.classList.remove("hidden");
-    } else {
-      panel.classList.add("hidden");
+    panel.classList.remove("hidden");
+    panel.style.display = "";
+    const grid = document.getElementById("campaign-chapters-grid");
+    if (grid) {
+      grid.classList.remove("hidden");
+      grid.style.display = "grid";
     }
-    if (!panel.classList.contains("hidden")) {
-      renderCampaignChaptersUI();
-    }
+    renderCampaignChaptersUI();
   }
   window.toggleCampaignChapters = toggleCampaignChapters;
 
@@ -9005,7 +9043,7 @@
       spawnFloatingText("enemy-sprite", `+${convertedCoins} 💀 CONVERTIDA`, "gold");
       addLog(`🃏 Carta Cosmética repetida (${enemy.name}) ➔ Convertida en +${convertedCoins} 💀 Metamonedas.`, "gold");
       if (typeof showGameToast === "function") {
-        showGameToast(`🃏 Carta Cosmética repetida (${enemy.name}) ➔ Convertida en +${convertedCoins} 💀 Metamonedas`);
+        showGameToast(`🃏 Carta Cosmética repetida (${enemy.name})\n➔ ¡Convertida en +${convertedCoins} 💀 Metamonedas!`);
       }
       try { playGoldCoinSound(); } catch (_) {}
       return;
@@ -9035,7 +9073,7 @@
     spawnFloatingText("player-sprite", "👑 CARTA COSMÉTICA", "crit");
     addLog(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA! Obtuviste la Carta Cosmética de ${enemy.name}. Vestirá el fondo de tu naipe en combate.`, "critical");
     if (typeof showGameToast === "function") {
-      showGameToast(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA! (${enemy.name})`);
+      showGameToast(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA!\nObtuviste "${enemy.name}" para vestir tus naipes.`);
     }
     try { playVictoryFanfareSound(); } catch (_) {}
   }
@@ -9227,6 +9265,9 @@
       }
       spawnFloatingText("enemy-sprite", `+${coinsDropped} 💀 METAMONEDAS`, "gold");
       addLog(`💀 ¡Drop Arcano! ${e.name} dejó caer ${coinsDropped} Monedas de Cripta.`, "gold");
+      if (typeof showGameToast === "function") {
+        showGameToast(`💀 ¡BOTÍN ARCANO! +${coinsDropped} Metamonedas de Cripta (${e.name})`);
+      }
     }
 
     // 2. Drop de Cartas Cosméticas de Rivales (Curva Inversa: 10% común / 5% élite / 2% jefe + Suerte)
@@ -10023,7 +10064,7 @@
     if (descEl) {
       descEl.style.display = "";
       descEl.innerText = isBoss
-        ? "Has doblegado al Guardián de la Torre. Como tributo de campeón, ¡puedes reclamar todas las recompensas antes de ascender!"
+        ? "Has derrotado al Guardián de la Torre. Elige tu sendero antes de continuar:"
         : "Has derrotado al rival de este piso. Ante ti se abren 3 caminos hacia la gloria:";
     }
 
@@ -10031,16 +10072,8 @@
     const healAmount = p ? Math.min(p.maxHp - p.hp, Math.max(25, Math.round(p.maxHp * 0.30))) : 30;
     const healText = healAmount > 0 ? `+${healAmount} HP` : "SALUD AL MÁXIMO";
 
-    const bossTributeHtml = isBoss ? `
-      <div class="boss-tribute-banner">
-        <div class="boss-tribute-title">🏆 TRIBUTO DEL CAMPEÓN DISPONIBLE</div>
-        <div class="boss-tribute-desc">Al abatir a un Jefe, no tienes que renunciar a ningún camino: ¡puedes sanar tus heridas en la Hoguera, forjar un Sello Arcano gratis y luego visitar el Bazar!</div>
-      </div>
-    ` : "";
-
     if (optEl) {
       optEl.innerHTML = `
-        ${bossTributeHtml}
       <div class="floor-fork-container">
         <!-- OPCIÓN 1: LA HOGUERA -->
         <div class="fork-choice-card campfire" onclick="chooseCampfireRest()">
@@ -14013,6 +14046,13 @@
     if (!data) return;
     const modal = document.getElementById("screen-card-detail");
     if (!modal) return;
+    if (typeof window.dismissTacticalPerkToasts === "function") window.dismissTacticalPerkToasts();
+
+    // Desactivar cualquier carta elevada o foco residual de la mano para evitar miniaturas duplicadas flotantes
+    document.querySelectorAll(".player-card.lifted, .fan-card.lifted, .card-face.lifted").forEach(c => c.classList.remove("lifted"));
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
 
     const rankEl = document.getElementById("card-detail-rank");
     const suitEl = document.getElementById("card-detail-suit");
@@ -14129,6 +14169,7 @@
     if (e && e.target && e.target.classList && e.target.classList.contains("card-detail-card")) return;
     const modal = document.getElementById("screen-card-detail");
     if (modal) modal.classList.add("hidden");
+    document.querySelectorAll(".player-card.lifted, .fan-card.lifted, .card-face.lifted").forEach(c => c.classList.remove("lifted"));
   }
   window.closeCardDetailModal = closeCardDetailModal;
 
@@ -14204,6 +14245,7 @@
       window.gamePaused = true;
       const modal = document.getElementById("screen-ingame-pause");
       if (!modal) return;
+      if (typeof window.dismissTacticalPerkToasts === "function") window.dismissTacticalPerkToasts();
       modal.classList.remove("hidden");
       modal.style.display = "flex";
 
@@ -15370,8 +15412,7 @@
 
     const eMini = document.getElementById("enemy-stats-mini");
     if (eMini && e) {
-      const shieldStr = gameState.status.enemyShield > 0 ? ` <span style="color:#48cae4;font-weight:bold;">(+${gameState.status.enemyShield})</span>` : "";
-      eMini.innerHTML = `⚔️ ${e.pwr} &nbsp; 🛡️ ${e.def}${shieldStr}`;
+      eMini.innerHTML = `⚔️ ${e.pwr} &nbsp; 🛡️ ${e.def}`;
     }
 
     if (typeof updatePlayerAccSlot === "function") {
@@ -15422,12 +15463,9 @@
     const pShieldText = document.getElementById("player-shield-text");
     const pShieldWrapper = document.getElementById("player-shield-wrapper");
     if (pShieldBar && pShieldText) {
-      const effDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
       const pct = pShield > 0 ? Math.min(100, Math.max(12, (pShield / 15) * 100)) : 0;
       pShieldBar.style.width = `${pct}%`;
-      pShieldText.innerHTML = pShield > 0
-        ? `🛡️ ${pShield} <span style="font-size:0.75em;opacity:0.85;font-weight:normal;">(Turno: ${pShield} | Arm: ${effDef})</span>`
-        : `🛡️ 0 <span style="font-size:0.75em;opacity:0.85;font-weight:normal;">(Arm: ${effDef})</span>`;
+      pShieldText.innerText = `${pShield}`;
       if (pShieldWrapper) {
         if (pShield > 0) pShieldWrapper.classList.add("has-shield");
         else pShieldWrapper.classList.remove("has-shield");
@@ -15441,7 +15479,7 @@
     if (eShieldBar && eShieldText) {
       const pct = eShield > 0 ? Math.min(100, Math.max(12, (eShield / 15) * 100)) : 0;
       eShieldBar.style.width = `${pct}%`;
-      eShieldText.innerText = `🛡️ ${eShield}`;
+      eShieldText.innerText = `${eShield}`;
       if (eShieldWrapper) {
         if (eShield > 0) eShieldWrapper.classList.add("has-shield");
         else eShieldWrapper.classList.remove("has-shield");
@@ -16663,6 +16701,7 @@
   window.updateAttrModalUI = updateAttrModalUI;
 
   function showLevelUpModal() {
+    if (typeof window.dismissTacticalPerkToasts === "function") window.dismissTacticalPerkToasts();
     const p = gameState.player;
     if (!p.attributes) p.attributes = initHeroAttributes(p, p.class);
     const maxSlots = getMaxArtifactSlots();
@@ -16721,7 +16760,7 @@
           <div class="levelup-opt-icon">⚔️</div>
           <div>
             <div class="levelup-opt-title">FURIA DE JACK</div>
-            <div class="levelup-opt-desc">+2 PWR permanente (+12% de daño escalable a todos tus ataques).</div>
+            <div class="levelup-opt-desc">+2 PWR permanente.</div>
           </div>
         </div>
         <div class="levelup-option-card" onclick="chooseLevelUpReward('def')">
@@ -19973,6 +20012,18 @@
     });
     if (tab === "lore") {
       try { renderLoreGrimoire(); } catch (_) {}
+    } else if (tab === "play") {
+      const campPanel = document.getElementById("campaign-chapters-panel");
+      if (campPanel) {
+        campPanel.classList.remove("hidden");
+        campPanel.style.display = "";
+      }
+      const campGrid = document.getElementById("campaign-chapters-grid");
+      if (campGrid) {
+        campGrid.classList.remove("hidden");
+        campGrid.style.display = "grid";
+      }
+      try { renderCampaignChaptersUI(); } catch (_) {}
     }
   }
   window.switchTitleTab = switchTitleTab;
@@ -20851,8 +20902,19 @@
     });
     const titleEl = document.getElementById("screen-title");
     if (titleEl) titleEl.classList.remove("hidden");
+    const campPanel = document.getElementById("campaign-chapters-panel");
+    if (campPanel) {
+      campPanel.classList.remove("hidden");
+      campPanel.style.display = "";
+    }
+    const campGrid = document.getElementById("campaign-chapters-grid");
+    if (campGrid) {
+      campGrid.classList.remove("hidden");
+      campGrid.style.display = "grid";
+    }
     if (typeof updateHeroSelectUI === "function") updateHeroSelectUI();
     if (typeof updateHud === "function") updateHud();
+    if (typeof renderCampaignChaptersUI === "function") renderCampaignChaptersUI();
     if (typeof updatePendingTowerRewardBanner === "function") updatePendingTowerRewardBanner();
   }
   window.returnToMainMenuClean = returnToMainMenuClean;

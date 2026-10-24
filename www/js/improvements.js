@@ -232,14 +232,12 @@
       }
     }
 
-    // Mostrar banner principal únicamente para el primer perk (evita colisiones parpadeantes)
-    const first = uniqueCombos[0];
-    if (first && typeof showCombatBanner === "function") {
-      const subTitle = uniqueCombos.length > 1
-        ? `${first.icon} ${first.name} (+${uniqueCombos.length - 1} perks más)`
-        : `${first.icon} ${first.name}: ${first.desc}`;
-      showCombatBanner(`⚡ ¡PERK TÁCTICO ACTIVADO!`, subTitle, "player-win");
-    }
+    // Banner duplicado eliminado en v1.8.1: la activación se muestra únicamente en el toast compacto y en el log de combate
+    window.dismissTacticalPerkToasts = function() {
+      try {
+        document.querySelectorAll(".tactical-perk-toast").forEach(t => t.remove());
+      } catch (_) {}
+    };
 
     uniqueCombos.forEach((combo, i) => {
       setTimeout(() => {
@@ -251,13 +249,14 @@
           toast.className = "tactical-perk-toast";
           toast.style.cursor = "pointer";
           toast.style.top = `calc(clamp(80px, 22%, 160px) + ${i * 46}px)`;
+          toast.style.zIndex = "85";
           toast.title = "Toca para ver detalles del Perk";
           toast.onclick = () => {
             if (typeof showGameAlert === "function") {
               showGameAlert(`⚡ [PERK TÁCTICO: ${combo.name}]\n\n${combo.desc}`, "PERK TÁCTICO ACTIVADO");
             }
           };
-          toast.innerHTML = `<div style="font-size:20px;line-height:1;">${combo.icon}</div><div><div class="tpt-name">⚡ PERK: ${combo.name.toUpperCase()}</div><div class="tpt-desc">${combo.desc}</div></div>`;
+          toast.innerHTML = `<div style="font-size:20px;line-height:1;">${combo.icon}</div><div><div class="tpt-name">⚡ ¡PERK TÁCTICO ACTIVADO! ${combo.icon} ${combo.name.toUpperCase()}</div><div class="tpt-desc">${combo.desc}</div></div>`;
           stage.appendChild(toast);
           setTimeout(() => { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 2800);
         } catch (_) {}
@@ -1384,25 +1383,15 @@
   }
 
   /* ============================================================
-     FASE 1.2 - TOOLTIPS CONTEXTUALES DE PRIMERA RUN
+     FASE 1.2 - TOOLTIPS CONTEXTUALES DE PRIMERA RUN (DESACTIVADO EN v1.8.1)
      ============================================================ */
   function showContextualHints() {
-    if (localStorage.getItem("bj_hints_done_v1")) return;
-    const stage = document.getElementById("stage");
-    if (!stage || document.getElementById("first-run-combat-hints")) return;
-    const hintContainer = document.createElement("div");
-    hintContainer.id = "first-run-combat-hints";
-    hintContainer.className = "combat-hint-bubble";
-    hintContainer.style.cssText = "position:absolute;top:6px;left:8px;right:8px;z-index:90;background:rgba(13,18,28,0.96);border:1.5px solid #66fcf1;border-radius:10px;padding:8px 12px;font-size:9.5px;color:#c5c6c7;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,0.85);animation:popInModal 0.3s ease;";
-    hintContainer.innerHTML = '<span>💡 <b>Tip de Combate:</b> Toca <b>PEDIR CARTA</b> para acercarte a 21 sin pasarte. ¡El <b>Escudo</b> absorbe el daño antes que tu vida!</span><button onclick="dismissCombatHints()" style="background:transparent;border:none;color:#66fcf1;font-weight:bold;font-size:14px;cursor:pointer;margin-left:8px;padding:2px 6px;">✕</button>';
-    stage.appendChild(hintContainer);
+    // Banner superior flotante eliminado en v1.8.1 para preservar espacio en móvil
   }
   window.showContextualHints = showContextualHints;
 
   window.dismissCombatHints = function() {
     localStorage.setItem("bj_hints_done_v1", "true");
-    const el = document.getElementById("first-run-combat-hints");
-    if (el) el.remove();
   };
 
   /* ============================================================
@@ -1847,10 +1836,10 @@
       // 2. Modales emergentes de prioridad
       const modalCloseMap = [
         { id: "screen-act-cinematic", close: () => { if (typeof window.skipActCinematic === "function") window.skipActCinematic(); } },
+        { id: "game-confirm", close: () => { const el = document.getElementById("game-confirm"); if (el) { const cancelBtn = el.querySelector("#game-confirm-cancel"); if (cancelBtn) cancelBtn.click(); else el.remove(); } } },
         { id: "screen-starter-blessing", close: () => { if (typeof window.cancelRunBeforeStart === "function") window.cancelRunBeforeStart(); } },
         { id: "modal-hero-talents", close: () => { if (typeof window.closeHeroTalentsModal === "function") window.closeHeroTalentsModal(); } },
         { id: "modal-interactive-tutorials", close: () => { if (typeof window.closeInteractiveTutorialModal === "function") window.closeInteractiveTutorialModal(); } },
-        { id: "campaign-chapters-panel", close: () => { if (typeof window.toggleCampaignChapters === "function") window.toggleCampaignChapters(false); } },
         { id: "modal-royal-iap", close: () => { if (typeof window.closeIAPModal === "function") window.closeIAPModal(); } },
         { id: "screen-victory-reward-saved-modal", close: () => { if (typeof window.closeVictoryRewardSavedModal === "function") window.closeVictoryRewardSavedModal(); } },
         { id: "screen-mastery-forge-modal", close: () => { if (typeof window.closeMasteryForgeModal === "function") window.closeMasteryForgeModal(); } },

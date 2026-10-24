@@ -53,7 +53,7 @@
     .battle-scene {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       width: 100%;
       margin: 0;
       flex: 1 1 auto;
@@ -259,7 +259,8 @@
       border: 1px solid rgba(255,209,102,0.45);
       border-radius: 3px;
       padding: 2px 6px;
-      margin-top: 1px;
+      margin-top: 2px;
+      margin-bottom: 6px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -5045,7 +5046,8 @@ body.sudden-death-active #stage {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.65;
+  opacity: 0.92;
+  filter: brightness(1.22) contrast(1.1);
   transition: transform 0.25s ease, opacity 0.25s ease;
   z-index: 1;
   pointer-events: none;
@@ -5054,10 +5056,10 @@ body.sudden-death-active #stage {
 .card-face.card-cosmetic-fullart:hover .card-cosmetic-bg,
 .deck-card-item.card-cosmetic-fullart:hover .card-cosmetic-bg {
   transform: scale(1.08);
-  opacity: 0.8;
+  opacity: 1;
 }
 
-/* Capa 2: Viñeta y gradiente para contraste y legibilidad perfecta de valores y palos */
+/* Capa 2: Viñeta y gradiente suave para contraste y legibilidad perfecta de valores y palos */
 .card-face.card-cosmetic-fullart .card-cosmetic-vignette,
 .deck-card-item.card-cosmetic-fullart .card-cosmetic-vignette {
   position: absolute;
@@ -5065,10 +5067,14 @@ body.sudden-death-active #stage {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 50% 45%, rgba(15, 23, 42, 0.3) 0%, rgba(10, 14, 24, 0.65) 55%, rgba(0, 0, 0, 0.92) 100%);
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.95);
+  background: radial-gradient(circle at 50% 45%, rgba(15, 23, 42, 0.05) 0%, rgba(10, 14, 24, 0.26) 60%, rgba(0, 0, 0, 0.65) 100%);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
   z-index: 2;
   pointer-events: none;
+}
+
+#screen-card-detail {
+  z-index: 2000 !important;
 }
 
 /* Capa 3: Corona distintiva de carta cosmética */
@@ -6006,14 +6012,14 @@ body.sudden-death-active #stage {
   flex-shrink: 0;
 }
 .card-face.card-detail-card {
-  width: 76px;
-  height: 112px;
+  width: 76px !important;
+  height: 112px !important;
   border-radius: 10px;
   border: 2.5px solid #ffd166;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 209, 102, 0.4);
   background: #fff;
   color: #111;
-  position: relative;
+  position: relative !important;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -10308,21 +10314,21 @@ body.sudden-death-active #stage {
    SISTEMA DE RACHA "ON FIRE" 🔥 Y SCREEN SHAKE
    ============================================================ */
 .player-streak-badge {
-  position: absolute;
-  top: -10px;
-  left: -8px;
+  position: relative;
+  top: 0;
+  left: 0;
   right: auto;
   background: linear-gradient(135deg, #e63946, #f77f00, #fcbf49);
   color: #fff;
   font-family: var(--font-pixel, monospace);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: bold;
-  padding: 2px 5px;
-  border-radius: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
   border: 1px solid #ffd166;
-  box-shadow: 0 0 10px rgba(247, 127, 0, 0.8), 0 0 4px #fcbf49;
+  box-shadow: 0 0 8px rgba(247, 127, 0, 0.7);
   animation: streakFirePulse 0.9s ease-in-out infinite alternate;
-  z-index: 10;
+  z-index: 5;
   pointer-events: none;
   white-space: nowrap;
 }
@@ -14164,5 +14170,34 @@ body.sudden-death-active #stage {
   .action-grid { gap: 4px; }
   .action-grid button { min-height: 44px; padding: 4px 2px; font-size: 9px; }
 }
+
+/* ==========================================================================
+   v1.8.1 COMBAT LAYOUT & CLEANUP RULES
+   ========================================================================== */
+.combat-hint-bubble, #first-run-combat-hints {
+  display: none !important;
+}
+
+.status-badge.shield {
+  display: none !important;
+}
+
+.boss-tribute-banner {
+  display: none !important;
+}
+
+.campaign-chapters-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.campaign-chapters-grid {
+  display: grid !important;
+}
+
+#screen-card-detail {
+  z-index: 2000 !important;
+}
+
 
 

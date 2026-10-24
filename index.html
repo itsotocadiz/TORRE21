@@ -1151,11 +1151,13 @@
         <div class="fighter-col player-fighter" onclick="openFighterInspect('player')" title="Toca o pasa el cursor para ver ficha de combate">
           <div id="player-sprite" class="sprite">
             <span id="player-sprite-icon"><img src="assets/svg/knight_idle.svg" class="sprite-img" alt="Héroe"></span>
-            <div id="player-streak-badge" class="player-streak-badge hidden">🔥 x1.5</div>
             <div id="player-acc-slot" class="player-acc-slot" onclick="inspectActiveBlessing(event)" title="Medallón de Bendición del Destino (Toca para ver)"></div>
           </div>
           <div class="fighter-meta">
-            <span class="fighter-name" id="player-class-title">CABALLERO</span>
+            <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+              <span class="fighter-name" id="player-class-title">CABALLERO</span>
+              <div id="player-streak-badge" class="player-streak-badge hidden">🔥 x1.5</div>
+            </div>
             <div class="fighter-meters-panel">
               <!-- BARRA DE VIDA -->
               <div class="meter-group hp-group">
@@ -1169,9 +1171,9 @@
                 </div>
               </div>
               <!-- BARRA DE ESCUDO -->
-              <div class="meter-group shield-group" id="player-shield-wrapper" title="Escudo protector absorbente">
+              <div class="meter-group shield-group" id="player-shield-wrapper" title="Escudo protector absorbente (Toca para ver)">
                 <div class="meter-header">
-                  <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
+                  <span class="meter-title shield-title">🛡️ ESCUDO</span>
                   <span class="shield-text" id="player-shield-text">0</span>
                 </div>
                 <div class="shield-bar-container">
@@ -1214,7 +1216,7 @@
                 </div>
               </div>
               <!-- BARRA DE ESCUDO DEL RIVAL -->
-              <div class="meter-group shield-group" id="enemy-shield-wrapper" title="Escudo protector del rival">
+              <div class="meter-group shield-group" id="enemy-shield-wrapper" title="Escudo protector del rival (Toca para ver)">
                 <div class="meter-header">
                   <span class="meter-title shield-title">🛡️ ESCUDO</span>
                   <span class="shield-text" id="enemy-shield-text">0</span>
