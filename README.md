@@ -312,6 +312,12 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Estabilidad del Primer Combate y Prevención Defensiva de Crashes:**
   * Implementación de la rutina de salvaguarda defensiva `ensureBattleStateInitialized()`, garantizando la instanciación segura de las estadísticas del héroe (`recalculatePlayerStats`), baraja inicial, enemigo activo y escudo antes de invocar el cálculo táctico del HUD o la predicción de daño.
   * Protección con fallbacks y bloques `try/catch` en `calculateTacticalAttackRange()` y `updateTacticalOddsHUD()` frente a elementos de DOM o barajas en transición asíncrona.
+* **Sincronización Total de Estadísticas RPG en Tiempo Real:**
+  * Las 5 estadísticas secundarias del héroe (`Esquivar`, `Crítico`, `Suerte`, `Vampirismo` y `Espinas`) ahora reflejan con fidelidad milimétrica los atributos de base de cada arquetipo (`HERO_DATA`), talentos elementales, bendiciones activas, pactos del Altar del Sacrificio y estados alterados en vivo en combate.
+  * Reparado el cálculo en `calculateExactTacticalDamage` para que el Golpe Crítico responda con pureza al porcentaje `critChance` del personaje, eliminando el crítico forzado involuntario en manos de 21.
+* **Reparación del Bazar / Tienda en Combate:**
+  * Corrección de la variable `activeTabContent` en `showShopModal()`, previniendo errores de referencia en tiempo de ejecución.
+  * Habilitadas y exportadas todas las acciones de compra (`buyShopItem`, `buyPotion`, `buyShieldPotion`, `buyReroll`, `buyGoldenDie`, `buyForgeBoosterPack`) y salida táctil fluida con `skipShop()` y `closeShop()`.
 * **Corrección de Selección de Bendiciones Iniciales y Persistencia del Códice:**
   * Desacoplada y tipificada estrictamente la selección por identificador canónico (`selectStarterBlessing(id)`), corrigiendo discrepancias de tipos de datos en la comparación de bendiciones activas (`p.starterBlessing`).
   * Registro y persistencia automática en el almacén local (`torre21_unlocked_blessings`) para su catálogo y consulta permanente en el Códice.

@@ -15,12 +15,17 @@
       imgAttack: "assets/svg/knight_attack.svg",
       imgHurt: "assets/svg/knight_hurt.svg",
       imgDead: "assets/svg/knight_dead.svg",
-      maxHp: 80,
-      pwr: 14,
-      def: 3,
+      maxHp: 110,
+      pwr: 12,
+      def: 5,
       startingShield: 6,
+      thorns: 15,
+      critChance: 0,
+      dodgeChance: 0,
+      lifesteal: 0,
+      luck: 0,
       styleClass: "shield-bio",
-      desc: "Baluarte de Diamantes: Comienza cada piso con 6 de Escudo protector. Trascendencia del 21: Lograr 21 con tus 2 primeras cartas otorga +15 de Escudo Sagrado."
+      desc: "Baluarte y Contraataque: Tanque indestructible (110 HP, 5 DEF, 15% Espinas de base). Devuelve daño al rival al mitigar golpes. Inicia con 6 de Escudo azul."
     },
     rogue: {
       name: "Pícaro",
@@ -31,11 +36,17 @@
       imgAttack: "assets/svg/rogue_attack.svg",
       imgHurt: "assets/svg/rogue_hurt.svg",
       imgDead: "assets/svg/rogue_dead.svg",
-      maxHp: 65,
-      pwr: 18,
+      maxHp: 80,
+      pwr: 15,
       def: 1,
+      startingShield: 0,
+      thorns: 0,
+      critChance: 15,
+      dodgeChance: 12,
+      lifesteal: 0,
+      luck: 0,
       styleClass: "blood-bio",
-      desc: "Golpe Bajo: Trascendencia del 21: Lograr 21 natural con tus 2 primeras cartas asesta una estocada vorpal que ignora el 100% de la armadura rival."
+      desc: "Filo Sombrío y Evasión: Asesino ágil (15 PWR, 15% Crítico, 12% Esquivar). Asesta estocadas críticas letales y esquiva contraataques mortales."
     },
     monk: {
       name: "Monje",
@@ -46,11 +57,17 @@
       imgAttack: "assets/svg/monk_attack.svg",
       imgHurt: "assets/svg/monk_hurt.svg",
       imgDead: "assets/svg/monk_dead.svg",
-      maxHp: 75,
+      maxHp: 95,
       pwr: 13,
-      def: 2,
+      def: 3,
+      startingShield: 0,
+      thorns: 0,
+      critChance: 5,
+      dodgeChance: 5,
+      lifesteal: 12,
+      luck: 0,
       styleClass: "zen-bio",
-      desc: "Concentración Zen: Si te plantas con 18 o 19, tu mente se enfoca otorgándote +1 punto automático a tu puntuación. Trascendencia del 21: Lograr 21 natural restaura +20 HP de vida."
+      desc: "Guerrero Carmesí y Sostén: Equilibrio vital (95 HP, 12% Vampirismo, 5% Esquivar). Drena vida en cada impacto y enfoca su mente (+1 punto al plantarse con 18/19)."
     },
     necromancer: {
       name: "Nigromante",
@@ -61,13 +78,20 @@
       imgAttack: "assets/svg/necro_attack.svg",
       imgHurt: "assets/svg/necro_hurt.svg",
       imgDead: "assets/svg/necro_dead.svg",
-      maxHp: 70,
-      pwr: 16,
+      maxHp: 75,
+      pwr: 17,
       def: 1,
+      startingShield: 0,
+      thorns: 0,
+      critChance: 10,
+      dodgeChance: 5,
+      lifesteal: 0,
+      luck: 15,
       styleClass: "blood-bio",
-      desc: "Devorador de Almas: Al derrotar a cualquier enemigo cosechas su esencia restaurando +8 HP. Trascendencia del 21: Lograr 21 natural drena 10 HP al rival y le inocula 5 de Veneno residual."
+      desc: "Arcanista del Destino: Máximo poder arcano (17 PWR, 15% Suerte, 10% Crítico). Manipulador del azar que devora el alma de rivales abatidos (+8 HP)."
     }
   };
+  HERO_DATA.necro = HERO_DATA.necromancer;
 
   const HERO_LORES = {
     knight: {
@@ -3837,17 +3861,14 @@
     }
     const buffMultiplier = Math.max(0.1, 1 + buffPct);
 
-    // 4. Multiplicador Crítico (2.0 normal o más con Blackjack / reliquias)
-    const isNatBJ = (score === 21 && (playerHand || []).length === 2);
+    // 4. Multiplicador Crítico (SOLO si supera la tirada contra player.critChance)
     let isCrit = false;
     let critMult = 1.0;
-    const critChance = player.critChance || 25;
-    if (isNatBJ || score === 21) {
+    const critChance = (player && typeof player.critChance === "number") ? player.critChance : 0;
+    if (critChance > 0 && Math.random() * 100 < critChance) {
       isCrit = true;
+      const isNatBJ = (score === 21 && (playerHand || []).length === 2);
       critMult = isNatBJ ? (player.gem === "blackjack_heritage" ? 3.0 : 2.5) : 2.0;
-    } else if (critChance > 0 && Math.random() * 100 < critChance) {
-      isCrit = true;
-      critMult = 2.0;
     }
 
     // 5. Multiplicador de Doblar
@@ -5227,13 +5248,14 @@
     if (!p) return;
 
     const heroKey = p.classKey || p.class || "knight";
+    const heroCfg = HERO_DATA[heroKey] || HERO_DATA[p.class] || HERO_DATA.knight;
 
-    // Todos los stats RPG especiales inician estrictamente en 0
-    let baseDodge = 0;
-    let baseLuck = 0;
-    let baseLifesteal = 0;
-    let baseThorns = 0;
-    let baseCrit = 0;
+    // Stats RPG de Arquetipo inicial del Héroe
+    let baseDodge = (typeof heroCfg.dodgeChance === "number") ? heroCfg.dodgeChance : 0;
+    let baseLuck = (typeof heroCfg.luck === "number") ? heroCfg.luck : 0;
+    let baseLifesteal = (typeof heroCfg.lifesteal === "number") ? heroCfg.lifesteal : 0;
+    let baseThorns = (typeof heroCfg.thorns === "number") ? heroCfg.thorns : 0;
+    let baseCrit = (typeof heroCfg.critChance === "number") ? heroCfg.critChance : 0;
 
     // Talentos del Árbol Elemental
     if (typeof getHeroTalentTree === "function") {
@@ -5263,6 +5285,22 @@
       }
     }
 
+    // Bendición del Destino inicial activa
+    if (p.starterBlessing) {
+      const bId = (typeof p.starterBlessing === "object") ? p.starterBlessing.id : p.starterBlessing;
+      if (bId === "wind_cloak") baseDodge += 15;
+      if (bId === "gladiator_pact") baseLifesteal += 10;
+      if (bId === "oak_bark") baseThorns += 10;
+      if (bId === "keen_eye") baseCrit += 10;
+      if (bId === "copper_pouch" || bId === "midas_touch") baseLuck += 10;
+    }
+
+    // Pactos de la Mesa Sacrificial
+    if (p._sacrificeCrit) baseCrit += p._sacrificeCrit;
+    if (p._sacrificeDodge) baseDodge += p._sacrificeDodge;
+    if (p._sacrificeVampirism) baseLifesteal += p._sacrificeVampirism;
+    if (p._sacrificeThorns) baseThorns += p._sacrificeThorns;
+
     // Reliquias estándar, Artefactos y Reliquias Demoníacas
     const allRelics = [
       ...(p.artifacts || []),
@@ -5275,10 +5313,18 @@
       const rid = r.id || "";
       if (rid.includes("crit") || rid === "sharp_blade" || rid === "assassin_dagger") baseCrit += 10;
       if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") baseDodge += 10;
-      if (rid.includes("luck") || rid === "lucky_charm") baseLuck += 10;
-      if (rid.includes("vampire") || rid === "bloody_chalice") baseLifesteal += 10;
+      if (rid.includes("luck") || rid === "lucky_charm" || rid === "lucky_coin") baseLuck += 10;
+      if (rid.includes("vampire") || rid === "bloody_chalice" || rid === "blood_chalice") baseLifesteal += 10;
       if (rid.includes("thorn") || rid === "spiked_belt" || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 12;
     });
+
+    // Buffs y Nerfs de combate en tiempo real
+    if (typeof gameState !== "undefined" && gameState.status) {
+      if (gameState.status.playerBlind) baseCrit = Math.max(0, baseCrit - 10);
+      if (gameState.status.playerClumsy) baseDodge = Math.max(0, baseDodge - 10);
+      if (gameState.status.playerOpenWound) baseLifesteal = 0;
+      if (gameState.status.playerRuneShell) baseThorns += 10;
+    }
 
     p.dodgeChance = Math.min(45, Math.max(0, baseDodge));
     p.critChance = Math.min(90, Math.max(0, baseCrit));
@@ -13103,6 +13149,7 @@
       </div>
     `;
 
+    let activeTabContent = consumablesHtml;
     if (currentShopTab === "artifacts") activeTabContent = artifactsHtml;
     else if (currentShopTab === "cards") activeTabContent = cardsBoosterHtml;
     else if (currentShopTab === "forge") activeTabContent = forgeTabHtml;
@@ -13172,8 +13219,15 @@
         </div>
       </div>
     `;
-    document.getElementById("screen-event").classList.remove("hidden");
+    const eventScEl = document.getElementById("screen-event");
+    if (eventScEl) eventScEl.classList.remove("hidden");
+    if (typeof updateShopPurchaseBadge === "function") {
+      updateShopPurchaseBadge();
+    }
   }
+  window.showShopModal = showShopModal;
+  window.openShop = showShopModal;
+  window.renderShop = showShopModal;
 
   function refreshActiveHeroMarketUI(heroId) {
     const marketModal = document.getElementById("screen-hero-market-modal");
@@ -13579,8 +13633,11 @@
       addLog(`Compraste una Poción Curativa (+1) por ${cost} 🪙.`, "heal");
       updateHud();
       showShopModal();
+    } else {
+      addLog(`Faltan ${cost - gameState.gold} 🪙 para comprar la Poción Curativa.`, "warning");
     }
   }
+  window.buyPotion = buyPotion;
 
   function buyShieldPotion(amount, price) {
     if (gameState.gold >= price) {
@@ -13609,8 +13666,11 @@
       addLog(`Compraste un Dado de Reroll (+1) por ${cost} 🪙.`, "heal");
       updateHud();
       showShopModal();
+    } else {
+      addLog(`Faltan ${cost - gameState.gold} 🪙 para comprar el Dado de Reroll.`, "warning");
     }
   }
+  window.buyReroll = buyReroll;
 
   function buyGoldenDie() {
     if (gameState.gold >= 50 && !gameState.player.hasGoldenDie) {
@@ -13623,6 +13683,21 @@
       showShopModal();
     }
   }
+  window.buyGoldenDie = buyGoldenDie;
+
+  function buyShopItem(itemType, opt1, opt2) {
+    if (itemType === "potion") return buyPotion();
+    if (itemType === "shield" || itemType === "shield_minor") return buyShieldPotion(opt1 || 10, opt2 || 15);
+    if (itemType === "shield_major") return buyShieldPotion(opt1 || 20, opt2 || 28);
+    if (itemType === "reroll") return buyReroll();
+    if (itemType === "golden_die") return buyGoldenDie();
+    if (itemType === "forge_pack") return buyForgeBoosterPack();
+    if (itemType === "crypt_forge") return buyCryptForgeBoosterPack();
+    if (itemType === "artifact" && typeof buyArtifact === "function") return buyArtifact(opt1);
+    if (itemType === "amulet" && typeof buyAmulet === "function") return buyAmulet(opt1);
+    return null;
+  }
+  window.buyShopItem = buyShopItem;
 
   /* ============================================================
      MOTOR DE MÁQUINA DE ESCRIBIR (TYPEWRITER EFFECT)
@@ -14485,14 +14560,83 @@
   window.advanceToNextFloor = advanceToNextFloor;
 
   function skipShop() {
-    showChronicleModal();
+    const screenEvent = document.getElementById("screen-event");
+    if (screenEvent) screenEvent.classList.add("hidden");
+    if (typeof showChronicleModal === "function") {
+      showChronicleModal();
+    } else if (typeof advanceToNextFloor === "function") {
+      advanceToNextFloor();
+    }
   }
   window.skipShop = skipShop;
+  window.closeShop = skipShop;
 
   /* ============================================================
      CURSE ALTAR — PISOS 5 y 9 (ALTAR DEL SACRIFICIO OSCURO)
      ============================================================ */
   const SACRIFICE_PACTS_POOL = [
+    {
+      id: "vampire_sacrifice",
+      badge: "PACTO VAMPÍRICO",
+      title: "Pacto de la Sangre Eterna",
+      icon: "🩸",
+      costText: "Sacrificas 15% de tu HP Máximo en el altar.",
+      gainText: "Ganas +15% de Vampirismo permanente para la run.",
+      btnText: "🩸 SELLAR PACTO (+15% VAMPIRISMO)",
+      onApply: (p, g) => {
+        const hpLost = Math.max(10, Math.floor(p.maxHp * 0.15));
+        p.maxHp = Math.max(20, p.maxHp - hpLost);
+        p.hp = Math.min(p.hp, p.maxHp);
+        p._sacrificeVampirism = (p._sacrificeVampirism || 0) + 15;
+        if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+        addLog(`🩸 Pacto del Altar: Sangre Eterna (-${hpLost} HP Máx, +15% Vampirismo).`, "critical");
+      }
+    },
+    {
+      id: "crit_sacrifice",
+      badge: "PACTO DEL FILO",
+      title: "Pacto del Ojo Certero",
+      icon: "⚡",
+      costText: "Tu armadura se mella: -1 DEF permanente.",
+      gainText: "Ganas +12% de Probabilidad de Golpe Crítico permanente.",
+      btnText: "🩸 SELLAR PACTO (+12% CRÍTICO)",
+      onApply: (p, g) => {
+        p.def = Math.max(0, p.def - 1);
+        p._sacrificeCrit = (p._sacrificeCrit || 0) + 12;
+        if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+        addLog("🩸 Pacto del Altar: Ojo Certero (-1 DEF, +12% Crítico).", "critical");
+      }
+    },
+    {
+      id: "dodge_sacrifice",
+      badge: "PACTO DEL VIENTO",
+      title: "Pacto del Paso Etéreo",
+      icon: "💨",
+      costText: "Pierdes 10 HP de salud inmediata en el altar.",
+      gainText: "Ganas +10% de Esquivar pasivo permanente para la run.",
+      btnText: "🩸 SELLAR PACTO (+10% ESQUIVAR)",
+      onApply: (p, g) => {
+        p.hp = Math.max(1, p.hp - 10);
+        p._sacrificeDodge = (p._sacrificeDodge || 0) + 10;
+        if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+        addLog("🩸 Pacto del Altar: Paso Etéreo (-10 HP, +10% Esquivar).", "critical");
+      }
+    },
+    {
+      id: "thorns_sacrifice",
+      badge: "PACTO DE ESPINAS",
+      title: "Pacto de la Zarza Sangrienta",
+      icon: "🌵",
+      costText: "Pierdes 5 HP de salud inmediata en el altar.",
+      gainText: "Ganas +15% de Espinas de contraataque permanente.",
+      btnText: "🩸 SELLAR PACTO (+15% ESPINAS)",
+      onApply: (p, g) => {
+        p.hp = Math.max(1, p.hp - 5);
+        p._sacrificeThorns = (p._sacrificeThorns || 0) + 15;
+        if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+        addLog("🩸 Pacto del Altar: Zarza Sangrienta (-5 HP, +15% Espinas).", "critical");
+      }
+    },
     {
       id: "heavy_fog",
       badge: "SACRIFICIO VISUAL",
