@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.8.3 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.8.4 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,33 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.8.3] — Noviembre 2026 (Actual)
+### [v1.8.4] — Noviembre 2026 (Actual)
+* **Mecánica de Espinas como Daño Directo Puro (Sin Reducción por DEF) y Vinculación Total de Stats:**
+  * **Daño Directo Puro de Espinas:** Las Espinas (`thorns`) se reconvierten de un porcentaje pasivo a **daño directo puro plano** sin mitigación por armadura (`DEF`) enemiga. Si el jugador tiene 15 Espinas en su ficha, cada vez que el rival gana la mano y conecta su impacto (ya sea absorbido por escudo o impactando en HP), el adversario recibe de inmediato exactamente 15 puntos de daño puro a su vida. Erradicados todos los símbolos de `%` de Espinas en fichas y modales, y log unificado: `"🌵 Espinas: Devuelves X de daño directo al rival"`.
+  * **Persistencia de Atributos al Subir de Nivel:** Creado el almacén permanente de atributos `player.levelUpStats = { pwr, def, hp, crit, dodge, thorns, lifesteal, luck }` para registrar las elecciones de `chooseLevelUpReward()`, garantizando que ninguna bendición de nivel se pierda al recalcular estadísticas.
+  * **Integración Completa en `recalculatePlayerStats`:** Sincronización íntegra de `player.levelUpStats`, accesorios equipados (`p.accessory` como Cinturón con Púas +2 Espinas, Amuleto de la Suerte +10% Suerte, Casco de Acero +1 DEF), reliquias y bendiciones.
+  * **Traducción Universal en `getItemSpanishName`:** Búsqueda en todos los catálogos del juego (`SHOP_ARTIFACTS`, `ALL_RELICS`, `DEMONIC_RELICS_BY_ACT`, `AMULET_INFO`), garantizando que cualquier artefacto o reliquia (ej. Reloj de Arena) se muestre siempre con su nombre canónico en español sin prefijos en inglés.
+  * **Ficha del Combatiente Exacta (`openFighterInspect`):** Los 9 atributos (Salud, Ataque, Defensa, Escudo, Crítico, Esquiva, Espinas, Vampirismo, Suerte) reflejan con precisión matemática las columnas BASE, BUFF / NERF y TOTAL.
+* **Recompensas Inmediatas en Batallas Dobles / Oleadas:**
+  * Al derrotar al primer rival en batallas de oleadas múltiples (`Oleada 1/2`), se entrega de forma inmediata e íntegra el botín correspondiente (Oro, EXP, Metamonedas `💀` y tirada de Carta Cosmética), desplegando la ventana de botín de oleada antes de la entrada del siguiente adversario.
+  * Al concluir la oleada final, se presenta el botín del último rival acompañado de un desglose acumulado total de toda la batalla (`🏆 BOTÍN TOTAL DE LA HORDA: X Oro • Y EXP • Z Criptas`).
+* **Reparación de Compra y Forja de Sellos Arcanos en el Bazar:**
+  * Elevado el `z-index` de los modales de sobres y apertura (`#screen-booster-pack` y `#screen-pack-open`) a `100000 !important;`, garantizando que se muestren por encima del bazar `#screen-event`.
+  * Corregida la asignación táctil del botón `ENCANTAR` en cada una de las 3 cartas candidatas: imbuye el sello en `player.cardEnchantments`, cierra el sobre, regresa fluidamente a la pestaña de sobres de la tienda y preserva activas las compras restantes de oro del piso.
+* **Reorganización Visual del Tablero de Combate y Barra de EXP Superior:**
+  * **Barra de Experiencia Superior de Mesa:** Trasladada la barra de nivel y EXP del héroe desde la tarjeta del personaje hacia una barra delgada y elegante en el margen superior del tablero (`#combat-top-exp-bar-wrapper`), liberando espacio en el área de combate.
+  * **Nombres Completos sin Recorte:** Se removieron los límites forzados y truncamientos con elipsis en los nombres del héroe y del enemigo (`CABALLERO`, `ORCO BERSERKER`), expandiéndose armónicamente con flexbox.
+  * **Botón de Inspección Compacto (`📊`):** Sustituido el botón ancho de ficha por un icono táctil accesible `📊` tanto para el jugador como para el rival.
+  * **Insignia de Racha Limpia (`🔥 x1.5` / `🔥 x2.0`):** Eliminada la palabra redundante "RACHA". El badge interactivo ahora abre el modal explicativo de racha heroica (`showStreakInfoModal`).
+  * **Premio Legendario de Racha 10:** Al encadenar 10 victorias consecutivas sin perder ni empatar, se otorga automáticamente **+25 Oro, +3 Metamonedas 💀 y +1 PWR permanente** con fanfarria y banner conmemorativo.
+  * **Tira de Equipamiento Rediseñada:** Barra inferior de ranuras (`.equipment-row` y `.eq-pill`) estilizada con fondo oscuro semitransparente de perfil bajo y bordes sutiles.
+* **Limpieza de Lore y Armonía Visual en "Reliquia del Demonio":**
+  * Eliminado el botón redundante `📖 REGLAS DEL BLACKJACK Y GUÍA DE COMBATE` de la pestaña LORE en el Menú Principal.
+  * Rediseñada la presentación del draft de Reliquias Demoníacas (`showDemonicRelicDraftModal` y `DEMONIC_RELICS_BY_ACT`): eliminados los emojis duplicados en los nombres de las reliquias, incorporado un medallón circular a la izquierda, título y descripción alineados y botón táctil claro `RECLAMAR ⚡`.
+* **Sincronización y Versión Oficial:**
+  * Actualización de versión a **`v1.8.4 (BUILD 45)`** en `index.html`, `js/game.js`, `js/improvements.js` y `README.md`.
+
+### [v1.8.3] — Noviembre 2026
 * **Secuencia Estricta Poscombate y Notificación Destacada de Carta Cosmética en Botín Obtenido:**
   * **Ordenamiento de Flujo:** Al derrotar a un rival (`enemy.hp <= 0`), se pre-calculan las recompensas y se retiene cualquier subida de nivel pendiente (`deferLevelUp`). Se presenta en primer lugar la ventana `🏆 ¡VICTORIA EN COMBATE! BOTÍN OBTENIDO`. Solo tras pulsar `✅ ACEPTAR Y CONTINUAR` se abre el modal de `¡SUBIDA DE NIVEL!` y distribución de puntos en el Árbol de Talentos, y finalmente los caminos o Bazar del piso.
   * **Exhibición de Carta Cosmética:** Si en el combate se desbloqueó una Carta Cosmética (nueva o repetida convertida), se muestra de forma obligatoria y destacada dentro de la ventana de Botín Obtenido con el arte del monstruo, nombre del aspecto y la asignación al naipe correspondiente (ej. `"👑 ¡NUEVA CARTA COSMÉTICA! Alimaña de Cripta ➔ Aplicada a tu As de Picas (A♠)"`), o su conversión en Metamonedas de Cripta (`💀`).

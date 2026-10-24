@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.8.3";
+  const GAME_VERSION = "v1.8.4";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.3)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.4)
      ============================================================ */
 
   const HERO_DATA = {
@@ -5275,6 +5275,16 @@
     let baseThorns = (typeof heroCfg.thorns === "number") ? heroCfg.thorns : 0;
     let baseCrit = (typeof heroCfg.critChance === "number") ? heroCfg.critChance : 0;
 
+    // Mejoras permanentes elegidas al subir de nivel (levelUpStats)
+    if (!p.levelUpStats) {
+      p.levelUpStats = { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
+    }
+    baseCrit += (p.levelUpStats.crit || 0);
+    baseDodge += (p.levelUpStats.dodge || 0);
+    baseLuck += (p.levelUpStats.luck || 0);
+    baseLifesteal += (p.levelUpStats.lifesteal || 0);
+    baseThorns += (p.levelUpStats.thorns || 0);
+
     // Talentos del Árbol Elemental
     if (typeof getHeroTalentTree === "function") {
       const tree = getHeroTalentTree(heroKey);
@@ -5313,6 +5323,11 @@
       if (bId === "copper_pouch" || bId === "midas_touch") baseLuck += 10;
     }
 
+    // Accesorios equipados (Cinturón con Púas, Casco de Acero, Amuleto de Suerte, etc.)
+    if (p.accessory === "spiked_belt") baseThorns += 2;
+    if (p.accessory === "lucky_charm") baseLuck += 10;
+    if (p.accessory === "blood_amulet") baseLifesteal += 5;
+
     // Pactos de la Mesa Sacrificial
     if (p._sacrificeCrit) baseCrit += p._sacrificeCrit;
     if (p._sacrificeDodge) baseDodge += p._sacrificeDodge;
@@ -5333,7 +5348,8 @@
       if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") baseDodge += 10;
       if (rid.includes("luck") || rid === "lucky_charm" || rid === "lucky_coin") baseLuck += 10;
       if (rid.includes("vampire") || rid === "bloody_chalice" || rid === "blood_chalice") baseLifesteal += 10;
-      if (rid.includes("thorn") || rid === "spiked_belt" || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 12;
+      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 5;
+      if (rid === "relic_necro_bones" || r._boneThorns) baseThorns += 3;
     });
 
     // Buffs y Nerfs de combate en tiempo real
@@ -5348,7 +5364,7 @@
     p.critChance = Math.min(90, Math.max(0, baseCrit));
     p.luck = Math.min(50, Math.max(0, baseLuck));
     p.lifesteal = Math.min(50, Math.max(0, baseLifesteal));
-    p.thorns = Math.min(50, Math.max(0, baseThorns));
+    p.thorns = Math.max(0, baseThorns);
   }
   window.recalculatePlayerStats = recalculatePlayerStats;
 
@@ -5414,7 +5430,7 @@
       startingShield: { base: startingShield, total: startingShield },
       critChance: { base: baseCrit, total: Math.min(90, baseCrit + talentCrit) },
       dodgeChance: { base: baseDodge, total: Math.min(45, baseDodge) },
-      thorns: { base: baseThorns, total: Math.min(50, baseThorns + talentThorns) },
+      thorns: { base: baseThorns, total: Math.max(0, baseThorns + talentThorns) },
       lifesteal: { base: baseLifesteal, total: Math.min(50, baseLifesteal + talentLifesteal) },
       luck: { base: baseLuck, total: Math.min(50, baseLuck + talentLuck) }
     };
@@ -5516,29 +5532,29 @@
      ============================================================ */
   const DEMONIC_RELICS_BY_ACT = {
     1: [
-      { id: "relic_dante_blade", name: "🗡️ Filo Sangriento de Dante", icon: "🗡️", desc: "+3 PWR permanente y aplica 2 Veneno al rival con cada 21.", apply: (p) => { p.pwr += 3; p._dantePoison21 = true; } },
-      { id: "relic_dante_spades", name: "♠️ Cota de Picas del Conquistador", icon: "♠️", desc: "+2 DEF permanente y cada carta de ♠ otorga +2 de Escudo.", apply: (p) => { p.def += 2; p._spadesShieldBonus = 2; } },
-      { id: "relic_dante_blood", name: "🩸 Frasco de Sangre Pura", icon: "🩸", desc: "+25 HP Máximo y restaura 2 Pociones de salud completas.", apply: (p) => { p.maxHp += 25; p.hp += 25; p.potions = (p.potions || 0) + 2; } }
+      { id: "relic_dante_blade", name: "Filo Sangriento de Dante", icon: "🗡️", desc: "+3 PWR permanente y aplica 2 Veneno al rival con cada 21.", apply: (p) => { p.pwr += 3; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3; p._dantePoison21 = true; } },
+      { id: "relic_dante_spades", name: "Cota de Picas del Conquistador", icon: "♠️", desc: "+2 DEF permanente y cada carta de ♠ otorga +2 de Escudo.", apply: (p) => { p.def += 2; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 2; p._spadesShieldBonus = 2; } },
+      { id: "relic_dante_blood", name: "Frasco de Sangre Pura", icon: "🩸", desc: "+25 HP Máximo y restaura 2 Pociones de salud completas.", apply: (p) => { p.maxHp += 25; p.hp += 25; if (p.levelUpStats) p.levelUpStats.hp = (p.levelUpStats.hp || 0) + 25; p.potions = (p.potions || 0) + 2; } }
     ],
     2: [
-      { id: "relic_valk_aegis", name: "🛡️ Baluarte de Diamantes", icon: "🛡️", desc: "+10 de Escudo azul protector al comenzar cada mano.", apply: (p) => { p._valkAegisShield = 10; } },
-      { id: "relic_valk_light", name: "✨ Relicario de la Luz", icon: "✨", desc: "+3 PWR y te cura +6 HP automáticamente si ganas una mano con 19 o 20.", apply: (p) => { p.pwr += 3; p._valkHealOnHighWin = true; } },
-      { id: "relic_valk_core", name: "💎 Núcleo Diamantino", icon: "💎", desc: "+3 DEF permanente y 2 Rerolls adicionales de inmediato.", apply: (p) => { p.def += 3; p.rerollsAvailable = (p.rerollsAvailable || 0) + 2; } }
+      { id: "relic_valk_aegis", name: "Baluarte de Diamantes", icon: "🛡️", desc: "+10 de Escudo azul protector al comenzar cada mano.", apply: (p) => { p._valkAegisShield = 10; } },
+      { id: "relic_valk_light", name: "Relicario de la Luz", icon: "✨", desc: "+3 PWR y te cura +6 HP automáticamente si ganas una mano con 19 o 20.", apply: (p) => { p.pwr += 3; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3; p._valkHealOnHighWin = true; } },
+      { id: "relic_valk_core", name: "Núcleo Diamantino", icon: "💎", desc: "+3 DEF permanente y 2 Rerolls adicionales de inmediato.", apply: (p) => { p.def += 3; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 3; p.rerollsAvailable = (p.rerollsAvailable || 0) + 2; } }
     ],
     3: [
-      { id: "relic_archmage_eye", name: "🔮 Ojo Arcano del Archimago", icon: "🔮", desc: "+4 PWR y forja un Sello Cósmico Arcano permanente en tu baraja.", apply: (p) => { p.pwr += 4; if (typeof forgeRandomCosmicSeal === "function") forgeRandomCosmicSeal(); } },
-      { id: "relic_archmage_veil", name: "🌌 Manto del Vacío", icon: "🌌", desc: "25% de probabilidad de anular completamente el contraataque rival.", apply: (p) => { p._voidVeilDodge = 0.25; } },
-      { id: "relic_archmage_mana", name: "⚡ Cáliz de Éter", icon: "⚡", desc: "Comienzas cada piso con Overdrive listo y obtienes +40 Oro.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 40; p._etherCalice = true; } }
+      { id: "relic_archmage_eye", name: "Ojo Arcano del Archimago", icon: "🔮", desc: "+4 PWR y forja un Sello Cósmico Arcano permanente en tu baraja.", apply: (p) => { p.pwr += 4; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 4; if (typeof forgeRandomCosmicSeal === "function") forgeRandomCosmicSeal(); } },
+      { id: "relic_archmage_veil", name: "Manto del Vacío", icon: "🌌", desc: "25% de probabilidad de anular completamente el contraataque rival.", apply: (p) => { p._voidVeilDodge = 0.25; } },
+      { id: "relic_archmage_mana", name: "Cáliz de Éter", icon: "⚡", desc: "Comienzas cada piso con Overdrive listo y obtienes +40 Oro.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 40; p._etherCalice = true; } }
     ],
     4: [
-      { id: "relic_necro_harvest", name: "💀 Cosecha de Malfas", icon: "💀", desc: "Al pedir carta en combate, 35% de probabilidad de curar +4 HP.", apply: (p) => { p._necroHarvestHeal = true; } },
-      { id: "relic_necro_scythe", name: "☠️ Guadaña del Segador", icon: "☠️", desc: "+5 PWR y multiplica por x3 tu daño con Blackjack Natural.", apply: (p) => { p.pwr += 5; p.blackjackMultiplier = Math.max(p.blackjackMultiplier || 1, 3); } },
-      { id: "relic_necro_bones", name: "🦴 Coraza de Huesos Malditos", icon: "🦴", desc: "+4 DEF y espinas que devuelven 3 daño al rival por impacto.", apply: (p) => { p.def += 4; p._boneThorns = 3; } }
+      { id: "relic_necro_harvest", name: "Cosecha de Malfas", icon: "💀", desc: "Al pedir carta en combate, 35% de probabilidad de curar +4 HP.", apply: (p) => { p._necroHarvestHeal = true; } },
+      { id: "relic_necro_scythe", name: "Guadaña del Segador", icon: "☠️", desc: "+5 PWR y multiplica por x3 tu daño con Blackjack Natural.", apply: (p) => { p.pwr += 5; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 5; p.blackjackMultiplier = Math.max(p.blackjackMultiplier || 1, 3); } },
+      { id: "relic_necro_bones", name: "Coraza de Huesos Malditos", icon: "🦴", desc: "+4 DEF y espinas que devuelven 3 daño directo al rival por impacto.", apply: (p) => { p.def += 4; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 4; p.thorns = (p.thorns || 0) + 3; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 3; } }
     ],
     5: [
-      { id: "relic_shadow_mirror", name: "🎭 Espejo de Sombras del 21", icon: "🎭", desc: "El As siempre computa a tu favor y anula el primer BUST de cada piso.", apply: (p) => { p._shadowMirrorBustProtect = true; } },
-      { id: "relic_shadow_crown", name: "👑 Corona del Gran Tahúr", icon: "👑", desc: "+60 Oro, +4 PWR y +3 DEF para la ascensión al Trono Final.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 60; p.pwr += 4; p.def += 3; } },
-      { id: "relic_shadow_pact", name: "⚔️ Pacto del Vencedor Inmortal", icon: "⚔️", desc: "Inmune a la perforación de Muerte Súbita durante los primeros 5 asaltos.", apply: (p) => { p._suddenDeathPactImmune = true; } }
+      { id: "relic_shadow_mirror", name: "Espejo de Sombras del 21", icon: "🎭", desc: "El As siempre computa a tu favor y anula el primer BUST de cada piso.", apply: (p) => { p._shadowMirrorBustProtect = true; } },
+      { id: "relic_shadow_crown", name: "Corona del Gran Tahúr", icon: "👑", desc: "+60 Oro, +4 PWR y +3 DEF para la ascensión al Trono Final.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 60; p.pwr += 4; p.def += 3; if (p.levelUpStats) { p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 4; p.levelUpStats.def = (p.levelUpStats.def || 0) + 3; } } },
+      { id: "relic_shadow_pact", name: "Pacto del Vencedor Inmortal", icon: "⚔️", desc: "Inmune a la perforación de Muerte Súbita durante los primeros 5 asaltos.", apply: (p) => { p._suddenDeathPactImmune = true; } }
     ]
   };
   window.DEMONIC_RELICS_BY_ACT = DEMONIC_RELICS_BY_ACT;
@@ -5563,15 +5579,17 @@
     }
 
     optEl.innerHTML = `
-      <div class="demonic-draft-container" style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:440px; margin:0 auto;">
+      <div class="demonic-draft-container">
         ${pool.map((relic, idx) => `
-          <div class="demonic-relic-card" onclick="chooseDemonicRelic(${actNumber}, ${idx})" style="background:rgba(20,10,25,0.95); border:2px solid #e63946; border-radius:12px; padding:14px; cursor:pointer; text-align:left; box-shadow:0 4px 15px rgba(230,57,70,0.3); transition:transform 0.2s, border-color 0.2s;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-              <span style="font-size:2rem;">${relic.icon}</span>
-              <strong style="color:#ffb703; font-size:1.1rem;">${relic.name}</strong>
+          <div class="demonic-relic-card" onclick="chooseDemonicRelic(${actNumber}, ${idx})">
+            <div class="demonic-relic-medallion">${relic.icon}</div>
+            <div class="demonic-relic-info">
+              <div class="demonic-relic-name">${relic.name}</div>
+              <div class="demonic-relic-desc">${relic.desc}</div>
             </div>
-            <div style="color:#f1faee; font-size:0.9rem; line-height:1.4;">${relic.desc}</div>
-            <div style="margin-top:8px; font-size:0.8rem; color:#e63946; font-weight:bold;">⚡ TOCAR PARA RECLAMAR</div>
+            <button type="button" class="demonic-claim-btn" onclick="event.stopPropagation(); chooseDemonicRelic(${actNumber}, ${idx})">
+              RECLAMAR ⚡
+            </button>
           </div>
         `).join("")}
       </div>
@@ -6810,7 +6828,7 @@
               ${statRow('🛡️', 'ESCUDO INICIAL', heroDisplayStats.startingShield.base, heroDisplayStats.startingShield.total)}
               ${statRow('⚡', '% CRÍTICO', heroDisplayStats.critChance.base + '%', heroDisplayStats.critChance.total + '%')}
               ${statRow('💨', '% ESQUIVAR', heroDisplayStats.dodgeChance.base + '%', heroDisplayStats.dodgeChance.total + '%')}
-              ${statRow('🌵', 'ESPINAS', heroDisplayStats.thorns.base + '%', heroDisplayStats.thorns.total + '%')}
+              ${statRow('🌵', 'ESPINAS (DAÑO)', heroDisplayStats.thorns.base, heroDisplayStats.thorns.total)}
               ${statRow('🩸', '% VAMPIRISMO', heroDisplayStats.lifesteal.base + '%', heroDisplayStats.lifesteal.total + '%')}
               ${statRow('🍀', '% SUERTE', heroDisplayStats.luck.base + '%', heroDisplayStats.luck.total + '%')}
             ` : `
@@ -6820,7 +6838,7 @@
               ${statRow('🛡️', 'ESCUDO INICIAL', hero.startingShield || 0, hero.startingShield || 0)}
               ${statRow('⚡', '% CRÍTICO', (hero.critChance || 0) + '%', (hero.critChance || 0) + '%')}
               ${statRow('💨', '% ESQUIVAR', (hero.dodgeChance || 0) + '%', (hero.dodgeChance || 0) + '%')}
-              ${statRow('🌵', 'ESPINAS', (hero.thorns || 0) + '%', (hero.thorns || 0) + '%')}
+              ${statRow('🌵', 'ESPINAS (DAÑO)', (hero.thorns || 0), (hero.thorns || 0))}
               ${statRow('🩸', '% VAMPIRISMO', (hero.lifesteal || 0) + '%', (hero.lifesteal || 0) + '%')}
               ${statRow('🍀', '% SUERTE', (hero.luck || 0) + '%', (hero.luck || 0) + '%')}
             `}
@@ -9317,46 +9335,7 @@
       }
     }
 
-    // Comprobar si el piso cuenta con oleadas múltiples pendientes
-    if (gameState.floorEnemies && gameState.floorEnemies.length > 1 && gameState.currentEnemyIndex < gameState.floorEnemies.length - 1) {
-      gameState.currentEnemyIndex++;
-      const nextT = gameState.floorEnemies[gameState.currentEnemyIndex];
-      addLog(`⚔️ ¡Oleada superada! Entra ${nextT.name} (Oleada ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}).`, "critical");
-      if (typeof showCombatBanner === "function") {
-        showCombatBanner(`⚔️ ¡OLEADA ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}!`, `¡${nextT.name} desciende al combate!`, "crit");
-      }
-      p.hp = Math.min(p.maxHp, p.hp + 6);
-      if (!gameState.status) gameState.status = {};
-      gameState.status.playerShield = (gameState.status.playerShield || 0) + 4;
-      spawnFloatingText("player-sprite", "+6 HP SEGUNDO ALIENTO", "heal");
-
-      // Restauración de controles y limpieza de estados residuales de la mano previa
-      _lastEnemyHpPct = null;
-      gameState.isRolling = false;
-      setButtonsDisabled(false);
-      p.stand = false;
-      p.bust = false;
-      p.blackjack = false;
-      p.turnDoubleDamage = false;
-
-      if (typeof setEnemySpriteState === "function") setEnemySpriteState("idle");
-      const eSpriteEl = document.getElementById("enemy-sprite");
-      if (eSpriteEl) eSpriteEl.classList.remove("flash-kill", "sprite-dead-enemy");
-
-      const nextRoundCont = document.getElementById("next-round-container");
-      if (nextRoundCont) nextRoundCont.classList.add("hidden");
-      const actionGrid = document.getElementById("action-grid");
-      if (actionGrid) actionGrid.classList.remove("hidden");
-
-      initEnemyForCombat(nextT);
-      updateHud();
-      p.handNumber = 0;
-      await sleep(700);
-      await startNewHand();
-      return;
-    }
-
-    // Flujo Poscombate Secuencial (v1.8.3): Modal de Botín Obtenido antes de progresar
+    // Flujo Poscombate Secuencial: Modal de Botín Obtenido para este rival
     const activeCosmeticResult = cosmeticResult || gameState.currentFloorCosmeticDrop || null;
     gameState.currentFloorCosmeticDrop = null;
 
@@ -9380,6 +9359,68 @@
         convertedCoins: activeCosmeticResult.convertedCoins || 0
       } : null
     };
+
+    gameState.floorLootHistory = gameState.floorLootHistory || [];
+    gameState.floorLootHistory.push(lootData);
+
+    // Comprobar si el piso cuenta con oleadas múltiples pendientes
+    const hasNextWave = (gameState.floorEnemies && gameState.floorEnemies.length > 1 && gameState.currentEnemyIndex < gameState.floorEnemies.length - 1);
+    if (hasNextWave) {
+      lootData.isWaveIntermediate = true;
+      lootData.waveText = `${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}`;
+      showCombatLootModal(lootData, async () => {
+        // Secuencia Poscombate: procesar subidas de nivel pendientes antes de entrar a la siguiente oleada
+        if (gameState.pendingLevelUps && gameState.pendingLevelUps > 0) {
+          while (gameState.pendingLevelUps > 0) {
+            gameState.pendingLevelUps--;
+            await triggerLevelUp();
+          }
+        }
+
+        gameState.currentEnemyIndex++;
+        const nextT = gameState.floorEnemies[gameState.currentEnemyIndex];
+        addLog(`⚔️ ¡Oleada superada! Entra ${nextT.name} (Oleada ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}).`, "critical");
+        if (typeof showCombatBanner === "function") {
+          showCombatBanner(`⚔️ ¡OLEADA ${gameState.currentEnemyIndex + 1}/${gameState.floorEnemies.length}!`, `¡${nextT.name} desciende al combate!`, "crit");
+        }
+        p.hp = Math.min(p.maxHp, p.hp + 6);
+        if (!gameState.status) gameState.status = {};
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + 4;
+        spawnFloatingText("player-sprite", "+6 HP SEGUNDO ALIENTO", "heal");
+
+        // Restauración de controles y limpieza de estados residuales de la mano previa
+        _lastEnemyHpPct = null;
+        gameState.isRolling = false;
+        setButtonsDisabled(false);
+        p.stand = false;
+        p.bust = false;
+        p.blackjack = false;
+        p.turnDoubleDamage = false;
+
+        if (typeof setEnemySpriteState === "function") setEnemySpriteState("idle");
+        const eSpriteEl = document.getElementById("enemy-sprite");
+        if (eSpriteEl) eSpriteEl.classList.remove("flash-kill", "sprite-dead-enemy");
+
+        const nextRoundCont = document.getElementById("next-round-container");
+        if (nextRoundCont) nextRoundCont.classList.add("hidden");
+        const actionGrid = document.getElementById("action-grid");
+        if (actionGrid) actionGrid.classList.remove("hidden");
+
+        initEnemyForCombat(nextT);
+        updateHud();
+        p.handNumber = 0;
+        await sleep(700);
+        await startNewHand();
+      });
+      return;
+    }
+
+    if (gameState.floorLootHistory.length > 1) {
+      lootData.previousWaves = gameState.floorLootHistory.slice(0, -1);
+      lootData.totalFloorGold = gameState.floorLootHistory.reduce((acc, l) => acc + (l.gold || 0), 0);
+      lootData.totalFloorExp = gameState.floorLootHistory.reduce((acc, l) => acc + (l.exp || 0), 0);
+      lootData.totalFloorCrypt = gameState.floorLootHistory.reduce((acc, l) => acc + (l.cryptCoins || 0), 0);
+    }
 
     const proceedAfterLoot = async () => {
       // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto (Campaña y Modo Torre)
@@ -9494,9 +9535,17 @@
     const titleEl = document.getElementById("combat-loot-title");
     const subEl = document.getElementById("combat-loot-sub");
     const bodyEl = document.getElementById("combat-loot-body");
+    const contBtn = document.getElementById("btn-combat-loot-continue");
 
-    if (titleEl) titleEl.innerText = "BOTÍN OBTENIDO";
-    if (subEl) subEl.innerText = `${(lootData.enemyName || "Rival").toUpperCase()} DERROTADO EN PISO ${lootData.floor || gameState.floor}`;
+    if (lootData.isWaveIntermediate) {
+      if (titleEl) titleEl.innerText = "⚔️ ¡OLEADA SUPERADA!";
+      if (subEl) subEl.innerText = `${(lootData.enemyName || "Rival").toUpperCase()} DERROTADO (OLEADA ${lootData.waveText || ""})`;
+      if (contBtn) contBtn.innerText = "⚔️ CONTINUAR A LA SIGUIENTE OLEADA";
+    } else {
+      if (titleEl) titleEl.innerText = "BOTÍN OBTENIDO";
+      if (subEl) subEl.innerText = `${(lootData.enemyName || "Rival").toUpperCase()} DERROTADO EN PISO ${lootData.floor || gameState.floor}`;
+      if (contBtn) contBtn.innerText = "✅ ACEPTAR Y CONTINUAR";
+    }
 
     if (bodyEl) {
       let html = `<div class="combat-loot-rewards-grid">`;
@@ -9533,6 +9582,20 @@
         `;
       }
       html += `</div>`;
+
+      // Desglose Acumulado Total si hubo varias oleadas en este combate
+      if (lootData.previousWaves && lootData.previousWaves.length > 0) {
+        html += `
+          <div style="margin-top:10px;padding:8px 10px;background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.3);border-radius:8px;text-align:center;">
+            <div style="font-family:var(--font-display);font-size:11px;font-weight:bold;color:#ffd166;margin-bottom:3px;">
+              🏆 BOTÍN TOTAL DE LA HORDA (${lootData.previousWaves.length + 1} RIVALES DERROTADOS):
+            </div>
+            <div style="font-size:10px;font-weight:bold;color:#66fcf1;">
+              🪙 +${lootData.totalFloorGold} ORO &nbsp;•&nbsp; ⭐ +${lootData.totalFloorExp} EXP &nbsp;•&nbsp; 💀 +${lootData.totalFloorCrypt} CRIPTA
+            </div>
+          </div>
+        `;
+      }
 
       // Tarjeta CARTA COSMÉTICA (si se desbloqueó una nueva o repetida convertida)
       if (lootData.cosmeticCard) {
@@ -12525,7 +12588,7 @@
       const cid = `${card.suit}_${card.rank}`;
       const existing = (gameState.player && gameState.player.cardEnchantments) ? gameState.player.cardEnchantments[cid] : null;
       return `
-        <div class="booster-card-item booster-reveal ${isRed ? 'suit-red' : 'suit-black'}" style="animation-delay:${idx * 0.15}s" onclick="applySealToCandidate(${idx})" title="Toca para encantar permanentemente esta carta">
+        <div class="booster-card-item booster-reveal ${isRed ? 'suit-red' : 'suit-black'}" style="animation-delay:${idx * 0.15}s; cursor:pointer; pointer-events:auto;" onclick="applySealToCandidate(${idx})" role="button" tabindex="0" title="Toca para encantar permanentemente esta carta">
           <div class="bci-corner">
             <span>${card.rank}</span>
             <span style="font-size:11px;">${card.suit}</span>
@@ -12533,7 +12596,9 @@
           <div class="bci-center">${card.suit}</div>
           <div class="bci-val-badge">VALOR ${card.value}</div>
           ${existing ? `<div style="font-size: 9px;color:#e63946;margin-top:2px;font-weight:bold;">REEMPLAZA ${existing.icon}</div>` : ''}
-          <div class="bci-tap-tag">ENCANTAR</div>
+          <button type="button" class="bci-tap-tag" style="width:100%; min-height:44px; min-width:44px; cursor:pointer; pointer-events:auto;" onclick="event.stopPropagation(); applySealToCandidate(${idx})">
+            ENCANTAR
+          </button>
         </div>
       `;
     }).join("");
@@ -12543,8 +12608,10 @@
   window.renderBoosterModal = renderBoosterModal;
 
   function applySealToCandidate(candidateIdx) {
-    if (!activeBoosterPack) return;
-    const { seal, candidates, source } = activeBoosterPack;
+    candidateIdx = parseInt(candidateIdx, 10);
+    const pack = activeBoosterPack || window._lastActiveBoosterPack;
+    if (!pack) return;
+    const { seal, candidates, source } = pack;
     const card = candidates[candidateIdx];
     if (!card) return;
 
@@ -12553,9 +12620,12 @@
     const cid = `${card.suit}_${card.rank}`;
     p.cardEnchantments[cid] = Object.assign({}, seal);
 
-    playEnchantChimeSound();
-    triggerHaptic("blackjack");
+    try { playEnchantChimeSound(); } catch (_) {}
+    try { triggerHaptic("blackjack"); } catch (_) {}
     spawnFloatingText("stage", `✨ ¡${card.rank}${card.suit} ENCANTADA!`, "crit");
+    if (typeof showGameToast === "function") {
+      showGameToast(`¡${card.rank}${card.suit} encantada con ${seal.name}!`, "success");
+    }
     addLog(`✨ Sobre Arcano: Has impregnado la carta [${card.rank} de ${card.suit}] con el ${seal.name} (${seal.icon}). ¡Se activará cada vez que la juegues!`, "critical");
 
     const wasPostCombat = (source === "postCombat");
@@ -12565,6 +12635,12 @@
       showChronicleModal();
     } else {
       showShopModal();
+      if (typeof switchShopTab === "function") {
+        switchShopTab("cards");
+      }
+      if (typeof updateShopPurchaseBadge === "function") {
+        updateShopPurchaseBadge();
+      }
     }
   }
   window.applySealToCandidate = applySealToCandidate;
@@ -12574,8 +12650,21 @@
     activeBoosterPack = null;
     const modal = document.getElementById("screen-booster-pack");
     if (modal) modal.classList.add("hidden");
-    if (!suppressRedirect && wasPostCombat) {
-      showChronicleModal();
+    const packOpenModal = document.getElementById("screen-pack-open");
+    if (packOpenModal) packOpenModal.classList.add("hidden");
+
+    if (!suppressRedirect) {
+      if (wasPostCombat) {
+        showChronicleModal();
+      } else {
+        showShopModal();
+        if (typeof switchShopTab === "function") {
+          switchShopTab("cards");
+        }
+        if (typeof updateShopPurchaseBadge === "function") {
+          updateShopPurchaseBadge();
+        }
+      }
     }
   }
   window.closeBoosterPackModal = closeBoosterPackModal;
@@ -15266,8 +15355,8 @@
       blackjack_heritage: "👑 Joya Heredada (Blackjack x4, +16 HP)",
       blood_amulet: "🩸 Amuleto de Sangre (+6 HP al derrotar rival)",
       amber_amulet: "🟠 Amuleto Ámbar (+1 HP por piso)",
-      lucky_charm: "🍀 Amuleto de la Suerte (25% evitar daño)",
-      spiked_belt: "🌵 Cinturón con Púas (Devuelve 2 daño)",
+      lucky_charm: "🍀 Amuleto de la Suerte (25% evitar daño, +10% Suerte)",
+      spiked_belt: "🌵 Cinturón con Púas (+2 Daño Espinas directo)",
       lead_gauntlet: "🥊 Guante de Plomo (Cartas bajas valen mín. 3)",
       steel_helm: "🪖 Casco de Acero (+1 DEF)",
       rider_spur: "👞 Espuela de Celeridad (+8 daño, +15 oro en 1ª mano)",
@@ -15288,18 +15377,50 @@
       shadow_cloak: "🧥 Capa de Sombras (+10% Esquivar)",
       wind_cloak: "💨 Manto del Viento (+10% Esquivar)",
       lucky_coin: "🪙 Moneda de la Suerte (+10% Suerte)",
-      thorn_crown: "👑 Corona de Espinas (+12% Espinas)",
-      mirror_shield: "🪞 Escudo Espejo (+12% Espinas)"
+      thorn_crown: "👑 Corona de Espinas (+5 Espinas)",
+      mirror_shield: "🪞 Escudo Espejo (+5 Espinas, +30% Reflejo)",
+      hourglass: "⏳ Reloj de Arena (+Tiempo de turno y concentración)",
+      hourglass_time: "⏳ Reloj de Arena (+Tiempo de turno)",
+      relic_hourglass: "⏳ Reloj de Arena (+Tiempo de turno y concentración)",
+      relic_dante_blade: "🗡️ Filo Sangriento de Dante (+3 PWR, 2 Veneno)",
+      relic_dante_spades: "♠️ Cota de Picas del Conquistador (+2 DEF, +2 Escudo por ♠)",
+      relic_dante_blood: "🩸 Frasco de Sangre Pura (+25 HP Máx, 2 Pociones)",
+      relic_valk_aegis: "🛡️ Baluarte de Diamantes (+10 Escudo por mano)",
+      relic_valk_light: "✨ Relicario de la Luz (+3 PWR, +6 HP en 19/20)",
+      relic_valk_core: "💎 Núcleo Diamantino (+3 DEF, +2 Rerolls)",
+      relic_archmage_eye: "🔮 Ojo Arcano del Archimago (+4 PWR, Sello Cósmico)",
+      relic_archmage_veil: "🌌 Manto del Vacío (25% Evitar contraataque)",
+      relic_archmage_mana: "⚡ Cáliz de Éter (Overdrive inicial, +40 Oro)",
+      relic_necro_harvest: "💀 Cosecha de Malfas (35% Curar +4 HP)",
+      relic_necro_scythe: "☠️ Guadaña del Segador (+5 PWR, x3 Blackjack)",
+      relic_necro_bones: "🦴 Coraza de Huesos Malditos (+4 DEF, +3 Espinas)",
+      relic_shadow_mirror: "🎭 Espejo de Sombras del 21 (Anula 1 BUST)",
+      relic_shadow_crown: "👑 Corona del Gran Tahúr (+60 Oro, +4 PWR, +3 DEF)",
+      relic_shadow_pact: "⚔️ Pacto del Vencedor Inmortal (Inmunidad Asalto Muerte)"
     };
     if (dict[id]) return dict[id];
+    const strippedId = id.replace(/^relic_/, '');
+    if (dict[strippedId]) return dict[strippedId];
+
     if (typeof ALL_RELICS !== "undefined") {
-      const found = ALL_RELICS.find(r => r.id === id);
+      const found = ALL_RELICS.find(r => r.id === id || r.id === strippedId);
       if (found) return `${found.icon || '🔮'} ${found.name}`;
+    }
+    if (typeof SHOP_ARTIFACTS !== "undefined") {
+      const foundShop = SHOP_ARTIFACTS.find(r => r.id === id || r.id === strippedId);
+      if (foundShop) return `${foundShop.icon || '🔮'} ${foundShop.name}`;
+    }
+    if (typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+      for (const pool of Object.values(DEMONIC_RELICS_BY_ACT)) {
+        const foundDemonic = pool.find(r => r.id === id || r.id === strippedId);
+        if (foundDemonic) return `${foundDemonic.icon || '👹'} ${foundDemonic.name}`;
+      }
     }
     if (typeof ITEM_INFO !== "undefined" && ITEM_INFO[id]) {
       return ITEM_INFO[id].split(':')[0];
     }
-    return id.replace(/_/g, ' ').toUpperCase();
+    const clean = strippedId.replace(/_/g, ' ');
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
   }
   window.getItemSpanishName = getItemSpanishName;
 
@@ -15388,14 +15509,20 @@
       const dodgeDiff = totalDodge - baseDodge;
       const dodgeBuffStr = dodgeDiff > 0 ? `<b style="color:#2a9d8f;">+${dodgeDiff}%</b>` : "--";
 
+      const baseThorns = hero.thorns || 0;
       const thornsVal = p.thorns || 0;
-      const thornsBuffStr = thornsVal > 0 ? `<b style="color:#2a9d8f;">+${thornsVal}</b>` : "--";
+      const thornsDiff = thornsVal - baseThorns;
+      const thornsBuffStr = thornsDiff > 0 ? `<b style="color:#2a9d8f;">+${thornsDiff}</b>` : (thornsDiff < 0 ? `<b style="color:#e63946;">${thornsDiff}</b>` : "--");
 
+      const baseLifesteal = hero.lifesteal || 0;
       const lifestealVal = p.lifesteal || 0;
-      const lifestealBuffStr = lifestealVal > 0 ? `<b style="color:#2a9d8f;">+${lifestealVal}%</b>` : "--";
+      const lifestealDiff = lifestealVal - baseLifesteal;
+      const lifestealBuffStr = lifestealDiff > 0 ? `<b style="color:#2a9d8f;">+${lifestealDiff}%</b>` : (lifestealDiff < 0 ? `<b style="color:#e63946;">${lifestealDiff}%</b>` : "--");
 
+      const baseLuck = hero.luck || 0;
       const luckVal = p.luck || 0;
-      const luckBuffStr = luckVal > 0 ? `<b style="color:#2a9d8f;">+${luckVal}%</b>` : "--";
+      const luckDiff = luckVal - baseLuck;
+      const luckBuffStr = luckDiff > 0 ? `<b style="color:#2a9d8f;">+${luckDiff}%</b>` : (luckDiff < 0 ? `<b style="color:#e63946;">${luckDiff}%</b>` : "--");
 
       // Renderizar tabla en tbody
       if (tbody) {
@@ -15437,20 +15564,20 @@
             <td style="text-align:right;font-weight:bold;color:#38bdf8;">${totalDodge}%</td>
           </tr>
           <tr>
-            <td><span class="stat-ico">🌵</span> <b>Espinas (Thorns)</b></td>
-            <td>0</td>
+            <td><span class="stat-ico">🌵</span> <b>Espinas (Daño Puro)</b></td>
+            <td>${baseThorns}</td>
             <td>${thornsBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#10b981;">${thornsVal}</td>
           </tr>
           <tr>
             <td><span class="stat-ico">🩸</span> <b>% Vampirismo</b></td>
-            <td>0%</td>
+            <td>${baseLifesteal}%</td>
             <td>${lifestealBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#e63946;">${lifestealVal}%</td>
           </tr>
           <tr>
             <td><span class="stat-ico">🍀</span> <b>% Suerte (Luck)</b></td>
-            <td>0%</td>
+            <td>${baseLuck}%</td>
             <td>${luckBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#a3e635;">${luckVal}%</td>
           </tr>
@@ -17127,6 +17254,9 @@
   function chooseLevelUpReward(type) {
     const p = gameState.player;
     if (!p.artifacts) p.artifacts = [];
+    if (!p.levelUpStats) {
+      p.levelUpStats = { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
+    }
     const maxSlots = getMaxArtifactSlots();
 
     if (typeof type === "string" && type.startsWith("relic_")) {
@@ -17135,41 +17265,45 @@
       spawnFloatingText("player-sprite", "🎁 RELIQUIA", "crit");
       addLog("⭐ Bendición de Nivel " + p.level + ": Has integrado una reliquia arcana a tu poder.", "critical");
     } else if (type === "hp") {
+      p.levelUpStats.hp = (p.levelUpStats.hp || 0) + 20;
       p.maxHp += 20;
       p.hp = Math.min(p.maxHp, p.hp + 30);
       spawnFloatingText("player-sprite", "+20 MAX HP", "heal");
       addLog("⭐ Bendición de Nivel " + p.level + ": +20 HP Máx y +30 HP curados (" + p.hp + "/" + p.maxHp + " HP).", "heal");
     } else if (type === "pwr") {
+      p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 2;
       p.pwr += 2;
       spawnFloatingText("player-sprite", "+2 PWR", "crit");
       addLog("⭐ Bendición de Nivel " + p.level + ": +2 PWR permanente (PWR actual: " + p.pwr + ").", "heal");
     } else if (type === "def") {
+      p.levelUpStats.def = (p.levelUpStats.def || 0) + 1;
       p.def += 1;
       if (!gameState.status) gameState.status = { playerShield: 0 };
       gameState.status.playerShield = (gameState.status.playerShield || 0) + 8;
       spawnFloatingText("player-sprite", "+1 DEF", "shield");
       addLog("⭐ Bendición de Nivel " + p.level + ": +1 DEF permanente y +8 Escudo azul (DEF actual: " + p.def + ").", "heal");
     } else if (type === "crit") {
-      p.critChance = (p.critChance || 0) + 5;
+      p.levelUpStats.crit = (p.levelUpStats.crit || 0) + 5;
       spawnFloatingText("player-sprite", "+5% CRÍTICO", "crit");
-      addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Golpe Crítico (Total: " + p.critChance + "%).", "critical");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Golpe Crítico.", "critical");
     } else if (type === "dodge") {
-      p.dodgeChance = (p.dodgeChance || 0) + 5;
+      p.levelUpStats.dodge = (p.levelUpStats.dodge || 0) + 5;
       spawnFloatingText("player-sprite", "+5% ESQUIVA", "crit");
-      addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Esquiva (Total: " + p.dodgeChance + "%).", "heal");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Esquiva.", "heal");
     } else if (type === "thorns") {
-      p.thorns = (p.thorns || 0) + 6;
+      p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 6;
       spawnFloatingText("player-sprite", "+6 ESPINAS", "crit");
-      addLog("⭐ Bendición de Nivel " + p.level + ": +6 Daño de Espinas reflejado (Total: " + p.thorns + ").", "critical");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +6 Daño directo de Espinas al rival.", "critical");
     } else if (type === "lifesteal") {
-      p.lifesteal = (p.lifesteal || 0) + 6;
+      p.levelUpStats.lifesteal = (p.levelUpStats.lifesteal || 0) + 6;
       spawnFloatingText("player-sprite", "+6% VAMPIRISMO", "heal");
-      addLog("⭐ Bendición de Nivel " + p.level + ": +6% Vampirismo de drenaje de vida (Total: " + p.lifesteal + "%).", "heal");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +6% Vampirismo de drenaje de vida.", "heal");
     } else if (type === "luck") {
-      p.luck = (p.luck || 0) + 8;
+      p.levelUpStats.luck = (p.levelUpStats.luck || 0) + 8;
       spawnFloatingText("player-sprite", "+8% SUERTE", "gold");
-      addLog("⭐ Bendición de Nivel " + p.level + ": +8% Suerte permanente (Total: " + p.luck + "%).", "gold");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +8% Suerte permanente.", "gold");
     } else if (type === "relic_hp") {
+      p.levelUpStats.hp = (p.levelUpStats.hp || 0) + 15;
       p.maxHp += 15;
       p.hp = Math.min(p.maxHp, p.hp + 20);
       if (p.artifacts.length < maxSlots) {
@@ -17177,12 +17311,14 @@
       }
       addLog("⭐ Reliquia de Nivel " + p.level + ": Corazón de Titán equipado (+15 HP Máx y +4 HP por mano ganada).", "critical");
     } else if (type === "relic_pwr") {
+      p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 2;
       p.pwr += 2;
       if (p.artifacts.length < maxSlots) {
         p.artifacts.push({ id: "war_fang", name: "Colmillo de Guerra", icon: "⚡" });
       }
       addLog("⭐ Reliquia de Nivel " + p.level + ": Colmillo de Guerra equipado (+2 PWR y perforación de armadura).", "critical");
     } else if (type === "relic_def") {
+      p.levelUpStats.def = (p.levelUpStats.def || 0) + 1;
       p.def += 1;
       if (p.artifacts.length < maxSlots) {
         p.artifacts.push({ id: "diamond_aegis", name: "Égida de Diamante", icon: "🛡️" });
@@ -17190,6 +17326,9 @@
       if (!gameState.status) gameState.status = { playerShield: 0 };
       gameState.status.playerShield = (gameState.status.playerShield || 0) + 10;
       addLog("⭐ Reliquia de Nivel " + p.level + ": Égida de Diamante equipada (+1 DEF y +10 Escudo azul por piso).", "critical");
+    }
+    if (typeof recalculatePlayerStats === "function") {
+      recalculatePlayerStats(p);
     }
     if (hasArtifact("necromancer_orb")) {
       p.hp = p.maxHp;
@@ -17317,7 +17456,7 @@
       if (gameState.playerStreak >= 3) {
         streakMult = 2.0;
         if (streakBadge) {
-          streakBadge.innerText = `🔥 x2.0 (${gameState.playerStreak} RACHA)`;
+          streakBadge.innerText = `🔥 x2.0`;
           streakBadge.classList.remove("hidden");
           streakBadge.classList.add("active");
         }
@@ -17326,7 +17465,7 @@
       } else if (gameState.playerStreak >= 2) {
         streakMult = 1.5;
         if (streakBadge) {
-          streakBadge.innerText = `🔥 x1.5 (2 RACHA)`;
+          streakBadge.innerText = `🔥 x1.5`;
           streakBadge.classList.remove("hidden");
           streakBadge.classList.add("active");
         }
@@ -17335,6 +17474,33 @@
         if (streakBadge) {
           streakBadge.classList.add("hidden");
           streakBadge.classList.remove("active");
+        }
+      }
+
+      // Recompensa Especial por Racha de 10 Manos Ganadas Consecutivas
+      if (gameState.playerStreak === 10) {
+        gameState.gold = (gameState.gold || 0) + 25;
+        if (typeof addCryptCoins === "function") {
+          addCryptCoins(3);
+        } else {
+          const curC = parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
+          localStorage.setItem("bj_crypt_coins", String(curC + 3));
+        }
+        p.pwr = (p.pwr || 0) + 1;
+        if (!p.levelUpStats) {
+          p.levelUpStats = { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
+        }
+        p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 1;
+        if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+
+        try { playVictoryFanfareSound(); } catch (_) {
+          try { playVictorySound(); } catch (_) {}
+        }
+        try { triggerHaptic("blackjack"); } catch (_) {}
+        spawnFloatingText("player-sprite", "🔥 ¡RACHA 10! +25 🪙 +3 💀 +1 PWR", "gold");
+        addLog("👑 ¡RACHA LEGENDARIA DE 10 MANOS! Recibes +25 Oro, +3 Metamonedas 💀 y +1 PWR permanente.", "critical");
+        if (typeof showCombatBanner === "function") {
+          showCombatBanner("🔥 ¡RACHA DE 10 MANOS!", "+25 Oro • +3 Criptas 💀 • +1 PWR Permanente", "crit");
         }
       }
 
@@ -17994,14 +18160,19 @@
           pShieldWrap.classList.add("shield-hit");
           setTimeout(() => pShieldWrap.classList.remove("shield-hit"), 400);
         }
-        if (((p.thorns || 0) > 0 || p._diamondsThornReflect) && rawDmg > 0) {
-          const thornPct = (p.thorns || 0) / 100;
-          const reflectPct = Math.max(p._diamondsThornReflect || 0, thornPct);
-          const reflectDmg = Math.max(1, Math.round(rawDmg * reflectPct));
-          e.hp = Math.max(0, e.hp - reflectDmg);
-          spawnFloatingText("enemy-sprite", `🌵 -${reflectDmg} ESPINAS`, "crit");
-          addLog(`🌵 Espinas (${p.thorns || 0}%): Devuelves ${reflectDmg} de daño reflejado al rival tras bloquear.`, "critical");
+
+        // Espinas: Daño directo puro al rival al impactar al jugador
+        if ((p.thorns || 0) > 0 && e && e.hp > 0) {
+          const directThorns = Math.round(p.thorns);
+          e.hp = Math.max(0, e.hp - directThorns);
+          spawnFloatingText("enemy-sprite", `🌵 -${directThorns} ESPINAS`, "crit");
+          addLog(`🌵 Espinas: Devuelves ${directThorns} de daño directo al rival.`, "critical");
           updateHud();
+          if (e.hp <= 0) {
+            await sleep(350);
+            await enemyDefeated();
+            return;
+          }
         }
         await sleep(350);
         setEnemySpriteState("idle");
@@ -18015,6 +18186,15 @@
         }
         await sleep(50);
 
+        // Espinas: Daño directo puro al rival cada vez que golpea al jugador
+        if ((p.thorns || 0) > 0 && e && e.hp > 0) {
+          const directThorns = Math.round(p.thorns);
+          e.hp = Math.max(0, e.hp - directThorns);
+          spawnFloatingText("enemy-sprite", `🌵 -${directThorns} ESPINAS`, "crit");
+          addLog(`🌵 Espinas: Devuelves ${directThorns} de daño directo al rival.`, "critical");
+          updateHud();
+        }
+
         // Subfase 1: Absorción por Escudo azul del jugador
         if (gameState.status.playerShield > 0 && incomingDmg > 0) {
           const absorbed = Math.min(gameState.status.playerShield, incomingDmg);
@@ -18023,14 +18203,6 @@
           setPlayerSpriteState("block");
           spawnFloatingText("player-sprite", `🛡️ -${absorbed} ESCUDO`, "shield");
           addLog(`¡Tu Escudo azul absorbió ${absorbed} de daño! (Quedan ${gameState.status.playerShield} escudo)`, "heal");
-          if (((p.thorns || 0) > 0 || p._diamondsThornReflect) && absorbed > 0) {
-            const thornPct = (p.thorns || 0) / 100;
-            const reflectPct = Math.max(p._diamondsThornReflect || 0, thornPct);
-            const reflectDmg = Math.max(1, Math.round(absorbed * reflectPct));
-            e.hp = Math.max(0, e.hp - reflectDmg);
-            spawnFloatingText("enemy-sprite", `🌵 -${reflectDmg} ESPINAS`, "crit");
-            addLog(`🌵 Espinas (${p.thorns || 0}%): Devuelves ${reflectDmg} de daño reflejado al rival.`, "critical");
-          }
           playShieldSound();
           const pShieldWrap = document.getElementById("player-shield-wrapper");
           if (pShieldWrap) {
@@ -18285,6 +18457,39 @@
   }
 
     
+  function showStreakInfoModal() {
+    const gs = window.gameState;
+    const streak = (gs && gs.playerStreak) || 0;
+    const mult = streak >= 3 ? "x2.0" : (streak >= 2 ? "x1.5" : "x1.0");
+    const msg = `
+      <div style="text-align:center;padding:4px 0;">
+        <div style="font-size:32px;margin-bottom:6px;">🔥</div>
+        <div style="font-family:var(--font-display);font-size:15px;color:#ffd166;font-weight:bold;margin-bottom:6px;">
+          RACHA HEROICA DE ASALTO
+        </div>
+        <div style="background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;">
+          <div style="font-size:13px;color:#66fcf1;font-weight:bold;">
+            Racha actual: <span style="font-size:17px;color:#ffd166;">${streak} / 10 manos ganadas</span>
+          </div>
+          <div style="font-size:10.5px;color:#cbd5e1;margin-top:2px;">
+            Multiplicador de asalto activo: <b style="color:#ffd166;">${mult}</b>
+          </div>
+        </div>
+        <div style="font-size:10.5px;color:#94a3b8;line-height:1.5;text-align:left;background:rgba(0,0,0,0.45);border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);">
+          <b style="color:#ffd166;">👑 RECOMPENSA DE RACHA 10:</b><br>
+          Al encadenar 10 manos consecutivas victoriosas sin perder ni empatar, obtendrás automáticamente:<br>
+          • <b style="color:#ffd166;">+25 Monedas de Oro</b> para el Bazar.<br>
+          • <b style="color:#66fcf1;">+3 Metamonedas 💀</b> para tu Árbol Permanente.<br>
+          • <b style="color:#f39c12;">+1 PWR Permanente</b> para toda esta ascensión.
+        </div>
+      </div>
+    `;
+    if (typeof showGameAlert === "function") {
+      showGameAlert("🔥 RACHA HEROICA", msg);
+    }
+  }
+  window.showStreakInfoModal = showStreakInfoModal;
+
   /* ============================================================
      CONTROL MANUAL DE RONDAS DE COMBATE (UX MEJORADA)
      ============================================================ */

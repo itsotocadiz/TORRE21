@@ -211,7 +211,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.3</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.4</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -368,9 +368,6 @@
         <button onclick="openCodex()" class="btn-glow-gold" style="border-color:#48cae4;color:#48cae4;padding:12px;font-size:11px;font-weight:700;min-height:44px;">
           📜 CÓDICE DE LA TORRE (ÁLBUMES Y COLECCIONABLES)
         </button>
-        <button onclick="showControls()" style="padding:12px;font-size:11px;font-weight:700;border-color:#66fcf1;color:#66fcf1;min-height:44px;">
-          📖 REGLAS DEL BLACKJACK Y GUÍA DE COMBATE
-        </button>
         <button id="btn-interactive-guide" onclick="openInteractiveTutorialModal()" class="btn-glow-gold" style="border-color:#f59e0b;color:#fcd34d;padding:12px;font-size:11px;font-weight:700;background:rgba(245,158,11,0.12);min-height:44px;">
           🎓 TUTORIALES INTERACTIVOS (CAMPAÑA Y ARENA)
         </button>
@@ -480,7 +477,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.8.3 (BUILD 44)</span>
+          <span id="settings-version">📱 VERSIÓN v1.8.4 (BUILD 45)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -1113,6 +1110,15 @@
   <div id="stage">
     <div id="damage-flash"></div>
 
+    <!-- BARRA HORIZONTAL SUPERIOR DE NIVEL Y PROGRESO DE EXP (v1.8.4) -->
+    <div id="combat-top-exp-bar-wrapper" class="combat-top-exp-bar-wrapper" title="Progreso de Nivel y Experiencia del Héroe">
+      <div class="combat-top-exp-label term" data-term="level">⭐ NVL <span id="ui-player-lvl">1</span></div>
+      <div class="combat-top-exp-track">
+        <div id="player-exp-bar" class="combat-top-exp-fill" style="width: 0%;"></div>
+      </div>
+      <div class="combat-top-exp-val term" data-term="exp" id="ui-player-exp-text">0/60 EXP</div>
+    </div>
+
     <!-- BANNER DINÁMICO DE RESOLUCIÓN DE COMBATE -->
     <div id="combat-banner" class="combat-banner hidden">
       <div class="combat-banner-title" id="combat-banner-title">⚔️ ¡GOLPE DE JACK!</div>
@@ -1156,11 +1162,11 @@
             <div id="player-acc-slot" class="player-acc-slot" onclick="inspectActiveBlessing(event)" title="Medallón de Bendición del Destino (Toca para ver)"></div>
           </div>
           <div class="fighter-meta">
-            <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+            <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
               <span class="fighter-name" id="player-class-title">CABALLERO</span>
-              <div style="display:flex;align-items:center;gap:4px;">
-                <button type="button" class="fighter-inspect-pill-btn" onclick="event.stopPropagation(); openFighterInspect('player');" title="Ver Ficha Completa del Héroe">📊 Ficha</button>
-                <div id="player-streak-badge" class="player-streak-badge hidden">🔥 x1.5</div>
+              <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                <button type="button" class="fighter-inspect-pill-btn" onclick="event.stopPropagation(); openFighterInspect('player');" title="Ver Ficha Completa del Héroe">📊</button>
+                <div id="player-streak-badge" class="player-streak-badge hidden" onclick="event.stopPropagation(); showStreakInfoModal();" title="Racha de victorias (Toca para ver bonificación)">🔥 x1.5</div>
               </div>
             </div>
             <div id="player-status-badges" class="status-badges"></div>
@@ -1186,16 +1192,6 @@
                   <div id="player-shield-bar" class="shield-bar-fill"></div>
                 </div>
               </div>
-              <!-- BARRA DE EXP Y NIVEL -->
-              <div class="meter-group exp-group" title="Experiencia para subir de nivel">
-                <div class="meter-header">
-                  <span class="meter-title exp-title term" data-term="level">⭐ NVL <span id="ui-player-lvl">1</span></span>
-                  <span class="exp-text term" data-term="exp" id="ui-player-exp-text">0/60 EXP</span>
-                </div>
-                <div class="exp-bar-container">
-                  <div id="player-exp-bar" class="exp-bar-fill" style="width: 0%;"></div>
-                </div>
-              </div>
             </div>
             <div id="player-stats-mini" class="fighter-stat-pills hidden" style="display:none;" title="Poder y Defensa del Héroe">⚔️ 2  🛡️ 3</div>
           </div>
@@ -1205,9 +1201,11 @@
         <div class="fighter-col enemy-fighter" onclick="openFighterInspect('enemy')" title="Toca o pasa el cursor para ver ficha de combate">
           <div class="sprite enemy-avatar" id="enemy-sprite"><img src="assets/svg/enemy_goblin.svg" class="sprite-img" alt="Rival"></div>
           <div class="fighter-meta">
-            <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+            <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
               <span class="fighter-name enemy-name" id="enemy-name-tag">RIVAL</span>
-              <button type="button" class="fighter-inspect-pill-btn enemy" onclick="event.stopPropagation(); openFighterInspect('enemy');" title="Ver Ficha del Rival">📊 Ficha</button>
+              <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                <button type="button" class="fighter-inspect-pill-btn enemy" onclick="event.stopPropagation(); openFighterInspect('enemy');" title="Ver Ficha del Rival">📊</button>
+              </div>
             </div>
             <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
             <div id="enemy-status-badges" class="status-badges"></div>
