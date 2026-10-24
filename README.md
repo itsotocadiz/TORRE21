@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.8.0 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.8.1 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -84,6 +84,14 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
     * 💨 **Esquivar:** % real calculado
     * 🩸 **Vampirismo** y 🌵 **Espinas:** reflejados en tiempo real si aplican.
   * Congelación estricta del combate (`window.gamePaused = true` / `gamePaused = true`) que inhabilita los botones de acción (`playerAction`) mientras la pausa permanezca activa.
+* **Reparación y Respuesta Inmediata del Menú de Ajustes / Pausa:**
+  * Apertura garantizada y libre de excepciones en `openInGamePauseMenu` mediante manejo defensivo (`try/catch`), renderizado prioritario del modal antes del cálculo de datos y propagación táctil controlada en el botón `⚙️ AJUSTES` (`btn-header-pause`).
+* **Cálculo Puro de Golpe Crítico RPG (Fiel a `critChance`):**
+  * Desvinculación de la tirada de crítico de la puntuación 21: la mano ganadora ahora evalúa el impacto crítico exclusivamente mediante tirada porcentual contra la probabilidad de crítico del héroe (`p.critChance`), sin forzar crítico automático en manos de 21 ni aplicar fallbacks fijos artificiales de 25%.
+  * Supresión de menciones confusas a "Impacto Vorpal" en los logs de combate.
+* **Layout Responsivo de Combate (Sin Desbordes en Pantallas Móviles):**
+  * Ajuste elástico de `#stage`, `.battle-scene`, `.sprite` y `#log-container` con `min-height: 0`, dimensionamiento escalonado con `clamp(...)` y `flex-shrink: 0` en `#controls`.
+  * Media queries para viewports verticales compactos ($\le 740$ px) garantizando que la mano del jugador y los botones tácticos de acción (`PEDIR CARTA`, `PLANTARSE`, `DOBLAR`, etc.) sean 100% visibles y mantengan la ergonomía táctil ($\ge 44 \times 44$ px) sin cortes.
 
 ### [v1.7.6] — Octubre 2026
 * **Blindaje Total de Inicialización de Batalla (`ensureBattleStateInitialized`):**
@@ -339,6 +347,31 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 * **Verificación e Integridad Total:**
   * Sincronización estricta de las 3 copias del proyecto (`node scripts/sync-all.js`).
   * Superadas las 42 suites de pruebas unitarias (`npm run verify`) con 0 errores y 0 advertencias.
+
+### [v1.8.1] — Noviembre 2026
+* **Blindaje Defensivo contra Crashes en Primer Combate (`ensureBattleStateInitialized`):**
+  * Resuelta la condición de carrera al entrar a la primera batalla de una sesión: pre-inicialización obligatoria y defensiva de atributos (`STR/DEX/INT/VIT`), baraja (`deck`), estado del rival (`enemy`), escudos, afinidades y referencias de DOM antes de ejecutar rutinas de cálculo táctico y HUD.
+  * Añadidos chequeos nulos (`?.` y fallbacks) en `updateTacticalOddsHUD`, `calculateTacticalAttackRange`, `renderBattlefieldState` y `recalculatePlayerStats`.
+* **Corrección de Selección y Registro de Bendiciones (`STARTER_BLESSINGS`):**
+  * Solucionada la inconsistencia de selección de bendiciones: pase estricto por `id`, asignación de objeto normalizado y desduplicación de inspección.
+  * Persistencia automática de bendiciones seleccionadas en el Códice (`torre21_unlocked_blessings` y `bj_unlocked_blessings`).
+* **Reestructuración Integral del Códice (100% Coleccionables Roguelike):**
+  * Códice rediseñado con 5 pestañas de coleccionables puros: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
+  * Oficialmente renombrada la colección a *"Cartas Cosméticas"* y eliminado el doble título redundante.
+  * Eliminadas las pestañas obsoletas de "Pisos" y "Secretos del Abismo", así como el botón "Revivir el Cómic del Prólogo".
+  * Nuevas ranuras coleccionables con silueta `?` para bendiciones (`STARTER_BLESSINGS`) y reliquias (`ALL_RELICS` + `DEMONIC_RELICS_BY_ACT`).
+* **Unificación de Moneda de Metajuego (Calavera de Cripta 💀):**
+  * Reemplazados todos los iconos de llave (`🔑` / `🗝️`) en la Tienda del Héroe, contadores, botones de compra y transmutación de cartas/sellos por la calavera de cripta `💀`.
+* **Ficha de Combate Precisa y Traducida al Español:**
+  * Eliminada la mención de `(+12% por Nvl X)` inexistente en el cálculo de daño.
+  * Traducción completa al español y con iconos de todas las reliquias, artefactos, accesorios y bendiciones (`getItemSpanishName`).
+  * Desglose dinámico de atributos RPG en combate: Crítico, Esquivar, Espinas, Vampirismo y Suerte.
+  * Ocultado el contador de bajas duplicado `ui-kills` en la barra superior.
+
+### [v1.8.0] — Octubre 2026
+* **Campaña Integral de 6 Actos y Sistema de Crecimiento Exponencial:**
+  * Rebalanceo de curvas de experiencia y progresión permanente para los 4 héroes.
+  * Ajustes en la IA del Mandinga y jefes de capítulo.
 
 ### [v1.6.2] — Octubre 2026
 * **Aislamiento Estructural de la Arena PvP y Menús Principales:**

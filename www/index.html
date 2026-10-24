@@ -729,6 +729,26 @@
           <span class="stat-lbl">🛡️ ESCUDO ACTIVO</span>
           <span class="stat-val" id="inspect-shield">0</span>
         </div>
+        <div class="inspect-stat-item" id="inspect-crit-box">
+          <span class="stat-lbl">⚡ % CRÍTICO</span>
+          <span class="stat-val" id="inspect-crit">0%</span>
+        </div>
+        <div class="inspect-stat-item" id="inspect-dodge-box">
+          <span class="stat-lbl">💨 % ESQUIVAR</span>
+          <span class="stat-val" id="inspect-dodge">0%</span>
+        </div>
+        <div class="inspect-stat-item" id="inspect-thorns-box">
+          <span class="stat-lbl">🌵 ESPINAS</span>
+          <span class="stat-val" id="inspect-thorns">0%</span>
+        </div>
+        <div class="inspect-stat-item" id="inspect-lifesteal-box">
+          <span class="stat-lbl">🩸 % VAMPIRISMO</span>
+          <span class="stat-val" id="inspect-lifesteal">0%</span>
+        </div>
+        <div class="inspect-stat-item" id="inspect-luck-box">
+          <span class="stat-lbl">🍀 % SUERTE</span>
+          <span class="stat-val" id="inspect-luck">0%</span>
+        </div>
       </div>
 
       <div class="inspect-section">
@@ -1079,11 +1099,11 @@
     <div class="header-left">
       <span id="ui-floor">PISO 1 / 21</span>
       <span id="ui-gold" class="term" data-term="gold">💰 0</span>
-      <span id="ui-kills" class="interactive-term" onclick="explainCryptKills()" title="Bajas para Cofre de Cripta: Cada 5 rivales vencidos recibes recompensas abisales">💀 0/5</span>
+      <span id="ui-kills" class="interactive-term hidden" style="display:none;" onclick="explainCryptKills()" title="Bajas para Cofre de Cripta: Cada 5 rivales vencidos recibes recompensas abisales">💀 0/5</span>
     </div>
     <div class="header-right">
       <button id="btn-header-codex" onclick="openCodex()" class="header-btn" title="Códice de Colección">📜 CÓDICE</button>
-      <button id="btn-header-pause" onclick="openInGamePauseMenu()" class="header-btn" title="Menú de Pausa y Ajustes">⚙️ AJUSTES</button>
+      <button id="btn-header-pause" onclick="openInGamePauseMenu(event)" class="header-btn" title="Menú de Pausa y Ajustes">⚙️ AJUSTES</button>
       <button id="btn-header-sound" onclick="toggleSound()" class="header-btn" title="Alternar Sonido">🔊</button>
     </div>
   </header>

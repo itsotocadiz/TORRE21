@@ -3929,14 +3929,15 @@
           cardEnchantments: {}
         };
       }
-      const p = gs.player;
+      const heroKey = p.classKey || p.class || "knight";
+      const heroCfg = (typeof HERO_DATA !== "undefined" && HERO_DATA[heroKey]) ? HERO_DATA[heroKey] : (HERO_DATA.knight || {});
       p.hp = (typeof p.hp === "number" && !isNaN(p.hp)) ? p.hp : (p.maxHp || 100);
       p.maxHp = Math.max(1, (typeof p.maxHp === "number" && !isNaN(p.maxHp)) ? p.maxHp : 100);
       p.pwr = (typeof p.pwr === "number" && !isNaN(p.pwr)) ? p.pwr : 5;
       p.def = (typeof p.def === "number" && !isNaN(p.def)) ? p.def : 2;
-      p.critChance = Number(p.critChance) || 0;
-      p.dodgeChance = Number(p.dodgeChance) || 0;
-      p.thorns = Number(p.thorns) || 0;
+      p.critChance = Number(p.critChance) || (heroCfg.critChance || 0);
+      p.dodgeChance = Number(p.dodgeChance) || (heroCfg.dodgeChance || 0);
+      p.thorns = (typeof p.thorns === "number" && !isNaN(p.thorns)) ? p.thorns : (heroCfg.thorns || 0);
       p.handNumber = Number(p.handNumber) || 0;
       p.betAmount = Number(p.betAmount) || 0;
       if (!Array.isArray(p.playerHand)) p.playerHand = [];
@@ -4116,19 +4117,13 @@
     const minDmg = Math.max(0, normalAttack - effectiveEnemyDef);
 
     // Ataque Crítico (Crítico x2.0 / x2.5 BJ)
-    const isNatBJ = (score === 21 && (playerHand || []).length === 2);
-    const critMult = isNatBJ ? 2.5 : 2.0;
+    const critMult = 2.0;
     const critAttack = Math.round(rawAtk * buffMultiplier * doubleMult * critMult);
     const maxDmg = Math.max(0, critAttack - effectiveEnemyDef);
 
-    const critChance = (typeof recalculatePlayerStats === "function" ? (recalculatePlayerStats(player), player.critChance) : player.critChance) || 25;
+    const critChance = (typeof recalculatePlayerStats === "function" ? (recalculatePlayerStats(player), player.critChance) : player.critChance) || 0;
     const prefix = (doubleMult > 1.0) ? "⚡ ATAQUE x2:" : "⚔️ ATAQUE:";
-    let label = "";
-    if (critChance > 0 || isNatBJ || score === 21) {
-      label = `${prefix} ${minDmg} (Crítico: ${maxDmg})`;
-    } else {
-      label = `${prefix} ${minDmg}`;
-    }
+    const label = `${prefix} ${minDmg}`;
 
     return {
       minDmg,
@@ -4194,7 +4189,7 @@
         "Muestra el daño exacto que infligirás al ganar la mano de Blackjack:\n\n" +
         "• FÓRMULA DIRECTA: (Ataque Base + Bonos de Cartas/Sellos/Afinidades) * Buffs - DEF Rival.\n" +
         "• ¡Las cartas suman puntos para ganar la ronda de Blackjack, pero nunca se suman como daño!\n" +
-        "• El valor entre paréntesis (Crítico) muestra tu impacto devastador si se activa el Golpe Crítico (x2.0).\n" +
+        "• La píldora ⚡ CRÍTICO a la izquierda muestra tu probabilidad porcentual exacta de asestar un crítico (daño x2.0).\n" +
         "• Al pulsar '¡DOBLAR!', tu ataque se duplica x2 automáticamente.",
         "TÁCTICA: PODER DE ATAQUE"
       );
@@ -4215,15 +4210,13 @@
         const critEl = document.getElementById("dnd-crit-odds");
         const dmgEl = document.getElementById("dnd-projected-dmg");
 
-        // 1. Probabilidad predictiva exacta de Crítico
+        // 1. Probabilidad predictiva exacta de Crítico basada en las estadísticas reales del héroe
         let critText = "";
-        if (curScore >= 19 && curScore <= 21) {
-          critText = `⚡ CRÍTICO: 100% (ACTIVO)`;
-        } else if (curScore > 21) {
+        if (curScore > 21) {
           critText = `💀 BUST (0%)`;
         } else {
           if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
-          const totalCrit = p.critChance || 25;
+          const totalCrit = (typeof p.critChance === "number") ? p.critChance : 0;
           critText = `⚡ CRÍTICO: ${totalCrit}%`;
         }
 
@@ -5333,6 +5326,75 @@
     p.thorns = Math.min(50, Math.max(0, baseThorns));
   }
   window.recalculatePlayerStats = recalculatePlayerStats;
+
+  function getHeroDisplayStats(heroKey) {
+    if (!heroKey || heroKey === "necro") heroKey = "necromancer";
+    const heroCfg = HERO_DATA[heroKey] || HERO_DATA.knight;
+    const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
+    const hMeta = meta[heroKey] || { totalExp: 0, masteryLevel: 1, level: 1, exp: 0 };
+    const permLevel = hMeta.level || hMeta.masteryLevel || 1;
+    const bonuses = (typeof getMasteryBonuses === "function") ? getMasteryBonuses(permLevel) : { hp: 0, pwr: 0, def: 0 };
+
+    const legHp = (hMeta.legacyHp || 0) * 3;
+    const legPwr = (hMeta.legacyPwr || 0) * 1;
+    const legDef = (hMeta.legacyDef || 0) * 1;
+
+    const baseMaxHp = (typeof hMeta.baseMaxHp === "number" && hMeta.baseMaxHp > 0) ? hMeta.baseMaxHp : (heroCfg.maxHp + bonuses.hp);
+    const basePwr = (typeof hMeta.basePwr === "number" && hMeta.basePwr >= 0) ? hMeta.basePwr : (heroCfg.pwr + bonuses.pwr);
+    const baseDef = (typeof hMeta.baseDef === "number" && hMeta.baseDef >= 0) ? hMeta.baseDef : (heroCfg.def + bonuses.def);
+    const startingShield = heroCfg.startingShield || 0;
+
+    // Stats RPG de base canónicos
+    const baseDodge = (typeof heroCfg.dodgeChance === "number") ? heroCfg.dodgeChance : 0;
+    const baseCrit = (typeof heroCfg.critChance === "number") ? heroCfg.critChance : 0;
+    const baseThorns = (typeof heroCfg.thorns === "number") ? heroCfg.thorns : 0;
+    const baseLifesteal = (typeof heroCfg.lifesteal === "number") ? heroCfg.lifesteal : 0;
+    const baseLuck = (typeof heroCfg.luck === "number") ? heroCfg.luck : 0;
+
+    // Si hay un jugador activo en gameState y coincide con este héroe y está en combate
+    const isCombatActive = !!(typeof gameState !== "undefined" && gameState && gameState.player && gameState.player.playerHand && gameState.player.playerHand.length > 0);
+    const activePlayer = (isCombatActive && gameState && gameState.player && (gameState.player.classKey === heroKey || gameState.player.class === heroKey)) ? gameState.player : null;
+
+    if (activePlayer) {
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(activePlayer);
+      return {
+        hp: { base: baseMaxHp, total: activePlayer.maxHp || (baseMaxHp + legHp), current: activePlayer.hp },
+        pwr: { base: basePwr, total: activePlayer.pwr || (basePwr + legPwr) },
+        def: { base: baseDef, total: (activePlayer.def !== undefined ? activePlayer.def : baseDef) + (activePlayer.turnShieldBonus || 0) + (activePlayer.duplaDef || 0) + (activePlayer._synergyBonusDef || 0) },
+        startingShield: { base: startingShield, total: (typeof gameState.status !== "undefined" && gameState.status && typeof gameState.status.playerShield === "number") ? gameState.status.playerShield : startingShield },
+        critChance: { base: baseCrit, total: (typeof activePlayer.critChance === "number") ? activePlayer.critChance : baseCrit },
+        dodgeChance: { base: baseDodge, total: (typeof activePlayer.dodgeChance === "number") ? activePlayer.dodgeChance : baseDodge },
+        thorns: { base: baseThorns, total: (typeof activePlayer.thorns === "number") ? activePlayer.thorns : baseThorns },
+        lifesteal: { base: baseLifesteal, total: (typeof activePlayer.lifesteal === "number") ? activePlayer.lifesteal : baseLifesteal },
+        luck: { base: baseLuck, total: (typeof activePlayer.luck === "number") ? activePlayer.luck : baseLuck }
+      };
+    }
+
+    // Si estamos fuera de combate, calculamos con los talentos y pasivas de clase
+    let talentCrit = 0, talentLifesteal = 0, talentThorns = 0, talentLuck = 0;
+    if (typeof getHeroTalentTree === "function") {
+      const tree = getHeroTalentTree(heroKey);
+      const ranks = (tree && tree.ranks) || {};
+      if (ranks["spades_1"]) talentCrit += ranks["spades_1"] * 2;
+      if (ranks["spades_2"]) talentCrit += ranks["spades_2"] * 4;
+      if (ranks["spades_5"]) talentLifesteal += ranks["spades_5"] * 12;
+      if (ranks["diamonds_4"]) talentThorns += ranks["diamonds_4"] * 10;
+      if (ranks["clubs_2"]) talentLuck += ranks["clubs_2"] * 6;
+    }
+
+    return {
+      hp: { base: baseMaxHp, total: baseMaxHp + legHp },
+      pwr: { base: basePwr, total: basePwr + legPwr },
+      def: { base: baseDef, total: baseDef + legDef },
+      startingShield: { base: startingShield, total: startingShield },
+      critChance: { base: baseCrit, total: Math.min(90, baseCrit + talentCrit) },
+      dodgeChance: { base: baseDodge, total: Math.min(45, baseDodge) },
+      thorns: { base: baseThorns, total: Math.min(50, baseThorns + talentThorns) },
+      lifesteal: { base: baseLifesteal, total: Math.min(50, baseLifesteal + talentLifesteal) },
+      luck: { base: baseLuck, total: Math.min(50, baseLuck + talentLuck) }
+    };
+  }
+  window.getHeroDisplayStats = getHeroDisplayStats;
 
   /* ============================================================
      TUTORIALES INTERACTIVOS PASO A PASO (HISTORIA & ARENA PVP)
@@ -6445,12 +6507,27 @@
 
         ${masteryHtml}
 
-        <div class="hero-book-stats-row">
-          <span class="hero-book-stat-pill term" data-term="hp" title="Estadística Base permanente: ${baseHp} + Legado: ${legHp}">❤️ HP: ${baseHp + legHp}${legHp > 0 ? ` <b style="color:#2a9d8f;">(+${legHp})</b>` : ''}</span>
-          <span class="hero-book-stat-pill term" data-term="pwr" title="Estadística Base permanente: ${basePwr} + Legado: ${legPwr}">⚔️ PWR: ${basePwr + legPwr}${legPwr > 0 ? ` <b style="color:#2a9d8f;">(+${legPwr})</b>` : ''}</span>
-          <span class="hero-book-stat-pill term" data-term="def" title="Estadística Base permanente: ${baseDef} + Legado: ${legDef}">🛡️ DEF: ${baseDef + legDef}${legDef > 0 ? ` <b style="color:#2a9d8f;">(+${legDef})</b>` : ''}</span>
-          ${hero.startingShield ? `<span class="hero-book-stat-pill term" data-term="shield" style="color:#48cae4;">🛡️ Escudo: ${hero.startingShield}</span>` : ''}
-        </div>
+        ${(() => {
+          const hds = (typeof getHeroDisplayStats === "function") ? getHeroDisplayStats(heroKey) : null;
+          const displayThorns = hds ? hds.thorns.total : (hero.thorns || 15);
+          const displayCrit = hds ? hds.critChance.total : (hero.critChance || 0);
+          const displayDodge = hds ? hds.dodgeChance.total : (hero.dodgeChance || 0);
+          const displayLifesteal = hds ? hds.lifesteal.total : (hero.lifesteal || 0);
+          const displayLuck = hds ? hds.luck.total : (hero.luck || 0);
+          return `
+            <div class="hero-book-stats-row">
+              <span class="hero-book-stat-pill term" data-term="hp" title="Estadística Base permanente: ${baseHp} + Legado: ${legHp}">❤️ HP: ${baseHp + legHp}${legHp > 0 ? ` <b style="color:#2a9d8f;">(+${legHp})</b>` : ''}</span>
+              <span class="hero-book-stat-pill term" data-term="pwr" title="Estadística Base permanente: ${basePwr} + Legado: ${legPwr}">⚔️ PWR: ${basePwr + legPwr}${legPwr > 0 ? ` <b style="color:#2a9d8f;">(+${legPwr})</b>` : ''}</span>
+              <span class="hero-book-stat-pill term" data-term="def" title="Estadística Base permanente: ${baseDef} + Legado: ${legDef}">🛡️ DEF: ${baseDef + legDef}${legDef > 0 ? ` <b style="color:#2a9d8f;">(+${legDef})</b>` : ''}</span>
+              ${hero.startingShield ? `<span class="hero-book-stat-pill term" data-term="shield" style="color:#48cae4;">🛡️ Escudo: ${hero.startingShield}</span>` : ''}
+              ${displayThorns > 0 ? `<span class="hero-book-stat-pill" style="color:#ffd166;">🌵 Espinas: ${displayThorns}%</span>` : ''}
+              ${displayCrit > 0 ? `<span class="hero-book-stat-pill" style="color:#ffd166;">⚡ Crítico: ${displayCrit}%</span>` : ''}
+              ${displayDodge > 0 ? `<span class="hero-book-stat-pill" style="color:#66fcf1;">💨 Esquivar: ${displayDodge}%</span>` : ''}
+              ${displayLifesteal > 0 ? `<span class="hero-book-stat-pill" style="color:#ff758f;">🩸 Vampirismo: ${displayLifesteal}%</span>` : ''}
+              ${displayLuck > 0 ? `<span class="hero-book-stat-pill" style="color:#ffd166;">🍀 Suerte: ${displayLuck}%</span>` : ''}
+            </div>
+          `;
+        })()}
 
         <div class="hero-book-passive-box">
           <div class="hero-book-passive-title term" data-term="passive">📜 HABILIDAD PASIVA DE CLASE:</div>
@@ -6624,12 +6701,12 @@
       </div>
     `).join("");
 
-    const statRow = (icon, label, base) => `
+    const statRow = (icon, label, base, total = base) => `
       <div class="hero-sheet-stat-row">
         <span class="hss-icon">${icon}</span>
         <span class="hss-label">${label}</span>
         <span class="hss-base">Base ${base}</span>
-        <span class="hss-total">Total <b>${base}</b></span>
+        <span class="hss-total">Total <b>${total}</b></span>
       </div>`;
 
     const titleEl = document.getElementById("hero-sheet-title");
@@ -6637,6 +6714,8 @@
       titleEl.innerHTML = `📊 FICHA DE <span style="color:${heroColor}">${hero.name.toUpperCase()}</span>`;
       titleEl.title = hero.title;
     }
+
+    const heroDisplayStats = (typeof getHeroDisplayStats === "function") ? getHeroDisplayStats(heroKey) : null;
 
     const body = document.getElementById("hero-sheet-body");
     if (body) {
@@ -6699,15 +6778,27 @@
 
           <div class="hero-sheet-section">
             <div class="hero-sheet-section-title">📈 ESTADÍSTICAS DE COMBATE</div>
-            ${statRow('❤️', 'SALUD', baseHp, legHp)}
-            ${statRow('⚔️', 'PODER', basePwr, legPwr)}
-            ${statRow('🛡️', 'BASTIÓN', baseDef, legDef)}
-            ${hero.startingShield ? `<div class="hero-sheet-stat-row"><span class="hss-icon">🛡️</span><span class="hss-label">ESCUDO INICIAL</span><span class="hss-total">Total <b>${hero.startingShield}</b></span></div>` : ""}
-            <div class="hero-sheet-stat-row"><span class="hss-icon">⚡</span><span class="hss-label">% CRÍTICO</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.critChance || 0) : 0}%</b></span></div>
-            <div class="hero-sheet-stat-row"><span class="hss-icon">💨</span><span class="hss-label">% ESQUIVAR</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.dodgeChance || 0) : 0}%</b></span></div>
-            <div class="hero-sheet-stat-row"><span class="hss-icon">🌵</span><span class="hss-label">ESPINAS</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.thorns || 0) : 0}</b></span></div>
-            <div class="hero-sheet-stat-row"><span class="hss-icon">🩸</span><span class="hss-label">% VAMPIRISMO</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.lifesteal || 0) : 0}%</b></span></div>
-            <div class="hero-sheet-stat-row"><span class="hss-icon">🍀</span><span class="hss-label">% SUERTE</span><span class="hss-total">Total <b>${(typeof gameState !== "undefined" && gameState.player && gameState.player.classKey === heroKey) ? (gameState.player.luck || 0) : 0}%</b></span></div>
+            ${heroDisplayStats ? `
+              ${statRow('❤️', 'SALUD', heroDisplayStats.hp.base, heroDisplayStats.hp.total)}
+              ${statRow('⚔️', 'PODER', heroDisplayStats.pwr.base, heroDisplayStats.pwr.total)}
+              ${statRow('🛡️', 'BASTIÓN (DEF)', heroDisplayStats.def.base, heroDisplayStats.def.total)}
+              ${statRow('🛡️', 'ESCUDO INICIAL', heroDisplayStats.startingShield.base, heroDisplayStats.startingShield.total)}
+              ${statRow('⚡', '% CRÍTICO', heroDisplayStats.critChance.base + '%', heroDisplayStats.critChance.total + '%')}
+              ${statRow('💨', '% ESQUIVAR', heroDisplayStats.dodgeChance.base + '%', heroDisplayStats.dodgeChance.total + '%')}
+              ${statRow('🌵', 'ESPINAS', heroDisplayStats.thorns.base + '%', heroDisplayStats.thorns.total + '%')}
+              ${statRow('🩸', '% VAMPIRISMO', heroDisplayStats.lifesteal.base + '%', heroDisplayStats.lifesteal.total + '%')}
+              ${statRow('🍀', '% SUERTE', heroDisplayStats.luck.base + '%', heroDisplayStats.luck.total + '%')}
+            ` : `
+              ${statRow('❤️', 'SALUD', baseHp, baseHp + legHp)}
+              ${statRow('⚔️', 'PODER', basePwr, basePwr + legPwr)}
+              ${statRow('🛡️', 'BASTIÓN (DEF)', baseDef, baseDef + legDef)}
+              ${statRow('🛡️', 'ESCUDO INICIAL', hero.startingShield || 0, hero.startingShield || 0)}
+              ${statRow('⚡', '% CRÍTICO', (hero.critChance || 0) + '%', (hero.critChance || 0) + '%')}
+              ${statRow('💨', '% ESQUIVAR', (hero.dodgeChance || 0) + '%', (hero.dodgeChance || 0) + '%')}
+              ${statRow('🌵', 'ESPINAS', (hero.thorns || 0) + '%', (hero.thorns || 0) + '%')}
+              ${statRow('🩸', '% VAMPIRISMO', (hero.lifesteal || 0) + '%', (hero.lifesteal || 0) + '%')}
+              ${statRow('🍀', '% SUERTE', (hero.luck || 0) + '%', (hero.luck || 0) + '%')}
+            `}
           </div>
 
           <div class="hero-sheet-section">
@@ -14106,60 +14197,81 @@
   }
   window.renderPauseHeroStats = renderPauseHeroStats;
 
-  function openInGamePauseMenu() {
-    gamePaused = true;
-    window.gamePaused = true;
-    const modal = document.getElementById("screen-ingame-pause");
-    if (!modal) return;
-    cancelPauseConfirm();
+  function openInGamePauseMenu(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    try {
+      gamePaused = true;
+      window.gamePaused = true;
+      const modal = document.getElementById("screen-ingame-pause");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.style.display = "flex";
 
-    const metaEl = document.getElementById("pause-run-meta");
-    const p = gameState.player;
-    const maxF = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
-    if (metaEl && p) {
-      metaEl.innerText = `PISO ${gameState.floor} / ${maxF} • ${(p.name || 'JACK').toUpperCase()} • NVL ${p.level || 1} (🪙 ${gameState.gold} ORO)`;
+      try { if (typeof cancelPauseConfirm === "function") cancelPauseConfirm(); } catch (_) {}
+
+      const metaEl = document.getElementById("pause-run-meta");
+      const p = (window.gameState && window.gameState.player);
+      const floor = (window.gameState && window.gameState.floor) || 1;
+      const gold = (window.gameState && window.gameState.gold) || 0;
+      const maxF = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
+      if (metaEl) {
+        metaEl.innerText = `PISO ${floor} / ${maxF} • ${((p && p.name) || 'JACK').toUpperCase()} • NVL ${(p && p.level) || 1} (🪙 ${gold} ORO)`;
+      }
+
+      if (p && typeof renderPauseHeroStats === "function") {
+        try { renderPauseHeroStats(p); } catch (_) {}
+      }
+
+      const soundBtn = document.getElementById("pause-btn-sound");
+      if (soundBtn) {
+        const isSoundOn = Boolean(window.gameState && window.gameState.audioEnabled);
+        soundBtn.innerText = isSoundOn ? "ACTIVADO" : "SILENCIADO";
+        if (isSoundOn) soundBtn.classList.add("active");
+        else soundBtn.classList.remove("active");
+      }
+
+      const audioVol = (window.gameState && window.gameState.audioVolume !== undefined) ? window.gameState.audioVolume : 0.5;
+      const volPct = Math.round(audioVol * 100);
+      const volSlider = document.getElementById("pause-volume-slider");
+      if (volSlider) volSlider.value = String(volPct);
+      const volVal = document.getElementById("pause-vol-val");
+      if (volVal) volVal.innerText = `${volPct}%`;
+
+      const musPct = Math.round((window.gameState && window.gameState.musicVolume !== undefined ? window.gameState.musicVolume : 0.5) * 100);
+      const musSlider = document.getElementById("pause-music-slider");
+      if (musSlider) musSlider.value = String(musPct);
+      const musVal = document.getElementById("pause-vol-music-val");
+      if (musVal) musVal.innerText = `${musPct}%`;
+
+      const sfxPct = Math.round((window.gameState && window.gameState.sfxVolume !== undefined ? window.gameState.sfxVolume : 0.8) * 100);
+      const sfxSlider = document.getElementById("pause-sfx-slider");
+      if (sfxSlider) sfxSlider.value = String(sfxPct);
+      const sfxVal = document.getElementById("pause-vol-sfx-val");
+      if (sfxVal) sfxVal.innerText = `${sfxPct}%`;
+
+      try { playCardDealSound(); } catch (_) {}
+    } catch (err) {
+      console.warn("Error en openInGamePauseMenu:", err);
+      const modal = document.getElementById("screen-ingame-pause");
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+      }
     }
-
-    if (p) renderPauseHeroStats(p);
-
-    const soundBtn = document.getElementById("pause-btn-sound");
-    if (soundBtn) {
-      const isSoundOn = Boolean(gameState.audioEnabled);
-      soundBtn.innerText = isSoundOn ? "ACTIVADO" : "SILENCIADO";
-      if (isSoundOn) soundBtn.classList.add("active");
-      else soundBtn.classList.remove("active");
-    }
-
-    const volPct = Math.round((gameState.audioVolume || 0) * 100);
-    const volSlider = document.getElementById("pause-volume-slider");
-    if (volSlider) volSlider.value = String(volPct);
-    const volVal = document.getElementById("pause-vol-val");
-    if (volVal) volVal.innerText = `${volPct}%`;
-
-    const musPct = Math.round((gameState.musicVolume !== undefined ? gameState.musicVolume : 0.5) * 100);
-    const musSlider = document.getElementById("pause-music-slider");
-    if (musSlider) musSlider.value = String(musPct);
-    const musVal = document.getElementById("pause-vol-music-val");
-    if (musVal) musVal.innerText = `${musPct}%`;
-
-    const sfxPct = Math.round((gameState.sfxVolume !== undefined ? gameState.sfxVolume : 0.8) * 100);
-    const sfxSlider = document.getElementById("pause-sfx-slider");
-    if (sfxSlider) sfxSlider.value = String(sfxPct);
-    const sfxVal = document.getElementById("pause-vol-sfx-val");
-    if (sfxVal) sfxVal.innerText = `${sfxPct}%`;
-
-    modal.classList.remove("hidden");
-    try { playCardDealSound(); } catch (_) {}
   }
   window.openInGamePauseMenu = openInGamePauseMenu;
 
-  function closeInGamePauseMenu() {
+  function closeInGamePauseMenu(e) {
+    if (e && e.target && e.target.id !== "screen-ingame-pause" && !e.target.classList.contains("inspect-close-btn") && !e.target.closest(".resume")) {
+      return;
+    }
     gamePaused = false;
     window.gamePaused = false;
     const modal = document.getElementById("screen-ingame-pause");
     if (!modal) return;
     modal.classList.add("hidden");
-    cancelPauseConfirm();
+    modal.style.display = "none";
+    try { cancelPauseConfirm(); } catch (_) {}
   }
   window.closeInGamePauseMenu = closeInGamePauseMenu;
 
@@ -14905,6 +15017,59 @@
     return e.traitName || "Sin rasgo especial activo.";
   }
 
+  function getItemSpanishName(item) {
+    if (!item) return "";
+    if (typeof item === "object") {
+      return item.name ? `${item.icon || '🔮'} ${item.name}` : (item.id || "");
+    }
+    const id = String(item);
+    const dict = {
+      mercury_band: "💫 Brazalete de Mercurio (+2 PWR, +1 DEF)",
+      ruby: "🔴 Rubí Ígneo (+2 daño en manos impares)",
+      sapphire: "🔵 Zafiro Guardián (+5 Escudo al iniciar piso)",
+      emerald: "🟢 Esmeralda del Destino (+1 PWR permanente)",
+      topaz: "🟡 Topacio Radiante (+1 de daño)",
+      blackjack_gem: "💎 Joya de Blackjack (+5 daño, +15 HP)",
+      blackjack_heritage: "👑 Joya Heredada (Blackjack x4, +16 HP)",
+      blood_amulet: "🩸 Amuleto de Sangre (+6 HP al derrotar rival)",
+      amber_amulet: "🟠 Amuleto Ámbar (+1 HP por piso)",
+      lucky_charm: "🍀 Amuleto de la Suerte (25% evitar daño)",
+      spiked_belt: "🌵 Cinturón con Púas (Devuelve 2 daño)",
+      lead_gauntlet: "🥊 Guante de Plomo (Cartas bajas valen mín. 3)",
+      steel_helm: "🪖 Casco de Acero (+1 DEF)",
+      rider_spur: "👞 Espuela de Celeridad (+8 daño, +15 oro en 1ª mano)",
+      warriors_ring: "💍 Anillo del Guerrero (+3 daño base)",
+      fury_bracer: "🥊 Brazal de Furia (+daño por racha)",
+      bloody_chalice: "🍷 Cáliz Ensangrentado (+10% Vampirismo)",
+      blood_chalice: "🍷 Cáliz de Sangre (+10% Vampirismo)",
+      titan_heart: "❤️ Corazón de Titán (+4 HP por mano)",
+      holy_grail: "🏆 Cáliz del 21 (+10 daño, +10 HP en Blackjack)",
+      bone_die: "🎲 Dado de Hueso (+1 Reroll por piso)",
+      infinity_ring: "♾️ Anillo Infinito (+2 Rerolls por piso)",
+      eternal_potion: "🧪 Poción Eterna (Poción de emergencia)",
+      easter_bell: "🔔 Campana de Pascua (Inmunidad a Veneno/Fuego)",
+      guardian_quartz: "🛡️ Cuarzo Guardián (+6 Escudo por piso)",
+      diamond_aegis: "💎 Égida de Diamante (+10 Escudo por piso)",
+      golden_die: "🎲 Dado de Oro (+3 daño permanente)",
+      sharp_blade: "🗡️ Filo Afilado (+10% Crítico)",
+      shadow_cloak: "🧥 Capa de Sombras (+10% Esquivar)",
+      wind_cloak: "💨 Manto del Viento (+10% Esquivar)",
+      lucky_coin: "🪙 Moneda de la Suerte (+10% Suerte)",
+      thorn_crown: "👑 Corona de Espinas (+12% Espinas)",
+      mirror_shield: "🪞 Escudo Espejo (+12% Espinas)"
+    };
+    if (dict[id]) return dict[id];
+    if (typeof ALL_RELICS !== "undefined") {
+      const found = ALL_RELICS.find(r => r.id === id);
+      if (found) return `${found.icon || '🔮'} ${found.name}`;
+    }
+    if (typeof ITEM_INFO !== "undefined" && ITEM_INFO[id]) {
+      return ITEM_INFO[id].split(':')[0];
+    }
+    return id.replace(/_/g, ' ').toUpperCase();
+  }
+  window.getItemSpanishName = getItemSpanishName;
+
   function openFighterInspect(who = "player") {
     if (window.__isSwiping) return;
     const p = gameState.player;
@@ -14922,7 +15087,14 @@
     const traitEl = document.getElementById("inspect-trait");
     const statusEl = document.getElementById("inspect-status");
 
+    const critEl = document.getElementById("inspect-crit");
+    const dodgeEl = document.getElementById("inspect-dodge");
+    const thornsEl = document.getElementById("inspect-thorns");
+    const lifestealEl = document.getElementById("inspect-lifesteal");
+    const luckEl = document.getElementById("inspect-luck");
+
     if (who === "player") {
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
       const hero = HERO_DATA[p.class] || HERO_DATA.knight;
       const meta = getHeroMeta();
       const hMeta = meta[p.class] || { totalExp: 0, masteryLevel: 1 };
@@ -14939,8 +15111,7 @@
       hpEl.innerText = `${p.hp} / ${p.maxHp}`;
       hpEl.style.color = "#2a9d8f";
 
-      const levelMultPct = Math.round(((p.level || 1) - 1) * 12);
-      let pwrExtra = levelMultPct > 0 ? ` (+${levelMultPct}% por Nvl ${p.level})` : "";
+      let pwrExtra = "";
       if (p.turnDoubleDamage) pwrExtra += " (x2 Activo)";
       if (p.hasGoldenDie) pwrExtra += " (+3 Dado Oro)";
       pwrEl.innerText = `${p.pwr}${pwrExtra}`;
@@ -14955,6 +15126,12 @@
       shieldEl.innerText = gameState.status.playerShield > 0 ? `${gameState.status.playerShield} HP (Absorbe daño)` : "0 HP";
       shieldEl.style.color = gameState.status.playerShield > 0 ? "#48cae4" : "#888";
 
+      if (critEl) critEl.innerText = `${p.critChance || 0}%`;
+      if (dodgeEl) dodgeEl.innerText = `${p.dodgeChance || 0}%`;
+      if (thornsEl) thornsEl.innerText = `${p.thorns || 0}%`;
+      if (lifestealEl) lifestealEl.innerText = `${p.lifesteal || 0}%`;
+      if (luckEl) luckEl.innerText = `${p.luck || 0}%`;
+
       traitEl.innerHTML = `<b style="color:#66fcf1;">${hero.name}:</b> ${hero.desc}`;
 
       let statusList = [];
@@ -14968,8 +15145,8 @@
         const b = p.starterBlessing;
         statusList.push(`✨ <b>Bendición del Destino [${b.tierLabel || ('TIER ' + b.tier)}]:</b> ${b.icon} ${b.name} — <span style="color:#ffd166;">${b.desc}</span>`);
       }
-      if (p.gem) statusList.push(`💎 <b>Bendición:</b> ${ITEM_INFO[p.gem] || p.gem}.`);
-      if (p.accessory) statusList.push(`💍 <b>Accesorio:</b> ${ITEM_INFO[p.accessory] || p.accessory}.`);
+      if (p.gem) statusList.push(`💎 <b>Bendición:</b> ${getItemSpanishName(p.gem)}.`);
+      if (p.accessory) statusList.push(`💍 <b>Accesorio:</b> ${getItemSpanishName(p.accessory)}.`);
       if (p.cardUpgrades && p.cardUpgrades.length > 0) {
         const uList = p.cardUpgrades.map(id => {
           const u = CARD_UPGRADES.find(c => c.id === id);
@@ -14978,7 +15155,14 @@
         statusList.push(`🔨 <b>Pasivas del Yunque:</b> ${uList.join(", ")}.`);
       }
       if (p.curse) statusList.push(`🩸 <b>Maldición:</b> ${CURSE_NAMES[p.curse] || (p.curse === "cursed_deck" ? "Mazo Astillado (-5 HP por cada As)" : p.curse)}.`);
-      if (p.relics && p.relics.length > 0) statusList.push(`🔮 <b>Reliquias:</b> ${p.relics.join(", ")}.`);
+      if (p.relics && p.relics.length > 0) {
+        const relStr = p.relics.map(r => getItemSpanishName(r)).join(", ");
+        statusList.push(`🔮 <b>Reliquias:</b> ${relStr}.`);
+      }
+      if (p.artifacts && p.artifacts.length > 0) {
+        const artStr = p.artifacts.map(a => getItemSpanishName(a)).join(", ");
+        statusList.push(`🏺 <b>Artefactos:</b> ${artStr}.`);
+      }
       if ((p.expMultiplier && p.expMultiplier > 1) || (p.bonusKillExp && p.bonusKillExp > 0)) {
         let expBonusStr = [];
         if (p.expMultiplier > 1) expBonusStr.push(`+${Math.round((p.expMultiplier - 1) * 100)}% EXP`);
@@ -15026,6 +15210,12 @@
 
       shieldEl.innerText = gameState.status.enemyShield > 0 ? `${gameState.status.enemyShield} HP` : "0 HP";
       shieldEl.style.color = gameState.status.enemyShield > 0 ? "#48cae4" : "#888";
+
+      if (critEl) critEl.innerText = "--";
+      if (dodgeEl) dodgeEl.innerText = "--";
+      if (thornsEl) thornsEl.innerText = (e && e.trait === "thorns") ? "2 daño" : "--";
+      if (lifestealEl) lifestealEl.innerText = "--";
+      if (luckEl) luckEl.innerText = "--";
 
       traitEl.innerHTML = `<b style="color:#ffd166;">${e.traitName || e.traitShort || "Rasgo"}:</b> ${getEnemyTraitDescription(e)}`;
 
@@ -16901,24 +17091,15 @@
       }
       const buffMultiplier = Math.max(0.1, 1 + buffPct);
 
-      // 3. Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Basado en p.critChance del héroe)
+      // 3. Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Estrictamente basado en p.critChance)
       if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
-      const totalCritChance = p.critChance || 25;
-      const isRpgCrit = (totalCritChance > 0 && Math.random() * 100 < totalCritChance);
-      const isCrit = (isRpgCrit || isNatural21 || p.playerScore === 21);
+      const totalCritChance = (typeof p.critChance === "number") ? p.critChance : 0;
+      const isCrit = (totalCritChance > 0 && Math.random() * 100 < totalCritChance);
 
       let critMultiplier = 1.0;
       if (isCrit) {
         const handSpadesTotal = (p.playerHand || []).filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
-        if (isNatural21) {
-          if (pendingNextBJx4) {
-            critMultiplier = (p.gem === "blackjack_heritage") ? 4.5 : 4.0;
-          } else {
-            critMultiplier = (p.gem === "blackjack_heritage") ? 3.5 : 2.5;
-          }
-        } else if (p.playerScore === 21) {
-          critMultiplier = pendingNextBJx4 ? 3.0 : 2.0;
-        } else if (p._spadesTwinBlades && handSpadesTotal >= 2) {
+        if (p._spadesTwinBlades && handSpadesTotal >= 2) {
           critMultiplier = 2.2;
         } else {
           critMultiplier = 2.0;
@@ -17137,13 +17318,13 @@
           if (p.gem === "blackjack_heritage") {
             p.hp = Math.min(p.maxHp, p.hp + 16);
             spawnFloatingText("player-sprite", "+16 HP", "heal");
-            addLog("❤️‍🔥 ¡BLACKJACK HEREDADO! Impacto Vorpal x4 = " + dmg + " y +16 HP restaurados.", "critical");
+            addLog("❤️‍🔥 ¡BLACKJACK HEREDADO! Golpe devastador de " + dmg + " daño y +16 HP restaurados.", "critical");
           } else {
-            addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Impacto Vorpal x2.5 = " + dmg + ".", "critical");
+            addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Golpe de Blackjack de " + dmg + " daño.", "critical");
           }
           // SPRINT 4 — Perk Táctico [Corazón de Diamante]: siguiente BJ x4
           if (pendingNextBJx4) {
-            addLog("💎 Perk Táctico [Corazón de Diamante]: Impacto Vorpal amplificado a x4 (Daño = " + dmg + ").", "critical");
+            addLog("💎 Perk Táctico [Corazón de Diamante]: Blackjack amplificado a x4 (Daño = " + dmg + ").", "critical");
             p._synergyNextBJx4 = false;
             p._consumedBJx4ThisHand = true;
           }
