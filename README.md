@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.8.2 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.8.3 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,27 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.8.2] — Noviembre 2026 (Actual)
+### [v1.8.3] — Noviembre 2026 (Actual)
+* **Secuencia Estricta Poscombate y Notificación Destacada de Carta Cosmética en Botín Obtenido:**
+  * **Ordenamiento de Flujo:** Al derrotar a un rival (`enemy.hp <= 0`), se pre-calculan las recompensas y se retiene cualquier subida de nivel pendiente (`deferLevelUp`). Se presenta en primer lugar la ventana `🏆 ¡VICTORIA EN COMBATE! BOTÍN OBTENIDO`. Solo tras pulsar `✅ ACEPTAR Y CONTINUAR` se abre el modal de `¡SUBIDA DE NIVEL!` y distribución de puntos en el Árbol de Talentos, y finalmente los caminos o Bazar del piso.
+  * **Exhibición de Carta Cosmética:** Si en el combate se desbloqueó una Carta Cosmética (nueva o repetida convertida), se muestra de forma obligatoria y destacada dentro de la ventana de Botín Obtenido con el arte del monstruo, nombre del aspecto y la asignación al naipe correspondiente (ej. `"👑 ¡NUEVA CARTA COSMÉTICA! Alimaña de Cripta ➔ Aplicada a tu As de Picas (A♠)"`), o su conversión en Metamonedas de Cripta (`💀`).
+  * **Persistencia en Oleadas:** En combates de múltiples enemigos, las cartas cosméticas obtenidas en oleadas previas se preservan y se presentan fielmente al finalizar el encuentro.
+  * **Contraste Full-Art en Picas y Tréboles:** Los valores y palos negros (`♠` y `♣`) en `.card-cosmetic-fullart` lucen ahora en color marfil brillante `#f8fafc` con trazo y sombra negra profunda, garantizando legibilidad nítida sobre fondos oscuros.
+* **Opacidad 100% Sólida en Ventana del Bazar y Modales:**
+  * Fondo sólido e impenetrable (`background: #0a0e17 !important; opacity: 1 !important;`) aplicado a `#screen-event`, paneles de tienda, contenedores de cartas y fondos modales, erradicando transparencias que filtraban el tablero de combate inferior.
+  * Ocultamiento automático de la capa de batalla (`#stage` y `header` con `visibility: hidden !important;`) mientras `#screen-event` permanezca abierto.
+* **Erradicación de Superposiciones de Texto y Elementos en Combate:**
+  * Eliminado el lanzamiento de textos flotantes rojos con los nombres de los perks sobre el centro de los sprites, manteniéndose organizados en sus tarjetas doradas descendentes.
+  * Suprimido el cartel ovalado flotante central `(x2)` (`#combat-crit-signal`) que quedaba oculto o montado detrás de las tarjetas de perks.
+  * Reubicados los contenedores de insignias de estado `#player-status-badges` y `#enemy-status-badges` en la cabecera de los combatientes, evitando que el badge `⚡ x2` se superponga sobre el historial de batalla (`#log-container`).
+* **Rediseño de Pestañas del Bazar en Cuadrícula 3x2 y Desbloqueo Operativo:**
+  * Barra de pestañas rediseñada en cuadrícula simétrica de 2 filas x 3 columnas con icono superior y etiqueta inferior, cumpliendo con la ergonomía táctil mínima de 44px por botón.
+  * Desbloqueada la pestaña `FORJA` en `switchShopTab`, permitiendo acceder directamente al Yunque Ancestral y a sus mejoras pasivas.
+  * Compras con Metamonedas de Cripta (`💀`) (Cartas Transmutadas y Sellos de Héroe) y del Tesoro Real desacopladas del límite de 2 compras por piso de oro, permaneciendo siempre activas según el balance de criptas del jugador.
+* **Sincronización y Versión Oficial:**
+  * Actualización de versión a **`v1.8.3 (BUILD 44)`** en `index.html`, `js/game.js`, `js/improvements.js` y `README.md`.
+
+### [v1.8.2] — Noviembre 2026
 * **Barra de Escudo Idéntica a Vida (`Actual/Máximo`) y Eliminación de Tiras Inferiores:**
   * En la tarjeta del héroe y del rival, la barra de escudo muestra de manera limpia y estricta el formato numérico **`Actual/Máximo`** (ej. `12/22` o `0/10`), con idéntica tipografía, color y alineación que la barra de salud.
   * Suprimidos los iconos internos repetidos y el texto residual `(Turno: X | Arm: Y)`.

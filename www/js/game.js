@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.8.2";
+  const GAME_VERSION = "v1.8.3";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.2)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.3)
      ============================================================ */
 
   const HERO_DATA = {
@@ -4161,21 +4161,8 @@
   window.calculateTacticalAttackRange = calculateTacticalAttackRange;
 
   function showCombatCritSignal(multiplier = 1.5) {
-    try {
-      const el = document.getElementById("combat-crit-signal");
-      if (!el) return;
-      el.innerText = `⚡ ¡GOLPE CRÍTICO! (x${multiplier})`;
-      el.style.display = "block";
-      el.classList.remove("hidden", "active");
-      void el.offsetWidth;
-      el.classList.add("active");
-      try { triggerScreenShake("light"); } catch (_) {}
-      setTimeout(() => {
-        el.classList.remove("active");
-        el.classList.add("hidden");
-        el.style.display = "none";
-      }, 880);
-    } catch (_) {}
+    // v1.8.3: Suprimido el cartel ovalado flotante central (x2) para evitar superposición con los badges y tarjetas de perks
+    return;
   }
   window.showCombatCritSignal = showCombatCritSignal;
 
@@ -7414,6 +7401,25 @@
   }
   window.autoAssignCosmeticToDeck = autoAssignCosmeticToDeck;
 
+  function formatCardKey(key) {
+    if (!key) return "tu Baraja";
+    const parts = key.split("_");
+    if (parts.length < 2) return key.replace("_", " ");
+    const suit = parts[0];
+    const rank = parts[1];
+    const rankMap = {
+      "A": "As", "K": "Rey", "Q": "Reina", "J": "Jack",
+      "10": "10", "9": "9", "8": "8", "7": "7", "6": "6", "5": "5", "4": "4", "3": "3", "2": "2"
+    };
+    const suitMap = {
+      "♠": "Picas", "♥": "Corazones", "♦": "Diamantes", "♣": "Tréboles"
+    };
+    const r = rankMap[rank] || rank;
+    const s = suitMap[suit] || suit;
+    return `${r} de ${s} (${rank}${suit})`;
+  }
+  window.formatCardKey = formatCardKey;
+
   function openCosmeticAssignModal(cosmeticId) {
     const cosmetic = getCosmeticById(cosmeticId);
     if (!cosmetic) return;
@@ -9048,7 +9054,7 @@
         showGameToast(`🃏 Carta Cosmética repetida (${enemy.name})\n➔ ¡Convertida en +${convertedCoins} 💀 Metamonedas!`);
       }
       try { playGoldCoinSound(); } catch (_) {}
-      return { type: "duplicate", convertedCoins: convertedCoins, enemyName: enemy.name };
+      return { type: "duplicate", convertedCoins: convertedCoins, enemyName: enemy.name, card: existing };
     }
 
     // Desbloqueo de NUEVA Carta Cosmética
@@ -9253,7 +9259,7 @@
     const finalKillExp = Math.round(baseKillExp * mult);
     const boostNote = mult > 1 ? ` (x${mult.toFixed(2)} por Artefactos)` : "";
     addLog(`🎓 ¡Eliminaste a ${e.name}! Ganaste +${finalKillExp} EXP${boostNote}.`, "critical");
-    await gainExp(finalKillExp);
+    await gainExp(finalKillExp, { deferLevelUp: true });
 
     // Recompensas de Oro por baja de rival
     const killGold = 12 + Math.min(30, gameState.floor * 2);
@@ -9306,6 +9312,9 @@
       cosmeticResult = awardRagnarokMonsterCard(e, { isBoss: isBossRival, isElite: isEliteRival, isCommon: isCommonRival, isPity: pityTriggered });
       localStorage.setItem("torre21_first_cosmetic_granted", "true");
       localStorage.removeItem("torre21_first_cosmetic_pity_count");
+      if (cosmeticResult) {
+        gameState.currentFloorCosmeticDrop = cosmeticResult;
+      }
     }
 
     // Comprobar si el piso cuenta con oleadas múltiples pendientes
@@ -9347,8 +9356,11 @@
       return;
     }
 
-    // Flujo Poscombate Secuencial (v1.8.2): Modal de Botín Obtenido antes de progresar
-    const totalCryptEarned = coinsDropped + ((cosmeticResult && cosmeticResult.type === "duplicate") ? cosmeticResult.convertedCoins : 0);
+    // Flujo Poscombate Secuencial (v1.8.3): Modal de Botín Obtenido antes de progresar
+    const activeCosmeticResult = cosmeticResult || gameState.currentFloorCosmeticDrop || null;
+    gameState.currentFloorCosmeticDrop = null;
+
+    const totalCryptEarned = coinsDropped + ((activeCosmeticResult && activeCosmeticResult.type === "duplicate") ? (activeCosmeticResult.convertedCoins || 0) : 0);
     const lootData = {
       enemyName: e.name,
       enemySprite: e.sprite,
@@ -9357,13 +9369,15 @@
       gold: killGold,
       exp: finalKillExp,
       cryptCoins: totalCryptEarned,
-      cosmeticCard: (cosmeticResult && cosmeticResult.type === "new") ? {
-        name: cosmeticResult.card.name,
-        enemyName: e.name,
-        img: cosmeticResult.card.img,
-        sprite: cosmeticResult.card.sprite,
-        tier: cosmeticResult.card.tier,
-        assignedLabel: cosmeticResult.assignedKey ? cosmeticResult.assignedKey.replace("_", " ") : "Baraja"
+      cosmeticCard: activeCosmeticResult ? {
+        type: activeCosmeticResult.type,
+        name: activeCosmeticResult.card ? activeCosmeticResult.card.name : `Carta de ${activeCosmeticResult.enemyName || e.name}`,
+        enemyName: activeCosmeticResult.enemyName || e.name,
+        img: activeCosmeticResult.card ? activeCosmeticResult.card.img : (e.img || getEnemySvgFallback(getEnemyCosmeticId(e))),
+        sprite: activeCosmeticResult.card ? activeCosmeticResult.card.sprite : (e.sprite || "👹"),
+        tier: activeCosmeticResult.card ? activeCosmeticResult.card.tier : (isBossRival ? "boss" : (isEliteRival ? "elite" : "common")),
+        assignedLabel: (typeof formatCardKey === "function") ? formatCardKey(activeCosmeticResult.assignedKey) : (activeCosmeticResult.assignedKey ? activeCosmeticResult.assignedKey.replace("_", " ") : "tu Baraja"),
+        convertedCoins: activeCosmeticResult.convertedCoins || 0
       } : null
     };
 
@@ -9456,8 +9470,15 @@
       }
     };
 
-    showCombatLootModal(lootData, () => {
-      proceedAfterLoot();
+    showCombatLootModal(lootData, async () => {
+      // Secuencia Poscombate v1.8.3: primero se procesan las subidas de nivel pendientes
+      if (gameState.pendingLevelUps && gameState.pendingLevelUps > 0) {
+        while (gameState.pendingLevelUps > 0) {
+          gameState.pendingLevelUps--;
+          await triggerLevelUp();
+        }
+      }
+      await proceedAfterLoot();
     });
   }
 
@@ -9513,21 +9534,44 @@
       }
       html += `</div>`;
 
-      // Tarjeta CARTA COSMÉTICA (si se desbloqueó una nueva)
+      // Tarjeta CARTA COSMÉTICA (si se desbloqueó una nueva o repetida convertida)
       if (lootData.cosmeticCard) {
         const c = lootData.cosmeticCard;
-        html += `
-          <div class="loot-cosmetic-showcase">
-            <div class="loot-cosmetic-badge">👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA!</div>
-            <div class="loot-cosmetic-preview">
-              ${c.img ? `<img src="${c.img}" alt="${c.enemyName}" class="loot-cosmetic-img" onerror="this.outerHTML='<span style=\\'font-size:36px;\\'>${c.sprite || '👹'}</span>'">` : `<span style="font-size:36px;">${c.sprite || '👹'}</span>`}
+        if (c.type === "new") {
+          html += `
+            <div class="loot-cosmetic-showcase" style="border: 2px solid #ffd166; background: rgba(255, 209, 102, 0.08); border-radius: 12px; padding: 12px; margin-top: 10px; text-align: center;">
+              <div class="loot-cosmetic-badge" style="color: #ffd166; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 6px;">
+                👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA!
+              </div>
+              <div class="loot-cosmetic-preview" style="margin: 8px auto; width: 64px; height: 88px; border-radius: 8px; border: 1px solid #ffd166; display: flex; align-items: center; justify-content: center; background: #0b0c10; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                ${c.img ? `<img src="${c.img}" alt="${c.enemyName}" class="loot-cosmetic-img" style="width:100%; height:100%; object-fit:contain;" onerror="this.outerHTML='<span style=\\'font-size:36px;\\'>${c.sprite || '👹'}</span>'">` : `<span style="font-size:36px;">${c.sprite || '👹'}</span>`}
+              </div>
+              <div class="loot-cosmetic-name" style="font-size: 13px; font-weight: bold; color: #f8fafc; margin-bottom: 4px;">
+                ${c.name}
+              </div>
+              <div class="loot-cosmetic-desc" style="font-size: 10.5px; color: #94a3b8; line-height: 1.4;">
+                ${c.enemyName} ➔ <b style="color: #66fcf1;">Aplicada a tu ${c.assignedLabel}</b>
+              </div>
             </div>
-            <div class="loot-cosmetic-name">${c.name || ('Carta de ' + c.enemyName)}</div>
-            <div class="loot-cosmetic-desc">
-              Asignada como fondo permanente al naipe <b style="color:#66fcf1;">${c.assignedLabel || 'en tu baraja'}</b> de tu héroe.
+          `;
+        } else {
+          html += `
+            <div class="loot-cosmetic-showcase" style="border: 1px solid #c084fc; background: rgba(192, 132, 252, 0.08); border-radius: 12px; padding: 12px; margin-top: 10px; text-align: center;">
+              <div class="loot-cosmetic-badge" style="color: #c084fc; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 6px;">
+                🃏 CARTA COSMÉTICA YA CONOCIDA
+              </div>
+              <div class="loot-cosmetic-preview" style="margin: 8px auto; width: 64px; height: 88px; border-radius: 8px; border: 1px solid #c084fc; display: flex; align-items: center; justify-content: center; background: #0b0c10; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                ${c.img ? `<img src="${c.img}" alt="${c.enemyName}" class="loot-cosmetic-img" style="width:100%; height:100%; object-fit:contain;" onerror="this.outerHTML='<span style=\\'font-size:36px;\\'>${c.sprite || '👹'}</span>'">` : `<span style="font-size:36px;">${c.sprite || '👹'}</span>`}
+              </div>
+              <div class="loot-cosmetic-name" style="font-size: 13px; font-weight: bold; color: #f8fafc; margin-bottom: 4px;">
+                ${c.name}
+              </div>
+              <div class="loot-cosmetic-desc" style="font-size: 10.5px; color: #c084fc; line-height: 1.4;">
+                Repetida ➔ <b style="color: #ffd166;">Convertida en +${c.convertedCoins} 💀 Metamonedas</b>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
 
       bodyEl.innerHTML = html;
@@ -12786,7 +12830,6 @@
      ============================================================ */
   let currentShopTab = "consumables";
   function switchShopTab(tab) {
-    if (tab === "forge") tab = "cards";
     currentShopTab = tab;
     showShopModal();
   }
@@ -12860,6 +12903,10 @@
   function showShopModal() {
     try { playBazaarShopSound(); } catch (_) {}
     try { startTrackedSceneMusic("bazaar", null); } catch (_) {}
+    const stageEl = document.getElementById("stage");
+    if (stageEl) stageEl.style.visibility = "hidden";
+    const headerEl = document.querySelector("header");
+    if (headerEl) headerEl.style.visibility = "hidden";
     const p = gameState.player;
     if (!p.artifacts) p.artifacts = [];
     if (!p.cardUpgrades) p.cardUpgrades = [];
@@ -13445,12 +13492,30 @@
         </div>
 
         <div class="shop-tabs-nav">
-          <button class="shop-tab-btn ${currentShopTab === 'consumables' ? 'active' : ''}" onclick="switchShopTab('consumables')">🧪 PROVISIONES</button>
-          <button class="shop-tab-btn ${currentShopTab === 'artifacts' ? 'active' : ''}" onclick="switchShopTab('artifacts')">🎴 ARTEFACTOS (${p.artifacts.length}/${maxSlots})</button>
-          <button class="shop-tab-btn ${currentShopTab === 'cards' ? 'active' : ''}" onclick="switchShopTab('cards')">📦 SOBRES (${enchantedList.length})</button>
-          <button class="shop-tab-btn ${currentShopTab === 'forge' ? 'active' : ''}" onclick="switchShopTab('forge')">🔨 FORJA (${ownedUpgrades.length})</button>
-          <button class="shop-tab-btn ${currentShopTab === 'hero_market' ? 'active' : ''}" onclick="switchShopTab('hero_market')">💀 METAMONEDAS</button>
-          <button class="shop-tab-btn ${currentShopTab === 'iap' ? 'active' : ''}" onclick="switchShopTab('iap')">👑 TESORO REAL</button>
+          <button class="shop-tab-btn ${currentShopTab === 'consumables' ? 'active' : ''}" onclick="switchShopTab('consumables')">
+            <span class="shop-tab-ico">🧪</span>
+            <span class="shop-tab-lbl">PROVISIONES</span>
+          </button>
+          <button class="shop-tab-btn ${currentShopTab === 'artifacts' ? 'active' : ''}" onclick="switchShopTab('artifacts')">
+            <span class="shop-tab-ico">🎴</span>
+            <span class="shop-tab-lbl">ARTEFACTOS (${p.artifacts.length}/${maxSlots})</span>
+          </button>
+          <button class="shop-tab-btn ${currentShopTab === 'cards' ? 'active' : ''}" onclick="switchShopTab('cards')">
+            <span class="shop-tab-ico">📦</span>
+            <span class="shop-tab-lbl">SOBRES (${enchantedList.length})</span>
+          </button>
+          <button class="shop-tab-btn ${currentShopTab === 'forge' ? 'active' : ''}" onclick="switchShopTab('forge')">
+            <span class="shop-tab-ico">🔨</span>
+            <span class="shop-tab-lbl">FORJA (${ownedUpgrades.length})</span>
+          </button>
+          <button class="shop-tab-btn ${currentShopTab === 'hero_market' ? 'active' : ''}" onclick="switchShopTab('hero_market')">
+            <span class="shop-tab-ico">💀</span>
+            <span class="shop-tab-lbl">METAMONEDAS</span>
+          </button>
+          <button class="shop-tab-btn ${currentShopTab === 'iap' ? 'active' : ''}" onclick="switchShopTab('iap')">
+            <span class="shop-tab-ico">👑</span>
+            <span class="shop-tab-lbl">TESORO REAL</span>
+          </button>
         </div>
 
         <div class="shop-grid">
@@ -14838,6 +14903,10 @@
   function skipShop() {
     const screenEvent = document.getElementById("screen-event");
     if (screenEvent) screenEvent.classList.add("hidden");
+    const stageEl = document.getElementById("stage");
+    if (stageEl) stageEl.style.visibility = "";
+    const headerEl = document.querySelector("header");
+    if (headerEl) headerEl.style.visibility = "";
     if (typeof showChronicleModal === "function") {
       showChronicleModal();
     } else if (typeof advanceToNextFloor === "function") {
@@ -16887,7 +16956,7 @@
   window.CLASS_STAT_GROWTH = CLASS_STAT_GROWTH;
 
   let levelUpResolver = null;
-  async function gainExp(amount) {
+  async function gainExp(amount, options = {}) {
     const p = gameState.player;
     if (!p) return;
     p.exp = (p.exp || 0) + amount;
@@ -16944,7 +17013,11 @@
       spawnFloatingText("player-sprite", `⭐ ¡NIVEL ${p.level}!`, "crit");
       addLog(`✨ ¡SUBISTE AL NIVEL ${p.level}! Crecimiento de ${growth.name}: +${hpGain} HP Máx, +${pwrGain} PWR, +${defGain} DEF (+5 Atributos RPG).`, "critical");
       updateHud();
-      await triggerLevelUp();
+      if (options && options.deferLevelUp) {
+        gameState.pendingLevelUps = (gameState.pendingLevelUps || 0) + 1;
+      } else {
+        await triggerLevelUp();
+      }
     }
     p.nextLevelExp = getExpRequiredForLevel(p.level || 1);
     // SPRINT 1: la EXP restante también es permanente (sobrevive a la muerte)
@@ -17126,6 +17199,11 @@
     const screenLvl = document.getElementById("screen-levelup");
     if (screenLvl) screenLvl.classList.add("hidden");
     updateHud();
+    if (gameState.pendingLevelUps && gameState.pendingLevelUps > 0) {
+      gameState.pendingLevelUps--;
+      showLevelUpModal();
+      return;
+    }
     if (levelUpResolver) {
       const res = levelUpResolver;
       levelUpResolver = null;

@@ -257,7 +257,6 @@
     uniqueCombos.forEach((combo, i) => {
       setTimeout(() => {
         if (typeof addLog === "function") addLog(`⚡ [PERK TÁCTICO] ${combo.icon} ${combo.name}: ${combo.desc}`, "critical");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", `${combo.icon} ${combo.name}`, "crit");
         try {
           // ¡PERK TÁCTICO ACTIVADO! (Notificación individual en cascada descendente)
           const targetCont = document.getElementById("tactical-perks-container") || stage;
@@ -339,9 +338,14 @@
     }
     if (rem <= 0) {
       document.querySelectorAll(".shop-action-btn.buy").forEach(btn => {
-        btn.disabled = true;
-        btn.classList.add("shop-locked");
-        btn.setAttribute("title", "Límite de compras alcanzado en este bazar");
+        const text = (btn.innerText || btn.textContent || "").toUpperCase();
+        const isGold = text.includes("🪙") || text.includes("ORO") || btn.classList.contains("gold-purchase") || btn.classList.contains("gold-relic");
+        const isCrypt = text.includes("💀") || text.includes("CRIPTA") || text.includes("METAMONEDAS");
+        if (isGold && !isCrypt) {
+          btn.disabled = true;
+          btn.classList.add("shop-locked");
+          btn.setAttribute("title", "Límite de compras de oro alcanzado en este bazar (2/2)");
+        }
       });
     }
   }
@@ -1360,17 +1364,16 @@
       if (window[fnName].__shopTracked) return;
       const _orig = window[fnName];
       const wrapped = function () {
-        if (!canMakeShopPurchase()) {
-          showGameToast("LÍMITE DE COMPRAS: " + SHOP_MAX_PURCHASES + " POR VISITA", "warn");
+        const isFree = arguments && arguments[1] && arguments[1].free === true;
+        if (!isFree && !canMakeShopPurchase()) {
+          showGameToast("LÍMITE DE COMPRAS DE ORO: " + SHOP_MAX_PURCHASES + " POR VISITA", "warn");
           return;
         }
         const gs = window.gameState;
         const goldBefore = gs && typeof gs.gold === "number" ? gs.gold : 0;
-        const cryptBefore = typeof getCryptCoins === "function" ? getCryptCoins() : 0;
         const result = _orig.apply(this, arguments);
         const goldAfter = gs && typeof gs.gold === "number" ? gs.gold : 0;
-        const cryptAfter = typeof getCryptCoins === "function" ? getCryptCoins() : 0;
-        if (goldAfter < goldBefore || cryptAfter < cryptBefore) {
+        if (goldAfter < goldBefore) {
           recordShopPurchase();
           updateShopPurchaseBadge();
         }
