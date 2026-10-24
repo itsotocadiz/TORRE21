@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.8.1";
+  const GAME_VERSION = "v1.8.2";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.1)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.2)
      ============================================================ */
 
   const HERO_DATA = {
@@ -7408,7 +7408,9 @@
     }
     if (chosenKey) {
       setCosmeticDeckBinding(chosenKey, cosId, hKey);
+      return chosenKey;
     }
+    return null;
   }
   window.autoAssignCosmeticToDeck = autoAssignCosmeticToDeck;
 
@@ -9022,7 +9024,7 @@
   window.getRagnarokCards = getRagnarokCards;
 
   function awardRagnarokMonsterCard(enemy, options = {}) {
-    if (!enemy) return;
+    if (!enemy) return null;
     const cards = getRagnarokCards();
     const enemyId = getEnemyCosmeticId(enemy);
     const existing = cards.find(c => c.enemyId === enemyId || c.id === enemyId || (c.enemyName && c.enemyName.toLowerCase() === (enemy.name || "").toLowerCase()));
@@ -9046,7 +9048,7 @@
         showGameToast(`🃏 Carta Cosmética repetida (${enemy.name})\n➔ ¡Convertida en +${convertedCoins} 💀 Metamonedas!`);
       }
       try { playGoldCoinSound(); } catch (_) {}
-      return;
+      return { type: "duplicate", convertedCoins: convertedCoins, enemyName: enemy.name };
     }
 
     // Desbloqueo de NUEVA Carta Cosmética
@@ -9068,7 +9070,7 @@
     } catch (_) {}
 
     // Auto-asignar como fondo a una carta del mazo para disfrute inmediato
-    autoAssignCosmeticToDeck(newCard);
+    const assignedKey = autoAssignCosmeticToDeck(newCard);
 
     spawnFloatingText("player-sprite", "👑 CARTA COSMÉTICA", "crit");
     addLog(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA! Obtuviste la Carta Cosmética de ${enemy.name}. Vestirá el fondo de tu naipe en combate.`, "critical");
@@ -9076,6 +9078,7 @@
       showGameToast(`👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA!\nObtuviste "${enemy.name}" para vestir tus naipes.`);
     }
     try { playVictoryFanfareSound(); } catch (_) {}
+    return { type: "new", card: newCard, enemyName: enemy.name, assignedKey: assignedKey };
   }
   window.awardRagnarokMonsterCard = awardRagnarokMonsterCard;
   window.awardCosmeticMonsterCard = awardRagnarokMonsterCard;
@@ -9252,11 +9255,17 @@
     addLog(`🎓 ¡Eliminaste a ${e.name}! Ganaste +${finalKillExp} EXP${boostNote}.`, "critical");
     await gainExp(finalKillExp);
 
+    // Recompensas de Oro por baja de rival
+    const killGold = 12 + Math.min(30, gameState.floor * 2);
+    gameState.gold = (gameState.gold || 0) + killGold;
+    spawnFloatingText("player-sprite", `+${killGold} 🪙 BOTÍN`, "gold");
+
     // Drop de Metamonedas en combate (20% de probabilidad escalada con Suerte)
+    let coinsDropped = 0;
     const metacoinChance = 0.20 + ((p.luck || 0) * 0.005);
     if (Math.random() < metacoinChance) {
       const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
-      const coinsDropped = Math.min(5, Math.floor(Math.random() * 2) + Math.min(3, curAct));
+      coinsDropped = Math.min(5, Math.floor(Math.random() * 2) + Math.min(3, curAct));
       if (typeof addCryptCoins === "function") {
         addCryptCoins(coinsDropped);
       } else {
@@ -9265,9 +9274,6 @@
       }
       spawnFloatingText("enemy-sprite", `+${coinsDropped} 💀 METAMONEDAS`, "gold");
       addLog(`💀 ¡Drop Arcano! ${e.name} dejó caer ${coinsDropped} Monedas de Cripta.`, "gold");
-      if (typeof showGameToast === "function") {
-        showGameToast(`💀 ¡BOTÍN ARCANO! +${coinsDropped} Metamonedas de Cripta (${e.name})`);
-      }
     }
 
     // 2. Drop de Cartas Cosméticas de Rivales (Curva Inversa: 10% común / 5% élite / 2% jefe + Suerte)
@@ -9295,8 +9301,9 @@
       }
     }
 
+    let cosmeticResult = null;
     if (Math.random() < effectiveCosmeticChance || pityTriggered) {
-      awardRagnarokMonsterCard(e, { isBoss: isBossRival, isElite: isEliteRival, isCommon: isCommonRival, isPity: pityTriggered });
+      cosmeticResult = awardRagnarokMonsterCard(e, { isBoss: isBossRival, isElite: isEliteRival, isCommon: isCommonRival, isPity: pityTriggered });
       localStorage.setItem("torre21_first_cosmetic_granted", "true");
       localStorage.removeItem("torre21_first_cosmetic_pity_count");
     }
@@ -9340,93 +9347,208 @@
       return;
     }
 
-    // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto (Campaña y Modo Torre)
-    const isActBossEncounter = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : (gameState.floor === 3 || gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19);
-    if (gameState.isCampaignMode || isActBossEncounter) {
-      gameState.isCampaignMode = true;
-      const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
-      if (gameState.floor === 3) {
-        unlockCampaignWaypoint(diffKey, 2);
-        addLog("🗺️ ¡ACTO I SUPERADO! Waypoint al Acto II desbloqueado.", "heal");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO I VENCIDO", "crit");
-        showChampionDiceModal({
-          bossName: e.name,
-          onResult: (won) => {
-            const proceed = () => showDemonicRelicDraftModal(1, () => finishFloor(true));
-            if (won) {
-              showVictoryCardsModal(proceed, 1, true);
-            } else {
-              proceed();
+    // Flujo Poscombate Secuencial (v1.8.2): Modal de Botín Obtenido antes de progresar
+    const totalCryptEarned = coinsDropped + ((cosmeticResult && cosmeticResult.type === "duplicate") ? cosmeticResult.convertedCoins : 0);
+    const lootData = {
+      enemyName: e.name,
+      enemySprite: e.sprite,
+      enemyImg: e.img,
+      floor: gameState.floor,
+      gold: killGold,
+      exp: finalKillExp,
+      cryptCoins: totalCryptEarned,
+      cosmeticCard: (cosmeticResult && cosmeticResult.type === "new") ? {
+        name: cosmeticResult.card.name,
+        enemyName: e.name,
+        img: cosmeticResult.card.img,
+        sprite: cosmeticResult.card.sprite,
+        tier: cosmeticResult.card.tier,
+        assignedLabel: cosmeticResult.assignedKey ? cosmeticResult.assignedKey.replace("_", " ") : "Baraja"
+      } : null
+    };
+
+    const proceedAfterLoot = async () => {
+      // Desbloqueo de Waypoint de Acto al derrotar a un Jefe de Acto (Campaña y Modo Torre)
+      const isActBossEncounter = (typeof isActBossFloor === "function") ? isActBossFloor(gameState.floor) : (gameState.floor === 3 || gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19);
+      if (gameState.isCampaignMode || isActBossEncounter) {
+        gameState.isCampaignMode = true;
+        const diffKey = gameState.diff || (typeof getGameDifficulty === "function" ? getGameDifficulty() : "normal");
+        if (gameState.floor === 3) {
+          unlockCampaignWaypoint(diffKey, 2);
+          addLog("🗺️ ¡ACTO I SUPERADO! Waypoint al Acto II desbloqueado.", "heal");
+          if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "ACTO I VENCIDO", "crit");
+          showChampionDiceModal({
+            bossName: e.name,
+            onResult: (won) => {
+              const proceed = () => showDemonicRelicDraftModal(1, () => finishFloor(true));
+              if (won) {
+                showVictoryCardsModal(proceed, 1, true);
+              } else {
+                proceed();
+              }
             }
-          }
-        });
+          });
+          return;
+        } else if (gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19) {
+          const nextAct = gameState.floor === 7 ? 3 : (gameState.floor === 11 ? 4 : (gameState.floor === 15 ? 5 : 6));
+          const actNum = nextAct - 1;
+          unlockCampaignWaypoint(diffKey, nextAct);
+          addLog(`🗺️ ¡ACTO ${actNum} SUPERADO! Waypoint al Acto ${nextAct} desbloqueado.`, "heal");
+          if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", `ACTO ${actNum} VENCIDO`, "crit");
+
+          const proceedWithRelics = () => {
+            showDemonicRelicDraftModal(actNum, () => finishFloor(true));
+          };
+
+          // Recompensa del 50% resuelta mediante el Dado Interactivo del Campeón
+          showChampionDiceModal({
+            bossName: e.name,
+            onResult: (won) => {
+              if (won) {
+                addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
+                spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
+                showVictoryCardsModal(proceedWithRelics, 1, true);
+              } else {
+                proceedWithRelics();
+              }
+            }
+          });
+          return;
+        } else if (gameState.floor >= 21) {
+          localStorage.setItem("bj_campaign_completed_" + diffKey, "true");
+          addLog("👑 ¡EL MANDINGA HA SIDO DESTRUIDO! ¡LA TORRE DEL 21 HA SIDO LIBERADA!", "critical");
+          showVictory();
+          return;
+        }
+      }
+
+      // Victoria directa en piso cumbre al vencer al rival final (según torre elegida)
+      const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 21;
+      if (gameState.floor >= maxFloors) {
+        showVictory();
         return;
-      } else if (gameState.floor === 7 || gameState.floor === 11 || gameState.floor === 15 || gameState.floor === 19) {
-        const nextAct = gameState.floor === 7 ? 3 : (gameState.floor === 11 ? 4 : (gameState.floor === 15 ? 5 : 6));
-        const actNum = nextAct - 1;
-        unlockCampaignWaypoint(diffKey, nextAct);
-        addLog(`🗺️ ¡ACTO ${actNum} SUPERADO! Waypoint al Acto ${nextAct} desbloqueado.`, "heal");
-        if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", `ACTO ${actNum} VENCIDO`, "crit");
+      }
 
-        const proceedWithRelics = () => {
-          showDemonicRelicDraftModal(actNum, () => finishFloor(true));
-        };
-
-        // Recompensa del 50% resuelta mediante el Dado Interactivo del Campeón
+      // Botín 50% de jefe fuera de modo campaña en pisos clave (7, 11, 15, 19, 20)
+      if (typeof isActBossFloor === "function" && isActBossFloor(gameState.floor) && gameState.floor >= 7) {
         showChampionDiceModal({
           bossName: e.name,
           onResult: (won) => {
             if (won) {
               addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
               spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
-              showVictoryCardsModal(proceedWithRelics, 1, true);
+              showVictoryCardsModal(() => finishFloor(true), 1, true);
             } else {
-              proceedWithRelics();
+              finishFloor(true);
             }
           }
         });
         return;
-      } else if (gameState.floor >= 21) {
-        localStorage.setItem("bj_campaign_completed_" + diffKey, "true");
-        addLog("👑 ¡EL MANDINGA HA SIDO DESTRUIDO! ¡LA TORRE DEL 21 HA SIDO LIBERADA!", "critical");
-        showVictory();
-        return;
       }
-    }
 
-    // Victoria directa en piso cumbre al vencer al rival final (según torre elegida)
-    const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 21;
-    if (gameState.floor >= maxFloors) {
-      showVictory();
+      // Cada 5 rivales eliminados → Rueda del Destino (buff/nerf permanente)
+      gameState.killCount++;
+      updateHud();
+      if (gameState.killCount % 5 === 0) {
+        showFateWheel("milestone");
+      } else {
+        await finishFloor(true);
+      }
+    };
+
+    showCombatLootModal(lootData, () => {
+      proceedAfterLoot();
+    });
+  }
+
+  let _currentCombatLootCallback = null;
+
+  function showCombatLootModal(lootData, onContinue) {
+    _currentCombatLootCallback = onContinue;
+    const modal = document.getElementById("screen-combat-loot");
+    if (!modal) {
+      if (typeof onContinue === "function") onContinue();
       return;
     }
+    const titleEl = document.getElementById("combat-loot-title");
+    const subEl = document.getElementById("combat-loot-sub");
+    const bodyEl = document.getElementById("combat-loot-body");
 
-    // Botín 50% de jefe fuera de modo campaña en pisos clave (7, 11, 15, 19, 20)
-    if (typeof isActBossFloor === "function" && isActBossFloor(gameState.floor) && gameState.floor >= 7) {
-      showChampionDiceModal({
-        bossName: e.name,
-        onResult: (won) => {
-          if (won) {
-            addLog("✨ ¡BOTÍN EXTRAORDINARIO (50% DROP)! El Jefe ha dejado caer una Transmutación de Baraja.", "critical");
-            spawnFloatingText("player-sprite", "✨ 50% BOTÍN DE JEFE", "crit");
-            showVictoryCardsModal(() => finishFloor(true), 1, true);
-          } else {
-            finishFloor(true);
-          }
-        }
-      });
-      return;
+    if (titleEl) titleEl.innerText = "BOTÍN OBTENIDO";
+    if (subEl) subEl.innerText = `${(lootData.enemyName || "Rival").toUpperCase()} DERROTADO EN PISO ${lootData.floor || gameState.floor}`;
+
+    if (bodyEl) {
+      let html = `<div class="combat-loot-rewards-grid">`;
+      // Tarjeta ORO
+      html += `
+        <div class="loot-reward-card gold">
+          <div class="loot-card-icon">🪙</div>
+          <div class="loot-card-info">
+            <div class="loot-card-val">+${lootData.gold || 0} ORO</div>
+            <div class="loot-card-lbl">Recompensa de Run</div>
+          </div>
+        </div>
+      `;
+      // Tarjeta EXP
+      html += `
+        <div class="loot-reward-card exp">
+          <div class="loot-card-icon">⭐</div>
+          <div class="loot-card-info">
+            <div class="loot-card-val">+${lootData.exp || 0} EXP</div>
+            <div class="loot-card-lbl">Maestría de Héroe</div>
+          </div>
+        </div>
+      `;
+      // Tarjeta CRIPTA (si hubo ganancia)
+      if (lootData.cryptCoins && lootData.cryptCoins > 0) {
+        html += `
+          <div class="loot-reward-card crypt">
+            <div class="loot-card-icon">💀</div>
+            <div class="loot-card-info">
+              <div class="loot-card-val">+${lootData.cryptCoins} CRIPTA</div>
+              <div class="loot-card-lbl">Metamonedas de Cripta</div>
+            </div>
+          </div>
+        `;
+      }
+      html += `</div>`;
+
+      // Tarjeta CARTA COSMÉTICA (si se desbloqueó una nueva)
+      if (lootData.cosmeticCard) {
+        const c = lootData.cosmeticCard;
+        html += `
+          <div class="loot-cosmetic-showcase">
+            <div class="loot-cosmetic-badge">👑 ¡NUEVA CARTA COSMÉTICA DESBLOQUEADA!</div>
+            <div class="loot-cosmetic-preview">
+              ${c.img ? `<img src="${c.img}" alt="${c.enemyName}" class="loot-cosmetic-img" onerror="this.outerHTML='<span style=\\'font-size:36px;\\'>${c.sprite || '👹'}</span>'">` : `<span style="font-size:36px;">${c.sprite || '👹'}</span>`}
+            </div>
+            <div class="loot-cosmetic-name">${c.name || ('Carta de ' + c.enemyName)}</div>
+            <div class="loot-cosmetic-desc">
+              Asignada como fondo permanente al naipe <b style="color:#66fcf1;">${c.assignedLabel || 'en tu baraja'}</b> de tu héroe.
+            </div>
+          </div>
+        `;
+      }
+
+      bodyEl.innerHTML = html;
     }
 
-    // Cada 5 rivales eliminados → Rueda del Destino (buff/nerf permanente)
-    gameState.killCount++;
-    updateHud();
-    if (gameState.killCount % 5 === 0) {
-      showFateWheel("milestone");
-    } else {
-      await finishFloor(true);
+    modal.classList.remove("hidden");
+    try { playVictoryFanfareSound(); } catch (_) {
+      try { playVictorySound(); } catch (_) {}
     }
   }
+  window.showCombatLootModal = showCombatLootModal;
+
+  function acceptCombatLoot() {
+    try { playButtonClickSound(); } catch (_) {}
+    const modal = document.getElementById("screen-combat-loot");
+    if (modal) modal.classList.add("hidden");
+    const cb = _currentCombatLootCallback;
+    _currentCombatLootCallback = null;
+    if (typeof cb === "function") cb();
+  }
+  window.acceptCombatLoot = acceptCombatLoot;
 
   /* ============================================================
      FLOOR TRANSITION & ZONAS NARRATIVAS DE LA TORRE
@@ -15122,27 +15244,21 @@
     const avatarBox = document.getElementById("inspect-avatar-container");
     const nameEl = document.getElementById("inspect-name");
     const subEl = document.getElementById("inspect-subtitle");
-    const hpEl = document.getElementById("inspect-hp");
-    const pwrEl = document.getElementById("inspect-pwr");
-    const defEl = document.getElementById("inspect-def");
-    const shieldEl = document.getElementById("inspect-shield");
-    const traitEl = document.getElementById("inspect-trait");
+    const currBox = document.getElementById("inspect-currencies");
+    const tbody = document.getElementById("inspect-stats-tbody");
+    const activeItemsEl = document.getElementById("inspect-active-items");
+    const activeItemsSec = document.getElementById("inspect-active-items-section");
     const statusEl = document.getElementById("inspect-status");
-
-    const critEl = document.getElementById("inspect-crit");
-    const dodgeEl = document.getElementById("inspect-dodge");
-    const thornsEl = document.getElementById("inspect-thorns");
-    const lifestealEl = document.getElementById("inspect-lifesteal");
-    const luckEl = document.getElementById("inspect-luck");
 
     if (who === "player") {
       if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
       const hero = HERO_DATA[p.class] || HERO_DATA.knight;
-      const meta = getHeroMeta();
+      const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
       const hMeta = meta[p.class] || { totalExp: 0, masteryLevel: 1 };
-      nameEl.innerText = p.name.toUpperCase();
+      nameEl.innerText = (p.name || hero.name).toUpperCase();
       nameEl.style.color = "#66fcf1";
-      subEl.innerText = `⭐ NIVEL PERMANENTE ${hMeta.level || hMeta.masteryLevel || 1} • ${hMeta.exp || 0}/${getExpRequiredForLevel(hMeta.level || hMeta.masteryLevel || 1)} EXP • ${hMeta.totalExp || 0} EXP TOTAL`;
+      subEl.innerText = `⭐ NIVEL PERMANENTE ${hMeta.level || hMeta.masteryLevel || 1} • ${hMeta.exp || 0}/${(typeof getExpRequiredForLevel === "function") ? getExpRequiredForLevel(hMeta.level || hMeta.masteryLevel || 1) : 60} EXP • ${hMeta.totalExp || 0} EXP TOTAL`;
+
       if (hero.img) {
         avatarBox.innerHTML = `<img src="${hero.img}" alt="${hero.name}" onerror="this.outerHTML='${hero.sprite}'">`;
       } else {
@@ -15150,70 +15266,180 @@
       }
       avatarBox.style.borderColor = "#66fcf1";
 
-      hpEl.innerText = `${p.hp} / ${p.maxHp}`;
-      hpEl.style.color = "#2a9d8f";
+      // Monedas de la run activa
+      if (currBox) {
+        const cryptCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : (parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10));
+        currBox.innerHTML = `
+          <div style="background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:bold;color:#ffd166;display:flex;align-items:center;gap:4px;">
+            🪙 ${gameState.gold || p.gold || 0} ORO
+          </div>
+          <div style="background:rgba(102,252,241,0.12);border:1px solid rgba(102,252,241,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:bold;color:#66fcf1;display:flex;align-items:center;gap:4px;">
+            💀 ${cryptCoins} CRIPTA
+          </div>
+          <div style="background:rgba(230,57,70,0.12);border:1px solid rgba(230,57,70,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:bold;color:#ff758f;display:flex;align-items:center;gap:4px;">
+            🧪 ${p.potions || 0} POCIONES
+          </div>
+        `;
+      }
 
-      let pwrExtra = "";
-      if (p.turnDoubleDamage) pwrExtra += " (x2 Activo)";
-      if (p.hasGoldenDie) pwrExtra += " (+3 Dado Oro)";
-      pwrEl.innerText = `${p.pwr}${pwrExtra}`;
+      // Cálculo de Estadísticas en Vivo: Base vs Buff/Nerf vs Total
+      const baseHp = hero.hp || 80;
+      const hpDiff = p.maxHp - baseHp;
+      const hpBuffStr = hpDiff > 0 ? `<b style="color:#2a9d8f;">+${hpDiff}</b>` : (hpDiff < 0 ? `<b style="color:#e63946;">${hpDiff}</b>` : "--");
 
-      const totalDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
-      let defExtra = [];
-      if (p.turnShieldBonus > 0) defExtra.push(`+${p.turnShieldBonus} Pasiva`);
-      if (p.duplaDef > 0) defExtra.push(`+${p.duplaDef} Dupla`);
-      if ((p._synergyBonusDef || 0) > 0) defExtra.push(`+${p._synergyBonusDef} Perk`);
-      defEl.innerText = `${totalDef} (Base: ${p.def}${defExtra.length ? ", " + defExtra.join(", ") : ""})`;
+      const basePwr = hero.pwr || 2;
+      let pwrBuffVal = p.pwr - basePwr;
+      let pwrBuffParts = [];
+      if (pwrBuffVal !== 0) pwrBuffParts.push(pwrBuffVal > 0 ? `+${pwrBuffVal}` : `${pwrBuffVal}`);
+      if (p.turnDoubleDamage) pwrBuffParts.push("x2 Mano");
+      if (p.hasGoldenDie) pwrBuffParts.push("+3 Dado");
+      const pwrBuffStr = pwrBuffParts.length ? `<b style="color:#2a9d8f;">${pwrBuffParts.join(", ")}</b>` : "--";
+      const totalEffectivePwr = (p.pwr * (p.turnDoubleDamage ? 2 : 1)) + (p.hasGoldenDie ? 3 : 0);
 
-      shieldEl.innerText = gameState.status.playerShield > 0 ? `${gameState.status.playerShield} HP (Absorbe daño)` : "0 HP";
-      shieldEl.style.color = gameState.status.playerShield > 0 ? "#48cae4" : "#888";
+      const baseDef = hero.def || 0;
+      const effDef = (p.def || 0) + (p.turnShieldBonus || 0) + (p.duplaDef || 0) + (p._synergyBonusDef || 0);
+      const defDiff = effDef - baseDef;
+      let defBuffParts = [];
+      if (p.turnShieldBonus > 0) defBuffParts.push(`+${p.turnShieldBonus} Pasiva`);
+      if (p.duplaDef > 0) defBuffParts.push(`+${p.duplaDef} Dupla`);
+      if ((p._synergyBonusDef || 0) > 0) defBuffParts.push(`+${p._synergyBonusDef} Perk`);
+      const defBuffStr = defBuffParts.length ? `<b style="color:#2a9d8f;">${defBuffParts.join(", ")}</b>` : (defDiff > 0 ? `<b style="color:#2a9d8f;">+${defDiff}</b>` : "--");
 
-      if (critEl) critEl.innerText = `${p.critChance || 0}%`;
-      if (dodgeEl) dodgeEl.innerText = `${p.dodgeChance || 0}%`;
-      if (thornsEl) thornsEl.innerText = `${p.thorns || 0}%`;
-      if (lifestealEl) lifestealEl.innerText = `${p.lifesteal || 0}%`;
-      if (luckEl) luckEl.innerText = `${p.luck || 0}%`;
+      const pShield = gameState.status.playerShield || 0;
+      const pMaxShield = Math.max(pShield, 10 + effDef);
+      const shieldBuffStr = pShield > 0 ? `<b style="color:#48cae4;">+${pShield}</b>` : "--";
 
-      traitEl.innerHTML = `<b style="color:#66fcf1;">${hero.name}:</b> ${hero.desc}`;
+      const baseCrit = hero.critChance || 0;
+      const critDiff = (p.critChance || 0) - baseCrit;
+      const critBuffStr = critDiff > 0 ? `<b style="color:#2a9d8f;">+${critDiff}%</b>` : "--";
 
+      const baseDodge = hero.dodgeChance || 0;
+      const dodgeBonus = Math.round((p._synergyExtraDodge || 0) * 100);
+      const totalDodge = Math.min(45, (p.dodgeChance || 0) + dodgeBonus);
+      const dodgeDiff = totalDodge - baseDodge;
+      const dodgeBuffStr = dodgeDiff > 0 ? `<b style="color:#2a9d8f;">+${dodgeDiff}%</b>` : "--";
+
+      const thornsVal = p.thorns || 0;
+      const thornsBuffStr = thornsVal > 0 ? `<b style="color:#2a9d8f;">+${thornsVal}</b>` : "--";
+
+      const lifestealVal = p.lifesteal || 0;
+      const lifestealBuffStr = lifestealVal > 0 ? `<b style="color:#2a9d8f;">+${lifestealVal}%</b>` : "--";
+
+      const luckVal = p.luck || 0;
+      const luckBuffStr = luckVal > 0 ? `<b style="color:#2a9d8f;">+${luckVal}%</b>` : "--";
+
+      // Renderizar tabla en tbody
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td><span class="stat-ico">❤️</span> <b>Salud (HP)</b></td>
+            <td>${baseHp}</td>
+            <td>${hpBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#2a9d8f;">${p.hp} / ${p.maxHp}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">⚔️</span> <b>Poder (Ataque)</b></td>
+            <td>${basePwr}</td>
+            <td>${pwrBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#ffd166;">${totalEffectivePwr}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🛡️</span> <b>Defensa (DEF)</b></td>
+            <td>${baseDef}</td>
+            <td>${defBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#66fcf1;">${effDef}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🛡️</span> <b>Escudo Activo</b></td>
+            <td>0</td>
+            <td>${shieldBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#48cae4;">${pShield} / ${pMaxShield}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">⚡</span> <b>% Golpe Crítico</b></td>
+            <td>${baseCrit}%</td>
+            <td>${critBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#f39c12;">${p.critChance || 0}%</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">💨</span> <b>% Esquiva (Dodge)</b></td>
+            <td>${baseDodge}%</td>
+            <td>${dodgeBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#38bdf8;">${totalDodge}%</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🌵</span> <b>Espinas (Thorns)</b></td>
+            <td>0</td>
+            <td>${thornsBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#10b981;">${thornsVal}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🩸</span> <b>% Vampirismo</b></td>
+            <td>0%</td>
+            <td>${lifestealBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#e63946;">${lifestealVal}%</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🍀</span> <b>% Suerte (Luck)</b></td>
+            <td>0%</td>
+            <td>${luckBuffStr}</td>
+            <td style="text-align:right;font-weight:bold;color:#a3e635;">${luckVal}%</td>
+          </tr>
+        `;
+      }
+
+      // Elementos Activos en la Run
+      if (activeItemsSec) activeItemsSec.style.display = "block";
+      if (activeItemsEl) {
+        let itemsList = [];
+        if (p.starterBlessing) {
+          const b = p.starterBlessing;
+          itemsList.push(`<div>✨ <b>Bendición del Destino [${b.tierLabel || ('Tier ' + b.tier)}]:</b> ${b.icon || '✨'} ${b.name} — <span style="color:#ffd166;">${b.desc}</span></div>`);
+        }
+        if (p.gem) {
+          itemsList.push(`<div>💎 <b>Gema Engarzada:</b> ${getItemSpanishName(p.gem)}.</div>`);
+        }
+        if (p.accessory) {
+          itemsList.push(`<div>💍 <b>Accesorio:</b> ${getItemSpanishName(p.accessory)}.</div>`);
+        }
+        if (p.weapon) {
+          itemsList.push(`<div>🗡️ <b>Arma:</b> ${getItemSpanishName(p.weapon)}.</div>`);
+        }
+        if (p.relics && p.relics.length > 0) {
+          const relStr = p.relics.map(r => getItemSpanishName(r)).join(", ");
+          itemsList.push(`<div>🔮 <b>Reliquias Arcanas (${p.relics.length}):</b> ${relStr}.</div>`);
+        }
+        if (p.artifacts && p.artifacts.length > 0) {
+          const artStr = p.artifacts.map(a => getItemSpanishName(a)).join(", ");
+          itemsList.push(`<div>🏺 <b>Artefactos de Poder (${p.artifacts.length}):</b> ${artStr}.</div>`);
+        }
+        if (p.cardUpgrades && p.cardUpgrades.length > 0) {
+          const uList = p.cardUpgrades.map(id => {
+            const u = CARD_UPGRADES.find(c => c.id === id);
+            return u ? `${u.icon} ${u.name}` : id;
+          });
+          itemsList.push(`<div>🔨 <b>Pasivas de Forja del Yunque:</b> ${uList.join(", ")}.</div>`);
+        }
+        if (p.curse) {
+          itemsList.push(`<div style="color:#e63946;">🩸 <b>Maldición del Abismo:</b> ${CURSE_NAMES[p.curse] || (p.curse === "cursed_deck" ? "Mazo Astillado (-5 HP por cada As)" : p.curse)}.</div>`);
+        }
+        activeItemsEl.innerHTML = itemsList.length ? itemsList.join("") : "<div style='color:#94a3b8;'>Ningún equipamiento ni bendición especial activa.</div>";
+      }
+
+      // Estados Alterados y Perks de Turno en Combate
       let statusList = [];
-      if (gameState.status.playerShield > 0) statusList.push(`🛡️ <b>Escudo:</b> ${gameState.status.playerShield} HP de protección activa.`);
+      if (gameState.status.playerShield > 0) statusList.push(`🛡️ <b>Escudo Protector:</b> ${gameState.status.playerShield} HP de daño que serán absorbidos antes de tu vida.`);
       if ((p._synergyBonusDef || 0) > 0) statusList.push(`🛡️ <b>Perk [Muralla de Hierro]:</b> +${p._synergyBonusDef} DEF frente al próximo contraataque.`);
       if (p._synergyExtraDodge > 0) statusList.push(`💨 <b>Perk [Acto de Desaparición]:</b> ${Math.round(p._synergyExtraDodge * 100)}% de esquivar el próximo contraataque.`);
-      if (p._synergyLastStand) statusList.push(`🏰 <b>Perk [Última Resistencia]:</b> el próximo golpe rival queda en 1 daño.`);
-      if (gameState.status.playerPoison > 0) statusList.push(`☠️ <b>Veneno:</b> ${gameState.status.playerPoison} de daño al final del turno.`);
-      if (p.duplaDef > 0) statusList.push(`⚡ <b>Dupla:</b> +${p.duplaDef} DEF activa esta mano.`);
-      if (p.starterBlessing) {
-        const b = p.starterBlessing;
-        statusList.push(`✨ <b>Bendición del Destino [${b.tierLabel || ('TIER ' + b.tier)}]:</b> ${b.icon} ${b.name} — <span style="color:#ffd166;">${b.desc}</span>`);
-      }
-      if (p.gem) statusList.push(`💎 <b>Bendición:</b> ${getItemSpanishName(p.gem)}.`);
-      if (p.accessory) statusList.push(`💍 <b>Accesorio:</b> ${getItemSpanishName(p.accessory)}.`);
-      if (p.cardUpgrades && p.cardUpgrades.length > 0) {
-        const uList = p.cardUpgrades.map(id => {
-          const u = CARD_UPGRADES.find(c => c.id === id);
-          return u ? `${u.icon} ${u.name}` : id;
-        });
-        statusList.push(`🔨 <b>Pasivas del Yunque:</b> ${uList.join(", ")}.`);
-      }
-      if (p.curse) statusList.push(`🩸 <b>Maldición:</b> ${CURSE_NAMES[p.curse] || (p.curse === "cursed_deck" ? "Mazo Astillado (-5 HP por cada As)" : p.curse)}.`);
-      if (p.relics && p.relics.length > 0) {
-        const relStr = p.relics.map(r => getItemSpanishName(r)).join(", ");
-        statusList.push(`🔮 <b>Reliquias:</b> ${relStr}.`);
-      }
-      if (p.artifacts && p.artifacts.length > 0) {
-        const artStr = p.artifacts.map(a => getItemSpanishName(a)).join(", ");
-        statusList.push(`🏺 <b>Artefactos:</b> ${artStr}.`);
-      }
-      if ((p.expMultiplier && p.expMultiplier > 1) || (p.bonusKillExp && p.bonusKillExp > 0)) {
-        let expBonusStr = [];
-        if (p.expMultiplier > 1) expBonusStr.push(`+${Math.round((p.expMultiplier - 1) * 100)}% EXP`);
-        if (p.bonusKillExp > 0) expBonusStr.push(`+${p.bonusKillExp} EXP fija`);
-        statusList.push(`🎓 <b>Bono de Aprendizaje:</b> ${expBonusStr.join(" y ")} extra por baja.`);
-      }
+      if (p._synergyLastStand) statusList.push(`🏰 <b>Perk [Última Resistencia]:</b> El próximo golpe rival se reduce a 1 punto de daño.`);
+      if (p.turnDoubleDamage) statusList.push(`⚡ <b>Golpe Traicionero x2:</b> Tu ataque en esta mano infligirá el doble de daño.`);
+      if (p.duplaDef > 0) statusList.push(`⚡ <b>Dupla de Mano:</b> +${p.duplaDef} DEF activa en esta ronda por pareja de cartas.`);
+      if (gameState.status.playerPoison > 0) statusList.push(`☠️ <b>Veneno Activo:</b> ${gameState.status.playerPoison} de daño directo al inicio del siguiente turno.`);
+      if (gameState.status.playerBurn > 0) statusList.push(`🔥 <b>Quemadura Ígnea:</b> ${gameState.status.playerBurn} de daño por fuego activo.`);
 
-      statusEl.innerHTML = statusList.length ? statusList.join("<br>") : "Sin estados alterados.";
+      statusEl.innerHTML = statusList.length ? statusList.join("<br>") : "<div style='color:#94a3b8;'>Sin estados alterados temporales activos.</div>";
 
+      // Cartas Arcanas Forjadas
       const encSection = document.getElementById("inspect-enchanted-section");
       const encGrid = document.getElementById("inspect-enchanted-grid");
       const encTitle = document.getElementById("inspect-enchanted-title");
@@ -15229,44 +15455,84 @@
           encSection.style.display = "none";
         }
       }
+
     } else {
+      // INSPECCIÓN DEL RIVAL
       const encSection = document.getElementById("inspect-enchanted-section");
       if (encSection) encSection.style.display = "none";
 
       const maxF = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
-      nameEl.innerText = e.name.toUpperCase();
+      nameEl.innerText = (e.name || "RIVAL").toUpperCase();
       nameEl.style.color = "#ff758f";
       subEl.innerText = `PISO ${gameState.floor} / ${maxF} — RIVAL DE LA TORRE`;
+
       if (e.img) {
-        avatarBox.innerHTML = `<img src="${e.img}" alt="${e.name}" onerror="this.outerHTML='${e.sprite}'">`;
+        avatarBox.innerHTML = `<img src="${e.img}" alt="${e.name}" onerror="this.outerHTML='${e.sprite || '👺'}'">`;
       } else {
-        avatarBox.innerText = e.sprite;
+        avatarBox.innerText = e.sprite || "👺";
       }
       avatarBox.style.borderColor = "#e63946";
 
-      hpEl.innerText = `${e.hp} / ${e.maxHp}`;
-      hpEl.style.color = "#e63946";
+      if (currBox) {
+        currBox.innerHTML = `
+          <div style="background:rgba(230,57,70,0.12);border:1px solid rgba(230,57,70,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:bold;color:#ff758f;display:flex;align-items:center;gap:4px;">
+            💀 DROP: CRIPTAS Y CARTAS COSMÉTICAS
+          </div>
+        `;
+      }
 
-      pwrEl.innerText = `${e.pwr}`;
-      defEl.innerText = `${e.def}`;
+      const eShield = gameState.status.enemyShield || 0;
+      const eMaxShield = Math.max(eShield, (e && e.def ? e.def + 10 : 10));
 
-      shieldEl.innerText = gameState.status.enemyShield > 0 ? `${gameState.status.enemyShield} HP` : "0 HP";
-      shieldEl.style.color = gameState.status.enemyShield > 0 ? "#48cae4" : "#888";
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td><span class="stat-ico">❤️</span> <b>Salud (HP)</b></td>
+            <td>${e.maxHp}</td>
+            <td>--</td>
+            <td style="text-align:right;font-weight:bold;color:#e63946;">${e.hp} / ${e.maxHp}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">⚔️</span> <b>Poder (Ataque)</b></td>
+            <td>${e.pwr}</td>
+            <td>--</td>
+            <td style="text-align:right;font-weight:bold;color:#ffd166;">${e.pwr}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🛡️</span> <b>Defensa (DEF)</b></td>
+            <td>${e.def}</td>
+            <td>--</td>
+            <td style="text-align:right;font-weight:bold;color:#66fcf1;">${e.def}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🛡️</span> <b>Escudo Activo</b></td>
+            <td>0</td>
+            <td>${eShield > 0 ? `<b style="color:#48cae4;">+${eShield}</b>` : '--'}</td>
+            <td style="text-align:right;font-weight:bold;color:#48cae4;">${eShield} / ${eMaxShield}</td>
+          </tr>
+          <tr>
+            <td><span class="stat-ico">🌵</span> <b>Espinas</b></td>
+            <td>${e.trait === 'thorns' ? '2' : '0'}</td>
+            <td>--</td>
+            <td style="text-align:right;font-weight:bold;color:#10b981;">${e.trait === 'thorns' ? '2 daño' : '--'}</td>
+          </tr>
+        `;
+      }
 
-      if (critEl) critEl.innerText = "--";
-      if (dodgeEl) dodgeEl.innerText = "--";
-      if (thornsEl) thornsEl.innerText = (e && e.trait === "thorns") ? "2 daño" : "--";
-      if (lifestealEl) lifestealEl.innerText = "--";
-      if (luckEl) luckEl.innerText = "--";
-
-      traitEl.innerHTML = `<b style="color:#ffd166;">${e.traitName || e.traitShort || "Rasgo"}:</b> ${getEnemyTraitDescription(e)}`;
+      if (activeItemsSec) activeItemsSec.style.display = "block";
+      if (activeItemsEl) {
+        activeItemsEl.innerHTML = `
+          <div><b style="color:#ffd166;">★ Rasgo Especial [${e.traitName || e.traitShort || 'Rasgo'}]:</b> ${(typeof getEnemyTraitDescription === 'function') ? getEnemyTraitDescription(e) : (e.traitName || e.traitShort || 'Sin rasgo especial')}.</div>
+        `;
+      }
 
       let statusList = [];
-      if (gameState.status.enemyShield > 0) statusList.push(`🛡️ <b>Escudo:</b> ${gameState.status.enemyShield} HP absorbibles.`);
-      if (gameState.status.enemyPoison > 0) statusList.push(`☠️ <b>Veneno:</b> ${gameState.status.enemyPoison} daño residual.`);
-      if (gameState.status.enemyRevived) statusList.push(`💀 <b>Resurrección:</b> Ya utilizada en este combate.`);
+      if (gameState.status.enemyShield > 0) statusList.push(`🛡️ <b>Escudo:</b> ${gameState.status.enemyShield} HP de protección que absorberán tus ataques.`);
+      if (gameState.status.enemyPoison > 0) statusList.push(`☠️ <b>Veneno Residual:</b> ${gameState.status.enemyPoison} de daño al inicio del turno.`);
+      if (gameState.status.enemyBurn > 0) statusList.push(`🔥 <b>Quemadura:</b> ${gameState.status.enemyBurn} de daño residual.`);
+      if (gameState.status.enemyRevived) statusList.push(`💀 <b>Resurrección Maldita:</b> Ya utilizada en este asalto.`);
 
-      statusEl.innerHTML = statusList.length ? statusList.join("<br>") : "Sin estados alterados.";
+      statusEl.innerHTML = statusList.length ? statusList.join("<br>") : "<div style='color:#94a3b8;'>Sin estados alterados residuales.</div>";
     }
 
     modal.classList.remove("hidden");
@@ -15400,19 +15666,14 @@
 
     const pMini = document.getElementById("player-stats-mini");
     if (pMini) {
-      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
-      const effDef = p.def + p.turnShieldBonus + p.duplaDef + (p._synergyBonusDef || 0);
-      let extraStats = "";
-      if ((p.critChance || 0) > 0) extraStats += ` &nbsp;|&nbsp; ⚡ ${p.critChance}%`;
-      if ((p.dodgeChance || 0) > 0) extraStats += ` &nbsp;|&nbsp; 💨 ${p.dodgeChance}%`;
-      if ((p.thorns || 0) > 0) extraStats += ` &nbsp;|&nbsp; 🌵 ${p.thorns}`;
-      pMini.innerHTML = `⚔️ ${p.pwr} <small>PWR</small> &nbsp;|&nbsp; 🛡️ ${effDef} <small>DEF</small>${extraStats}`;
-      pMini.title = `Poder de Ataque: ${p.pwr} PWR | Armadura Base: ${effDef} DEF | Crítico: ${p.critChance || 0}% | Esquiva: ${p.dodgeChance || 0}% | Espinas: ${p.thorns || 0}`;
+      pMini.style.display = "none";
+      pMini.classList.add("hidden");
     }
 
     const eMini = document.getElementById("enemy-stats-mini");
-    if (eMini && e) {
-      eMini.innerHTML = `⚔️ ${e.pwr} &nbsp; 🛡️ ${e.def}`;
+    if (eMini) {
+      eMini.style.display = "none";
+      eMini.classList.add("hidden");
     }
 
     if (typeof updatePlayerAccSlot === "function") {
@@ -15463,9 +15724,11 @@
     const pShieldText = document.getElementById("player-shield-text");
     const pShieldWrapper = document.getElementById("player-shield-wrapper");
     if (pShieldBar && pShieldText) {
-      const pct = pShield > 0 ? Math.min(100, Math.max(12, (pShield / 15) * 100)) : 0;
+      const effDef = (p.def || 0) + (p.turnShieldBonus || 0) + (p.duplaDef || 0) + (p._synergyBonusDef || 0);
+      const pMaxShield = Math.max(pShield, 10 + effDef);
+      const pct = pMaxShield > 0 ? Math.min(100, Math.max(0, (pShield / pMaxShield) * 100)) : 0;
       pShieldBar.style.width = `${pct}%`;
-      pShieldText.innerText = `${pShield}`;
+      pShieldText.innerText = `${pShield}/${pMaxShield}`;
       if (pShieldWrapper) {
         if (pShield > 0) pShieldWrapper.classList.add("has-shield");
         else pShieldWrapper.classList.remove("has-shield");
@@ -15477,9 +15740,10 @@
     const eShieldText = document.getElementById("enemy-shield-text");
     const eShieldWrapper = document.getElementById("enemy-shield-wrapper");
     if (eShieldBar && eShieldText) {
-      const pct = eShield > 0 ? Math.min(100, Math.max(12, (eShield / 15) * 100)) : 0;
+      const eMaxShield = Math.max(eShield, (e && e.def ? e.def + 10 : 10));
+      const pct = eMaxShield > 0 ? Math.min(100, Math.max(0, (eShield / eMaxShield) * 100)) : 0;
       eShieldBar.style.width = `${pct}%`;
-      eShieldText.innerText = `${eShield}`;
+      eShieldText.innerText = `${eShield}/${eMaxShield}`;
       if (eShieldWrapper) {
         if (eShield > 0) eShieldWrapper.classList.add("has-shield");
         else eShieldWrapper.classList.remove("has-shield");
@@ -16719,6 +16983,28 @@
       const chosenRelic = (availableRelics.length > 0)
         ? availableRelics[Math.floor(Math.random() * availableRelics.length)]
         : ALL_RELICS[0];
+
+      // Pool de Bendiciones Primarias y de Build Secundaria
+      const primaryOptions = [
+        { id: "hp", icon: "💖", title: "VITALIDAD DE JACK", desc: "+20 Salud Máxima y curación inmediata de +30 HP." },
+        { id: "pwr", icon: "⚔️", title: "FURIA DE JACK", desc: "+2 PWR permanente de ataque." },
+        { id: "def", icon: "🛡️", title: "BASTIÓN DE JACK", desc: "+1 DEF permanente y +8 de Escudo protector azul." }
+      ];
+
+      const buildOptions = [
+        { id: `relic_${chosenRelic.id}`, icon: chosenRelic.icon || "🔮", title: `RELIQUIA: ${(chosenRelic.name || '').toUpperCase()}`, desc: chosenRelic.desc || "Reliquia arcana bendecida para tu ascensión." },
+        { id: "crit", icon: "⚡", title: "OJO CERTERO", desc: "+5% Probabilidad de Golpe Crítico RPG." },
+        { id: "dodge", icon: "💨", title: "PASO FANTASMAL", desc: "+5% Probabilidad de Esquivar contragolpes enemigos." },
+        { id: "thorns", icon: "🌵", title: "CORAZÓN ESPINADO", desc: "+6 Daño de Espinas reflejado al recibir impactos." },
+        { id: "lifesteal", icon: "🩸", title: "SED CARMESÍ", desc: "+6% Vampirismo (curación en base al daño asestado)." },
+        { id: "luck", icon: "🍀", title: "FORTUNA ASTRAL", desc: "+8% Suerte permanente en tiradas, drops y dados." }
+      ];
+
+      // Barajar y seleccionar 1 primaria + 2 de build secundaria
+      const shuffledPrim = [...primaryOptions].sort(() => Math.random() - 0.5);
+      const shuffledBuild = [...buildOptions].sort(() => Math.random() - 0.5);
+      const selectedChoices = [shuffledPrim[0], shuffledBuild[0], shuffledBuild[1]];
+
       choicesEl.innerHTML = `
         <!-- chooseLevelUpReward('relic_${chosenRelic.id}') -->
         <!-- DESGLOSE DE CRECIMIENTO AUTOMÁTICO RPG -->
@@ -16749,27 +17035,15 @@
           ⚡ Elige una bendición adicional para continuar la ascensión:
         </div>
 
-        <div class="levelup-option-card" onclick="chooseLevelUpReward('hp')">
-          <div class="levelup-opt-icon">💖</div>
-          <div>
-            <div class="levelup-opt-title">VITALIDAD DE JACK</div>
-            <div class="levelup-opt-desc">+20 Salud Máxima y curación inmediata de +30 HP.</div>
+        ${selectedChoices.map(opt => `
+          <div class="levelup-option-card" onclick="chooseLevelUpReward('${opt.id}')">
+            <div class="levelup-opt-icon">${opt.icon}</div>
+            <div>
+              <div class="levelup-opt-title">${opt.title}</div>
+              <div class="levelup-opt-desc">${opt.desc}</div>
+            </div>
           </div>
-        </div>
-        <div class="levelup-option-card" onclick="chooseLevelUpReward('pwr')">
-          <div class="levelup-opt-icon">⚔️</div>
-          <div>
-            <div class="levelup-opt-title">FURIA DE JACK</div>
-            <div class="levelup-opt-desc">+2 PWR permanente.</div>
-          </div>
-        </div>
-        <div class="levelup-option-card" onclick="chooseLevelUpReward('def')">
-          <div class="levelup-opt-icon">🛡️</div>
-          <div>
-            <div class="levelup-opt-title">BASTIÓN DE JACK</div>
-            <div class="levelup-opt-desc">+1 DEF de armadura permanente y +8 de Escudo protector azul por piso.</div>
-          </div>
-        </div>
+        `).join("")}
       `;
     }
     const screenLvl = document.getElementById("screen-levelup");
@@ -16802,6 +17076,26 @@
       gameState.status.playerShield = (gameState.status.playerShield || 0) + 8;
       spawnFloatingText("player-sprite", "+1 DEF", "shield");
       addLog("⭐ Bendición de Nivel " + p.level + ": +1 DEF permanente y +8 Escudo azul (DEF actual: " + p.def + ").", "heal");
+    } else if (type === "crit") {
+      p.critChance = (p.critChance || 0) + 5;
+      spawnFloatingText("player-sprite", "+5% CRÍTICO", "crit");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Golpe Crítico (Total: " + p.critChance + "%).", "critical");
+    } else if (type === "dodge") {
+      p.dodgeChance = (p.dodgeChance || 0) + 5;
+      spawnFloatingText("player-sprite", "+5% ESQUIVA", "crit");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Esquiva (Total: " + p.dodgeChance + "%).", "heal");
+    } else if (type === "thorns") {
+      p.thorns = (p.thorns || 0) + 6;
+      spawnFloatingText("player-sprite", "+6 ESPINAS", "crit");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +6 Daño de Espinas reflejado (Total: " + p.thorns + ").", "critical");
+    } else if (type === "lifesteal") {
+      p.lifesteal = (p.lifesteal || 0) + 6;
+      spawnFloatingText("player-sprite", "+6% VAMPIRISMO", "heal");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +6% Vampirismo de drenaje de vida (Total: " + p.lifesteal + "%).", "heal");
+    } else if (type === "luck") {
+      p.luck = (p.luck || 0) + 8;
+      spawnFloatingText("player-sprite", "+8% SUERTE", "gold");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +8% Suerte permanente (Total: " + p.luck + "%).", "gold");
     } else if (type === "relic_hp") {
       p.maxHp += 15;
       p.hp = Math.min(p.maxHp, p.hp + 20);

@@ -211,7 +211,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.1</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.2</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -480,7 +480,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.8.1 (BUILD 42)</span>
+          <span id="settings-version">📱 VERSIÓN v1.8.2 (BUILD 43)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -701,6 +701,7 @@
   </div>
 
   <!-- POPUP / MODAL DE INSPECCIÓN DETALLADA DE PERSONAJES -->
+  <!-- POPUP / MODAL DE INSPECCIÓN DETALLADA DE PERSONAJES EN COMBATE (v1.8.2) -->
   <div id="screen-inspect" class="overlay hidden" onclick="closeFighterInspect(event)">
     <div class="inspect-card" onclick="event.stopPropagation()">
       <div class="inspect-header">
@@ -712,61 +713,62 @@
         <button class="inspect-close-btn" onclick="closeFighterInspect()">✕</button>
       </div>
 
-      <div class="inspect-stats-grid">
-        <div class="inspect-stat-item">
-          <span class="stat-lbl">❤️ SALUD</span>
-          <span class="stat-val" id="inspect-hp">90 / 90</span>
-        </div>
-        <div class="inspect-stat-item">
-          <span class="stat-lbl">⚔️ PODER (PWR)</span>
-          <span class="stat-val" id="inspect-pwr">2</span>
-        </div>
-        <div class="inspect-stat-item">
-          <span class="stat-lbl">🛡️ DEFENSA (DEF)</span>
-          <span class="stat-val" id="inspect-def">3</span>
-        </div>
-        <div class="inspect-stat-item">
-          <span class="stat-lbl">🛡️ ESCUDO ACTIVO</span>
-          <span class="stat-val" id="inspect-shield">0</span>
-        </div>
-        <div class="inspect-stat-item" id="inspect-crit-box">
-          <span class="stat-lbl">⚡ % CRÍTICO</span>
-          <span class="stat-val" id="inspect-crit">0%</span>
-        </div>
-        <div class="inspect-stat-item" id="inspect-dodge-box">
-          <span class="stat-lbl">💨 % ESQUIVAR</span>
-          <span class="stat-val" id="inspect-dodge">0%</span>
-        </div>
-        <div class="inspect-stat-item" id="inspect-thorns-box">
-          <span class="stat-lbl">🌵 ESPINAS</span>
-          <span class="stat-val" id="inspect-thorns">0%</span>
-        </div>
-        <div class="inspect-stat-item" id="inspect-lifesteal-box">
-          <span class="stat-lbl">🩸 % VAMPIRISMO</span>
-          <span class="stat-val" id="inspect-lifesteal">0%</span>
-        </div>
-        <div class="inspect-stat-item" id="inspect-luck-box">
-          <span class="stat-lbl">🍀 % SUERTE</span>
-          <span class="stat-val" id="inspect-luck">0%</span>
-        </div>
+      <div id="inspect-currencies" class="inspect-currencies-row" style="display:flex;gap:8px;margin-bottom:8px;"></div>
+
+      <div class="inspect-table-box">
+        <table class="inspect-stats-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">ATRIBUTO</th>
+              <th>BASE</th>
+              <th>BUFF / NERF</th>
+              <th style="text-align:right;">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody id="inspect-stats-tbody">
+            <!-- Renderizado dinámico de estadísticas con desglose -->
+          </tbody>
+        </table>
       </div>
 
-      <div class="inspect-section">
-        <div class="inspect-section-title">📜 HABILIDAD / RASGO:</div>
-        <div id="inspect-trait" class="inspect-trait-desc"></div>
+      <!-- ELEMENTOS ACTIVOS EN LA RUN -->
+      <div class="inspect-section" id="inspect-active-items-section">
+        <div class="inspect-section-title">🎒 ELEMENTOS ACTIVOS EN LA RUN:</div>
+        <div id="inspect-active-items" class="inspect-items-desc"></div>
       </div>
 
+      <!-- ESTADOS ALTERADOS Y PERKS DE TURNO -->
       <div class="inspect-section">
-        <div class="inspect-section-title">⚡ ESTADOS EN COMBATE:</div>
+        <div class="inspect-section-title">⚡ ESTADOS Y PERKS EN COMBATE:</div>
         <div id="inspect-status" class="inspect-status-desc"></div>
       </div>
 
+      <!-- CARTAS ARCANAS FORJADAS EN MAZO -->
       <div class="inspect-section" id="inspect-enchanted-section" style="display:none;">
         <div class="inspect-section-title" id="inspect-enchanted-title">🃏 CARTAS ARCANAS FORJADAS:</div>
         <div id="inspect-enchanted-grid" class="dossier-enchanted-grid" style="margin-top:6px;"></div>
       </div>
 
-      <button onclick="closeFighterInspect()" style="margin-top:10px;width:100%;min-height:44px;font-size:12px;font-weight:700;padding:12px;border-color:#45a29e;background:#151a21;border-radius:8px;cursor:pointer;">◀ CERRAR FICHA</button>
+      <button onclick="closeFighterInspect()" style="margin-top:8px;width:100%;min-height:44px;font-size:11px;font-weight:700;padding:10px;border-color:#45a29e;background:#151a21;border-radius:8px;cursor:pointer;color:#66fcf1;">◀ CERRAR FICHA</button>
+    </div>
+  </div>
+
+  <!-- MODAL / MENÚ DE RESUMEN DE VICTORIA Y BOTÍN POSCOMBATE (v1.8.2) -->
+  <div id="screen-combat-loot" class="overlay hidden">
+    <div class="combat-loot-modal" onclick="event.stopPropagation()">
+      <div class="combat-loot-header">
+        <div class="combat-loot-badge">🏆 ¡VICTORIA EN COMBATE!</div>
+        <div class="combat-loot-title" id="combat-loot-title">BOTÍN OBTENIDO</div>
+        <div class="combat-loot-sub" id="combat-loot-sub">Rival derrotado con éxito</div>
+      </div>
+
+      <div class="combat-loot-body" id="combat-loot-body">
+        <!-- Recompensas renderizadas dinámicamente -->
+      </div>
+
+      <button id="btn-combat-loot-continue" class="combat-loot-continue-btn" onclick="acceptCombatLoot()">
+        ✅ ACEPTAR Y CONTINUAR
+      </button>
     </div>
   </div>
 
@@ -1156,7 +1158,10 @@
           <div class="fighter-meta">
             <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
               <span class="fighter-name" id="player-class-title">CABALLERO</span>
-              <div id="player-streak-badge" class="player-streak-badge hidden">🔥 x1.5</div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <button type="button" class="fighter-inspect-pill-btn" onclick="event.stopPropagation(); openFighterInspect('player');" title="Ver Ficha Completa del Héroe">📊 Ficha</button>
+                <div id="player-streak-badge" class="player-streak-badge hidden">🔥 x1.5</div>
+              </div>
             </div>
             <div class="fighter-meters-panel">
               <!-- BARRA DE VIDA -->
@@ -1173,8 +1178,8 @@
               <!-- BARRA DE ESCUDO -->
               <div class="meter-group shield-group" id="player-shield-wrapper" title="Escudo protector absorbente (Toca para ver)">
                 <div class="meter-header">
-                  <span class="meter-title shield-title">🛡️ ESCUDO</span>
-                  <span class="shield-text" id="player-shield-text">0</span>
+                  <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
+                  <span class="shield-text" id="player-shield-text">0/10</span>
                 </div>
                 <div class="shield-bar-container">
                   <div id="player-shield-bar" class="shield-bar-fill"></div>
@@ -1191,8 +1196,7 @@
                 </div>
               </div>
             </div>
-            <div id="player-stats-mini" class="fighter-stat-pills" title="Poder y Defensa del Héroe">⚔️ 2  🛡️ 3</div>
-            <div class="fighter-inspect-hint">🔍 Toca para stats</div>
+            <div id="player-stats-mini" class="fighter-stat-pills hidden" style="display:none;" title="Poder y Defensa del Héroe">⚔️ 2  🛡️ 3</div>
             <div id="player-status-badges" class="status-badges"></div>
           </div>
         </div>
@@ -1201,7 +1205,10 @@
         <div class="fighter-col enemy-fighter" onclick="openFighterInspect('enemy')" title="Toca o pasa el cursor para ver ficha de combate">
           <div class="sprite enemy-avatar" id="enemy-sprite"><img src="assets/svg/enemy_goblin.svg" class="sprite-img" alt="Rival"></div>
           <div class="fighter-meta">
-            <span class="fighter-name enemy-name" id="enemy-name-tag">RIVAL</span>
+            <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+              <span class="fighter-name enemy-name" id="enemy-name-tag">RIVAL</span>
+              <button type="button" class="fighter-inspect-pill-btn enemy" onclick="event.stopPropagation(); openFighterInspect('enemy');" title="Ver Ficha del Rival">📊 Ficha</button>
+            </div>
             <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
             <div class="fighter-meters-panel">
               <!-- BARRA DE VIDA -->
@@ -1218,16 +1225,15 @@
               <!-- BARRA DE ESCUDO DEL RIVAL -->
               <div class="meter-group shield-group" id="enemy-shield-wrapper" title="Escudo protector del rival (Toca para ver)">
                 <div class="meter-header">
-                  <span class="meter-title shield-title">🛡️ ESCUDO</span>
-                  <span class="shield-text" id="enemy-shield-text">0</span>
+                  <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
+                  <span class="shield-text" id="enemy-shield-text">0/10</span>
                 </div>
                 <div class="shield-bar-container">
                   <div id="enemy-shield-bar" class="shield-bar-fill"></div>
                 </div>
               </div>
             </div>
-            <div id="enemy-stats-mini" class="fighter-stat-pills" title="Poder y Defensa del Rival">⚔️ 1  🛡️ 0</div>
-            <div class="fighter-inspect-hint">🔍 Toca para stats</div>
+            <div id="enemy-stats-mini" class="fighter-stat-pills hidden" style="display:none;" title="Poder y Defensa del Rival">⚔️ 1  🛡️ 0</div>
             <div id="enemy-status-badges" class="status-badges"></div>
           </div>
         </div>

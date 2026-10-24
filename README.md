@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.8.1 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.8.2 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,34 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.8.1] — Noviembre 2026 (Actual)
+### [v1.8.2] — Noviembre 2026 (Actual)
+* **Barra de Escudo Idéntica a Vida (`Actual/Máximo`) y Eliminación de Tiras Inferiores:**
+  * En la tarjeta del héroe y del rival, la barra de escudo muestra de manera limpia y estricta el formato numérico **`Actual/Máximo`** (ej. `12/22` o `0/10`), con idéntica tipografía, color y alineación que la barra de salud.
+  * Suprimidos los iconos internos repetidos y el texto residual `(Turno: X | Arm: Y)`.
+  * Eliminados definitivamente de la vista de batalla el chip suelto inferior de escudo (`🛡️ 12`) y la tira de estadísticas (`⚔️ PWR | 🛡️ DEF | ⚡ % | 🌵`), trasladando toda la información profunda a la Ficha en vivo.
+* **Ficha del Personaje en Combate Actualizada en Tiempo Real:**
+  * Acceso táctil directo mediante el botón **`📊 Ficha`** integrado limpiamente en la cabecera tanto del héroe como del rival, o al tocar la tarjeta del combatiente.
+  * **Tabla Comparativa de Atributos:** Desglose con 4 columnas canónicas (ATRIBUTO, BASE, BUFF / NERF, TOTAL) para Salud, Poder, Defensa, Escudo, % Crítico, % Esquiva, Espinas, % Vampirismo y % Suerte, diferenciando aumentos (en verde `+X`) y reducciones (en rojo `-Y`).
+  * **Sección de Elementos Activos en la Run:** Consulta de Bendición del Destino (con tier y descripción), Gema/Arma incrustada, Accesorio, Reliquias Arcanas, Artefactos, Afinidades de Palo y Pasivas del Yunque (siempre con nombres en español).
+  * **Panel de Estados y Monedas de Run:** Visualización en vivo de estados alterados (Veneno, Quemadura, Perks de turno como Muralla de Hierro o Acto de Desaparición, Dupla, etc.) y contadores de Oro de run (`🪙`), Criptas (`💀`) y Pociones (`🧪`).
+  * Inspección adaptada al rival con su rasgo único, estados residuales y desglose de combate.
+* **Perks Tácticos en Cascada Vertical Descendente (Sin Banner de Fondo):**
+  * Erradicado por completo el rectángulo grande contenedor con borde cian (`⚡ ¡PERK TÁCTICO ACTIVADO!`) que se superponía detrás de las notificaciones.
+  * Los perks activados se ordenan exclusivamente en tarjetas individuales doradas en columna vertical (`#tactical-perks-container`), con animación suave de entrada y salida, sin solapamientos ni textos montados en el fondo.
+* **Reestructuración del Flujo Poscombate con Modal de Botín Obtenido:**
+  * Al derrotar al enemigo (`enemy.hp <= 0`), antes de acceder a la selección de caminos (Hoguera, Bazar, Yunque) o avanzar de piso, se abre el modal principal **`🏆 ¡VICTORIA! BOTÍN OBTENIDO`**.
+  * Desglose visual y ordenado de recompensas ganadas en la batalla:
+    * 💰 **Oro de Expedición obtenido**.
+    * ⭐ **Experiencia (EXP) ganada**.
+    * 💀 **Metamonedas de Cripta obtenidas** (drops directos y conversiones automáticas de cartas repetidas).
+    * 👑 **Carta Cosmética Adquirida** (arte del monstruo en grande, nombre del rival y naipe de la baraja al que se aplicó).
+  * Botón principal **`✅ ACEPTAR Y CONTINUAR`**: la progresión se detiene hasta que el jugador confirma la recepción del botín, avanzando secuencialmente hacia la subida de nivel, caminos o siguiente piso.
+* **Ampliación del Pool de Bendiciones al Subir de Nivel:**
+  * El modal de `¡SUBIDA DE NIVEL!` ofrece ahora opciones vinculadas directamente a la build del jugador: junto a las clásicas Vitalidad, Furia y Bastión, se integran bendiciones de stats secundarios (`+% Crítico`, `+% Esquivar`, `+% Vampirismo`, `+% Espinas` y `+% Suerte`).
+* **Sincronización y Versión Oficial:**
+  * Versión del juego actualizada formalmente a **`v1.8.2 (BUILD 43)`** en todo el proyecto (`index.html`, `js/game.js`, `js/improvements.js`, `README.md`).
+
+### [v1.8.1] — Noviembre 2026
 * **Eliminación del Cartel Flotante de Reglas / Tips de Blackjack en Combate:**
   * Eliminado por completo el banner flotante superior de consejos (`#first-run-combat-hints`), liberando espacio visual vertical crítico en pantallas móviles.
 * **Rediseño Limpio de Barra de Escudo y Desduplicación de Chips:**

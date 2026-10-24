@@ -10101,28 +10101,49 @@ body.sudden-death-active #stage {
 }
 
 /* ============================================================
-   BANNER FLOTANTE TOAST DE PERK EN COMBATE
+   BANNER FLOTANTE TOAST DE PERK EN COMBATE (CASCADA DESCENDENTE v1.8.2)
    ============================================================ */
-.tactical-perk-toast {
+#tactical-perks-container {
   position: absolute;
-  top: clamp(80px, 24%, 180px);
-  left: 50%;
-  transform: translateX(-50%);
+  top: clamp(65px, 18%, 140px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   z-index: 1550;
+  pointer-events: none;
+}
+
+.tactical-perk-toast {
+  position: relative;
   background: linear-gradient(135deg, rgba(13, 20, 32, 0.96), rgba(26, 34, 51, 0.96));
-  border: 2px solid #ffd166;
-  border-radius: 10px;
-  padding: 8px 14px;
+  border: 1.5px solid #ffd166;
+  border-radius: 8px;
+  padding: 6px 12px;
   color: #fff;
   font-size: 9px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(255, 209, 102, 0.5);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.85), 0 0 12px rgba(255, 209, 102, 0.4);
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: perkToastPop 2.4s ease forwards;
+  animation: perkToastCascade 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: auto;
   max-width: 90%;
   width: max-content;
+}
+
+.tactical-perk-toast .tpt-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tactical-perk-toast .tpt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .tactical-perk-toast .tpt-name {
@@ -10130,19 +10151,21 @@ body.sudden-death-active #stage {
   color: #ffd166;
   font-size: 9px;
   font-weight: bold;
+  letter-spacing: 0.5px;
 }
 
 .tactical-perk-toast .tpt-desc {
   font-size: 9px;
   color: #cbd5e1;
+  line-height: 1.2;
 }
 
-@keyframes perkToastPop {
-  0% { opacity: 0; transform: translate(-50%, -15px) scale(0.9); }
-  12% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
-  20% { transform: translate(-50%, 0) scale(1); }
-  80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -20px) scale(0.95); }
+@keyframes perkToastCascade {
+  0% { opacity: 0; transform: translateY(-12px) scale(0.92); }
+  12% { opacity: 1; transform: translateY(0) scale(1.02); }
+  20% { transform: translateY(0) scale(1); }
+  82% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.95); }
 }
 
 /* ============================================================
@@ -14199,5 +14222,308 @@ body.sudden-death-active #stage {
   z-index: 2000 !important;
 }
 
+/* ==========================================================================
+   v1.8.2 COMBAT HUD, INSPECT DOSSIER & POST-COMBAT LOOT MODAL
+   ========================================================================== */
 
+/* Botón de inspección rápida "📊 Ficha" en la cabecera del combatiente */
+.fighter-inspect-pill-btn {
+  background: rgba(102, 252, 241, 0.12);
+  border: 1px solid rgba(102, 252, 241, 0.45);
+  border-radius: 12px;
+  color: #66fcf1;
+  font-family: var(--font-pixel, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
 
+.fighter-inspect-pill-btn:hover,
+.fighter-inspect-pill-btn:active {
+  background: rgba(102, 252, 241, 0.28);
+  border-color: #66fcf1;
+  transform: scale(1.04);
+}
+
+.fighter-inspect-pill-btn.enemy {
+  background: rgba(255, 117, 143, 0.12);
+  border-color: rgba(255, 117, 143, 0.45);
+  color: #ff758f;
+}
+
+.fighter-inspect-pill-btn.enemy:hover,
+.fighter-inspect-pill-btn.enemy:active {
+  background: rgba(255, 117, 143, 0.28);
+  border-color: #ff758f;
+}
+
+/* Tipografía idéntica para texto de Vida y Escudo */
+.hp-text,
+.shield-text {
+  font-family: var(--font-pixel, monospace) !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: #caf0f8 !important;
+  letter-spacing: 0.5px;
+}
+
+/* Ocultar de forma definitiva el chip suelto inferior de estadísticas en batalla */
+#player-stats-mini,
+#enemy-stats-mini,
+.fighter-stat-pills,
+.fighter-inspect-hint {
+  display: none !important;
+}
+
+/* Ficha del Personaje en Combate (Actualizada en Vivo) */
+.inspect-currencies-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.inspect-table-box {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 8px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.inspect-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+.inspect-stats-table th {
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  font-family: var(--font-pixel, monospace);
+  font-size: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inspect-stats-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #f1f5f9;
+  text-align: center;
+}
+
+.inspect-stats-table td:first-child {
+  text-align: left;
+}
+
+.inspect-stats-table tr:last-child td {
+  border-bottom: none;
+}
+
+.inspect-stats-table .stat-ico {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.inspect-section {
+  margin-top: 6px;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.inspect-section-title {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffd166;
+  margin-bottom: 4px;
+}
+
+.inspect-items-desc,
+.inspect-status-desc {
+  font-size: 9.5px;
+  color: #cbd5e1;
+  line-height: 1.45;
+  background: rgba(11, 12, 16, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 10px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+/* Modal de Botín Obtenido Poscombate (v1.8.2) */
+.combat-loot-modal {
+  position: relative;
+  background: linear-gradient(135deg, rgba(13, 20, 32, 0.98), rgba(22, 27, 46, 0.98));
+  border: 2px solid #ffd166;
+  border-radius: 14px;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.9), 0 0 24px rgba(255, 209, 102, 0.35);
+  max-width: 400px;
+  width: 90%;
+  padding: 18px 16px;
+  text-align: center;
+  animation: modalPopIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+  pointer-events: auto;
+}
+
+.combat-loot-header {
+  margin-bottom: 12px;
+}
+
+.combat-loot-badge {
+  font-family: var(--font-pixel, monospace);
+  font-size: 9.5px;
+  color: #ffd166;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.combat-loot-title {
+  font-family: var(--font-pixel, monospace);
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 209, 102, 0.5);
+}
+
+.combat-loot-sub {
+  font-size: 10.5px;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.combat-loot-rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.loot-reward-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+.loot-reward-card.gold {
+  border-color: rgba(255, 209, 102, 0.45);
+  background: rgba(255, 209, 102, 0.08);
+}
+
+.loot-reward-card.exp {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.loot-reward-card.crypt {
+  border-color: rgba(102, 252, 241, 0.45);
+  background: rgba(102, 252, 241, 0.08);
+}
+
+.loot-card-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.loot-card-val {
+  font-family: var(--font-pixel, monospace);
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.loot-reward-card.gold .loot-card-val { color: #ffd166; }
+.loot-reward-card.exp .loot-card-val { color: #38bdf8; }
+.loot-reward-card.crypt .loot-card-val { color: #66fcf1; }
+
+.loot-card-lbl {
+  font-size: 8px;
+  color: #94a3b8;
+}
+
+.loot-cosmetic-showcase {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(244, 162, 97, 0.08));
+  border: 1.5px solid #ffd166;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 16px rgba(255, 209, 102, 0.2);
+}
+
+.loot-cosmetic-badge {
+  font-family: var(--font-pixel, monospace);
+  font-size: 8.5px;
+  color: #ffd166;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.loot-cosmetic-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.loot-cosmetic-img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 209, 102, 0.6));
+}
+
+.loot-cosmetic-name {
+  font-family: var(--font-pixel, monospace);
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.loot-cosmetic-desc {
+  font-size: 9px;
+  color: #cbd5e1;
+  line-height: 1.35;
+}
+
+.combat-loot-continue-btn {
+  background: linear-gradient(135deg, #ffd166, #f4a261);
+  color: #0f172a;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-pixel, monospace);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 12px 16px;
+  min-height: 46px;
+  width: 100%;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 209, 102, 0.4);
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.combat-loot-continue-btn:hover,
+.combat-loot-continue-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 209, 102, 0.6);
+}

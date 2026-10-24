@@ -232,36 +232,50 @@
       }
     }
 
-    // Banner duplicado eliminado en v1.8.1: la activación se muestra únicamente en el toast compacto y en el log de combate
+    // Eliminar completamente cualquier banner grande de fondo cian
+    try {
+      const cb = document.getElementById("combat-banner");
+      if (cb) cb.classList.add("hidden");
+    } catch (_) {}
+
     window.dismissTacticalPerkToasts = function() {
       try {
+        const cont = document.getElementById("tactical-perks-container");
+        if (cont) cont.innerHTML = "";
         document.querySelectorAll(".tactical-perk-toast").forEach(t => t.remove());
       } catch (_) {}
     };
+
+    const stage = document.getElementById("stage") || document.getElementById("game-container") || document.body;
+    let container = document.getElementById("tactical-perks-container");
+    if (!container && stage) {
+      container = document.createElement("div");
+      container.id = "tactical-perks-container";
+      stage.appendChild(container);
+    }
 
     uniqueCombos.forEach((combo, i) => {
       setTimeout(() => {
         if (typeof addLog === "function") addLog(`⚡ [PERK TÁCTICO] ${combo.icon} ${combo.name}: ${combo.desc}`, "critical");
         if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", `${combo.icon} ${combo.name}`, "crit");
         try {
-          const stage = document.getElementById("stage") || document.body;
+          // ¡PERK TÁCTICO ACTIVADO! (Notificación individual en cascada descendente)
+          const targetCont = document.getElementById("tactical-perks-container") || stage;
           const toast = document.createElement("div");
           toast.className = "tactical-perk-toast";
           toast.style.cursor = "pointer";
-          toast.style.top = `calc(clamp(80px, 22%, 160px) + ${i * 46}px)`;
-          toast.style.zIndex = "85";
           toast.title = "Toca para ver detalles del Perk";
           toast.onclick = () => {
             if (typeof showGameAlert === "function") {
-              showGameAlert(`⚡ [PERK TÁCTICO: ${combo.name}]\n\n${combo.desc}`, "PERK TÁCTICO ACTIVADO");
+              showGameAlert(`⚡ [PERK TÁCTICO: ${combo.name}]\n\n${combo.desc}`, "¡PERK TÁCTICO ACTIVADO!");
             }
           };
-          toast.innerHTML = `<div style="font-size:20px;line-height:1;">${combo.icon}</div><div><div class="tpt-name">⚡ ¡PERK TÁCTICO ACTIVADO! ${combo.icon} ${combo.name.toUpperCase()}</div><div class="tpt-desc">${combo.desc}</div></div>`;
-          stage.appendChild(toast);
-          setTimeout(() => { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 2800);
+          toast.innerHTML = `<div class="tpt-icon">${combo.icon}</div><div class="tpt-body"><div class="tpt-name">⚡ PERK: ${combo.name.toUpperCase()}</div><div class="tpt-desc">${combo.desc}</div></div>`;
+          targetCont.appendChild(toast);
+          setTimeout(() => { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 3000);
         } catch (_) {}
         if (i === 0 && typeof playSynergyComboSound === "function") { try { playSynergyComboSound(); } catch (_) {} }
-      }, i * 200);
+      }, i * 180);
     });
   }
   window.showSynergyPopups = showSynergyPopups;
