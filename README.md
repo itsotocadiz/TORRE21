@@ -65,7 +65,26 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.8.0] — Octubre 2026 (Actual)
+### [v1.8.1] — Noviembre 2026 (Actual)
+* **Blindaje Defensivo contra Crashes en Primer Combate (`ensureBattleStateInitialized`):**
+  * Resuelta la condición de carrera al entrar a la primera batalla de una sesión: pre-inicialización obligatoria y defensiva de atributos (`STR/DEX/INT/VIT`), baraja (`deck`), estado del rival (`enemy`), escudos, afinidades y referencias de DOM antes de ejecutar rutinas de cálculo táctico y HUD.
+* **Corrección de Selección y Registro de Bendiciones (`STARTER_BLESSINGS`):**
+  * Solucionada la inconsistencia de selección de bendiciones: pase estricto por `id`, asignación de objeto normalizado y desduplicación de inspección.
+  * Persistencia automática de bendiciones seleccionadas en el Códice (`torre21_unlocked_blessings` y `bj_unlocked_blessings`).
+* **Reestructuración Integral del Códice (100% Coleccionables Roguelike):**
+  * Códice rediseñado con 5 pestañas de coleccionables puros: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
+  * Oficialmente renombrada la colección a *"Cartas Cosméticas"* y eliminado el doble título redundante.
+  * Eliminadas las pestañas obsoletas de "Pisos" y "Secretos del Abismo", así como el botón "Revivir el Cómic del Prólogo".
+  * Nuevas ranuras coleccionables con silueta `?` para bendiciones (`STARTER_BLESSINGS`) y reliquias (`ALL_RELICS` + `DEMONIC_RELICS_BY_ACT`).
+* **Unificación de Moneda de Metajuego (Calavera de Cripta 💀):**
+  * Reemplazados todos los iconos de llave (`🔑` / `🗝️`) en la Tienda del Héroe, contadores, botones de compra y transmutación de cartas/sellos por la calavera de cripta `💀`.
+* **Ficha de Combate Precisa y Traducida al Español:**
+  * Eliminada la mención de `(+12% por Nvl X)` inexistente en el cálculo de daño.
+  * Traducción completa al español y con iconos de todas las reliquias, artefactos, accesorios y bendiciones (`getItemSpanishName`).
+  * Desglose dinámico de atributos RPG en combate: Crítico, Esquivar, Espinas, Vampirismo y Suerte.
+  * Ocultado el contador de bajas duplicado `ui-kills` en la barra superior.
+
+### [v1.8.0] — Octubre 2026
 * **Auditoría e Integridad del Códice Coleccionable (100% Colecciones):**
   * Verificación exhaustiva de las 5 colecciones del Códice: `📜 Memorias`, `👑 Cartas Cosméticas`, `✨ Bendiciones`, `🏺 Reliquias` y `⚔️ Bestiario`.
   * Estandarización de ranuras misteriosas `?` para todos los elementos no desbloqueados con pistas de obtención in-game.

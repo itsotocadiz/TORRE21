@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.8.0";
+  const GAME_VERSION = "v1.8.1";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.0)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.1)
      ============================================================ */
 
   const HERO_DATA = {
