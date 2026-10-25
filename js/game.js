@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.8.4";
+  const GAME_VERSION = "v1.8.5";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.4)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.5)
      ============================================================ */
 
   const HERO_DATA = {
@@ -19,13 +19,13 @@
       pwr: 12,
       def: 5,
       startingShield: 6,
-      thorns: 15,
+      thorns: 1,
       critChance: 0,
       dodgeChance: 0,
       lifesteal: 0,
       luck: 0,
       styleClass: "shield-bio",
-      desc: "Baluarte y Contraataque: Tanque indestructible. Devuelve daño al rival al mitigar golpes gracias a sus Espinas e inicia cada combate con Escudo protector."
+      desc: "Baluarte y Contraataque: Tanque indestructible. Inicia con 1 de Espina de base para devolver daño directo puro al rival por cada impacto y con Escudo protector."
     },
     rogue: {
       name: "Pícaro",
@@ -2644,26 +2644,29 @@
     return arr;
   }
 
+  let playerDrawPile = [];
+  let enemyDrawPile = [];
+
   function buildStandardDeck() {
     const extraCards = (typeof getPersistentExtraCards === "function") ? getPersistentExtraCards() : [];
     const persistentSeals = (typeof getPersistentDeckSeals === "function") ? getPersistentDeckSeals() : {};
     const deck = [];
 
-    // 1. Baraja estándar de 52 cartas base
+    // 1. Baraja estándar de 52 cartas base del Jugador
     for (const suit of SUITS) {
       for (const r of CARD_RANKS) {
-        deck.push({ rank: r.rank, suit, value: r.value, isAce: !!r.isAce });
+        deck.push({ rank: r.rank, suit, value: r.value, isAce: !!r.isAce, isPlayerCard: true });
       }
     }
 
-    // 2. Integrar cartas persistentes ganadas en Ascensos (BUG-02)
-    // Se reemplaza la carta común homóloga en el mazo de 52 cartas para mantener exactamente 52 cartas oficiales
+    // 2. Integrar cartas persistentes transmutadas / ganadas por el jugador
     if (Array.isArray(extraCards) && extraCards.length > 0) {
       extraCards.forEach((c, idx) => {
         if (!c) return;
         const cSpecialId = c.specialId || c.id || `won_card_${idx}`;
         const cardObj = Object.assign({
           isWonCard: true,
+          isPlayerCard: true,
           specialId: cSpecialId,
           slot: c.slot || null,
           rank: c.rank || "10",
@@ -2673,9 +2676,8 @@
           rarity: c.rarity || "arcane",
           name: c.name || `${c.rank || '10'}${c.suit || '♠'}`,
           desc: c.desc || ""
-        }, c, { isWonCard: true, specialId: cSpecialId });
+        }, c, { isWonCard: true, isPlayerCard: true, specialId: cSpecialId });
 
-        // Si la carta ganada posee un sello arcano persistente asignado por su ID o clave suit_rank
         const cardSeal = persistentSeals[cSpecialId] || persistentSeals[c.id] || persistentSeals[c.slot] || persistentSeals[`${cardObj.suit}_${cardObj.rank}`];
         if (cardSeal && !cardObj.enchantment) {
           cardObj.enchantment = Object.assign({}, cardSeal);
@@ -2690,7 +2692,7 @@
       });
     }
 
-    // 3. Aplicar sellos persistentes correspondientes a cartas del mazo
+    // 3. Aplicar sellos arcanos persistentes a las cartas del jugador
     deck.forEach(c => {
       if (!c.enchantment) {
         const sKey = c.specialId || c.id || c.slot || `${c.suit}_${c.rank}`;
@@ -2702,7 +2704,7 @@
       }
     });
 
-    // 4. Aplicar cartas cosméticas persistentes como fondo full-art
+    // 4. Aplicar cartas cosméticas exclusivas del jugador
     const cosmeticBindings = (typeof getCosmeticDeckBindings === "function") ? getCosmeticDeckBindings() : {};
     deck.forEach(c => {
       const cKey = c.specialId || c.id || c.slot || `${c.suit}_${c.rank}`;
@@ -2714,34 +2716,131 @@
 
     return deck;
   }
+  window.buildStandardDeck = buildStandardDeck;
+
+  function buildPlayerDeck() {
+    return buildStandardDeck();
+  }
+  window.buildPlayerDeck = buildPlayerDeck;
+
+  function buildEnemyDeck(floor = 1, difficulty = "normal", enemy = null) {
+    const deck = [];
+
+    // 1. Baraja estándar de 52 cartas base para el Rival
+    for (const suit of SUITS) {
+      for (const r of CARD_RANKS) {
+        deck.push({ rank: r.rank, suit, value: r.value, isAce: !!r.isAce, isEnemyCard: true });
+      }
+    }
+
+    // 2. Escalado por Acto/Piso, Élite, Jefe y Dificultad de Ascensión
+    const isBoss = enemy && (enemy.isBoss || enemy.boss || (floor % 4 === 0) || floor === 12);
+    const isElite = enemy && (enemy.isElite || enemy.elite);
+    const isHardDiff = (difficulty === "heroic" || difficulty === "mythic" || difficulty === "nightmare" || difficulty === "endless");
+
+    let darkCardsCount = 0;
+    if (floor >= 8) darkCardsCount = 4;
+    else if (floor >= 4) darkCardsCount = 2;
+    if (isElite) darkCardsCount += 2;
+    if (isBoss) darkCardsCount += 3;
+    if (isHardDiff) darkCardsCount += (difficulty === "nightmare" || difficulty === "endless" ? 3 : 2);
+
+    if (darkCardsCount > 0) {
+      const darkPool = [
+        { rank: "10", suit: "♠", value: 10, name: "Hoja Umbría 10♠", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "shadow_slash", desc: "Corte Sombrío del Rival (+3 Daño)" },
+        { rank: "A", suit: "♥", value: 11, isAce: true, name: "Pacto Tiránico A♥", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "tyrant_pact", desc: "Aura Tiránica" },
+        { rank: "K", suit: "♦", value: 10, name: "Baluarte de Obsidiana K♦", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "obsidian_aegis", desc: "Coraza Pétrea" },
+        { rank: "Q", suit: "♣", value: 10, name: "Vórtice Abisal Q♣", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "abyssal_vortex", desc: "Vórtice Oscuro" },
+        { rank: "J", suit: "♠", value: 10, name: "Sentencia del Rey de la Torre J♠", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "tower_sentinel", desc: "Sentencia Inapelable" },
+        { rank: "9", suit: "♦", value: 9, name: "Espina de Malaquita 9♦", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "toxic_thorn", desc: "Espina Tóxica" },
+        { rank: "8", suit: "♣", value: 8, name: "Maldición del Ojo Ciego 8♣", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "blind_curse", desc: "Niebla del Vacío" }
+      ];
+
+      const toInsert = darkPool.slice(0, Math.min(darkCardsCount, darkPool.length));
+      toInsert.forEach(darkCard => {
+        const matchIdx = deck.findIndex(base => base.rank === darkCard.rank && base.suit === darkCard.suit);
+        if (matchIdx !== -1) {
+          deck[matchIdx] = Object.assign({}, darkCard);
+        } else {
+          deck.push(Object.assign({}, darkCard));
+        }
+      });
+    }
+
+    return deck;
+  }
+  window.buildEnemyDeck = buildEnemyDeck;
 
   function peekNextCard() {
-    if (!drawPile || drawPile.length === 0) return null;
-    return drawPile[drawPile.length - 1];
+    if (!playerDrawPile || playerDrawPile.length === 0) return null;
+    return playerDrawPile[playerDrawPile.length - 1];
   }
   window.peekNextCard = peekNextCard;
 
-  function rebuildDrawPile() {
-    drawPile = buildStandardDeck();
-    shuffleArray(drawPile);
-    return drawPile;
+  function rebuildPlayerDrawPile() {
+    playerDrawPile = buildPlayerDeck();
+    shuffleArray(playerDrawPile);
+    drawPile = playerDrawPile;
+    if (typeof gameState !== "undefined" && gameState) {
+      gameState.playerDeck = playerDrawPile;
+    }
+    return playerDrawPile;
   }
+  window.rebuildPlayerDrawPile = rebuildPlayerDrawPile;
+
+  function rebuildEnemyDrawPile() {
+    const floor = (typeof gameState !== "undefined" && gameState && gameState.floor) ? gameState.floor : 1;
+    const diff = (typeof gameState !== "undefined" && gameState && gameState.ascensionDifficulty) ? gameState.ascensionDifficulty : "normal";
+    const enemy = (typeof gameState !== "undefined" && gameState && gameState.enemy) ? gameState.enemy : null;
+    enemyDrawPile = buildEnemyDeck(floor, diff, enemy);
+    shuffleArray(enemyDrawPile);
+    if (typeof gameState !== "undefined" && gameState) {
+      gameState.enemyDeck = enemyDrawPile;
+    }
+    return enemyDrawPile;
+  }
+  window.rebuildEnemyDrawPile = rebuildEnemyDrawPile;
+
+  function rebuildDrawPile() {
+    rebuildPlayerDrawPile();
+    rebuildEnemyDrawPile();
+    return playerDrawPile;
+  }
+  window.rebuildDrawPile = rebuildDrawPile;
+
+  function drawEnemyCard() {
+    if (!enemyDrawPile || enemyDrawPile.length === 0) {
+      rebuildEnemyDrawPile();
+      addLog(`El rival ha preparado su mazo oscuro de ${enemyDrawPile.length} cartas.`, "info");
+    }
+    let card = enemyDrawPile.pop();
+    if (!card) {
+      card = { rank: "10", suit: "♠", value: 10, isEnemyCard: true };
+    }
+    return card;
+  }
+  window.drawEnemyCard = drawEnemyCard;
 
   function drawCard(biasTarget = null) {
-    if (drawPile.length === 0) {
-      rebuildDrawPile();
-      addLog(`Se ha barajado un nuevo mazo de ${drawPile.length} cartas.`, "info");
+    const who = (arguments.length > 1 && typeof arguments[1] === "string") ? arguments[1] : "player";
+    if (who === "enemy") {
+      return drawEnemyCard();
+    }
+    const targetPile = (typeof playerDrawPile !== "undefined" && playerDrawPile && playerDrawPile.length > 0) ? playerDrawPile : (typeof drawPile !== "undefined" ? drawPile : []);
+    if (!targetPile || targetPile.length === 0) {
+      if (typeof rebuildDrawPile === "function") rebuildDrawPile();
+      if (typeof addLog === "function") addLog(`Se ha barajado un nuevo mazo de cartas.`, "info");
     }
 
     // Sesgo de robo cuando se solicita un valor objetivo (clutch / fortuna)
-    if (biasTarget !== null && drawPile.length > 0) {
-      const idx = drawPile.findIndex(c => {
+    if (biasTarget !== null && targetPile.length > 0) {
+      const idx = targetPile.findIndex(c => {
         if (biasTarget === 1 || biasTarget === 11) return c.isAce;
         return c.value === biasTarget;
       });
       if (idx !== -1) {
-        const [clutchCard] = drawPile.splice(idx, 1);
-        if (clutchCard && gameState.player && gameState.player.cardEnchantments) {
+        const [clutchCard] = targetPile.splice(idx, 1);
+        if (clutchCard && typeof gameState !== "undefined" && gameState.player && gameState.player.cardEnchantments) {
           const cid = clutchCard.specialId || clutchCard.id || clutchCard.slot || `${clutchCard.suit}_${clutchCard.rank}`;
           const suitRankId = (clutchCard.suit && clutchCard.rank) ? `${clutchCard.suit}_${clutchCard.rank}` : null;
           const ench = gameState.player.cardEnchantments[cid] || (suitRankId ? gameState.player.cardEnchantments[suitRankId] : null);
@@ -2753,30 +2852,30 @@
       }
     }
 
-    let card = drawPile.pop();
+    let card = targetPile.pop();
 
     // Stat Suerte (Manipulación de Destino): ayuda a robar cartas favorables entre 15 y 20
-    const p = gameState && gameState.player;
-    if (p && p.playerHand && p.playerHand.length > 0 && (p.luck || 0) > 0 && !p.stand && drawPile.length > 0) {
-      const curScore = calculateHandScore(p.playerHand);
+    const p = (typeof gameState !== "undefined" && gameState) ? gameState.player : null;
+    if (p && p.playerHand && p.playerHand.length > 0 && (p.luck || 0) > 0 && !p.stand && targetPile.length > 0) {
+      const curScore = (typeof calculateHandScore === "function") ? calculateHandScore(p.playerHand) : 0;
       if (curScore >= 15 && curScore <= 20) {
         const testHand = [...p.playerHand, card];
-        if (calculateHandScore(testHand) > 21 && Math.random() * 100 < p.luck) {
-          const safeIdx = drawPile.findIndex(c => calculateHandScore([...p.playerHand, c]) <= 21);
+        if (typeof calculateHandScore === "function" && calculateHandScore(testHand) > 21 && Math.random() * 100 < p.luck) {
+          const safeIdx = targetPile.findIndex(c => calculateHandScore([...p.playerHand, c]) <= 21);
           if (safeIdx !== -1) {
-            const safeCard = drawPile.splice(safeIdx, 1)[0];
-            drawPile.push(card);
+            const safeCard = targetPile.splice(safeIdx, 1)[0];
+            targetPile.push(card);
             card = safeCard;
             try {
-              addLog("🍀 Manipulación de Destino (Suerte): El mazo te concede una carta favorable.", "heal");
-              spawnFloatingText("player-sprite", "🍀 SUERTE", "crit");
+              if (typeof addLog === "function") addLog("🍀 Manipulación de Destino (Suerte): El mazo te concede una carta favorable.", "heal");
+              if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "🍀 SUERTE", "crit");
             } catch (_) {}
           }
         }
       }
     }
 
-    if (card && gameState.player && gameState.player.cardEnchantments) {
+    if (card && typeof gameState !== "undefined" && gameState.player && gameState.player.cardEnchantments) {
       const cid = card.specialId || card.id || card.slot || `${card.suit}_${card.rank}`;
       const suitRankId = (card.suit && card.rank) ? `${card.suit}_${card.rank}` : null;
       const ench = gameState.player.cardEnchantments[cid] || (suitRankId ? gameState.player.cardEnchantments[suitRankId] : null);
@@ -2787,6 +2886,11 @@
     return card;
   }
   window.drawCard = drawCard;
+
+  function drawPlayerCard(biasTarget = null) {
+    return drawCard(biasTarget, "player");
+  }
+  window.drawPlayerCard = drawPlayerCard;
 
   function isEven(n) { return n % 2 === 0; }
 
@@ -3887,7 +3991,7 @@
     if (critChance > 0 && Math.random() * 100 < critChance) {
       isCrit = true;
       const isNatBJ = (score === 21 && (playerHand || []).length === 2);
-      critMult = isNatBJ ? (player.gem === "blackjack_heritage" ? 3.0 : 2.5) : 2.0;
+      critMult = isNatBJ ? 2.5 : 2.0;
     }
 
     // 5. Multiplicador de Doblar
@@ -5200,7 +5304,7 @@
   function applyHeroTalentsToPlayer(p, heroKey) {
     if (!p) return;
     const tree = getHeroTalentTree(heroKey);
-    const ranks = tree.ranks || {};
+    const ranks = (tree && tree.ranks) || {};
 
     // Inicialización estricta: ninguna afinidad de palo activa por defecto sin el nodo Tier 1
     p.affinitySpades = !!(ranks["spades_1"] && ranks["spades_1"] > 0);
@@ -5212,51 +5316,42 @@
     p._heartsRank = ranks["hearts_1"] || 0;
     p._clubsRank = ranks["clubs_1"] || 0;
 
-    // ♠️ Picas (Filo)
-    if (ranks["spades_1"]) p.pwr = (p.pwr || 10) + Math.round((p.pwr || 10) * (ranks["spades_1"] * 0.03));
-    if (ranks["spades_2"]) p._treeCritChanceBonus = (ranks["spades_2"] || 0) * 4;
-    if (ranks["spades_3"]) p._spadesArmorShred = (ranks["spades_3"] || 0) * 1;
-    if (ranks["spades_4"]) p._spadesVorpalBonus = (ranks["spades_4"] || 0) * 0.15;
-    if (ranks["spades_5"]) p._spadesCritLifesteal = 0.12;
-    if (ranks["spades_6"]) p._spadesTwinBlades = true;
-    if (ranks["spades_7"]) p._spadesDeathSentence = true;
+    // ♠️ Rama del Filo (Picas)
+    p._spadesAfinidadBonus = (ranks["spades_1"] || 0) * 1;
+    p._treeCritChanceBonus = (ranks["spades_2"] || 0) * 4;
+    p._spadesArmorShred = (ranks["spades_3"] || 0) * 1;
+    p._spadesVorpalBonus = (ranks["spades_4"] || 0) * 0.15;
+    p._spadesCritLifesteal = (ranks["spades_5"] || 0) * 0.12;
+    p._spadesTwinBlades = (ranks["spades_6"] || 0) > 0;
+    p._spadesDeathSentence = (ranks["spades_7"] || 0) > 0;
 
-    // ♦️ Diamantes (Baluarte)
-    if (ranks["diamonds_1"]) {
-      gameState.status = gameState.status || {};
-      gameState.status.playerShield = (gameState.status.playerShield || 0) + (ranks["diamonds_1"] * 3);
-    }
-    if (ranks["diamonds_2"]) p._diamondsCounterMitigate = (ranks["diamonds_2"] || 0) * 2;
-    if (ranks["diamonds_3"]) p._diamondsFloorShield = (ranks["diamonds_3"] || 0) * 8;
-    if (ranks["diamonds_4"]) p._diamondsThornReflect = (ranks["diamonds_4"] || 0) * 0.25;
-    if (ranks["diamonds_5"]) p.def = (p.def || 0) + 2;
-    if (ranks["diamonds_6"]) p._diamondsAceShield = 10;
-    if (ranks["diamonds_7"]) p._diamondsAegisRevive = true;
+    // ♦️ Rama del Baluarte (Diamantes)
+    p._diamondsAfinidadShield = (ranks["diamonds_1"] || 0) * 1;
+    p._diamondsCounterMitigate = (ranks["diamonds_2"] || 0) * 2;
+    p._diamondsFloorShield = (ranks["diamonds_3"] || 0) * 8;
+    p._diamondsThornReflect = (ranks["diamonds_4"] || 0) * 0.25;
+    p._diamondsTalentDef = (ranks["diamonds_5"] || 0) * 2;
+    p._diamondsAceShield = (ranks["diamonds_6"] || 0) * 10;
+    p._diamondsAegisRevive = (ranks["diamonds_7"] || 0) > 0;
 
-    // ♥️ Corazones (Vitalidad)
-    if (ranks["hearts_1"]) {
-      const extraHp = (ranks["hearts_1"] || 0) * 8;
-      p.maxHp = (p.maxHp || 80) + extraHp;
-      p.hp = (p.hp || 80) + extraHp;
-    }
-    if (ranks["hearts_2"]) p._heartsFloorRegen = (ranks["hearts_2"] || 0) * 4;
-    if (ranks["hearts_3"]) {
-      const extraMaxHp = (ranks["hearts_3"] || 0) * 15;
-      p.maxHp = (p.maxHp || 80) + extraMaxHp;
-      p.hp = (p.hp || 80) + extraMaxHp;
-    }
-    if (ranks["hearts_4"]) p._heartsPotionBoost = (ranks["hearts_4"] || 0) * 0.35;
-    if (ranks["hearts_5"]) p._heartsKillRegen = 8;
-    if (ranks["hearts_6"]) p._heartsDoubleTide = true;
-    if (ranks["hearts_7"]) p._heartsSolarCleanse = true;
+    // ♥️ Rama de la Vitalidad (Corazones)
+    p._heartsAfinidadHeal = (ranks["hearts_1"] || 0) * 1;
+    p._heartsFloorRegen = (ranks["hearts_2"] || 0) * 4;
+    p._heartsTitanHp = (ranks["hearts_3"] || 0) * 15;
+    p._heartsPotionBoost = (ranks["hearts_4"] || 0) * 0.35;
+    p._heartsKillRegen = (ranks["hearts_5"] || 0) * 8;
+    p._heartsDoubleTide = (ranks["hearts_6"] || 0) > 0;
+    p._heartsSolarCleanse = (ranks["hearts_7"] || 0) > 0;
 
-    // ♣️ Tréboles (Fortuna)
-    if (ranks["clubs_1"]) p._clubsGoldBonus = (ranks["clubs_1"] || 0) * 0.08;
-    if (ranks["clubs_2"]) p._clubsClutchLuck = (ranks["clubs_2"] || 0) * 0.06;
-    if (ranks["clubs_3"]) p._clubsStartingGold = (ranks["clubs_3"] || 0) * 20;
-    if (ranks["clubs_4"]) p._clubsFloorRerolls = (ranks["clubs_4"] || 0) * 1;
-    if (ranks["clubs_5"]) p._clubsFreePotionChance = 0.25;
-    if (ranks["clubs_6"]) p._clubsDoublePayout = true;
+    // ♣️ Rama de la Fortuna (Tréboles)
+    p._clubsAfinidadGold = (ranks["clubs_1"] || 0) * 1;
+    p._clubsClutchLuck = (ranks["clubs_2"] || 0) * 0.06;
+    p._clubsStartingGold = (ranks["clubs_3"] || 0) * 20;
+    p._clubsFloorRerolls = (ranks["clubs_4"] || 0) * 1;
+    p._clubsFreePotionChance = (ranks["clubs_5"] || 0) * 0.25;
+    p._clubsDoublePayout = (ranks["clubs_6"] || 0) > 0;
+    p._clubsBlackjackSovereign = (ranks["clubs_7"] || 0) > 0;
+
     recalculatePlayerStats(p);
   }
   window.applyHeroTalentsToPlayer = applyHeroTalentsToPlayer;
@@ -5268,40 +5363,59 @@
     const heroKey = p.classKey || p.class || "knight";
     const heroCfg = HERO_DATA[heroKey] || HERO_DATA[p.class] || HERO_DATA.knight;
 
-    // Stats RPG de Arquetipo inicial del Héroe
+    // 1. STATS RPG BASE DEL HÉROE
     let baseDodge = (typeof heroCfg.dodgeChance === "number") ? heroCfg.dodgeChance : 0;
     let baseLuck = (typeof heroCfg.luck === "number") ? heroCfg.luck : 0;
     let baseLifesteal = (typeof heroCfg.lifesteal === "number") ? heroCfg.lifesteal : 0;
     let baseThorns = (typeof heroCfg.thorns === "number") ? heroCfg.thorns : 0;
     let baseCrit = (typeof heroCfg.critChance === "number") ? heroCfg.critChance : 0;
+    let basePwr = (typeof heroCfg.pwr === "number") ? heroCfg.pwr : 10;
+    let baseDef = (typeof heroCfg.def === "number") ? heroCfg.def : 0;
+    let baseMaxHp = (typeof heroCfg.maxHp === "number") ? heroCfg.maxHp : 80;
 
-    // Mejoras permanentes elegidas al subir de nivel (levelUpStats)
+    // 2. MEJORAS PERMANENTES DE SUBIDA DE NIVEL (levelUpStats)
     if (!p.levelUpStats) {
       p.levelUpStats = { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
     }
+    basePwr += (p.levelUpStats.pwr || 0);
+    baseDef += (p.levelUpStats.def || 0);
+    baseMaxHp += (p.levelUpStats.hp || 0);
     baseCrit += (p.levelUpStats.crit || 0);
     baseDodge += (p.levelUpStats.dodge || 0);
     baseLuck += (p.levelUpStats.luck || 0);
     baseLifesteal += (p.levelUpStats.lifesteal || 0);
     baseThorns += (p.levelUpStats.thorns || 0);
 
-    // Talentos del Árbol Elemental
+    // 3. AUDITORÍA TOTAL DE LOS 28 NODOS DEL ÁRBOL DE TALENTOS
     if (typeof getHeroTalentTree === "function") {
       const tree = getHeroTalentTree(heroKey);
       const ranks = (tree && tree.ranks) || {};
-      if (ranks["spades_1"]) baseCrit += ranks["spades_1"] * 2;
-      if (ranks["spades_2"]) baseCrit += ranks["spades_2"] * 4;
-      if (ranks["spades_5"]) baseLifesteal += ranks["spades_5"] * 12;
-      if (ranks["diamonds_4"]) baseThorns += ranks["diamonds_4"] * 10;
-      if (ranks["clubs_2"]) baseLuck += ranks["clubs_2"] * 6;
+
+      // Rama Picas
+      if (ranks["spades_2"]) baseCrit += (ranks["spades_2"] * 4);
+      if (ranks["spades_5"]) baseLifesteal += (ranks["spades_5"] * 12);
+
+      // Rama Diamantes: Espinas crecen estrictamente de 1 en 1 (+1 por rango)
+      if (ranks["diamonds_4"]) baseThorns += (ranks["diamonds_4"] * 1);
+      if (ranks["diamonds_5"]) baseDef += (ranks["diamonds_5"] * 2);
+
+      // Rama Corazones: Vigor de Titán (+15 HP Máx por rango)
+      if (ranks["hearts_3"]) baseMaxHp += (ranks["hearts_3"] * 15);
+
+      // Rama Tréboles: Trébol Afortunado (+6% Suerte por rango)
+      if (ranks["clubs_2"]) baseLuck += (ranks["clubs_2"] * 6);
     }
 
     if (p._treeCritChanceBonus) baseCrit += p._treeCritChanceBonus;
     if (p._spadesCritLifesteal) baseLifesteal += Math.round(p._spadesCritLifesteal * 100);
-    if (p._diamondsThornReflect) baseThorns += Math.round(p._diamondsThornReflect * 100);
+    if (p._diamondsTalentDef) baseDef += p._diamondsTalentDef;
+    if (p._heartsTitanHp && !p._treeTitanHpApplied) {
+      baseMaxHp += p._heartsTitanHp;
+      p._treeTitanHpApplied = true;
+    }
     if (p._clubsClutchLuck) baseLuck += Math.round(p._clubsClutchLuck * 100);
 
-    // Atributos RPG escalados
+    // 4. ATRIBUTOS RPG ESCALADOS (DEX / INT)
     if (p.attributes) {
       if (p.attributes.dex > 10) {
         const extraDex = p.attributes.dex - 10;
@@ -5313,28 +5427,33 @@
       }
     }
 
-    // Bendición del Destino inicial activa
+    // 5. BENDICIONES DEL DESTINO
     if (p.starterBlessing) {
       const bId = (typeof p.starterBlessing === "object") ? p.starterBlessing.id : p.starterBlessing;
       if (bId === "wind_cloak") baseDodge += 15;
       if (bId === "gladiator_pact") baseLifesteal += 10;
-      if (bId === "oak_bark") baseThorns += 10;
+      if (bId === "oak_bark") baseThorns += 1; // Rebalanceo estricto +1
       if (bId === "keen_eye") baseCrit += 10;
       if (bId === "copper_pouch" || bId === "midas_touch") baseLuck += 10;
     }
 
-    // Accesorios equipados (Cinturón con Púas, Casco de Acero, Amuleto de Suerte, etc.)
-    if (p.accessory === "spiked_belt") baseThorns += 2;
+    // 6. ACCESORIOS EQUIPADOS (Cinturón con Púas +1 Espina, Amuleto de Suerte, etc.)
+    if (p.accessory === "spiked_belt") baseThorns += 1;
     if (p.accessory === "lucky_charm") baseLuck += 10;
     if (p.accessory === "blood_amulet") baseLifesteal += 5;
 
-    // Pactos de la Mesa Sacrificial
+    // 7. JOYA HEREDADA (BLACKJACK_HERITAGE v1.8.5: +3 PWR, +10% Crítico, +16 HP)
+    if (p.gem === "blackjack_heritage" || p._heritageCrit) {
+      baseCrit += 10;
+    }
+
+    // 8. PACTOS DE LA MESA SACRIFICIAL REBALANCEADOS (HIGH RISK, HIGH REWARD)
     if (p._sacrificeCrit) baseCrit += p._sacrificeCrit;
     if (p._sacrificeDodge) baseDodge += p._sacrificeDodge;
     if (p._sacrificeVampirism) baseLifesteal += p._sacrificeVampirism;
     if (p._sacrificeThorns) baseThorns += p._sacrificeThorns;
 
-    // Reliquias estándar, Artefactos y Reliquias Demoníacas
+    // 9. RELIQUIAS Y ARTEFACTOS (SANITIZADOS)
     const allRelics = [
       ...(p.artifacts || []),
       ...(p.relics || []),
@@ -5343,21 +5462,21 @@
 
     allRelics.forEach(r => {
       if (!r) return;
-      const rid = r.id || "";
+      const rid = (typeof r === "object") ? (r.id || "") : String(r);
       if (rid.includes("crit") || rid === "sharp_blade" || rid === "assassin_dagger") baseCrit += 10;
       if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") baseDodge += 10;
       if (rid.includes("luck") || rid === "lucky_charm" || rid === "lucky_coin") baseLuck += 10;
       if (rid.includes("vampire") || rid === "bloody_chalice" || rid === "blood_chalice") baseLifesteal += 10;
-      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 5;
-      if (rid === "relic_necro_bones" || r._boneThorns) baseThorns += 3;
+      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 1;
+      if (rid === "relic_necro_bones" || r._boneThorns) baseThorns += 1;
     });
 
-    // Buffs y Nerfs de combate en tiempo real
+    // 10. BUFFS Y NERFS EN TIEMPO REAL
     if (typeof gameState !== "undefined" && gameState.status) {
       if (gameState.status.playerBlind) baseCrit = Math.max(0, baseCrit - 10);
       if (gameState.status.playerClumsy) baseDodge = Math.max(0, baseDodge - 10);
       if (gameState.status.playerOpenWound) baseLifesteal = 0;
-      if (gameState.status.playerRuneShell) baseThorns += 10;
+      if (gameState.status.playerRuneShell) baseThorns += 1;
     }
 
     p.dodgeChance = Math.min(45, Math.max(0, baseDodge));
@@ -5365,6 +5484,9 @@
     p.luck = Math.min(50, Math.max(0, baseLuck));
     p.lifesteal = Math.min(50, Math.max(0, baseLifesteal));
     p.thorns = Math.max(0, baseThorns);
+    p.def = Math.max(0, baseDef);
+    p.maxHp = Math.max(20, baseMaxHp);
+    p.hp = Math.min(p.hp || p.maxHp, p.maxHp);
   }
   window.recalculatePlayerStats = recalculatePlayerStats;
 
@@ -5411,23 +5533,26 @@
       };
     }
 
-    // Si estamos fuera de combate, calculamos con los talentos y pasivas de clase
-    let talentCrit = 0, talentLifesteal = 0, talentThorns = 0, talentLuck = 0;
+    // Fuera de combate: integrar los 28 nodos del Árbol de Talentos
+    let talentCrit = 0, talentLifesteal = 0, talentThorns = 0, talentLuck = 0, talentDef = 0, talentHp = 0, talentShield = 0;
     if (typeof getHeroTalentTree === "function") {
       const tree = getHeroTalentTree(heroKey);
       const ranks = (tree && tree.ranks) || {};
-      if (ranks["spades_1"]) talentCrit += ranks["spades_1"] * 2;
       if (ranks["spades_2"]) talentCrit += ranks["spades_2"] * 4;
       if (ranks["spades_5"]) talentLifesteal += ranks["spades_5"] * 12;
-      if (ranks["diamonds_4"]) talentThorns += ranks["diamonds_4"] * 10;
+      if (ranks["diamonds_1"]) talentShield += ranks["diamonds_1"] * 3;
+      if (ranks["diamonds_3"]) talentShield += ranks["diamonds_3"] * 8;
+      if (ranks["diamonds_4"]) talentThorns += ranks["diamonds_4"] * 1; // 1 de espina por rango
+      if (ranks["diamonds_5"]) talentDef += ranks["diamonds_5"] * 2;
+      if (ranks["hearts_3"]) talentHp += ranks["hearts_3"] * 15;
       if (ranks["clubs_2"]) talentLuck += ranks["clubs_2"] * 6;
     }
 
     return {
-      hp: { base: baseMaxHp, total: baseMaxHp + legHp },
+      hp: { base: baseMaxHp, total: baseMaxHp + legHp + talentHp },
       pwr: { base: basePwr, total: basePwr + legPwr },
-      def: { base: baseDef, total: baseDef + legDef },
-      startingShield: { base: startingShield, total: startingShield },
+      def: { base: baseDef, total: baseDef + legDef + talentDef },
+      startingShield: { base: startingShield, total: startingShield + talentShield },
       critChance: { base: baseCrit, total: Math.min(90, baseCrit + talentCrit) },
       dodgeChance: { base: baseDodge, total: Math.min(45, baseDodge) },
       thorns: { base: baseThorns, total: Math.max(0, baseThorns + talentThorns) },
@@ -5534,27 +5659,37 @@
     1: [
       { id: "relic_dante_blade", name: "Filo Sangriento de Dante", icon: "🗡️", desc: "+3 PWR permanente y aplica 2 Veneno al rival con cada 21.", apply: (p) => { p.pwr += 3; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3; p._dantePoison21 = true; } },
       { id: "relic_dante_spades", name: "Cota de Picas del Conquistador", icon: "♠️", desc: "+2 DEF permanente y cada carta de ♠ otorga +2 de Escudo.", apply: (p) => { p.def += 2; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 2; p._spadesShieldBonus = 2; } },
-      { id: "relic_dante_blood", name: "Frasco de Sangre Pura", icon: "🩸", desc: "+25 HP Máximo y restaura 2 Pociones de salud completas.", apply: (p) => { p.maxHp += 25; p.hp += 25; if (p.levelUpStats) p.levelUpStats.hp = (p.levelUpStats.hp || 0) + 25; p.potions = (p.potions || 0) + 2; } }
+      { id: "relic_dante_blood", name: "Frasco de Sangre Pura", icon: "🩸", desc: "+25 HP Máximo y restaura 2 Pociones de salud completas.", apply: (p) => { p.maxHp += 25; p.hp += 25; if (p.levelUpStats) p.levelUpStats.hp = (p.levelUpStats.hp || 0) + 25; p.potions = (p.potions || 0) + 2; } },
+      { id: "relic_dante_thorn", name: "Corona de Espinas Vorpales", icon: "🌵", desc: "+1 Espina directa de contraataque y +10% de Probabilidad Crítica.", apply: (p) => { p.thorns = (p.thorns || 0) + 1; p._sacrificeCrit = (p._sacrificeCrit || 0) + 10; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1; } },
+      { id: "relic_dante_purse", name: "Bolsa de las Criptas Abisales", icon: "🪙", desc: "+40 de Oro ensangrentado y +1 Dado de Reroll permanente por piso.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 40; p.rerollsAvailable = (p.rerollsAvailable || 0) + 1; p._bonusRerollsPerFloor = (p._bonusRerollsPerFloor || 0) + 1; } }
     ],
     2: [
       { id: "relic_valk_aegis", name: "Baluarte de Diamantes", icon: "🛡️", desc: "+10 de Escudo azul protector al comenzar cada mano.", apply: (p) => { p._valkAegisShield = 10; } },
       { id: "relic_valk_light", name: "Relicario de la Luz", icon: "✨", desc: "+3 PWR y te cura +6 HP automáticamente si ganas una mano con 19 o 20.", apply: (p) => { p.pwr += 3; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3; p._valkHealOnHighWin = true; } },
-      { id: "relic_valk_core", name: "Núcleo Diamantino", icon: "💎", desc: "+3 DEF permanente y 2 Rerolls adicionales de inmediato.", apply: (p) => { p.def += 3; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 3; p.rerollsAvailable = (p.rerollsAvailable || 0) + 2; } }
+      { id: "relic_valk_core", name: "Núcleo Diamantino", icon: "💎", desc: "+3 DEF permanente y 2 Rerolls adicionales de inmediato.", apply: (p) => { p.def += 3; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 3; p.rerollsAvailable = (p.rerollsAvailable || 0) + 2; } },
+      { id: "relic_valk_thorns", name: "Escudo de Represalia Pétrea", icon: "🗿", desc: "+1 Espina y mitiga 3 de daño en cualquier contraataque rival.", apply: (p) => { p.thorns = (p.thorns || 0) + 1; p._valkCounterMitigate = 3; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1; } },
+      { id: "relic_valk_eye", name: "Ojo del Destino Lúcido", icon: "👁️", desc: "+12% Suerte y revela 1 carta oculta del rival en cada mano.", apply: (p) => { p.luck = (p.luck || 0) + 12; p._valkRevealCard = true; } }
     ],
     3: [
       { id: "relic_archmage_eye", name: "Ojo Arcano del Archimago", icon: "🔮", desc: "+4 PWR y forja un Sello Cósmico Arcano permanente en tu baraja.", apply: (p) => { p.pwr += 4; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 4; if (typeof forgeRandomCosmicSeal === "function") forgeRandomCosmicSeal(); } },
       { id: "relic_archmage_veil", name: "Manto del Vacío", icon: "🌌", desc: "25% de probabilidad de anular completamente el contraataque rival.", apply: (p) => { p._voidVeilDodge = 0.25; } },
-      { id: "relic_archmage_mana", name: "Cáliz de Éter", icon: "⚡", desc: "Comienzas cada piso con Overdrive listo y obtienes +40 Oro.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 40; p._etherCalice = true; } }
+      { id: "relic_archmage_mana", name: "Cáliz de Éter", icon: "⚡", desc: "Comienzas cada piso con Overdrive listo y obtienes +40 Oro.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 40; p._etherCalice = true; } },
+      { id: "relic_archmage_heart", name: "Corazón de Obsidiana del 21", icon: "🖤", desc: "+30 HP Máximo y +1 Espina de daño directo al atacante.", apply: (p) => { p.maxHp += 30; p.hp += 30; p.thorns = (p.thorns || 0) + 1; if (p.levelUpStats) { p.levelUpStats.hp = (p.levelUpStats.hp || 0) + 30; p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1; } } },
+      { id: "relic_archmage_ghost", name: "Baraja Espectral del Archimago", icon: "👻", desc: "+15% de Probabilidad Crítica y reduce el daño de Bust a la mitad.", apply: (p) => { p._sacrificeCrit = (p._sacrificeCrit || 0) + 15; p._halfBustDamage = true; } }
     ],
     4: [
       { id: "relic_necro_harvest", name: "Cosecha de Malfas", icon: "💀", desc: "Al pedir carta en combate, 35% de probabilidad de curar +4 HP.", apply: (p) => { p._necroHarvestHeal = true; } },
       { id: "relic_necro_scythe", name: "Guadaña del Segador", icon: "☠️", desc: "+5 PWR y multiplica por x3 tu daño con Blackjack Natural.", apply: (p) => { p.pwr += 5; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 5; p.blackjackMultiplier = Math.max(p.blackjackMultiplier || 1, 3); } },
-      { id: "relic_necro_bones", name: "Coraza de Huesos Malditos", icon: "🦴", desc: "+4 DEF y espinas que devuelven 3 daño directo al rival por impacto.", apply: (p) => { p.def += 4; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 4; p.thorns = (p.thorns || 0) + 3; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 3; } }
+      { id: "relic_necro_bones", name: "Coraza de Huesos Malditos", icon: "🦴", desc: "+4 DEF y espinas que devuelven +1 daño directo al rival por impacto.", apply: (p) => { p.def += 4; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 4; p.thorns = (p.thorns || 0) + 1; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1; } },
+      { id: "relic_necro_mantle", name: "Manto del Nigromante del Abismo", icon: "🌑", desc: "Restaura +15 HP al derrotar a cualquier enemigo o jefe.", apply: (p) => { p._necroKillHeal = 15; } },
+      { id: "relic_necro_hourglass", name: "Reloj de Arena de la Parca", icon: "⏳", desc: "El primer golpe letal que recibas por combate te deja a 1 HP con +25 Escudo.", apply: (p) => { p._parcaRevive = true; } }
     ],
     5: [
       { id: "relic_shadow_mirror", name: "Espejo de Sombras del 21", icon: "🎭", desc: "El As siempre computa a tu favor y anula el primer BUST de cada piso.", apply: (p) => { p._shadowMirrorBustProtect = true; } },
       { id: "relic_shadow_crown", name: "Corona del Gran Tahúr", icon: "👑", desc: "+60 Oro, +4 PWR y +3 DEF para la ascensión al Trono Final.", apply: (p) => { gameState.gold = (gameState.gold || 0) + 60; p.pwr += 4; p.def += 3; if (p.levelUpStats) { p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 4; p.levelUpStats.def = (p.levelUpStats.def || 0) + 3; } } },
-      { id: "relic_shadow_pact", name: "Pacto del Vencedor Inmortal", icon: "⚔️", desc: "Inmune a la perforación de Muerte Súbita durante los primeros 5 asaltos.", apply: (p) => { p._suddenDeathPactImmune = true; } }
+      { id: "relic_shadow_pact", name: "Pacto del Vencedor Inmortal", icon: "⚔️", desc: "Inmune a la perforación de Muerte Súbita durante los primeros 5 asaltos.", apply: (p) => { p._suddenDeathPactImmune = true; } },
+      { id: "relic_shadow_throne", name: "Trono Carmesí del Balor", icon: "🩸", desc: "+18% Crítico, +18% Vampirismo y +1 Espina de daño directo puro.", apply: (p) => { p._sacrificeCrit = (p._sacrificeCrit || 0) + 18; p._sacrificeVampirism = (p._sacrificeVampirism || 0) + 18; p.thorns = (p.thorns || 0) + 1; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1; } },
+      { id: "relic_shadow_olympus", name: "Sigilo Cósmico del Olimpo", icon: "🌟", desc: "Tus manos de 21 siempre infligen impacto multiplicado por x3.5.", apply: (p) => { p.blackjackMultiplier = 3.5; } }
     ]
   };
   window.DEMONIC_RELICS_BY_ACT = DEMONIC_RELICS_BY_ACT;
@@ -5575,7 +5710,7 @@
       titleEl.style.color = "#ff4d6d";
     }
     if (descEl) {
-      descEl.innerText = `¡Has vencido al Líder del Acto ${actNumber}! Reclama una de sus 3 reliquias para imbuir a tu héroe durante el resto de la ascensión:`;
+      descEl.innerText = `¡Has vencido al Líder del Acto ${actNumber}! Reclama una de sus reliquias demoníacas para imbuir a tu héroe durante el resto de la ascensión:`;
     }
 
     optEl.innerHTML = `
@@ -5606,8 +5741,16 @@
     if (relic && p) {
       p.demonRelics = p.demonRelics || [];
       p.demonRelics.push({ id: relic.id, name: relic.name, icon: relic.icon, desc: relic.desc });
-      p.artifacts = p.artifacts || [];
-      p.artifacts.push({ id: relic.id, name: relic.name, icon: relic.icon });
+      
+      // Sanitización estricta de artefactos: guardar solo string ID y respetar el límite inquebrantable de 5
+      if (typeof sanitizePlayerArtifacts === "function") {
+        sanitizePlayerArtifacts(p);
+      }
+      if (Array.isArray(p.artifacts) && p.artifacts.length < 5 && !p.artifacts.includes(relic.id)) {
+        p.artifacts.push(relic.id);
+        if (typeof sanitizePlayerArtifacts === "function") sanitizePlayerArtifacts(p);
+      }
+      
       if (typeof relic.apply === "function") relic.apply(p);
       if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
       updateHud();
@@ -8442,14 +8585,16 @@
       }
       const isEnemyLoot = !!card.isWonCard || !!card.fusion || !!card.modifier || !!card.operator || (Array.isArray(card.dynamicValues) && card.dynamicValues.length > 0);
       if (isEnemyLoot) el.classList.add("won-loot-card", "card-transmuted-arcane");
+      if (card.isEnemySpecialCard) el.classList.add("enemy-dark-card", "card-transmuted-arcane");
       if (card.dynamicValues || card.rarity === 'legendary') el.classList.add("card-holographic", "card-holographic-legendary");
-      else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId || isEnemyLoot) el.classList.add("card-holographic");
+      else if (card.rarity === 'epic' || card.rarity === 'rare' || card.specialId || isEnemyLoot || card.isEnemySpecialCard) el.classList.add("card-holographic");
 
       if ((i === 0 && !showAll && !e.stand) || fogged) {
         el.className = "card-face cover";
         el.innerHTML = `<span>?</span>`;
       } else {
-        el.innerHTML = `<span class="card-value">${card.rank}</span><span class="suit" style="font-size:14px;opacity:0.8;">${card.suit}</span><span class="card-label">${card.value}</span>`;
+        const darkBadge = card.isEnemySpecialCard ? `<span class="card-loot-badge dark-enemy-sigil" title="${card.name || 'Carta Oscura del Rival'}">💀</span>` : '';
+        el.innerHTML = `<span class="card-value">${card.rank}</span><span class="suit" style="font-size:14px;opacity:0.8;">${card.suit}</span><span class="card-label">${card.value}</span>${darkBadge}`;
       }
       eHandEl.appendChild(el);
     }
@@ -9006,7 +9151,7 @@
     const standThreshold = (e.trait === "disciplined" ? 18 : 17);
 
     while (!e.bust && e.enemyScore < standThreshold && !e.stand && attempts < maxAttempts && p.hp > 0) {
-      e.enemyHand.push(drawCard());
+      e.enemyHand.push(drawCard(null, "enemy"));
       playCardSound();
       e.enemyScore = calculateHandScore(e.enemyHand);
       e.bust = e.enemyScore > BUST_LIMIT;
@@ -10070,10 +10215,14 @@
       icon: "👑",
       type: "buff",
       badge: "🟢 BENDICIÓN",
-      desc: "Al lograr Blackjack (21): Daño x4 (en vez de x3) y curas +16 HP.",
+      desc: "+3 Ataque Base, +10% de Probabilidad Crítica y cura +16 HP al conseguir Blackjack (21).",
       apply: (p) => {
         p.gem = "blackjack_heritage";
-        addLog("Obtuviste Joya Heredada: Blackjack ahora causa daño x4 y sana +16 HP.", "heal");
+        p.pwr += 3;
+        p._heritageCrit = 10;
+        if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3;
+        if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+        addLog("Obtuviste Joya Heredada: +3 Ataque Base, +10% Crítico y sana +16 HP al sacar 21.", "heal");
       }
     },
     {
@@ -11266,15 +11415,47 @@
   }
   window.cancelRunBeforeStart = cancelRunBeforeStart;
 
+  const MAX_ARTIFACTS = 5;
+  window.MAX_ARTIFACTS = MAX_ARTIFACTS;
+
+  function sanitizePlayerArtifacts(p) {
+    if (!p) p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+    if (!p) return [];
+    if (!Array.isArray(p.artifacts)) p.artifacts = [];
+
+    const clean = [];
+    const seen = new Set();
+
+    for (let i = 0; i < p.artifacts.length; i++) {
+      const item = p.artifacts[i];
+      let id = null;
+      if (typeof item === "string" && item.trim()) {
+        id = item.trim();
+      } else if (item && typeof item === "object") {
+        id = (typeof item.id === "string" && item.id.trim()) ? item.id.trim() : null;
+      }
+      if (id && !seen.has(id)) {
+        seen.add(id);
+        clean.push(id);
+        if (clean.length >= MAX_ARTIFACTS) break;
+      }
+    }
+
+    p.artifacts = clean;
+    return p.artifacts;
+  }
+  window.sanitizePlayerArtifacts = sanitizePlayerArtifacts;
+
   function getMaxArtifactSlots() {
     const lvl = (gameState.player && gameState.player.level) ? gameState.player.level : 1;
-    return Math.min(5, lvl);
+    return Math.min(MAX_ARTIFACTS, Math.max(1, lvl));
   }
   window.getMaxArtifactSlots = getMaxArtifactSlots;
 
   function hasArtifact(id) {
     if (!gameState.player || !gameState.player.artifacts) return false;
-    return gameState.player.artifacts.some(a => (typeof a === "object" ? a.id === id : a === id));
+    sanitizePlayerArtifacts(gameState.player);
+    return gameState.player.artifacts.includes(id);
   }
   window.hasArtifact = hasArtifact;
 
@@ -13120,14 +13301,24 @@
       </div>
     `;
 
-    // Pestaña 2: Sobres de Artefactos y Accesorios (Estilo Balatro / Pokémon)
-    const isSlotsFull = p.artifacts.length >= maxSlots;
+    const cleanArts = sanitizePlayerArtifacts(p);
+    const isSlotsFull = cleanArts.length >= maxSlots;
     const artPackPrice = Math.round(40 * shopDiscount);
     const accPackPrice = Math.round(40 * shopDiscount);
     const canBuyArtPack = gameState.gold >= artPackPrice;
     const canBuyAccPack = gameState.gold >= accPackPrice;
 
-    const ownedArtifactsList = (p.artifacts || []).map(id => SHOP_ARTIFACTS.find(a => a.id === id) || { id, name: id, icon: "🎴", desc: "" });
+    const ownedArtifactsList = cleanArts.map(artId => {
+      const shopItem = SHOP_ARTIFACTS.find(a => a.id === artId);
+      if (shopItem) return shopItem;
+      if (typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+        for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
+          const dItem = list.find(d => d.id === artId);
+          if (dItem) return dItem;
+        }
+      }
+      return { id: String(artId), name: String(artId), icon: "🎴", desc: "" };
+    });
     const currentAccInfo = (p.accessory && AMULET_INFO[p.accessory]) ? AMULET_INFO[p.accessory] : null;
 
     const artifactsHtml = `
@@ -13910,7 +14101,8 @@
 
   function buyArtifact(id) {
     const p = gameState.player;
-    if (!p.artifacts) p.artifacts = [];
+    if (!p) return;
+    sanitizePlayerArtifacts(p);
     const item = SHOP_ARTIFACTS.find(a => a.id === id);
     if (!item) return;
     if (hasArtifact(id)) {
@@ -13918,8 +14110,8 @@
       return;
     }
     const maxSlots = getMaxArtifactSlots();
-    if (p.artifacts.length >= maxSlots) {
-      showGameToast("¡Capacidad de artefactos al límite (" + p.artifacts.length + "/" + maxSlots + ")! Sube de nivel para desbloquear más ranuras.", "warn");
+    if (p.artifacts.length >= maxSlots || p.artifacts.length >= MAX_ARTIFACTS) {
+      showGameToast("¡Capacidad de artefactos al límite (" + p.artifacts.length + "/" + maxSlots + ")! Límite máximo: 5 artefactos.", "warn");
       return;
     }
     if (gameState.gold < item.price) {
@@ -13927,7 +14119,8 @@
       return;
     }
     gameState.gold -= item.price;
-    p.artifacts.push({ id: item.id, name: item.name, icon: item.icon });
+    p.artifacts.push(item.id);
+    sanitizePlayerArtifacts(p);
     if (typeof item.apply === "function") item.apply(p);
     playEnchantChimeSound();
     playCoinSound();
@@ -15061,14 +15254,14 @@
       badge: "PACTO DE ESPINAS",
       title: "Pacto de la Zarza Sangrienta",
       icon: "🌵",
-      costText: "Pierdes 5 HP de salud inmediata en el altar.",
-      gainText: "Ganas +15% de Espinas de contraataque permanente.",
-      btnText: "🩸 SELLAR PACTO (+15% ESPINAS)",
+      costText: "Pierdes 8 HP de salud inmediata en el altar.",
+      gainText: "Ganas +1 Espina pura de contraataque directo.",
+      btnText: "🩸 SELLAR PACTO (+1 ESPINA)",
       onApply: (p, g) => {
-        p.hp = Math.max(1, p.hp - 5);
-        p._sacrificeThorns = (p._sacrificeThorns || 0) + 15;
+        p.hp = Math.max(1, p.hp - 8);
+        p._sacrificeThorns = (p._sacrificeThorns || 0) + 1;
         if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
-        addLog("🩸 Pacto del Altar: Zarza Sangrienta (-5 HP, +15% Espinas).", "critical");
+        addLog("🩸 Pacto del Altar: Zarza Sangrienta (-8 HP, +1 Espina).", "critical");
       }
     },
     {
@@ -15303,11 +15496,11 @@
     emerald: "ESMERALDA DEL DESTINO: +1 de PWR permanente",
     topaz: "TOPACIO: +1 de daño en cada mano ganada",
     blackjack_gem: "JOYA DE BLACKJACK: al sacar 21, +5 de daño extra y +15 HP",
-    blackjack_heritage: "JOYA HEREDADA: al sacar 21, daño x4 (en vez de x3) y +16 HP",
+    blackjack_heritage: "JOYA HEREDADA: +3 Ataque Base, +10% Crítico y +16 HP al sacar 21",
     blood_amulet: "AMULETO DE SANGRE: +6 HP al derrotar a un rival",
     amber_amulet: "AMULETO ÁMBAR: +1 HP al inicio de cada piso",
     lucky_charm: "AMULETO DE LA SUERTE: 25% de evitar por completo un golpe",
-    spiked_belt: "CINTURÓN CON PÚAS: devuelves 2 de daño al rival cuando recibes daño",
+    spiked_belt: "CINTURÓN CON PÚAS: devuelves 1 de daño de espina al ser golpeado",
     lead_gauntlet: "GUANTE DE PLOMO: tus cartas de valor bajo cuentan como mínimo 3",
     steel_helm: "CASCO DE ACERO: +1 de DEF permanente",
     heavy_fog: "NIEBLA PROFUNDA: las cartas del rival están ocultas todo el piso",
@@ -15334,7 +15527,7 @@
     if (e.trait === "stone") return "Piel Pétrea: Su corteza de granito anula y bloquea todo golpe de ≤ 3 de daño.";
     if (e.trait === "stealth") return "Sigilo: Juega con cartas totalmente ocultas hasta que se planta.";
     if (e.trait === "disciplined") return "Disciplina: No se planta jamás hasta alcanzar 18 o más puntos.";
-    if (e.trait === "thorns") return "Espinas: Devuelve 2 de daño directo al atacante cada vez que es golpeado.";
+    if (e.trait === "thorns") return "Espinas: Devuelve 1 de daño directo al atacante cada vez que es golpeado.";
     if (e.trait === "dragon") return "Aliento Ígneo: Quema 3 HP cada 2 manos y su Blackjack inflige daño triple (x3).";
     return e.traitName || "Sin rasgo especial activo.";
   }
@@ -15352,11 +15545,11 @@
       emerald: "🟢 Esmeralda del Destino (+1 PWR permanente)",
       topaz: "🟡 Topacio Radiante (+1 de daño)",
       blackjack_gem: "💎 Joya de Blackjack (+5 daño, +15 HP)",
-      blackjack_heritage: "👑 Joya Heredada (Blackjack x4, +16 HP)",
+      blackjack_heritage: "👑 Joya Heredada (+3 PWR, +10% Crítico, +16 HP)",
       blood_amulet: "🩸 Amuleto de Sangre (+6 HP al derrotar rival)",
       amber_amulet: "🟠 Amuleto Ámbar (+1 HP por piso)",
       lucky_charm: "🍀 Amuleto de la Suerte (25% evitar daño, +10% Suerte)",
-      spiked_belt: "🌵 Cinturón con Púas (+2 Daño Espinas directo)",
+      spiked_belt: "🌵 Cinturón con Púas (+1 Daño Espinas directo)",
       lead_gauntlet: "🥊 Guante de Plomo (Cartas bajas valen mín. 3)",
       steel_helm: "🪖 Casco de Acero (+1 DEF)",
       rider_spur: "👞 Espuela de Celeridad (+8 daño, +15 oro en 1ª mano)",
@@ -16903,7 +17096,7 @@
     p.sharpArmorPierce = 0;
     p.astralCardInHand = false;
 
-    e.enemyHand = [drawCard(), drawCard()];
+    e.enemyHand = [drawCard(null, "enemy"), drawCard(null, "enemy")];
     e.enemyScore = calculateHandScore(e.enemyHand);
     e.bust = e.enemyScore > BUST_LIMIT;
     e.blackjack = (e.enemyScore === 21 && e.enemyHand.length === 2);

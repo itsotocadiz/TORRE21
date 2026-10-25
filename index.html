@@ -211,7 +211,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.4</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.5</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -477,7 +477,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.8.4 (BUILD 45)</span>
+          <span id="settings-version">📱 VERSIÓN v1.8.5 (BUILD 46)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -1169,6 +1169,9 @@
                 <div id="player-streak-badge" class="player-streak-badge hidden" onclick="event.stopPropagation(); showStreakInfoModal();" title="Racha de victorias (Toca para ver bonificación)">🔥 x1.5</div>
               </div>
             </div>
+            <div class="fighter-badge-zone" id="player-badge-zone">
+              <span class="player-hero-badge" id="player-hero-tag">★ HÉROE</span>
+            </div>
             <div id="player-status-badges" class="status-badges"></div>
             <div class="fighter-meters-panel">
               <!-- BARRA DE VIDA -->
@@ -1207,7 +1210,9 @@
                 <button type="button" class="fighter-inspect-pill-btn enemy" onclick="event.stopPropagation(); openFighterInspect('enemy');" title="Ver Ficha del Rival">📊</button>
               </div>
             </div>
-            <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
+            <div class="fighter-badge-zone" id="enemy-badge-zone">
+              <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
+            </div>
             <div id="enemy-status-badges" class="status-badges"></div>
             <div class="fighter-meters-panel">
               <!-- BARRA DE VIDA -->
@@ -1237,8 +1242,6 @@
         </div>
       </div>
     </div>
-
-    <div id="log-container"><div class="log-entry info">¡Un rival bloquea el paso de la torre!</div></div>
   </div>
 
   <!-- MODAL DE CRÓNICA DE PISO (HISTORIA CON MÁQUINA DE ESCRIBIR Y REVISIÓN DEL HÉROE) -->
@@ -1548,13 +1551,19 @@
   </div>
 
   <div id="controls">
-    <div class="equipment-row">
-      <div class="eq-pill" id="ui-artifacts-pill" onclick="explainEquipmentPill('artifacts')" title="Ranuras de Artefactos (Toca para info)">🎴 <b id="ui-artifacts-count">0/1</b></div>
-      <div class="eq-pill" id="ui-gem-pill" onclick="explainEquipmentPill('blessing')" title="Bendición del Destino (Toca para info)">💎 <b id="ui-gem">NINGUNA</b></div>
-      <div class="eq-pill" id="ui-acc-pill" onclick="explainEquipmentPill('accessory')" title="Accesorio equipado (Toca para info)">💍 <b id="ui-acc">NINGUNO</b></div>
-      <div class="eq-pill" id="ui-dupla-pill" onclick="explainEquipmentPill('dupla')" title="Dupla activa en mano (Toca para info)">⚡ <b id="ui-dupla">NO</b></div>
-      <div class="eq-pill highlight" id="ui-synergies-pill" onclick="explainEquipmentPill('synergies')" title="Sinergias elementales activas (Toca para ver)">🔮 <b id="ui-synergies-count">0</b></div>
-      <div class="eq-pill" id="ui-perks-pill" onclick="openPerksCodexModal()" title="Perks Tácticos (Toca para ver los 15 combos)">💡 <b>PERKS</b></div>
+    <!-- BARRA FLOTANTE COMPACTA DE ACCESO RÁPIDO A EQUIPO Y DESCRIPCIÓN DEL TURNO -->
+    <div class="combat-quick-bar" id="combat-quick-bar">
+      <button type="button" class="combat-quick-btn btn-combat-gear" id="btn-combat-gear-toggle" onclick="openCombatGearModal()" title="Mochila: Artefactos, Equipamiento y Perks (Toca para abrir)">
+        <span class="combat-quick-icon">🎒</span>
+        <span class="combat-quick-label">EQUIPO & PERKS</span>
+        <span class="combat-quick-badge" id="combat-gear-badge">0/5</span>
+      </button>
+      <div class="combat-quick-spacer"></div>
+      <button type="button" class="combat-quick-btn btn-combat-log" id="btn-combat-log-toggle" onclick="openCombatLogModal()" title="Descripción del Turno (Toca para ver historial)">
+        <span class="combat-quick-icon">📜</span>
+        <span class="combat-quick-label">TURNO</span>
+        <span class="combat-quick-dot hidden" id="combat-log-unread-dot"></span>
+      </button>
     </div>
     <!-- BANNER DISCRETO DE SINERGIAS ACTIVAS -->
     <div id="active-synergies-shelf" class="active-synergies-shelf hidden"></div>
@@ -2163,6 +2172,86 @@
   </div>
 </div>
 
+<!-- ============================================================
+     MODAL FLOTANTE 1: DESCRIPCIÓN DEL TURNO (HISTORIAL COMPACTO)
+     ============================================================ -->
+<div id="modal-combat-log" class="overlay hidden combat-modal-overlay" onclick="closeCombatLogModal()">
+  <div class="combat-modal-card" onclick="event.stopPropagation()">
+    <div class="combat-modal-header">
+      <div class="combat-modal-title">
+        <span class="combat-modal-icon">📜</span> DESCRIPCIÓN DEL TURNO
+      </div>
+      <button type="button" class="combat-modal-close" onclick="closeCombatLogModal()">✕</button>
+    </div>
+    <div class="combat-modal-body">
+      <div class="combat-log-turn-summary" id="combat-log-turn-summary">Historial y sucesos del enfrentamiento actual:</div>
+      <div id="log-container" class="log-container-in-modal">
+        <div class="log-entry info">¡Un rival bloquea el paso de la torre!</div>
+      </div>
+    </div>
+    <div class="combat-modal-footer">
+      <button type="button" class="combat-modal-action-btn" onclick="closeCombatLogModal()">ENTENDIDO</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL FLOTANTE 2: MOCHILA DE EQUIPO, ARTEFACTOS Y PERKS
+     ============================================================ -->
+<div id="modal-combat-gear" class="overlay hidden combat-modal-overlay" onclick="closeCombatGearModal()">
+  <div class="combat-modal-card gear-card" onclick="event.stopPropagation()">
+    <div class="combat-modal-header">
+      <div class="combat-modal-title">
+        <span class="combat-modal-icon">🎒</span> MOCHILA DE EQUIPO & PERKS
+      </div>
+      <button type="button" class="combat-modal-close" onclick="closeCombatGearModal()">✕</button>
+    </div>
+    <div class="combat-modal-body gear-body">
+      <!-- SECCIÓN 1: ARTEFACTOS ACTIVOS (X/5) -->
+      <div class="gear-section">
+        <div class="gear-section-header">
+          <span class="gear-section-title">🎴 ARTEFACTOS ACTIVOS</span>
+          <span class="gear-section-count" id="gear-modal-art-count">0/5</span>
+        </div>
+        <div class="gear-artifacts-grid" id="gear-modal-artifacts-grid">
+          <!-- Renderizado dinámicamente con los 5 slots y artefactos equipados -->
+        </div>
+        <div class="eq-pill hidden" id="ui-artifacts-pill" style="display:none;" onclick="explainEquipmentPill('artifacts')">
+          <b id="ui-artifacts-count">0/5</b>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: EQUIPAMIENTO, BENDICIÓN Y DUPLA -->
+      <div class="gear-section">
+        <div class="gear-section-header">
+          <span class="gear-section-title">⚔️ EQUIPAMIENTO Y BENDICIONES</span>
+        </div>
+        <div class="gear-pills-row">
+          <div class="eq-pill" id="ui-gem-pill" onclick="explainEquipmentPill('blessing')" title="Bendición del Destino (Toca para info)">💎 <b id="ui-gem">NINGUNA</b></div>
+          <div class="eq-pill" id="ui-acc-pill" onclick="explainEquipmentPill('accessory')" title="Accesorio equipado (Toca para info)">💍 <b id="ui-acc">NINGUNO</b></div>
+          <div class="eq-pill" id="ui-dupla-pill" onclick="explainEquipmentPill('dupla')" title="Dupla activa en mano (Toca para info)">⚡ <b id="ui-dupla">NO</b></div>
+          <div class="eq-pill highlight" id="ui-synergies-pill" onclick="explainEquipmentPill('synergies')" title="Sinergias elementales activas (Toca para ver)">🔮 <b id="ui-synergies-count">0</b></div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: PERKS TÁCTICOS ACTIVOS -->
+      <div class="gear-section">
+        <div class="gear-section-header">
+          <span class="gear-section-title">💡 PERKS TÁCTICOS ACTIVOS</span>
+          <button type="button" class="gear-codex-btn" id="ui-perks-pill" onclick="openPerksCodexModal()" title="Abrir Códice Completo de Perks">CÓDICE (15) 📖</button>
+        </div>
+        <div class="gear-perks-list" id="gear-modal-perks-list">
+          <div class="gear-empty-notice">Sin perks activos en esta ronda. Completa pares de cartas para activar sinergias.</div>
+        </div>
+      </div>
+    </div>
+    <div class="combat-modal-footer">
+      <button type="button" class="combat-modal-action-btn" onclick="closeCombatGearModal()">CERRAR MOCHILA</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
+
 

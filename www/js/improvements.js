@@ -1,13 +1,13 @@
 /**
  * ============================================================
- *  improvements.js - Fases 2, 3, 5, 6 del Plan de Mejora (v1.8.4)
+ *  improvements.js - Fases 2, 3, 5, 6 del Plan de Mejora (v1.8.5)
  *  Blackjack Tower: The Jack's Ascent
  *  Cargado DESPUES de game.js
  * ============================================================
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v1.8.4";
+  window.IMPROVEMENTS_VERSION = "v1.8.5";
 
   /* ============================================================
      TOAST GENÉRICO — sustituye a los diálogos nativos del navegador

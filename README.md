@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.8.4 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.8.5 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,28 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.8.4] — Noviembre 2026 (Actual)
+### [v1.8.5] — Noviembre 2026 (Actual)
+* **Rediseño Total del Tablero de Batalla y Ergonomía Móvil:**
+  * **Retiro del `#log-container` del flujo fijo:** El registro de combate se traslada a un modal emergente flotante centrado (`#modal-combat-log`) accesible mediante el botón compacto `📜` en la esquina inferior derecha del tablero, con indicador visual reactivo (punto pulsante) ante nuevos eventos.
+  * **Retiro de `.equipment-row` del flujo fijo:** El equipamiento se traslada a un modal emergente flotante centrado (`#modal-combat-gear`) accesible mediante el botón compacto `🎒` en la esquina inferior izquierda del tablero, mostrando Artefactos (`X/5`), Accesorio, Bendición, Dupla defensiva, Sinergias elementales y Perks tácticos.
+  * **Alineación Vertical Milimétrica de Combatientes:** El contenedor de rasgos `.fighter-badge-zone` cuenta con altura mínima idéntica fija (`min-height: 22px`) en ambos lados, asegurando que las barras de Vida y Escudo del jugador y del rival queden exactamente a la misma altura horizontal fija en pantalla sin desalineación por nombres largos o badges de élite.
+  * **Banners Flotantes Aislados:** Todos los avisos emergentes (`.combat-status-banner`) usan posicionamiento `fixed` independiente con `pointer-events: none` para no empujar ni alterar las dimensiones del tablero ni de los botones táctiles.
+* **Separación Estricta de Barajas (`playerDeck` vs `enemyDeck`):**
+  * Separación arquitectónica total entre la baraja del jugador y la baraja del rival. El contrincante nunca roba del mazo del jugador ni recibe sus cartas transmutadas, sellos arcanos ni cosméticos.
+  * Mazo propio del adversario escalado por Nivel, Piso y Dificultad, con barajas oscuras transmutadas (`enemy-dark-card` y distintivo 💀) en actos avanzados y dificultades superiores (Heroico, Pesadilla, Mítico).
+* **Rebalanceo de Espinas (Crecimiento Estricto 1 a 1):**
+  * El Caballero inicia canónicamente con `thorns: 1` (`1 de Espina de base`).
+  * Todas las mejoras de espinas crecen estrictamente de 1 en 1 (+1 por subida de nivel, +1 por nodo de talento `diamonds_4`, +1 por reliquias `spiked_belt`, `thorn_crown`, `mirror_shield`, etc.). Cada punto de espina inflige exactamente 1 de daño directo puro e ineludible al adversario al recibir impacto.
+* **Auditoría Integral del Árbol de Talentos (28 Nodos Sincronizados):**
+  * Los 28 nodos de las 4 ramas elementales (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) se calculan y suman de forma 100% activa en `recalculatePlayerStats()` y `getHeroDisplayStats()`, reflejándose con total transparencia en la Ficha de Personaje (`openFighterInspect`).
+* **Mesa Sacrificial Tentadora y Ampliación de Reliquias Demoníacas:**
+  * Rebalanceo de pactos sacrificiales (*High Risk, High Reward* tentadores: Sangre Eterna, Ojo Certero, Zarza Sangrienta con +1 Espina, Alma Desgarrada y Tributo Carmesí).
+  * Ampliación de `DEMONIC_RELICS_BY_ACT` a 5 reliquias potentes por Acto (cubriendo arquetipos de daño, defensa, espinas, crítico, economía y supervivencia) con layout CSS responsivo optimizado que aprovecha toda la pantalla.
+* **Corrección del Límite de Artefactos y Erradicación de `[object Object]`:**
+  * Implementación de `sanitizePlayerArtifacts(player)` que depura la lista de artefactos a IDs únicos en string y restringe el límite máximo inquebrantable a 5 ranuras (`MAX_ARTIFACTS = 5`).
+  * Actualización de la Joya Heredada (`blackjack_heritage`): eliminación del texto obsoleto de 'daño x4' y asignación del bono acordado (+3 Ataque Base, +10% Crítico y sana +16 HP al conseguir 21).
+
+### [v1.8.4] — Noviembre 2026
 * **Mecánica de Espinas como Daño Directo Puro (Sin Reducción por DEF) y Vinculación Total de Stats:**
   * **Daño Directo Puro de Espinas:** Las Espinas (`thorns`) se reconvierten de un porcentaje pasivo a **daño directo puro plano** sin mitigación por armadura (`DEF`) enemiga. Si el jugador tiene 15 Espinas en su ficha, cada vez que el rival gana la mano y conecta su impacto (ya sea absorbido por escudo o impactando en HP), el adversario recibe de inmediato exactamente 15 puntos de daño puro a su vida. Erradicados todos los símbolos de `%` de Espinas en fichas y modales, y log unificado: `"🌵 Espinas: Devuelves X de daño directo al rival"`.
   * **Persistencia de Atributos al Subir de Nivel:** Creado el almacén permanente de atributos `player.levelUpStats = { pwr, def, hp, crit, dodge, thorns, lifesteal, luck }` para registrar las elecciones de `chooseLevelUpReward()`, garantizando que ninguna bendición de nivel se pierda al recalcular estadísticas.

@@ -109,6 +109,19 @@
       width: 100%;
       max-width: 136px;
       gap: 3px;
+      box-sizing: border-box;
+    }
+    .fighter-title-row {
+      width: 100%;
+      height: 20px;
+      min-height: 20px;
+      max-height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .fighter-name {
       font-size: 9px;
@@ -118,39 +131,84 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 136px;
+      max-width: 105px;
+      line-height: 18px;
     }
     .fighter-name.enemy-name {
       color: #ff758f;
     }
+    .fighter-badge-zone {
+      width: 100%;
+      height: 18px;
+      min-height: 18px;
+      max-height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .player-hero-badge {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #66fcf1;
+      background: rgba(102, 252, 241, 0.12);
+      border: 1px solid rgba(102, 252, 241, 0.4);
+      border-radius: 3px;
+      padding: 1px 6px;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      line-height: 14px;
+      box-sizing: border-box;
+    }
     .enemy-trait-badge {
-      font-size: 9px;
+      font-size: 8.5px;
+      font-weight: 700;
       color: #ffd166;
       background: rgba(0,0,0,0.7);
       border: 1px solid #ffd166;
       border-radius: 3px;
-      padding: 1px 5px;
+      padding: 1px 6px;
       max-width: 136px;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: inline-block;
+      line-height: 14px;
       cursor: help;
+      box-sizing: border-box;
     }
-    /* ===== MEDIDORES DE COMBATE: VIDA Y ESCUDO DEDICADO ===== */
+    .status-badges {
+      width: 100%;
+      height: 18px;
+      min-height: 18px;
+      max-height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    /* ===== MEDIDORES DE COMBATE: VIDA Y ESCUDO DEDICADO (SIMETRÍA HORIZONTAL EXACTA) ===== */
     .fighter-meters-panel {
       width: 100%;
       max-width: 134px;
+      height: 72px;
+      min-height: 72px;
+      max-height: 72px;
       display: flex;
       flex-direction: column;
-      gap: 3.5px;
+      justify-content: space-between;
+      gap: 2px;
       background: rgba(13, 20, 30, 0.88);
       border: 1px solid rgba(69, 162, 158, 0.45);
       border-radius: 4px;
       padding: 4px 5px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
       transition: border-color 0.2s;
+      box-sizing: border-box;
     }
     .meter-group {
       width: 100%;
@@ -14866,4 +14924,372 @@ body:has(#screen-event:not(.hidden)) header {
   min-height: 36px !important;
   cursor: pointer !important;
 }
+
+/* ============================================================
+   v1.8.5 — BARRA RÁPIDA DE COMBATE (BOTÓN MOCHILA & BOTÓN TURNO)
+   ============================================================ */
+.combat-quick-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 4px auto 6px auto !important;
+  padding: 0 6px !important;
+  box-sizing: border-box !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+.combat-quick-spacer {
+  flex: 1 !important;
+}
+
+.combat-quick-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 5px 12px !important;
+  background: rgba(13, 20, 30, 0.94) !important;
+  border-radius: 8px !important;
+  color: #f1faee !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+  user-select: none !important;
+  position: relative !important;
+  touch-action: manipulation !important;
+}
+
+.combat-quick-btn:active {
+  transform: scale(0.96) !important;
+}
+
+.combat-quick-btn.btn-combat-gear {
+  border: 1.5px solid #45a29e !important;
+}
+.combat-quick-btn.btn-combat-gear:hover {
+  border-color: #66fcf1 !important;
+  box-shadow: 0 0 12px rgba(102, 252, 241, 0.4) !important;
+}
+
+.combat-quick-btn.btn-combat-log {
+  border: 1.5px solid #d4a373 !important;
+}
+.combat-quick-btn.btn-combat-log:hover {
+  border-color: #ffd166 !important;
+  box-shadow: 0 0 12px rgba(255, 209, 102, 0.4) !important;
+}
+
+.combat-quick-icon {
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+.combat-quick-label {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.4px !important;
+}
+
+.combat-quick-badge {
+  background: rgba(102, 252, 241, 0.2) !important;
+  border: 1px solid #66fcf1 !important;
+  color: #66fcf1 !important;
+  border-radius: 10px !important;
+  padding: 1px 6px !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+}
+
+.combat-quick-dot {
+  position: absolute !important;
+  top: -3px !important;
+  right: -3px !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #ffd166 !important;
+  border: 2px solid #0b0c10 !important;
+  box-shadow: 0 0 8px #ffd166, 0 0 14px #ff9f1c !important;
+  animation: combatDotPulse 1.2s infinite ease-in-out !important;
+}
+
+@keyframes combatDotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.85; }
+}
+
+/* ============================================================
+   v1.8.5 — MODALES FLOTANTES INDEPENDIENTES (FIXED POSITION)
+   ============================================================ */
+.combat-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+  background: rgba(5, 8, 15, 0.88) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 14px !important;
+  box-sizing: border-box !important;
+}
+
+.combat-modal-card {
+  background: #0d141e !important;
+  border: 1.5px solid #45a29e !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 440px !important;
+  max-height: 82vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.85), 0 0 20px rgba(102, 252, 241, 0.2) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  animation: combatModalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.combat-modal-card.gear-card {
+  border-color: #66fcf1 !important;
+}
+
+@keyframes combatModalPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.combat-modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+}
+
+.combat-modal-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #ffd166 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.combat-modal-icon {
+  font-size: 16px !important;
+}
+
+.combat-modal-close {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  color: #94a3b8 !important;
+  font-size: 14px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  min-width: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.combat-modal-close:hover {
+  color: #fff !important;
+  border-color: #e63946 !important;
+  background: rgba(230, 57, 70, 0.2) !important;
+}
+
+.combat-modal-body {
+  padding: 12px 14px !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.combat-log-turn-summary {
+  font-size: 11px !important;
+  color: #66fcf1 !important;
+  font-weight: 700 !important;
+  padding: 6px 10px !important;
+  background: rgba(102, 252, 241, 0.08) !important;
+  border: 1px solid rgba(102, 252, 241, 0.25) !important;
+  border-radius: 6px !important;
+}
+
+.log-container-in-modal {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  max-height: 48vh !important;
+  overflow-y: auto !important;
+  padding: 8px !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-sizing: border-box !important;
+}
+
+.combat-modal-footer {
+  padding: 10px 14px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+.combat-modal-action-btn {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #fff !important;
+  border: 1px solid #10b981 !important;
+  border-radius: 6px !important;
+  padding: 8px 18px !important;
+  min-height: 44px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.combat-modal-action-btn:hover {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* ============================================================
+   SECCIONES DENTRO DEL MODAL DE MOCHILA (GEAR)
+   ============================================================ */
+.gear-section {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.gear-section-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.gear-section-title {
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  color: #ffd166 !important;
+  letter-spacing: 0.4px !important;
+}
+
+.gear-section-count {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  color: #66fcf1 !important;
+  background: rgba(102, 252, 241, 0.15) !important;
+  border: 1px solid rgba(102, 252, 241, 0.3) !important;
+  padding: 1px 6px !important;
+  border-radius: 8px !important;
+}
+
+.gear-artifacts-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 6px !important;
+}
+
+.gear-art-slot {
+  aspect-ratio: 1 / 1 !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  color: #64748b !important;
+  position: relative !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.gear-art-slot.filled {
+  border-style: solid !important;
+  border-color: #66fcf1 !important;
+  background: radial-gradient(circle at center, rgba(102, 252, 241, 0.15), rgba(15, 23, 42, 0.9)) !important;
+  box-shadow: 0 0 8px rgba(102, 252, 241, 0.25) !important;
+}
+.gear-art-slot-num {
+  position: absolute !important;
+  bottom: 2px !important;
+  font-size: 8px !important;
+  color: #94a3b8 !important;
+  font-weight: 700 !important;
+}
+
+.gear-pills-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.gear-codex-btn {
+  background: rgba(255, 209, 102, 0.12) !important;
+  border: 1px solid #ffd166 !important;
+  color: #ffd166 !important;
+  border-radius: 6px !important;
+  padding: 2px 8px !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  min-height: 28px !important;
+}
+.gear-codex-btn:hover {
+  background: #ffd166 !important;
+  color: #0b0c10 !important;
+}
+
+.gear-perks-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  max-height: 180px !important;
+  overflow-y: auto !important;
+}
+
+.gear-perk-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 8px !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 6px !important;
+  font-size: 9.5px !important;
+  color: #e2e8f0 !important;
+}
+
+.gear-empty-notice {
+  font-size: 10px !important;
+  color: #94a3b8 !important;
+  font-style: italic !important;
+  padding: 8px !important;
+  text-align: center !important;
+}
+
 
