@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.8.5 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.0 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,21 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.8.5] — Noviembre 2026 (Actual)
+### [v1.9.0] — Noviembre 2026 (Actual)
+* **Corrección Bloqueante de Arranque (Clean Startup Guard):**
+  * Solucionado el problema crítico que mostraba el modal de Mochila de Equipo (`#modal-combat-gear`) sobre fondo negro al abrir el juego.
+  * Se implementaron reglas CSS estrictas con `#modal-combat-gear.hidden, #modal-combat-log.hidden, .combat-modal-overlay.hidden { display: none !important; }` y `style="display: none !important;"` en el marcado HTML base.
+  * Se añadieron guardias en el ciclo de vida del juego (`init`, `DOMContentLoaded`, `initIntro`, `exitToMainMenu` y en `improvements.js`) que garantizan que los modales y botones de combate permanezcan 100% cerrados y ocultos hasta que se inicie un enfrentamiento activo en el tablero.
+* **Eliminación Total de "Estudio Arcano":**
+  * Removido el subtítulo "Estudio Arcano" de la ilustración vectorial `assets/barita_logo.svg` y de los atributos `alt` de la pantalla de bienvenida. La marca BARITA queda limpia y elegante con la varita mágica conjuradora.
+* **Nuevo Selector de Idioma (Español / Inglés) i18n:**
+  * Incorporado un selector de idioma interactivo en Ajustes (`⚙️ AJUSTES`) y en el Menú de Pausa durante el combate, permitiendo alternar al instante entre **`🇪🇸 ESPAÑOL`** y **`🇺🇸 ENGLISH`**.
+  * Persistencia automática en `localStorage` (`torre21_lang`).
+  * Traducción dinámica en tiempo real de pestañas del menú principal (`TOWER`, `PVP ARENA`, `LORE`, `SHOPS`, `SETTINGS`), botones tácticos de combate (`HIT`, `STAND`, `DOUBLE`, `REROLL`, `POTION`), modal de equipo (`GEAR & PERKS BACKPACK`, `ACTIVE ARTIFACTS`, etc.), descripción del turno y menú de pausa.
+* **Auditoría e Integridad Automatizada:**
+  * Nueva suite de pruebas `test-init-modals-hidden.js` (39/39 suites superadas) que certifica que los modales de combate inician cerrados y el juego arranca limpio y accesible.
+
+### [v1.8.5] — Noviembre 2026
 * **Rediseño Total del Tablero de Batalla y Ergonomía Móvil:**
   * **Retiro del `#log-container` del flujo fijo:** El registro de combate se traslada a un modal emergente flotante centrado (`#modal-combat-log`) accesible mediante el botón compacto `📜` en la esquina inferior derecha del tablero, con indicador visual reactivo (punto pulsante) ante nuevos eventos.
   * **Retiro de `.equipment-row` del flujo fijo:** El equipamiento se traslada a un modal emergente flotante centrado (`#modal-combat-gear`) accesible mediante el botón compacto `🎒` en la esquina inferior izquierda del tablero, mostrando Artefactos (`X/5`), Accesorio, Bendición, Dupla defensiva, Sinergias elementales y Perks tácticos.

@@ -17,7 +17,7 @@
     <div class="splash-studio-content">
       <span class="splash-developed-by">DESARROLLADO POR</span>
       <div class="splash-logo-art-wrap">
-        <img src="assets/barita_logo.svg" class="splash-barita-logo-img" alt="BARITA Estudio Arcano">
+        <img src="assets/barita_logo.svg" class="splash-barita-logo-img" alt="BARITA">
       </div>
       <div class="splash-tap-hint">⚡ Toca la pantalla para conjurar ▸</div>
     </div>
@@ -452,6 +452,25 @@
           </div>
         </div>
 
+        <!-- SELECTOR DE IDIOMA / LANGUAGE SELECTOR (v1.9.0) -->
+        <div class="config-account-card" style="margin-top:10px;">
+          <div class="cac-header">
+            <span class="cac-title">🌐 IDIOMA / LANGUAGE</span>
+            <span class="cac-badge">i18n</span>
+          </div>
+          <div class="cac-desc">
+            Elige el idioma del juego / Select your preferred language:
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px;">
+            <button type="button" id="cfg-lang-es" class="lang-select-btn active" onclick="setGameLanguage('es')" style="flex:1;min-height:44px;padding:10px;border-radius:8px;border:1.5px solid #ffd166;background:rgba(255,209,102,0.15);color:#ffd166;font-family:var(--font-pixel);font-size:11px;font-weight:700;cursor:pointer;">
+              🇪🇸 ESPAÑOL
+            </button>
+            <button type="button" id="cfg-lang-en" class="lang-select-btn" onclick="setGameLanguage('en')" style="flex:1;min-height:44px;padding:10px;border-radius:8px;border:1.5px solid #45a29e;background:rgba(69,162,158,0.12);color:#66fcf1;font-family:var(--font-pixel);font-size:11px;font-weight:700;cursor:pointer;">
+              🇺🇸 ENGLISH
+            </button>
+          </div>
+        </div>
+
         <!-- ACCIONES RÁPIDAS DE CONFIGURACIÓN -->
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
           <button onclick="showConfig()" style="background:rgba(69,162,158,0.15);border:1px solid #45a29e;color:#66fcf1;padding:12px;font-family:var(--font-pixel);font-size:11px;font-weight:700;border-radius:8px;cursor:pointer;min-height:44px;">
@@ -477,7 +496,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.8.5 (BUILD 46)</span>
+          <span id="settings-version">📱 VERSIÓN v1.9.0 (BUILD 47)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -959,6 +978,14 @@
         <div class="pause-account-row">
           <span>👤 Jugador: <b id="pause-account-name" style="color:#66fcf1;">Heraldo Invitado</b></span>
           <span id="pause-cloud-status" style="font-size:11px;font-weight:600;color:#2a9d8f;">● Respaldo Local</span>
+        </div>
+
+        <div class="pause-setting-row">
+          <span class="ps-label">🌐 Idioma / Language:</span>
+          <div style="display:flex;gap:6px;">
+            <button type="button" id="pause-lang-es" class="ps-toggle-btn active" onclick="setGameLanguage('es')">🇪🇸 ES</button>
+            <button type="button" id="pause-lang-en" class="ps-toggle-btn" onclick="setGameLanguage('en')">🇺🇸 EN</button>
+          </div>
         </div>
 
         <div class="pause-setting-row">
@@ -2175,7 +2202,7 @@
 <!-- ============================================================
      MODAL FLOTANTE 1: DESCRIPCIÓN DEL TURNO (HISTORIAL COMPACTO)
      ============================================================ -->
-<div id="modal-combat-log" class="overlay hidden combat-modal-overlay" onclick="closeCombatLogModal()">
+<div id="modal-combat-log" class="overlay hidden combat-modal-overlay" style="display: none !important;" onclick="closeCombatLogModal()">
   <div class="combat-modal-card" onclick="event.stopPropagation()">
     <div class="combat-modal-header">
       <div class="combat-modal-title">
@@ -2198,7 +2225,7 @@
 <!-- ============================================================
      MODAL FLOTANTE 2: MOCHILA DE EQUIPO, ARTEFACTOS Y PERKS
      ============================================================ -->
-<div id="modal-combat-gear" class="overlay hidden combat-modal-overlay" onclick="closeCombatGearModal()">
+<div id="modal-combat-gear" class="overlay hidden combat-modal-overlay" style="display: none !important;" onclick="closeCombatGearModal()">
   <div class="combat-modal-card gear-card" onclick="event.stopPropagation()">
     <div class="combat-modal-header">
       <div class="combat-modal-title">

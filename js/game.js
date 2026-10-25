@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.8.5";
+  const GAME_VERSION = "v1.9.0";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.8.5)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.0)
      ============================================================ */
 
   const HERO_DATA = {
@@ -14849,11 +14849,18 @@
     // sonando sobre la pantalla de título (bug de audio reportado).
     try { stopCombatMusic(); } catch (_) {}
     try { stopSuddenDeathTension(); } catch (_) {}
-    const screensToHide = ["screen-event", "screen-inspect", "screen-chronicle", "screen-levelup", "screen-combat-start", "screen-booster-pack", "screen-ingame-pause", "screen-card-detail", "intro-gold-reward-banner"];
+    const screensToHide = ["screen-event", "screen-inspect", "screen-chronicle", "screen-levelup", "screen-combat-start", "screen-booster-pack", "screen-ingame-pause", "screen-card-detail", "intro-gold-reward-banner", "modal-combat-gear", "modal-combat-log"];
     screensToHide.forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.classList.add("hidden");
+      if (el) {
+        el.classList.add("hidden");
+        el.style.display = "none";
+      }
     });
+    if (typeof closeCombatGearModal === "function") closeCombatGearModal();
+    if (typeof closeCombatLogModal === "function") closeCombatLogModal();
+    const qBar = document.getElementById("combat-quick-bar");
+    if (qBar) qBar.style.display = "none";
     if (window._introGoldBannerTimer) {
       clearTimeout(window._introGoldBannerTimer);
       window._introGoldBannerTimer = null;
@@ -16198,6 +16205,12 @@
     if (lc.appendChild) lc.appendChild(entry);
     if (typeof lc.scrollHeight === "number") lc.scrollTop = lc.scrollHeight;
 
+    const logModal = document.getElementById("modal-combat-log");
+    const unreadDot = document.getElementById("combat-log-unread-dot");
+    if (logModal && logModal.classList.contains("hidden") && unreadDot) {
+      unreadDot.classList.remove("hidden");
+    }
+
     if (lc.children && lc.children.length) {
       while (lc.children.length > 30) {
         if (lc.removeChild && lc.firstChild) {
@@ -16208,6 +16221,363 @@
       }
     }
   }
+
+  /* ============================================================
+     v1.9.0 — MODALES FLOTANTES DE COMBATE (MOCHILA & LOG DE TURNO)
+     ============================================================ */
+  function openCombatGearModal() {
+    const modal = document.getElementById("modal-combat-gear");
+    if (!modal) return;
+    updateCombatGearModalUI();
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.openCombatGearModal = openCombatGearModal;
+
+  function closeCombatGearModal() {
+    const modal = document.getElementById("modal-combat-gear");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+  }
+  window.closeCombatGearModal = closeCombatGearModal;
+
+  function openCombatLogModal() {
+    const modal = document.getElementById("modal-combat-log");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    const unreadDot = document.getElementById("combat-log-unread-dot");
+    if (unreadDot) unreadDot.classList.add("hidden");
+    const logCont = document.getElementById("log-container");
+    if (logCont) logCont.scrollTop = logCont.scrollHeight;
+    try { playButtonClickSound(); } catch (_) {}
+  }
+  window.openCombatLogModal = openCombatLogModal;
+
+  function closeCombatLogModal() {
+    const modal = document.getElementById("modal-combat-log");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+  }
+  window.closeCombatLogModal = closeCombatLogModal;
+
+  function updateCombatGearModalUI() {
+    const p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+    if (!p) return;
+    const cleanArts = (typeof sanitizePlayerArtifacts === "function") ? sanitizePlayerArtifacts(p) : (p.artifacts || []);
+    const maxSlots = 5;
+
+    const countEl = document.getElementById("gear-modal-art-count");
+    if (countEl) countEl.innerText = `${cleanArts.length}/${maxSlots}`;
+
+    const badgeBtn = document.getElementById("combat-gear-badge");
+    if (badgeBtn) badgeBtn.innerText = `${cleanArts.length}/${maxSlots}`;
+
+    const gridEl = document.getElementById("gear-modal-artifacts-grid");
+    if (gridEl) {
+      let html = "";
+      for (let i = 0; i < maxSlots; i++) {
+        if (i < cleanArts.length) {
+          const artId = cleanArts[i];
+          let info = null;
+          if (typeof SHOP_ARTIFACTS !== "undefined") {
+            info = SHOP_ARTIFACTS.find(a => a.id === artId);
+          }
+          if (!info && typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+            for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
+              const found = list.find(d => d.id === artId);
+              if (found) { info = found; break; }
+            }
+          }
+          if (!info && typeof ALL_RELICS !== "undefined") {
+            info = ALL_RELICS.find(r => r.id === artId);
+          }
+          const name = info ? info.name : String(artId);
+          const icon = info ? (info.icon || "🎴") : "🎴";
+          const desc = info ? (info.desc || "") : "";
+          html += `
+            <div class="gear-art-slot filled" onclick="explainEquipmentPill('artifacts')" title="${name}: ${desc}">
+              <span class="gear-slot-icon">${icon}</span>
+              <span class="gear-slot-name">${name}</span>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="gear-art-slot empty" title="Ranura Libre (Desbloquea o adquiere hasta 5 artefactos)">
+              <span class="gear-slot-icon">[+]</span>
+              <span class="gear-slot-name">Ranura Libre</span>
+            </div>
+          `;
+        }
+      }
+      gridEl.innerHTML = html;
+    }
+
+    const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
+    const gemEl = document.getElementById("ui-gem");
+    if (gemEl) {
+      gemEl.innerText = p.gem ? (typeof getItemSpanishName === "function" ? getItemSpanishName(p.gem) : p.gem.toUpperCase()) : (isEn ? "NONE" : "NINGUNA");
+    }
+    const accEl = document.getElementById("ui-acc");
+    if (accEl) {
+      accEl.innerText = p.accessory ? (typeof getItemSpanishName === "function" ? getItemSpanishName(p.accessory) : p.accessory.toUpperCase()) : (isEn ? "NONE" : "NINGUNO");
+    }
+    const duplaEl = document.getElementById("ui-dupla");
+    if (duplaEl) {
+      duplaEl.innerText = (p.duplaDef > 0) ? (isEn ? `YES (+${p.duplaDef} DEF)` : `SÍ (+${p.duplaDef} DEF)`) : (isEn ? "NO" : "NO");
+    }
+    const synEl = document.getElementById("ui-synergies-count");
+    if (synEl && p.activeHandSynergies) {
+      const totalSyns = Object.keys(p.activeHandSynergies).filter(k => p.activeHandSynergies[k]).length;
+      synEl.innerText = String(totalSyns);
+    }
+
+    const perksListEl = document.getElementById("gear-modal-perks-list");
+    if (perksListEl) {
+      const activePerks = [];
+      if (typeof getPlayerActiveTacticalPerks === "function") {
+        activePerks.push(...getPlayerActiveTacticalPerks());
+      }
+      if (activePerks.length > 0) {
+        perksListEl.innerHTML = activePerks.map(perk => `
+          <div class="gear-perk-item">
+            <span class="gear-perk-icon">${perk.icon || '💡'}</span>
+            <div class="gear-perk-info">
+              <div class="gear-perk-name">${perk.name}</div>
+              <div class="gear-perk-desc">${perk.desc}</div>
+            </div>
+          </div>
+        `).join("");
+      } else {
+        const emptyText = isEn
+          ? "No active tactical perks in this hand. Complete card conditions to trigger situational synergies."
+          : "Sin perks tácticos activos en esta mano. Cumple condiciones de naipes para activar sinergias situacionales.";
+        perksListEl.innerHTML = `<div class="gear-empty-notice">${emptyText}</div>`;
+      }
+    }
+  }
+  window.updateCombatGearModalUI = updateCombatGearModalUI;
+
+  /* ============================================================
+     v1.9.0 — INTERNACIONALIZACIÓN (i18n: ESPAÑOL / INGLÉS)
+     ============================================================ */
+  const I18N_TRANSLATIONS = {
+    es: {
+      tab_tower: "TORRE",
+      tab_arena: "ARENA PVP",
+      tab_lore: "LORE",
+      tab_shops: "TIENDAS",
+      tab_config: "AJUSTES",
+      btn_hit: "PEDIR CARTA",
+      btn_stand: "PLANTARSE",
+      btn_double: "⚡ ¡DOBLAR!",
+      btn_reroll: "REROLL",
+      btn_potion: "POCIÓN",
+      quick_gear: "EQUIPO & PERKS",
+      quick_turn: "TURNO",
+      log_title: "DESCRIPCIÓN DEL TURNO",
+      log_understood: "ENTENDIDO",
+      gear_title: "MOCHILA DE EQUIPO & PERKS",
+      gear_artifacts: "🎴 ARTEFACTOS ACTIVOS",
+      gear_equipment: "⚔️ EQUIPAMIENTO Y BENDICIONES",
+      gear_perks: "💡 PERKS TÁCTICOS ACTIVOS",
+      gear_close: "CERRAR MOCHILA",
+      pause_resume: "CONTINUAR COMBATE",
+      pause_inspect: "INSPECCIONAR COMBATIENTES",
+      pause_restart: "REINICIAR ASCENSO",
+      pause_exit: "SALIR AL CAMPAMENTO",
+      pause_settings_title: "🎛️ CONFIGURACIÓN DE JUEGO",
+      pause_sfx: "🔊 Efectos de Sonido:",
+      pause_music: "🎵 Música:",
+      pause_lang: "🌐 Idioma / Language:",
+      header_floor: "PISO",
+      header_round: "RONDA",
+      header_hand: "MANO",
+      hero_caballero: "Caballero",
+      hero_picaro: "Pícaro",
+      hero_monje: "Monje",
+      hero_nigromante: "Nigromante",
+      stat_health: "SALUD",
+      stat_attack: "ATAQUE",
+      stat_defense: "DEFENSA",
+      stat_shield: "ESCUDO",
+      stat_thorns: "ESPINAS",
+      stat_critical: "CRÍTICO",
+      stat_dodge: "ESQUIVAR",
+      stat_lifesteal: "VAMPIRISMO",
+      stat_luck: "SUERTE"
+    },
+    en: {
+      tab_tower: "TOWER",
+      tab_arena: "PVP ARENA",
+      tab_lore: "LORE",
+      tab_shops: "SHOPS",
+      tab_config: "SETTINGS",
+      btn_hit: "HIT",
+      btn_stand: "STAND",
+      btn_double: "⚡ DOUBLE!",
+      btn_reroll: "REROLL",
+      btn_potion: "POTION",
+      quick_gear: "GEAR & PERKS",
+      quick_turn: "TURN",
+      log_title: "TURN SUMMARY",
+      log_understood: "UNDERSTOOD",
+      gear_title: "GEAR & PERKS BACKPACK",
+      gear_artifacts: "🎴 ACTIVE ARTIFACTS",
+      gear_equipment: "⚔️ GEAR & BLESSINGS",
+      gear_perks: "💡 ACTIVE TACTICAL PERKS",
+      gear_close: "CLOSE BACKPACK",
+      pause_resume: "RESUME BATTLE",
+      pause_inspect: "INSPECT FIGHTERS",
+      pause_restart: "RESTART RUN",
+      pause_exit: "RETURN TO CAMP",
+      pause_settings_title: "🎛️ GAME SETTINGS",
+      pause_sfx: "🔊 Sound Effects:",
+      pause_music: "🎵 Music:",
+      pause_lang: "🌐 Language / Idioma:",
+      header_floor: "FLOOR",
+      header_round: "ROUND",
+      header_hand: "HAND",
+      hero_caballero: "Knight",
+      hero_picaro: "Rogue",
+      hero_monje: "Monk",
+      hero_nigromante: "Necromancer",
+      stat_health: "HEALTH",
+      stat_attack: "ATTACK",
+      stat_defense: "DEFENSE",
+      stat_shield: "SHIELD",
+      stat_thorns: "THORNS",
+      stat_critical: "CRITICAL",
+      stat_dodge: "DODGE",
+      stat_lifesteal: "LIFESTEAL",
+      stat_luck: "LUCK"
+    }
+  };
+  window.I18N_TRANSLATIONS = I18N_TRANSLATIONS;
+
+  function getGameLanguage() {
+    try {
+      const saved = localStorage.getItem("torre21_lang");
+      if (saved === "en" || saved === "es") return saved;
+    } catch (_) {}
+    return "es";
+  }
+  window.getGameLanguage = getGameLanguage;
+
+  function setGameLanguage(lang) {
+    if (lang !== "es" && lang !== "en") lang = "es";
+    try {
+      localStorage.setItem("torre21_lang", lang);
+    } catch (_) {}
+    applyGameLanguage(lang);
+    try { playButtonClickSound(); } catch (_) {}
+    if (typeof showGameToast === "function") {
+      showGameToast(lang === "en" ? "Language updated: English 🇺🇸" : "Idioma actualizado: Español 🇪🇸", "info");
+    }
+  }
+  window.setGameLanguage = setGameLanguage;
+
+  function applyGameLanguage(lang = getGameLanguage()) {
+    if (typeof document === "undefined" || !document) return;
+    if (document.documentElement && typeof document.documentElement.setAttribute === "function") {
+      document.documentElement.setAttribute("lang", lang);
+    }
+    if (typeof document.querySelector !== "function") return;
+    const t = I18N_TRANSLATIONS[lang] || I18N_TRANSLATIONS.es;
+
+    // 1. Pestañas del menú principal
+    const tabTower = document.querySelector("#title-nav-tabs button:nth-child(1) span");
+    if (tabTower) tabTower.innerText = t.tab_tower;
+    const tabArena = document.querySelector("#title-nav-tabs button:nth-child(2) span");
+    if (tabArena) tabArena.innerText = t.tab_arena;
+    const tabLore = document.querySelector("#title-nav-tabs button:nth-child(3) span");
+    if (tabLore) tabLore.innerText = t.tab_lore;
+    const tabShops = document.querySelector("#title-nav-tabs button:nth-child(4) span");
+    if (tabShops) tabShops.innerText = t.tab_shops;
+    const tabConfig = document.querySelector("#title-nav-tabs button:nth-child(5) span");
+    if (tabConfig) tabConfig.innerText = t.tab_config;
+
+    // 2. Botones de combate
+    const btnHit = document.getElementById("btn-hit");
+    if (btnHit) {
+      btnHit.innerHTML = `<img src="assets/svg/ui/icon_card_draw.svg" class="btn-icon" alt=""> ${t.btn_hit}`;
+    }
+    const btnStand = document.getElementById("btn-stand");
+    if (btnStand) {
+      btnStand.innerHTML = `<img src="assets/svg/ui/icon_stand.svg" class="btn-icon" alt=""> ${t.btn_stand}`;
+    }
+    const btnDouble = document.getElementById("btn-double");
+    if (btnDouble) {
+      btnDouble.innerHTML = `<span class="btn-badge-mult">x2</span> ${t.btn_double}`;
+    }
+    const btnReroll = document.getElementById("btn-reroll");
+    if (btnReroll) {
+      const p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+      const count = p ? (p.rerollsAvailable || 0) : 0;
+      btnReroll.innerHTML = `<img src="assets/svg/ui/icon_reroll.svg" class="btn-icon" alt=""> ${t.btn_reroll} (${count})`;
+    }
+
+    // 3. Botones flotantes de combate
+    const qGearLabel = document.querySelector("#btn-combat-gear-toggle .combat-quick-label");
+    if (qGearLabel) qGearLabel.innerText = t.quick_gear;
+    const qTurnLabel = document.querySelector("#btn-combat-log-toggle .combat-quick-label");
+    if (qTurnLabel) qTurnLabel.innerText = t.quick_turn;
+
+    // 4. Modales de combate
+    const modalLogTitle = document.querySelector("#modal-combat-log .combat-modal-title");
+    if (modalLogTitle) modalLogTitle.innerHTML = `<span class="combat-modal-icon">📜</span> ${t.log_title}`;
+    const modalLogBtn = document.querySelector("#modal-combat-log .combat-modal-action-btn");
+    if (modalLogBtn) modalLogBtn.innerText = t.log_understood;
+
+    const modalGearTitle = document.querySelector("#modal-combat-gear .combat-modal-title");
+    if (modalGearTitle) modalGearTitle.innerHTML = `<span class="combat-modal-icon">🎒</span> ${t.gear_title}`;
+    const gearSectionTitles = document.querySelectorAll("#modal-combat-gear .gear-section-title");
+    if (gearSectionTitles.length >= 3) {
+      gearSectionTitles[0].innerText = t.gear_artifacts;
+      gearSectionTitles[1].innerText = t.gear_equipment;
+      gearSectionTitles[2].innerText = t.gear_perks;
+    }
+    const modalGearBtn = document.querySelector("#modal-combat-gear .combat-modal-action-btn");
+    if (modalGearBtn) modalGearBtn.innerText = t.gear_close;
+
+    // 5. Botones de pausa
+    const pBtnResume = document.querySelector(".pause-btn.resume .p-title");
+    if (pBtnResume) pBtnResume.innerText = t.pause_resume;
+    const pBtnInspect = document.querySelector(".pause-btn.inspect .p-title");
+    if (pBtnInspect) pBtnInspect.innerText = t.pause_inspect;
+    const pBtnRestart = document.querySelector(".pause-btn.restart .p-title");
+    if (pBtnRestart) pBtnRestart.innerText = t.pause_restart;
+    const pBtnExit = document.querySelector(".pause-btn.exit .p-title");
+    if (pBtnExit) pBtnExit.innerText = t.pause_exit;
+
+    // 6. Actualizar selector de idioma activo en los botones de UI
+    const pLangEs = document.getElementById("pause-lang-es");
+    const pLangEn = document.getElementById("pause-lang-en");
+    if (pLangEs && pLangEn) {
+      if (lang === "es") { pLangEs.classList.add("active"); pLangEn.classList.remove("active"); }
+      else { pLangEs.classList.remove("active"); pLangEn.classList.add("active"); }
+    }
+    const cfgLangEs = document.getElementById("cfg-lang-es");
+    const cfgLangEn = document.getElementById("cfg-lang-en");
+    if (cfgLangEs && cfgLangEn) {
+      if (lang === "es") { cfgLangEs.classList.add("active"); cfgLangEn.classList.remove("active"); }
+      else { cfgLangEs.classList.remove("active"); cfgLangEn.classList.add("active"); }
+    }
+
+    // 7. Refrescar HUD y mochila si procede
+    if (typeof updateHud === "function" && typeof gameState !== "undefined" && gameState.inCombat) {
+      updateHud();
+    }
+    if (typeof updateCombatGearModalUI === "function") {
+      updateCombatGearModalUI();
+    }
+  }
+  window.applyGameLanguage = applyGameLanguage;
 
   /* ============================================================
      GAME OVER
@@ -16668,6 +17038,14 @@
         <div style="margin-top:10px;display:flex;gap:6px;justify-content:space-between;align-items:center;">
           <button class="toggle-btn ${gameState.audioEnabled ? 'on' : ''}" onclick="toggleSound()" style="font-size: 9px;">${gameState.audioEnabled ? "Audio General: ON" : "Audio General: OFF"}</button>
           <button class="toggle-btn ${gameState.hapticsEnabled !== false ? 'on' : ''}" onclick="toggleHaptics()" style="font-size: 9px;">${gameState.hapticsEnabled !== false ? "Vibración: ON" : "Vibración: OFF"}</button>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <label>🌐 IDIOMA / LANGUAGE</label>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button type="button" class="lang-select-btn ${(typeof getGameLanguage === 'function' ? getGameLanguage() : 'es') === 'es' ? 'active' : ''}" onclick="setGameLanguage('es'); showConfig();" style="flex:1;min-height:38px;padding:6px;border-radius:6px;border:1px solid #ffd166;background:${(typeof getGameLanguage === 'function' ? getGameLanguage() : 'es') === 'es' ? 'rgba(255,209,102,0.2)' : 'rgba(255,255,255,0.05)'};color:#ffd166;font-family:inherit;font-size:9.5px;font-weight:bold;cursor:pointer;">🇪🇸 ESPAÑOL</button>
+          <button type="button" class="lang-select-btn ${(typeof getGameLanguage === 'function' ? getGameLanguage() : 'es') === 'en' ? 'active' : ''}" onclick="setGameLanguage('en'); showConfig();" style="flex:1;min-height:38px;padding:6px;border-radius:6px;border:1px solid #45a29e;background:${(typeof getGameLanguage === 'function' ? getGameLanguage() : 'es') === 'en' ? 'rgba(69,162,158,0.2)' : 'rgba(255,255,255,0.05)'};color:#66fcf1;font-family:inherit;font-size:9.5px;font-weight:bold;cursor:pointer;">🇺🇸 ENGLISH</button>
         </div>
       </div>
 
@@ -19313,6 +19691,11 @@
     _lastEnemyHpPct = null;
     gameState.isRolling = false;
     document.body.classList.remove("sudden-death-active");
+    if (typeof closeCombatGearModal === "function") closeCombatGearModal();
+    if (typeof closeCombatLogModal === "function") closeCombatLogModal();
+    const qb = document.getElementById("combat-quick-bar");
+    if (qb) qb.style.display = "flex";
+    if (typeof updateCombatGearModalUI === "function") updateCombatGearModalUI();
     try { updateBattleZoneAtmosphere(gameState.floor); } catch (_) {}
     const p = gameState.player;
     const e = gameState.enemy;
@@ -20272,6 +20655,11 @@
     if (e && e.stopPropagation) e.stopPropagation();
     stopIntroMinigame();
 
+    if (typeof closeCombatGearModal === "function") closeCombatGearModal();
+    if (typeof closeCombatLogModal === "function") closeCombatLogModal();
+    const qb = document.getElementById("combat-quick-bar");
+    if (qb) qb.style.display = "none";
+
     const intro = document.getElementById("screen-intro");
     const title = document.getElementById("screen-title");
     if (intro) intro.classList.add("hidden");
@@ -20708,6 +21096,11 @@
      INIT
      ============================================================ */
   try {
+    closeCombatGearModal();
+    closeCombatLogModal();
+    const qb = document.getElementById("combat-quick-bar");
+    if (qb) qb.style.display = "none";
+    applyGameLanguage();
     updateHud();
     updateHeroSelectUI();
     try {
@@ -20721,6 +21114,18 @@
   }
   initIntro();
   initMobileSwipeGestures();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      closeCombatGearModal();
+      closeCombatLogModal();
+      applyGameLanguage();
+    });
+  } else {
+    closeCombatGearModal();
+    closeCombatLogModal();
+    applyGameLanguage();
+  }
 
   /* ============================================================
      EVENTOS DE CICLO DE VIDA MÓVIL (ANTI-INTERRUPCIONES)
