@@ -66,10 +66,10 @@ check('game.js define openCombatLogModal y closeCombatLogModal', /function openC
 check('game.js forzado de cierre en init y DOMContentLoaded', /closeCombatGearModal\(\);[\s\S]*?closeCombatLogModal\(\);/.test(gameJs));
 check('improvements.js incluye guardia de cierre en arranque', /modal-combat-gear[\s\S]*?classList\.add\("hidden"\)/.test(improvementsJs));
 
-console.log('== 6. Versión Sincronizada v1.9.1 (BUILD 48) ==');
-check('index.html muestra versión v1.9.1', /v1\.9\.1/.test(indexHtml));
-check('game.js tiene GAME_VERSION = "v1.9.1"', /const GAME_VERSION\s*=\s*"v1\.9\.1"/.test(gameJs));
-check('improvements.js tiene IMPROVEMENTS_VERSION = "v1.9.1"', /window\.IMPROVEMENTS_VERSION\s*=\s*"v1\.9\.1"/.test(improvementsJs));
+console.log('== 6. Versión Sincronizada v1.9.2 (BUILD 49) ==');
+check('index.html muestra versión v1.9.2', /v1\.9\.2/.test(indexHtml));
+check('game.js tiene GAME_VERSION = "v1.9.2"', /const GAME_VERSION\s*=\s*"v1\.9\.2"/.test(gameJs));
+check('improvements.js tiene IMPROVEMENTS_VERSION = "v1.9.2"', /window\.IMPROVEMENTS_VERSION\s*=\s*"v1\.9\.2"/.test(improvementsJs));
 
 console.log('\n---------------------------------------');
 console.log(`RESULTADO: ${passed} pass / ${total - passed} fail\n`);

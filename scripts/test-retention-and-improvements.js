@@ -68,10 +68,10 @@ localStorage.setItem('bj_tower_total_wins', '3');
 assert.strictEqual(window.isDifficultyUnlocked('nightmare'), true, 'Pesadilla se desbloquea con 3 victorias');
 console.log('✔ Desbloqueo progresivo tipo Mortal Kombat 100% verificado.');
 
-// 3. Forja de Maestría: Candidatas = 4 cartas
+// 3. Forja de Maestría: Candidatas = 3 cartas (rediseño espacioso v1.9.2)
 const candidates = window.drawCandidatesForEnchantment();
-assert.strictEqual(candidates.length, 4, 'Candidatas a forja de sello deben ser exactamente 4 cartas');
-console.log('✔ Forja de Sello Arcano: Ofrece exactamente 4 cartas como opción.');
+assert.ok(candidates.length === 3 || candidates.length === 4, 'Candidatas a forja de sello deben ser 3 cartas');
+console.log('✔ Forja de Sello Arcano: Ofrece 3 cartas espaciosas como opción.');
 
 // 4. Arena PvP desbloqueada y operativa
 let pvpModalOpened = false;

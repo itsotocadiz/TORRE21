@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.1 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.2 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,30 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.1] — Noviembre 2026 (Actual)
+### [v1.9.2] — Noviembre 2026 (Actual)
+* **Ampliación Ergonómica y Desplazamiento Fluido en la Bitácora de Turno:**
+  * Redimensionado el modal `#modal-combat-log` con `min-height: 70vh` y `max-height: 85vh`, optimizando el contenedor interno `.log-container-in-modal` con `max-height: 60vh`, relleno de 14px y tipografía nítida para una lectura cómoda de todo el historial del enfrentamiento sin saturación visual.
+* **Detección Integral de Bendiciones del Destino en la Mochila:**
+  * El botón de bendiciones (`#ui-gem-pill`) y la caja de detalles (`#gear-slot-detail-box`) ahora resuelven fluidamente tanto bendiciones iniciales (`starterBlessing`, `blessing`, `activeBlessing`) como gemas de medallón, mostrando siempre el icono correcto, título completo y descripción detallada en lugar de "Sin Bendición Activa" genérico. Apertura inteligente por defecto en el primer objeto disponible.
+* **Reubicación Ergonómica del Distintivo de Racha sobre la Cabeza del Héroe:**
+  * El distintivo `#player-streak-badge` se ha anclado dinámicamente en la esquina superior izquierda del sprite del Personaje (`#player-sprite`), despegándolo de la barra de vida y dotándolo de una animación pulsante de victoria sin obstaculizar la lectura de PV o escudo.
+* **Inspección Táctil de Cartas del Adversario y Activación Real de Cartas Oscuras:**
+  * Al tocar cualquier naipe visible del rival en mesa, se abre de inmediato su ficha de inspección (`showCardDetailModal`) detallando nombre, descripción y tipo de poder.
+  * Implementada la activación real de las Cartas Oscuras del Rival (`isEnemySpecialCard` / `darkSigil`) en `resolveHandResult`: la *Espina Tóxica* aplica +2 de Veneno residual, el *Pacto Tiránico* aplica +2 de Fuego al jugador, el *Baluarte de Obsidiana* otorga +12 de Escudo al rival, y el *Vórtice Abisal* drena 4 PV directo a la salud enemiga.
+* **Persistencia Real de Mejoras de Nivel entre Runs (Metaprogresión):**
+  * Almacenamiento local persistente (`torre21_hero_perm_stats_v1`) para las bonificaciones de atributos por nivel (ATK, DEF, HP, Espinas). Las subidas de nivel de cada héroe se guardan de forma permanente y se restablecen fielmente al iniciar una nueva ascensión sin pérdidas por reinicio o derrota.
+* **Traducción Integral al Inglés (Localización i18n):**
+  * Ampliado el diccionario `I18N_TRANSLATIONS` con cobertura completa para todos los elementos del juego: botones de acción, menús de pausa, encabezados de configuración rápida, forja de naipes y etiquetas de equipo.
+* **Despliegue Estético de Ases y Naipes Cosméticos con Corona:**
+  * Corregida la superposición del valor `11` en las cartas de As (`rank === "A"`) y en naipes cosméticos de jefes (`card-cosmetic-fullart`), garantizando que la corona dorada `👑` luzca despejada sin números invasivos.
+* **Dispersión Radial Cinemática de Textos Flotantes (Anti-Colisiones):**
+  * Refactorizada la función `spawnFloatingText` con un algoritmo de dispersión radial en abanico (6 canales angulares alternados entre -55° y +55°), evitando que números de daño, veneno, crítico o curación se amontonen unos sobre otros.
+* **Rediseño Espacioso de la Forja de Sellos (3 Naipes):**
+  * La forja y apertura de sobres de sellos (`screen-booster-pack`) ahora presenta 3 naipes con amplio espacio táctil en móviles, incorporando un glifo elemental flotante tridimensional sobre cada carta y un botón dorado de acción `✨ ENCANTAR`.
+* **Depuración del Ciclo de Combustión (1 a 1):**
+  * El daño residual por quemadura (`enemyBurn`) ahora decrece estrictamente de 1 en 1 por turno (`4 ➔ 3 ➔ 2 ➔ 1 ➔ 0`), permitiendo el cálculo táctico predecible del daño por fuego. Añadido el procesamiento y conteo regresivo simétrico para `playerBurn`.
+
+### [v1.9.1] — Noviembre 2026
 * **Solución Definitiva al Congelamiento (Anti-Freeze Guard) en Ataque:**
   * Corregido el error de ejecución de JavaScript `ReferenceError: isRpgCrit is not defined` en la evaluación de Vampirismo al asestar un golpe, el cual interrumpía silenciosamente la promesa de combate dejando los controles bloqueados tras un BUST del rival.
   * Implementado un temporizador de seguridad (*Watchdog Fallback* de 1500ms) y encapsulamiento `try / catch / finally` en `resolveHandResult()`. Si cualquier animación DOM o evento de audio se demora, el motor garantiza la aplicación del daño y habilita de inmediato el botón `▶ SIGUIENTE RONDA` (o dispara `enemyDefeated()` si el rival llegó a 0 HP).

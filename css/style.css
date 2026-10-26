@@ -15619,5 +15619,210 @@ body:has(#screen-event:not(.hidden)) header {
   color: #fca5a5 !important;
 }
 
+/* ============================================================
+   v1.9.2 — MODAL DESCRIPCIÓN DEL TURNO (📜) EXPANDIDO PARA MÓVIL
+   ============================================================ */
+#modal-combat-log .combat-modal-card {
+  width: 94vw !important;
+  max-width: 500px !important;
+  min-height: 70vh !important;
+  max-height: 85vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#modal-combat-log .combat-modal-body {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 12px 14px !important;
+}
+#modal-combat-log .log-container-in-modal {
+  flex: 1 !important;
+  min-height: 50vh !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  padding: 16px !important;
+}
+
+/* ============================================================
+   v1.9.2 — BADGE DE RACHA FLOTANDO ARRIBA A LA IZQUIERDA DEL SPRITE
+   ============================================================ */
+#player-sprite #player-streak-badge,
+.player-streak-badge {
+  position: absolute !important;
+  top: -4px !important;
+  left: -4px !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 6 !important;
+  pointer-events: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2px 6px !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  border-radius: 6px !important;
+  border: 1.5px solid #ffd166 !important;
+  background: linear-gradient(135deg, #e63946, #f77f00, #fcbf49) !important;
+  color: #fff !important;
+  box-shadow: 0 0 8px rgba(247, 127, 0, 0.8), inset 0 0 3px rgba(255, 209, 102, 0.4) !important;
+  cursor: pointer !important;
+  animation: streakFirePulse 0.9s ease-in-out infinite alternate !important;
+  touch-action: manipulation !important;
+  white-space: nowrap !important;
+}
+#player-sprite #player-streak-badge.hidden,
+.player-streak-badge.hidden {
+  display: none !important;
+}
+
+/* ============================================================
+   v1.9.2 — OCULTAR ETIQUETA EN CARTAS COSMÉTICAS Y ASES CON CORONA
+   ============================================================ */
+.card-face.card-cosmetic-fullart .card-label {
+  display: none !important;
+}
+.card-face.card-cosmetic-fullart .card-cosmetic-crown {
+  bottom: 2px !important;
+  right: 3px !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+}
+
+/* ============================================================
+   v1.9.2 — FÍSICA RADIAL EN ABANICO PARA FLOATING COMBAT TEXTS
+   ============================================================ */
+.floating-text.radial-fan {
+  animation: floatRadialAnim 1.6s cubic-bezier(.16, 1, 0.3, 1) forwards !important;
+}
+@keyframes floatRadialAnim {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.7) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(var(--fly-dx, 0px) * 0.4), calc(var(--fly-dy, -20px) * 0.4)) scale(1.15) rotate(var(--fly-rot, 0deg));
+  }
+  65% {
+    opacity: 1;
+    transform: translate(calc(var(--fly-dx, 0px) * 0.85), calc(var(--fly-dy, -20px) * 0.85)) scale(1.02) rotate(var(--fly-rot, 0deg));
+  }
+  85% {
+    opacity: 0.95;
+    transform: translate(var(--fly-dx, 0px), var(--fly-dy, -35px)) scale(1) rotate(var(--fly-rot, 0deg));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--fly-dx, 0px) * 1.12), calc(var(--fly-dy, -35px) - 12px)) scale(0.85) rotate(var(--fly-rot, 0deg));
+  }
+}
+
+/* ============================================================
+   v1.9.2 — REDISEÑO ESTÉTICO DE FORJA DEL SELLO ARCANO (3 CARTAS)
+   ============================================================ */
+.booster-cards-row {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  margin: 8px 0 14px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.booster-card-item {
+  flex: 1 !important;
+  max-width: 125px !important;
+  min-height: 170px !important;
+  background: linear-gradient(160deg, #1c2638, #0e1522) !important;
+  border-radius: 10px !important;
+  border: 1.5px solid rgba(102, 252, 241, 0.35) !important;
+  padding: 10px 8px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  position: relative !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 0, 0, 0.5) !important;
+  user-select: none !important;
+}
+.booster-card-item:hover,
+.booster-card-item:active {
+  transform: translateY(-8px) scale(1.05) !important;
+  border-color: #ffd166 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 209, 102, 0.5) !important;
+}
+.booster-card-item .bci-corner {
+  align-self: flex-start !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+.booster-card-item.suit-red .bci-corner,
+.booster-card-item.suit-red .bci-center {
+  color: #ef4444 !important;
+}
+.booster-card-item.suit-black .bci-corner,
+.booster-card-item.suit-black .bci-center {
+  color: #60a5fa !important;
+}
+.booster-card-item .bci-center {
+  font-size: 34px !important;
+  line-height: 1 !important;
+  margin: 6px 0 !important;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+}
+.booster-seal-preview-float {
+  position: absolute !important;
+  top: 36% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  font-size: 26px !important;
+  filter: drop-shadow(0 0 12px rgba(255, 209, 102, 0.9)) !important;
+  animation: sealFloatPulse 1.4s ease-in-out infinite alternate !important;
+  pointer-events: none !important;
+}
+@keyframes sealFloatPulse {
+  0% { transform: translate(-50%, -50%) scale(0.95); }
+  100% { transform: translate(-50%, -55%) scale(1.12); }
+}
+.booster-card-item .bci-val-badge {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  color: #ffd166 !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 209, 102, 0.3) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  margin: 4px 0 !important;
+}
+.booster-card-item .bci-tap-tag {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.5px !important;
+  border: 1px solid #fef08a !important;
+  border-radius: 6px !important;
+  padding: 6px 8px !important;
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.4) !important;
+  width: 100% !important;
+  min-height: 44px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.booster-card-item .bci-tap-tag:hover,
+.booster-card-item .bci-tap-tag:active {
+  transform: scale(1.03) !important;
+  box-shadow: 0 0 14px rgba(254, 240, 138, 0.7) !important;
+}
+
+
 
 

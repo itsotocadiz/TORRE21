@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.1";
+  const GAME_VERSION = "v1.9.2";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.1)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.2)
      ============================================================ */
 
   const HERO_DATA = {
@@ -3045,8 +3045,11 @@
   window.cleanupBattleRuntimeState = cleanupBattleRuntimeState;
 
   /* ============================================================
-     EFECTOS VISUALES Y FLOATING COMBAT TEXT
+     EFECTOS VISUALES Y FLOATING COMBAT TEXT (RADIAL FAN v1.9.2)
      ============================================================ */
+  const _activeFloatingCounters = {};
+  const _floatingResetTimers = {};
+
   function spawnFloatingText(targetOrId, text, type = "damage") {
     const target = (typeof targetOrId === "string") ? document.getElementById(targetOrId) : targetOrId;
     if (!target) return;
@@ -3055,9 +3058,43 @@
     if (!stage) return;
     const stageRect = stage.getBoundingClientRect();
 
+    const targetKey = (typeof targetOrId === "string") ? targetOrId : (target.id || "default");
+    const count = _activeFloatingCounters[targetKey] || 0;
+    _activeFloatingCounters[targetKey] = count + 1;
+
+    if (_floatingResetTimers[targetKey]) clearTimeout(_floatingResetTimers[targetKey]);
+    _floatingResetTimers[targetKey] = setTimeout(() => {
+      _activeFloatingCounters[targetKey] = 0;
+    }, 1400);
+
+    // Sistema de disparo radial por ángulos y carriles sin colisión
+    const radialPatterns = [
+      { dx: -44, dy: -28, rot: -38 },
+      { dx: 44, dy: -28, rot: 38 },
+      { dx: -22, dy: -48, rot: -16 },
+      { dx: 22, dy: -48, rot: 16 },
+      { dx: -58, dy: -14, rot: -52 },
+      { dx: 58, dy: -14, rot: 52 }
+    ];
+    const pattern = radialPatterns[count % radialPatterns.length];
+    const staggerDelay = (count % 6) * 140;
+
     const el = document.createElement("div");
-    el.className = `floating-text ${type}`;
+    el.className = `floating-text radial-fan ${type}`;
     el.innerText = text;
+    if (el.style) {
+      if (typeof el.style.setProperty === "function") {
+        el.style.setProperty("--fly-dx", `${pattern.dx}px`);
+        el.style.setProperty("--fly-dy", `${pattern.dy}px`);
+        el.style.setProperty("--fly-rot", `${pattern.rot}deg`);
+      } else {
+        el.style["--fly-dx"] = `${pattern.dx}px`;
+        el.style["--fly-dy"] = `${pattern.dy}px`;
+        el.style["--fly-rot"] = `${pattern.rot}deg`;
+      }
+      el.style.animationDelay = `${staggerDelay}ms`;
+    }
+
     // Si el objetivo es el héroe o enemigo, desplazar ligeramente al centro del cuerpo del sprite para no tapar los puntajes de cartas
     const isPlayer = (target.id && target.id.includes("player")) || (target.classList && target.classList.contains("player-fighter"));
     const isEnemy = (target.id && target.id.includes("enemy")) || (target.classList && target.classList.contains("enemy-fighter"));
@@ -3070,7 +3107,7 @@
     stage.appendChild(el);
     setTimeout(() => {
       if (el.parentNode) el.parentNode.removeChild(el);
-    }, 1750);
+    }, 1800 + staggerDelay);
   }
   window.spawnFloatingText = spawnFloatingText;
 
@@ -5356,6 +5393,34 @@
   }
   window.applyHeroTalentsToPlayer = applyHeroTalentsToPlayer;
 
+  /* ============================================================
+     v1.9.2 — PERSISTENCIA PERMANENTE DE ESTADÍSTICAS POR HÉROE
+     ============================================================ */
+  const TORRE21_HERO_PERMANENT_STATS_KEY = "torre21_hero_permanent_stats";
+
+  function getHeroPermanentStats(heroId) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(TORRE21_HERO_PERMANENT_STATS_KEY) || "{}");
+      const hId = heroId || (gameState && gameState.player && (gameState.player.classKey || gameState.player.class)) || "knight";
+      return raw[hId] ? Object.assign({}, raw[hId]) : { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
+    } catch (_) {
+      return { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
+    }
+  }
+  window.getHeroPermanentStats = getHeroPermanentStats;
+
+  function saveHeroPermanentStats(heroId, stats) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(TORRE21_HERO_PERMANENT_STATS_KEY) || "{}");
+      const hId = heroId || (gameState && gameState.player && (gameState.player.classKey || gameState.player.class)) || "knight";
+      raw[hId] = Object.assign({ pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 }, stats);
+      localStorage.setItem(TORRE21_HERO_PERMANENT_STATS_KEY, JSON.stringify(raw));
+    } catch (err) {
+      console.error("Error guardando estadísticas permanentes del héroe:", err);
+    }
+  }
+  window.saveHeroPermanentStats = saveHeroPermanentStats;
+
   function recalculatePlayerStats(p) {
     if (!p) p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
     if (!p) return;
@@ -5373,9 +5438,9 @@
     let baseDef = (typeof heroCfg.def === "number") ? heroCfg.def : 0;
     let baseMaxHp = (typeof heroCfg.maxHp === "number") ? heroCfg.maxHp : 80;
 
-    // 2. MEJORAS PERMANENTES DE SUBIDA DE NIVEL (levelUpStats)
+    // 2. MEJORAS PERMANENTES DE SUBIDA DE NIVEL (levelUpStats guardadas en localStorage)
     if (!p.levelUpStats) {
-      p.levelUpStats = { pwr: 0, def: 0, hp: 0, crit: 0, dodge: 0, thorns: 0, lifesteal: 0, luck: 0 };
+      p.levelUpStats = getHeroPermanentStats(heroKey);
     }
     basePwr += (p.levelUpStats.pwr || 0);
     baseDef += (p.levelUpStats.def || 0);
@@ -8261,6 +8326,12 @@
     p.blackjackMultiplier = 1;
     p.hasGoldenDie = false;
     p.starterBlessing = null;
+    p.blessing = null;
+    p.activeBlessing = null;
+    p.artifacts = [];
+    p.cardEnchantments = {};
+    p.sacrificialPacts = [];
+    p.levelUpStats = getHeroPermanentStats(heroKey);
     p.phoenixGraceUsed = false;
     p.attributes = (heroMeta && heroMeta.attributes) ? { ...heroMeta.attributes } : initHeroAttributes(p, heroKey);
     if (typeof applyHeroTalentsToPlayer === "function") {
@@ -8524,6 +8595,10 @@
         `;
       }
 
+      const hasCrown = !!cosmetic;
+      const isAce = (card.rank === "A" || card.value === 11 || card.isAce);
+      const labelMarkup = (hasCrown || isAce) ? "" : `<span class="card-label">${effectiveVal}</span>`;
+
       if (card.enchantment) {
         const elType = card.enchantment.element || card.enchantment.type || "arcane";
         el.classList.add("enchanted", `seal-${card.enchantment.type || card.enchantment.id}`, `element-${elType}`);
@@ -8533,7 +8608,7 @@
           ${sealMarkup}
           <span class="card-value">${card.rank}</span>
           <span class="suit" style="font-size:14px;opacity:0.85;">${card.suit}</span>
-          <span class="card-label">${effectiveVal}</span>
+          ${labelMarkup}
           ${lootPill}
         `;
       } else {
@@ -8542,7 +8617,7 @@
           ${lootBadge}
           <span class="card-value">${card.rank}</span>
           <span class="suit" style="font-size:14px;opacity:0.85;">${card.suit}</span>
-          <span class="card-label">${effectiveVal}</span>
+          ${labelMarkup}
           ${lootPill}
         `;
       }
@@ -8594,7 +8669,24 @@
         el.innerHTML = `<span>?</span>`;
       } else {
         const darkBadge = card.isEnemySpecialCard ? `<span class="card-loot-badge dark-enemy-sigil" title="${card.name || 'Carta Oscura del Rival'}">💀</span>` : '';
-        el.innerHTML = `<span class="card-value">${card.rank}</span><span class="suit" style="font-size:14px;opacity:0.8;">${card.suit}</span><span class="card-label">${card.value}</span>${darkBadge}`;
+        const isEnemyAce = (card.rank === "A" || card.value === 11 || card.isAce);
+        const eLabelMarkup = isEnemyAce ? "" : `<span class="card-label">${card.value}</span>`;
+        el.innerHTML = `<span class="card-value">${card.rank}</span><span class="suit" style="font-size:14px;opacity:0.8;">${card.suit}</span>${eLabelMarkup}${darkBadge}`;
+        el.classList.add("interactive-card");
+        el.style.cursor = "pointer";
+        el.title = card.name || `${card.rank} de ${card.suit} (Toca para inspeccionar)`;
+        el.onclick = () => {
+          showCardDetailModal({
+            rank: card.rank,
+            suit: card.suit,
+            value: card.currentAdaptedValue || card.value,
+            name: card.name || (card.isEnemySpecialCard ? "Carta Oscura del Rival" : `${card.rank} de ${card.suit}`),
+            desc: card.desc || (card.isEnemySpecialCard ? "Habilidad especial oscura invocada por el rival." : "Carta estándar jugada por el rival."),
+            badgeText: card.badgeText || (card.isEnemySpecialCard ? "Habilidad Oscura" : null),
+            seal: card.enchantment || null,
+            cosmetic: null
+          });
+        };
       }
       eHandEl.appendChild(el);
     }
@@ -12630,7 +12722,7 @@
   function drawCandidatesForEnchantment() {
     const allCards = buildStandardDeck();
     shuffleArray(allCards);
-    return allCards.slice(0, 4);
+    return allCards.slice(0, 3);
   }
   window.drawCandidatesForEnchantment = drawCandidatesForEnchantment;
 
@@ -12772,13 +12864,16 @@
         <div class="booster-card-item booster-reveal ${isRed ? 'suit-red' : 'suit-black'}" style="animation-delay:${idx * 0.15}s; cursor:pointer; pointer-events:auto;" onclick="applySealToCandidate(${idx})" role="button" tabindex="0" title="Toca para encantar permanentemente esta carta">
           <div class="bci-corner">
             <span>${card.rank}</span>
-            <span style="font-size:11px;">${card.suit}</span>
+            <span style="font-size:12px;">${card.suit}</span>
           </div>
           <div class="bci-center">${card.suit}</div>
+          <div class="booster-seal-preview-float">
+            <span class="bspf-icon">${seal.icon || '✨'}</span>
+          </div>
           <div class="bci-val-badge">VALOR ${card.value}</div>
-          ${existing ? `<div style="font-size: 9px;color:#e63946;margin-top:2px;font-weight:bold;">REEMPLAZA ${existing.icon}</div>` : ''}
+          ${existing ? `<div style="font-size: 9px;color:#ef4444;margin-top:2px;font-weight:bold;">REEMPLAZA ${existing.icon}</div>` : ''}
           <button type="button" class="bci-tap-tag" style="width:100%; min-height:44px; min-width:44px; cursor:pointer; pointer-events:auto;" onclick="event.stopPropagation(); applySealToCandidate(${idx})">
-            ENCANTAR
+            ✨ ENCANTAR
           </button>
         </div>
       `;
@@ -16227,6 +16322,17 @@
     const modal = document.getElementById("modal-combat-gear");
     if (!modal) return;
     updateCombatGearModalUI();
+    const titleEl = document.getElementById("gear-detail-title");
+    const descEl = document.getElementById("gear-detail-desc");
+    if (titleEl && descEl) {
+      const p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+      const cleanArts = (p && typeof sanitizePlayerArtifacts === "function") ? sanitizePlayerArtifacts(p) : (p && p.artifacts ? p.artifacts : []);
+      if (cleanArts && cleanArts.length > 0) {
+        inspectGearSlot("artifact", cleanArts[0]);
+      } else {
+        inspectGearSlot("blessing", null);
+      }
+    }
     modal.classList.remove("hidden");
     modal.style.display = "flex";
     try { playButtonClickSound(); } catch (_) {}
@@ -16316,14 +16422,32 @@
     }
 
     const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
-    const gemEl = document.getElementById("ui-gem");
-    if (gemEl) {
-      gemEl.innerText = p.gem ? (typeof getItemSpanishName === "function" ? getItemSpanishName(p.gem) : p.gem.toUpperCase()) : (isEn ? "NONE" : "NINGUNA");
-    }
+    const activeBlessing = p ? (p.starterBlessing || p.blessing || p.activeBlessing || p.gem) : null;
     const gemBtn = document.getElementById("ui-gem-pill");
+    const gemTag = document.getElementById("ui-gem-tag");
+    const gemIcon = document.getElementById("ui-gem-icon");
     if (gemBtn) {
-      if (p.gem || p.starterBlessing) gemBtn.classList.add("active");
-      else gemBtn.classList.remove("active");
+      if (activeBlessing) {
+        gemBtn.classList.add("active");
+        let bName = "BENDICIÓN";
+        let bIcon = "💎";
+        if (typeof activeBlessing === "object") {
+          bName = activeBlessing.name || "BENDICIÓN";
+          bIcon = activeBlessing.icon || "💎";
+        } else if (typeof STARTER_BLESSINGS !== "undefined") {
+          const bl = STARTER_BLESSINGS.find(b => b.id === activeBlessing);
+          if (bl) { bName = bl.name; bIcon = bl.icon || "💎"; }
+        } else if (p.gem) {
+          bName = (typeof getItemSpanishName === "function" ? getItemSpanishName(p.gem) : p.gem);
+          bIcon = "💎";
+        }
+        if (gemTag) gemTag.innerText = bName.length > 11 ? bName.slice(0, 10) + "…" : bName;
+        if (gemIcon) gemIcon.innerText = bIcon;
+      } else {
+        gemBtn.classList.remove("active");
+        if (gemTag) gemTag.innerText = isEn ? "NO BLESSING" : "SIN BENDICIÓN";
+        if (gemIcon) gemIcon.innerText = "💎";
+      }
     }
 
     const accEl = document.getElementById("ui-acc");
@@ -16381,6 +16505,7 @@
   function inspectGearSlot(type, id) {
     try { playButtonClickSound(); } catch (_) {}
     const p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+    const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
     const titleEl = document.getElementById("gear-detail-title");
     const descEl = document.getElementById("gear-detail-desc");
     if (!titleEl || !descEl) return;
@@ -16403,20 +16528,27 @@
         descEl.innerText = "Esta ranura está disponible. Puedes adquirir hasta 5 artefactos pasivos en la Tienda o en eventos de la Torre.";
       }
     } else if (type === "blessing") {
-      if (p && p.starterBlessing && typeof STARTER_BLESSINGS !== "undefined") {
-        const bl = STARTER_BLESSINGS.find(b => b.id === p.starterBlessing);
-        if (bl) {
-          titleEl.innerHTML = `${bl.icon || '💎'} ${(bl.name || 'BENDICIÓN DEL DESTINO').toUpperCase()}`;
-          descEl.innerText = bl.desc || "Bendición divina inicial que acompaña a tu héroe en la Torre.";
-          return;
-        }
+      const activeBlessingId = p ? (p.starterBlessing || p.blessing || p.activeBlessing) : null;
+      let blessingInfo = null;
+      if (activeBlessingId && typeof STARTER_BLESSINGS !== "undefined") {
+        blessingInfo = STARTER_BLESSINGS.find(b => b.id === activeBlessingId || b.id === (typeof activeBlessingId === "object" ? activeBlessingId.id : activeBlessingId));
+      }
+      if (!blessingInfo && typeof activeBlessingId === "object" && activeBlessingId) {
+        blessingInfo = activeBlessingId;
+      }
+      if (blessingInfo) {
+        titleEl.innerHTML = `${blessingInfo.icon || '💎'} ${(blessingInfo.name || 'BENDICIÓN ACTIVA').toUpperCase()}`;
+        descEl.innerText = blessingInfo.desc || "Bendición divina inicial que acompaña a tu héroe en la Torre.";
+        return;
       }
       if (p && p.gem) {
         titleEl.innerHTML = `💎 MEDALLÓN: ${(typeof getItemSpanishName === "function" ? getItemSpanishName(p.gem) : p.gem).toUpperCase()}`;
         descEl.innerText = "Gema engarzada en tu medallón de combate. Amplifica bonificaciones según el elemento de tus cartas.";
       } else {
-        titleEl.innerHTML = "💎 SIN BENDICIÓN ACTIVA";
-        descEl.innerText = "No tienes ninguna bendición del destino equipada en tu medallón en este momento.";
+        titleEl.innerHTML = isEn ? "💎 NO ACTIVE BLESSING" : "💎 SIN BENDICIÓN ACTIVA";
+        descEl.innerText = isEn
+          ? "No destiny blessing or medallion gem currently equipped. Discover shrines or choose starting blessings."
+          : "No tienes ninguna bendición del destino equipada en tu medallón en este momento.";
       }
     } else if (type === "accessory") {
       const acc = (p && p.accessory && typeof AMULET_INFO !== "undefined" && AMULET_INFO[p.accessory]) ? AMULET_INFO[p.accessory] : null;
@@ -16498,7 +16630,10 @@
       stat_critical: "CRÍTICO",
       stat_dodge: "ESQUIVAR",
       stat_lifesteal: "VAMPIRISMO",
-      stat_luck: "SUERTE"
+      stat_luck: "SUERTE",
+      pause_title: "JUEGO EN PAUSA",
+      next_round_btn: "▶ SIGUIENTE RONDA",
+      enchant_btn: "✨ ENCANTAR"
     },
     en: {
       tab_tower: "TOWER",
@@ -16520,6 +16655,7 @@
       gear_equipment: "⚔️ GEAR & BLESSINGS",
       gear_perks: "💡 ACTIVE TACTICAL PERKS",
       gear_close: "CLOSE BACKPACK",
+      pause_title: "GAME PAUSED",
       pause_resume: "RESUME BATTLE",
       pause_inspect: "INSPECT FIGHTERS",
       pause_restart: "RESTART RUN",
@@ -16528,6 +16664,8 @@
       pause_sfx: "🔊 Sound Effects:",
       pause_music: "🎵 Music:",
       pause_lang: "🌐 Language / Idioma:",
+      next_round_btn: "▶ NEXT ROUND",
+      enchant_btn: "✨ ENCHANT",
       header_floor: "FLOOR",
       header_round: "ROUND",
       header_hand: "HAND",
@@ -16609,6 +16747,10 @@
       const count = p ? (p.rerollsAvailable || 0) : 0;
       btnReroll.innerHTML = `<img src="assets/svg/ui/icon_reroll.svg" class="btn-icon" alt=""> ${t.btn_reroll} (${count})`;
     }
+    const nextRoundBtn = document.getElementById("btn-next-round");
+    if (nextRoundBtn && !nextRoundBtn.classList.contains("sudden-death")) {
+      nextRoundBtn.innerText = t.next_round_btn || "▶ SIGUIENTE RONDA";
+    }
 
     // 3. Botones flotantes de combate
     const qGearLabel = document.querySelector("#btn-combat-gear-toggle .combat-quick-label");
@@ -16634,6 +16776,10 @@
     if (modalGearBtn) modalGearBtn.innerText = t.gear_close;
 
     // 5. Botones de pausa
+    const pauseTitle = document.querySelector("#screen-pause .pause-panel-header h2");
+    if (pauseTitle) pauseTitle.innerText = t.pause_title || "⏸️ JUEGO EN PAUSA";
+    const pauseSettingsH4 = document.querySelector(".pause-settings-card h4");
+    if (pauseSettingsH4) pauseSettingsH4.innerText = t.pause_settings_title || "🎛️ CONFIGURACIÓN RÁPIDA";
     const pBtnResume = document.querySelector(".pause-btn.resume .p-title");
     if (pBtnResume) pBtnResume.innerText = t.pause_resume;
     const pBtnInspect = document.querySelector(".pause-btn.inspect .p-title");
@@ -17986,6 +18132,10 @@
       gameState.status.playerShield = (gameState.status.playerShield || 0) + 10;
       addLog("⭐ Reliquia de Nivel " + p.level + ": Égida de Diamante equipada (+1 DEF y +10 Escudo azul por piso).", "critical");
     }
+    const heroId = p.classKey || p.class || "knight";
+    if (typeof saveHeroPermanentStats === "function") {
+      saveHeroPermanentStats(heroId, p.levelUpStats);
+    }
     if (typeof recalculatePlayerStats === "function") {
       recalculatePlayerStats(p);
     }
@@ -18071,6 +18221,37 @@
       p.shield += 6;
       spawnFloatingText("player-sprite", "+6 ESCUDO", "shield");
       addLog("❄️ 6 Glacial Protector: ¡Te plantas con 18 o menos y obtienes +6 de Escudo!", "heal");
+    }
+
+    // SPRINT v1.9.2: Activación real de efectos de Cartas Oscuras del Rival (Veneno 💀, Fuego 🔥, Escudo 🛡️, etc.)
+    if (e && e.enemyHand && Array.isArray(e.enemyHand)) {
+      for (const ec of e.enemyHand) {
+        if (ec && (ec.isEnemySpecialCard || ec.darkSigil) && !ec._darkSigilTriggeredThisHand) {
+          ec._darkSigilTriggeredThisHand = true;
+          if (ec.darkSigil === "toxic_thorn" || (ec.name && ec.name.includes("Malaquita"))) {
+            if (!gameState.status) gameState.status = {};
+            gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 2;
+            spawnFloatingText("player-sprite", "💀 +2 VENENO", "poison");
+            addLog(`💀 ${ec.name || 'Espina Tóxica'} (${ec.rank}${ec.suit}): ${e.name} te inocula +2 de Veneno residual.`, "damage");
+            try { playPoisonSound(); } catch (_) {}
+          } else if (ec.darkSigil === "tyrant_pact" || (ec.name && ec.name.includes("Tiránico"))) {
+            if (!gameState.status) gameState.status = {};
+            gameState.status.playerBurn = (gameState.status.playerBurn || 0) + 2;
+            spawnFloatingText("player-sprite", "🔥 +2 QUEMADURA", "burn");
+            addLog(`🔥 ${ec.name || 'Pacto Tiránico'} (${ec.rank}${ec.suit}): Las llamas del rival te envuelven (+2 Fuego).`, "damage");
+          } else if (ec.darkSigil === "obsidian_aegis" || (ec.name && ec.name.includes("Obsidiana"))) {
+            e.shield = (e.shield || 0) + 12;
+            spawnFloatingText("enemy-sprite", "🛡️ +12 ESCUDO", "shield");
+            addLog(`🛡️ ${ec.name || 'Baluarte de Obsidiana'} (${ec.rank}${ec.suit}): ${e.name} endurece su armadura (+12 Escudo).`, "info");
+          } else if (ec.darkSigil === "abyssal_vortex" || (ec.name && ec.name.includes("Abisal"))) {
+            p.hp = Math.max(1, p.hp - 4);
+            e.hp = Math.min(e.maxHp, e.hp + 4);
+            spawnFloatingText("player-sprite", "🩸 -4 DRENADO", "damage");
+            spawnFloatingText("enemy-sprite", "🩸 +4 ABSORBIDO", "heal");
+            addLog(`🌀 ${ec.name || 'Vórtice Abisal'} (${ec.rank}${ec.suit}): ${e.name} drena 4 puntos de tu vida.`, "damage");
+          }
+        }
+      }
     }
 
     if (isPush) {
@@ -19001,7 +19182,7 @@
       trackRunStat("damageDealt", bDmg);
       spawnFloatingText("enemy-sprite", `🔥 -${bDmg}`, "burn");
       addLog(`Llamas arcanas: ${e.name} sufre ${bDmg} de daño por quemadura residual.`, "damage");
-      gameState.status.enemyBurn = Math.max(0, gameState.status.enemyBurn - 2);
+      gameState.status.enemyBurn = Math.max(0, gameState.status.enemyBurn - 1);
       playHitSound();
       updateHud();
       await sleep(700);
@@ -19017,6 +19198,21 @@
       gameState.status.playerPoison = Math.max(0, gameState.status.playerPoison - 1);
       setPlayerSpriteState("hurt");
       playPoisonSound();
+      updateHud();
+      await sleep(750);
+      setPlayerSpriteState("idle");
+    }
+
+    if (gameState.status.playerBurn > 0 && p.hp > 0) {
+      await sleep(400);
+      const bDmg = gameState.status.playerBurn;
+      p.hp = Math.max(0, p.hp - bDmg);
+      trackRunStat("damageTaken", bDmg);
+      spawnFloatingText("player-sprite", `🔥 -${bDmg}`, "burn");
+      addLog(`Quemadura: Sufres ${bDmg} de daño por fuego residual.`, "damage");
+      gameState.status.playerBurn = Math.max(0, gameState.status.playerBurn - 1);
+      setPlayerSpriteState("hurt");
+      playHitSound();
       updateHud();
       await sleep(750);
       setPlayerSpriteState("idle");

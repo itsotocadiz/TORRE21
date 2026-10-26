@@ -496,7 +496,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.9.1 (BUILD 48)</span>
+          <span id="settings-version">📱 VERSIÓN v1.9.2 (BUILD 49)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -1187,14 +1187,13 @@
         <div class="fighter-col player-fighter" onclick="openFighterInspect('player')" title="Toca para ver ficha de combate">
           <div id="player-sprite" class="sprite">
             <span id="player-sprite-icon"><img src="assets/svg/knight_idle.svg" class="sprite-img" alt="Héroe"></span>
+            <div id="player-streak-badge" class="player-streak-badge hidden" onclick="event.stopPropagation(); showStreakInfoModal();" title="Racha de victorias (Toca para ver bonificación)">🔥 x1.5</div>
             <div id="player-acc-slot" class="player-acc-slot" onclick="inspectActiveBlessing(event)" title="Medallón de Bendición del Destino (Toca para ver)"></div>
           </div>
           <div class="fighter-meta">
             <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
               <span class="fighter-name" id="player-class-title">CABALLERO</span>
-              <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-                <div id="player-streak-badge" class="player-streak-badge hidden" onclick="event.stopPropagation(); showStreakInfoModal();" title="Racha de victorias (Toca para ver bonificación)">🔥 x1.5</div>
-              </div>
+              <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;"></div>
             </div>
             <div class="fighter-badge-zone" id="player-badge-zone">
               <span class="player-hero-badge" id="player-hero-tag">★ HÉROE</span>
