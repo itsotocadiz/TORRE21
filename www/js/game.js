@@ -24,6 +24,7 @@
       dodgeChance: 0,
       lifesteal: 0,
       luck: 0,
+      startingSkill: "immortal_bulwark",
       styleClass: "shield-bio",
       desc: "Baluarte y Contraataque: Tanque indestructible. Inicia con 1 de Espina de base para devolver daño directo puro al rival por cada impacto y con Escudo protector."
     },
@@ -45,6 +46,7 @@
       dodgeChance: 12,
       lifesteal: 0,
       luck: 0,
+      startingSkill: "vorpal_execution",
       styleClass: "blood-bio",
       desc: "Filo Sombrío y Evasión: Asesino letal y ágil. Asesta estocadas críticas devastadoras y esquiva contraataques mortales."
     },
@@ -66,6 +68,7 @@
       dodgeChance: 5,
       lifesteal: 12,
       luck: 0,
+      startingSkill: "arcane_twentyone",
       styleClass: "zen-bio",
       desc: "Guerrero Carmesí y Sostén: Equilibrio vital. Drena vida en cada impacto mediante Vampirismo y enfoca su mente (+1 punto al plantarse con 18/19)."
     },
@@ -87,11 +90,70 @@
       dodgeChance: 5,
       lifesteal: 0,
       luck: 15,
+      startingSkill: "crimson_feast",
       styleClass: "blood-bio",
       desc: "Arcanista del Destino: Maestro de la magia y la fortuna. Manipulador del azar que devora el alma de rivales abatidos (+8 HP)."
     }
   };
   HERO_DATA.necro = HERO_DATA.necromancer;
+
+  /* ============================================================
+     HABILIDADES ACTIVAS POTENTES DE HÉROE (HERO ACTIVE SKILLS v1.9.3)
+     Catálogo de Habilidades con recarga de 3 a 4 manos obtenibles en combate
+     ============================================================ */
+  const HERO_SKILLS = {
+    vorpal_execution: {
+      id: "vorpal_execution",
+      name: "🗡️ Ejecución Vorpal",
+      nameEn: "🗡️ Vorpal Execution",
+      icon: "🗡️",
+      heroClass: "rogue",
+      cooldownMax: 3,
+      desc: "Tu ataque en esta mano ignora toda la Defensa/Escudo del rival y garantiza Golpe Crítico (x2.0).",
+      descEn: "Your attack in this hand ignores all rival Defense/Shield and guarantees a Critical Hit (x2.0)."
+    },
+    immortal_bulwark: {
+      id: "immortal_bulwark",
+      name: "🛡️ Baluarte Inmortal",
+      nameEn: "🛡️ Immortal Bulwark",
+      icon: "🛡️",
+      heroClass: "knight",
+      cooldownMax: 3,
+      desc: "Ganas instantáneamente +12 de Escudo, +2 de Espinas por 2 manos y limpias Veneno/Quemadura.",
+      descEn: "Instantly gain +12 Shield, +2 Thorns for 2 hands and cleanse Poison/Burn."
+    },
+    arcane_twentyone: {
+      id: "arcane_twentyone",
+      name: "🃏 Toque del 21 (Destino Arcano)",
+      nameEn: "🃏 Touch of 21 (Arcane Destiny)",
+      icon: "🃏",
+      heroClass: "monk",
+      cooldownMax: 4,
+      desc: "Conjura la carta exacta que necesitas para dejar tu mano en 20 o 21 sin pasarte y suma +5 de Ataque en este turno.",
+      descEn: "Conjures the exact card needed to set your hand to 20 or 21 without busting, and adds +5 Attack this turn."
+    },
+    crimson_feast: {
+      id: "crimson_feast",
+      name: "🩸 Festín Carmesí",
+      nameEn: "🩸 Crimson Feast",
+      icon: "🩸",
+      heroClass: "necromancer",
+      cooldownMax: 3,
+      desc: "Drena inmediatamente 10 HP directos al rival para curarte a ti mismo y otorga +20% Vampirismo en esta ronda.",
+      descEn: "Instantly drains 10 HP directly from rival to heal yourself and grants +20% Lifesteal this round."
+    },
+    champion_devastation: {
+      id: "champion_devastation",
+      name: "🔥 Devastación del Campeón",
+      nameEn: "🔥 Champion Devastation",
+      icon: "🔥",
+      heroClass: "universal",
+      cooldownMax: 4,
+      desc: "Duplica tu Ataque Base en este turno, aplica 3 de Quemadura y 3 de Veneno al rival.",
+      descEn: "Doubles your Base Attack this turn, inflicts 3 Burn and 3 Poison onto the rival."
+    }
+  };
+  window.HERO_SKILLS = HERO_SKILLS;
 
   const HERO_LORES = {
     knight: {
@@ -190,10 +252,10 @@
   window.HERO_LORES = HERO_LORES;
 
   const ENEMIES = [
-    { name: "Duende Pilluelo",         sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
-    { name: "Esqueleto Maldito",      sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive una vez con 15 HP)" },
-    { name: "Orco Berserker",         sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 65, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
-    { name: "Gárgola Pétrea",        sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 80, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes de ≤3 daño)" },
+    { name: "Duende Pilluelo",         sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 4 oro si gana; drena escudo y +2 ATQ si tienes 0)" },
+    { name: "Esqueleto Maldito",      sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con el 35% de HP Máximo)" },
+    { name: "Orco Berserker",         sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 65, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+2 ATQ permanente al recibir daño o bajo 50% HP)" },
+    { name: "Gárgola Pétrea",        sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 80, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel Pétrea (mitiga 2 daño; +4 Escudo con 19-21)" },
     { name: "Bestia de las Sombras",  sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 110, pwr: 20, def: 5, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas 100% ocultas)" },
     { name: "Centurión Espectral",    sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 130, pwr: 21, def: 6, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" },
     { name: "Guardián de Obsidiana",  sprite: "🗿", img: "assets/svg/enemy_obsidian.svg", hp: 155, pwr: 23, def: 7, trait: "thorns", traitShort: "★ ESPINAS", traitName: "Espinas (devuelve 2 daño al ser golpeado)" },
@@ -4122,6 +4184,10 @@
       if (!p.attributes || typeof p.attributes !== "object") {
         p.attributes = { str: 10, dex: 10, int: 10, con: 10, fth: 10, cha: 10 };
       }
+      if (!p.activeSkill) {
+        p.activeSkill = heroCfg.startingSkill || "immortal_bulwark";
+      }
+      p.skillCooldown = Number(p.skillCooldown) || 0;
 
       if (!gs.status || typeof gs.status !== "object") {
         gs.status = {};
@@ -4855,17 +4921,17 @@
      ============================================================ */
   const ACT_ENEMY_POOLS = {
     1: [
-      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 5 oro si gana)" },
-      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 32, pwr: 11, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+1 Veneno al impactar)" },
-      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con 12 HP)" }
+      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 4 oro si gana; drena escudo y +2 ATQ si tienes 0)" },
+      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 32, pwr: 11, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+2 Veneno y -1 DEF por 1 ronda al ganar)" },
+      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con el 35% de HP Máximo)" }
     ],
     2: [
-      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 65, pwr: 14, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+5 Escudo al inicio)" },
-      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 75, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+1 PWR al perder una mano)" },
-      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 85, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel de Piedra (ignora golpes ≤3 daño)" }
+      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 65, pwr: 14, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+4 Escudo al finalizar la mano si sigue vivo)" },
+      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 75, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+2 ATQ permanente al recibir daño o bajo 50% HP)" },
+      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 85, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel Pétrea (mitiga 2 daño; +4 Escudo con 19-21)" }
     ],
     3: [
-      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 100, pwr: 18, def: 4, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+2 Veneno al impactar)" },
+      { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 100, pwr: 18, def: 4, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+3 Veneno al ganar mano o impactar)" },
       { name: "Bestia de las Sombras", sprite: "🌑", img: "assets/svg/enemy_shadowbeast.svg", hp: 115, pwr: 20, def: 5, trait: "stealth", traitShort: "★ SIGILO", traitName: "Sigilo (juega con cartas ocultas)" },
       { name: "Centurión Espectral", sprite: "🏛️", img: "assets/svg/enemy_centurion.svg", hp: 135, pwr: 21, def: 6, trait: "disciplined", traitShort: "★ DISCIPLINA", traitName: "Disciplina (no se planta hasta 18+)" }
     ],
@@ -6861,6 +6927,16 @@
 
     const equippedSkin = (typeof getHeroEquippedSkin === "function") ? getHeroEquippedSkin(heroKey) : { name: "Clásica", icon: hero.sprite, desc: hero.title };
 
+    const activeSkillKey = (typeof gameState !== "undefined" && gameState.player && gameState.player.class === heroKey && gameState.player.activeSkill)
+      ? gameState.player.activeSkill
+      : (hero.startingSkill || "immortal_bulwark");
+    const activeSkillData = (typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[activeSkillKey])
+      ? HERO_SKILLS[activeSkillKey]
+      : ((typeof HERO_SKILLS !== "undefined" && HERO_SKILLS.immortal_bulwark) || {});
+    const isEnSheet = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
+    const skillNameText = isEnSheet ? (activeSkillData.nameEn || activeSkillData.name) : activeSkillData.name;
+    const skillDescText = isEnSheet ? (activeSkillData.descEn || activeSkillData.desc) : activeSkillData.desc;
+
     // Perks tácticos específicos de esta clase
     const classPerksMap = {
       knight: [
@@ -7068,6 +7144,19 @@
           <div class="hero-sheet-section">
             <div class="hero-sheet-section-title">📜 PASIVA DE CLASE</div>
             <div class="hero-sheet-passive">${hero.desc}</div>
+          </div>
+
+          <div class="hero-sheet-section">
+            <div class="hero-sheet-section-title">⚡ HABILIDAD ACTIVA DE COMBATE</div>
+            <div style="background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(6,182,212,0.15));border:1.5px solid #10b981;border-radius:8px;padding:10px 12px;box-shadow:0 0 10px rgba(16,185,129,0.15);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div style="font-family:var(--font-display,inherit);font-weight:900;color:#6ee7b7;font-size:12px;display:flex;align-items:center;gap:6px;">
+                  <span>${activeSkillData.icon || "⚡"}</span> <span>${(skillNameText || "").toUpperCase()}</span>
+                </div>
+                <span style="font-size:8.5px;background:#10b981;color:#022c22;font-weight:900;padding:2px 7px;border-radius:4px;letter-spacing:0.5px;">RECARGA: ${activeSkillData.cooldownMax || 3} MANOS</span>
+              </div>
+              <div style="font-size:9.5px;color:#cbd5e1;line-height:1.4;">${skillDescText || ""}</div>
+            </div>
           </div>
 
           <div class="hero-sheet-section">
@@ -7777,7 +7866,7 @@
 
   function switchCodexTab(tab = "collection") {
     currentCodexTab = tab;
-    const allTabIds = ["memories", "collection", "blessings", "relics", "enemies"];
+    const allTabIds = ["memories", "collection", "blessings", "relics", "skills", "enemies"];
     allTabIds.forEach(t => {
       const btn = document.getElementById("codex-tab-" + t);
       if (btn) {
@@ -7792,6 +7881,7 @@
       collection: "👑 CARTAS COSMÉTICAS",
       blessings: "✨ BENDICIONES DEL DESTINO",
       relics: "🏺 RELIQUIAS DE LA TORRE",
+      skills: "⚡ HABILIDADES POTENTES DE HÉROE",
       enemies: "⚔️ BESTIARIO Y RIVALES DE LA TORRE"
     };
     if (sectionTitleEl) {
@@ -8012,6 +8102,30 @@
 
       const badgeEl = document.getElementById("codex-count-badge");
       if (badgeEl) badgeEl.innerText = `${discoveredRelicsCount} / ${relicPool.length} RELIQUIAS`;
+
+    } else if (tab === "skills") {
+      const skillKeys = (typeof HERO_SKILLS !== "undefined") ? Object.keys(HERO_SKILLS) : [];
+      const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
+      itemsHtml = skillKeys.map(k => {
+        const sk = HERO_SKILLS[k];
+        const sName = isEn ? (sk.nameEn || sk.name) : sk.name;
+        const sDesc = isEn ? (sk.descEn || sk.desc) : sk.desc;
+        const cdText = isEn ? `⏳ Cooldown: ${sk.cooldownMax} hands` : `⏳ Recarga: ${sk.cooldownMax} manos`;
+        const clsText = sk.heroClass === "universal" ? (isEn ? "Universal / Shop" : "Universal / Tienda") : sk.heroClass.toUpperCase();
+        return `
+          <div class="codex-card buff" style="border: 1.5px solid #10b981; background: radial-gradient(circle at 10% 10%, rgba(16,185,129,0.18), rgba(15,23,42,0.95)); padding: 10px; cursor: default;">
+            <div class="codex-card-icon" style="font-size: 26px;">${sk.icon}</div>
+            <div class="codex-card-body">
+              <div class="codex-card-title" style="color: #6ee7b7; font-weight: 900;">${sName}</div>
+              <div style="font-size: 8px; font-weight: bold; color: #10b981; margin: 2px 0 4px 0; text-transform: uppercase;">CLASE: ${clsText} • ${cdText}</div>
+              <div class="codex-card-desc" style="color: #cbd5e1; font-size: 9.5px; line-height: 1.35;">${sDesc}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const badgeEl = document.getElementById("codex-count-badge");
+      if (badgeEl) badgeEl.innerText = `${skillKeys.length} / ${skillKeys.length} ${isEn ? "HERO SKILLS" : "HABILIDADES"}`;
 
     } else if (tab === "enemies") {
       itemsHtml = ENEMIES.map(e => {
@@ -8799,7 +8913,134 @@
     }
 
     if (rerollBtn) rerollBtn.innerText = `🔄 REROLL (${p.rerollsAvailable})`;
+
+    const skillBtn = document.getElementById("btn-hero-skill");
+    if (skillBtn && p) {
+      const activeSkillId = p.activeSkill || "immortal_bulwark";
+      const skill = HERO_SKILLS[activeSkillId] || HERO_SKILLS.immortal_bulwark;
+      const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
+      const cd = p.skillCooldown || 0;
+
+      const skillIconEl = document.getElementById("hero-skill-icon");
+      const skillLabelEl = document.getElementById("hero-skill-label");
+      const skillStatusEl = document.getElementById("hero-skill-status");
+
+      if (skillIconEl) skillIconEl.innerText = skill.icon || "⚡";
+      if (skillLabelEl) {
+        const fullTitle = isEn ? (skill.nameEn || skill.name) : skill.name;
+        const parts = fullTitle.split(" ");
+        const shortName = parts.length > 1 ? parts.slice(1).join(" ") : fullTitle;
+        skillLabelEl.innerText = shortName.toUpperCase();
+      }
+      if (skillStatusEl) {
+        if (cd <= 0) {
+          skillStatusEl.innerText = isEn ? "READY ⚡" : "LISTA ⚡";
+          skillStatusEl.className = "skill-status-pill ready";
+        } else {
+          skillStatusEl.innerText = isEn ? `⏳ ${cd} hands` : `⏳ ${cd} manos`;
+          skillStatusEl.className = "skill-status-pill cooldown";
+        }
+      }
+
+      const isSkillBlocked = gameState.isRolling || p.bust || p.stand || cd > 0 || p.skillUsedInHand;
+      skillBtn.disabled = !!isSkillBlocked;
+    }
   }
+
+  async function triggerHeroSkill() {
+    if (gameState.isRolling || window.gamePaused || gamePaused) return;
+    const p = gameState.player;
+    const e = gameState.enemy;
+    if (!p || !e) return;
+    if (p.bust || p.stand) {
+      if (typeof showGameToast === "function") showGameToast("No puedes activar habilidades tras plantarte o bust.", "warning");
+      return;
+    }
+    const cd = p.skillCooldown || 0;
+    if (cd > 0) {
+      const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
+      const msg = isEn ? `Skill recharging: ⏳ ${cd} hands remaining.` : `Habilidad recargando: ⏳ ${cd} manos restantes.`;
+      if (typeof showGameToast === "function") showGameToast(msg, "warning");
+      return;
+    }
+    if (p.skillUsedInHand) {
+      if (typeof showGameToast === "function") showGameToast("Ya usaste tu habilidad en esta mano.", "warning");
+      return;
+    }
+
+    const activeSkillId = p.activeSkill || "immortal_bulwark";
+    const skill = HERO_SKILLS[activeSkillId] || HERO_SKILLS.immortal_bulwark;
+
+    triggerHaptic("blackjack");
+    try { playTacticalAbilitySound(); } catch (_) {}
+    triggerScreenShake("light");
+
+    p.skillCooldown = skill.cooldownMax || 3;
+    p.skillUsedInHand = true;
+
+    if (activeSkillId === "vorpal_execution") {
+      p.skillActive_vorpal = true;
+      spawnFloatingText("player-sprite", "🗡️ EJECUCIÓN VORPAL", "crit");
+      addLog("🗡️ Habilidad de Héroe: ¡Ejecución Vorpal activada! Tu próximo ataque ignorará defensas y será Crítico x2.0.", "critical");
+    } else if (activeSkillId === "immortal_bulwark") {
+      if (!gameState.status) gameState.status = {};
+      gameState.status.playerShield = (gameState.status.playerShield || 0) + 12;
+      gameState.status.playerPoison = 0;
+      gameState.status.playerBurn = 0;
+      p._immortalThornsRounds = 2;
+      spawnFloatingText("player-sprite", "🛡️ +12 ESCUDO LIMPIO", "shield");
+      addLog("🛡️ Habilidad de Héroe: ¡Baluarte Inmortal activado! +12 Escudo, +2 Espinas y estados alterados purificados.", "heal");
+    } else if (activeSkillId === "arcane_twentyone") {
+      const currentScore = calculateHandScore(p.playerHand);
+      let target = 21;
+      let needed = target - currentScore;
+      if (needed <= 0 || needed > 11) {
+        target = 20;
+        needed = Math.max(1, target - currentScore);
+      }
+      needed = Math.min(11, Math.max(1, needed));
+      const ranks = { 1: "A", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "A" };
+      const suit = (p.class === "monk") ? "♥" : "⭐";
+      const conjuredCard = {
+        rank: ranks[needed] || "A",
+        suit: suit,
+        value: (needed === 11) ? 11 : needed,
+        name: `${ranks[needed] || "A"} Arcano del Destino`,
+        isConjured: true
+      };
+      p.playerHand.push(conjuredCard);
+      p.playerScore = calculateHandScore(p.playerHand);
+      p._skillBonusAtk = (p._skillBonusAtk || 0) + 5;
+      renderCards();
+      spawnFloatingText("player-sprite", `🃏 +${conjuredCard.rank} DESTINO (+5 ATQ)`, "crit");
+      addLog(`🃏 Habilidad de Héroe: ¡Toque del 21 conjuró un ${conjuredCard.rank}${conjuredCard.suit}! Mano en ${p.playerScore} y +5 ATQ este turno.`, "critical");
+      try { playVictorySound(); } catch (_) {}
+    } else if (activeSkillId === "crimson_feast") {
+      const drain = Math.min(10, e.hp);
+      e.hp = Math.max(0, e.hp - drain);
+      p.hp = Math.min(p.maxHp, p.hp + drain);
+      p._crimsonLifestealActive = true;
+      spawnFloatingText("enemy-sprite", `🩸 -${drain} DRENADO`, "damage");
+      spawnFloatingText("player-sprite", `🩸 +${drain} HP ROBADO`, "heal");
+      addLog(`🩸 Habilidad de Héroe: ¡Festín Carmesí drena ${drain} HP al rival y activa +20% Vampirismo!`, "critical");
+      try { playHealSound(); } catch (_) {}
+      if (e.hp <= 0 && typeof checkCombatEnd === "function") {
+        checkCombatEnd();
+      }
+    } else if (activeSkillId === "champion_devastation") {
+      p._championDevastationActive = true;
+      if (!gameState.status) gameState.status = {};
+      gameState.status.enemyBurn = (gameState.status.enemyBurn || 0) + 3;
+      gameState.status.enemyPoison = (gameState.status.enemyPoison || 0) + 3;
+      spawnFloatingText("player-sprite", "🔥 ATAQUE DUPLICADO", "crit");
+      spawnFloatingText("enemy-sprite", "🔥 +3 QUEMADURA 💀 +3 VENENO", "poison");
+      addLog("🔥 Habilidad Legendaria: ¡Devastación del Campeón desatada! Ataque Base duplicado, 3 Quemadura y 3 Veneno al rival.", "critical");
+    }
+
+    updateHud();
+    updateCombatState();
+  }
+  window.triggerHeroSkill = triggerHeroSkill;
 
   let _lastPlayerActionTime = 0;
   async function playerAction(action) {
@@ -9089,6 +9330,16 @@
       applyDrawnCardUpgrades([newCard]);
 
       p.playerScore = calculateHandScore(p.playerHand);
+
+      // Rasgo Malfas del Vacío: Cosecha de Almas (Drena 3 HP al héroe y cura 5 HP a Malfas cada vez que pides carta)
+      if (gameState.enemy && gameState.enemy.trait === "void_drain" && gameState.enemy.hp > 0 && p.hp > 3) {
+        p.hp = Math.max(1, p.hp - 3);
+        gameState.enemy.hp = Math.min(gameState.enemy.maxHp, gameState.enemy.hp + 5);
+        spawnFloatingText("player-sprite", "💀 -3 ALMA", "damage");
+        spawnFloatingText("enemy-sprite", "💀 +5 COSECHA", "heal");
+        addLog("💀 Malfas del Vacío [Cosecha de Almas]: Drena 3 HP de tu vitalidad al pedir carta y regenera +5 HP.", "damage");
+      }
+
       // Salvación de Sello Fénix individual (Sello Arcano) o Bendición de Fénix
       const phoenixCard = p.playerHand.find(c => c.enchantment && (c.enchantment.id === "phoenix" || c.enchantment.type === "phoenix") && c.value > 1);
       if (p.playerScore > BUST_LIMIT && phoenixCard) {
@@ -9541,6 +9792,15 @@
     const killGold = 12 + Math.min(30, gameState.floor * 2);
     gameState.gold = (gameState.gold || 0) + killGold;
     spawnFloatingText("player-sprite", `+${killGold} 🪙 BOTÍN`, "gold");
+
+    // Recuperación de oro robado por el Duende Pilluelo
+    if (gameState._duendeStolenGold > 0) {
+      const recovered = gameState._duendeStolenGold;
+      gameState.gold = (gameState.gold || 0) + recovered;
+      gameState._duendeStolenGold = 0;
+      spawnFloatingText("player-sprite", `+${recovered} 🪙 ORO RECUPERADO`, "gold");
+      addLog(`💰 ¡Recuperas los ${recovered} de Oro que te había arrebatado el Duende!`, "gold");
+    }
 
     // Drop de Metamonedas en combate (20% de probabilidad escalada con Suerte)
     let coinsDropped = 0;
@@ -13447,6 +13707,31 @@
           }
         </div>
       </div>
+
+      <!-- PERGAMINO DE HABILIDAD: DEVASTACIÓN DEL CAMPEÓN -->
+      <div class="shop-card ${gameState.gold >= 60 ? 'affordable' : 'unaffordable'}" style="border: 2px solid #f97316; background: radial-gradient(circle at 10% 10%, rgba(249,115,22,0.15), rgba(13,18,28,0.95));">
+        <div class="shop-card-left">
+          <div class="shop-item-icon-box skill" style="border-color:#f97316; font-size:24px;">🔥📜</div>
+          <div class="shop-item-details">
+            <div class="shop-item-badge tactic" style="background:rgba(249,115,22,0.2); color:#f97316; border-color:#f97316;">HABILIDAD DE COMBATE</div>
+            <div class="shop-item-name" style="color:#fdba74;">Pergamino: Devastación del Campeón</div>
+            <div class="shop-item-desc">Aprende esta habilidad activa legendaria (recarga 4 manos): Duplica tu Ataque Base e inflige 3 Quemadura y 3 Veneno al rival.</div>
+            <div class="shop-item-stock">Habilidad actual: <b style="color:#6ee7b7;">${(HERO_SKILLS[p.activeSkill] || {}).name || p.activeSkill}</b></div>
+          </div>
+        </div>
+        <div class="shop-card-right">
+          ${gameState.gold >= 60
+            ? `<button class="shop-action-btn buy" style="border-color:#f97316; color:#fdba74;" onclick="buyHeroSkill('champion_devastation', 60)">
+                 <span class="shop-btn-price">🪙 60 ORO</span>
+                 <span class="shop-btn-action">APRENDER</span>
+               </button>`
+            : `<button class="shop-action-btn locked" disabled>
+                 <span class="shop-btn-price">🪙 60 ORO</span>
+                 <span class="shop-btn-action">FALTAN ${60 - gameState.gold} 🪙</span>
+               </button>`
+          }
+        </div>
+      </div>
     `;
 
     const cleanArts = sanitizePlayerArtifacts(p);
@@ -14425,6 +14710,26 @@
     }
   }
   window.buyGoldenDie = buyGoldenDie;
+
+  function buyHeroSkill(skillId, price) {
+    if (gameState.gold < price) {
+      if (typeof showGameToast === "function") showGameToast("No tienes suficiente oro.", "warning");
+      return;
+    }
+    const skill = (typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[skillId]) ? HERO_SKILLS[skillId] : null;
+    if (!skill) return;
+    gameState.gold -= price;
+    gameState.player.activeSkill = skillId;
+    gameState.player.skillCooldown = 0;
+    try { playEnchantChimeSound(); } catch (_) {}
+    try { playCoinSound(); } catch (_) {}
+    spawnFloatingText("player-sprite", "🔥 HABILIDAD APRENDIDA", "crit");
+    addLog(`🔥 Tienda: ¡Aprendiste la habilidad [${skill.name}]! Reemplaza tu técnica activa en combate.`, "critical");
+    if (typeof showGameToast === "function") showGameToast(`¡Aprendiste [${skill.name}]!`);
+    updateHud();
+    showShopModal(0);
+  }
+  window.buyHeroSkill = buyHeroSkill;
 
   function buyShopItem(itemType, opt1, opt2) {
     if (itemType === "potion") return buyPotion();
@@ -15543,30 +15848,29 @@
     {
       id: "gambler_pact",
       badge: "PACTO DEL AZAR",
-      title: "Juramento del Gran Tahúr",
+      title: "Juramento del Tahúr",
       icon: "🎲",
-      costText: "Tu apuesta mínima de combate queda fijada en 10 HP.",
-      gainText: "+12% Crítico, +12% Suerte y +3 Ataque Base permanente (Blackjack x3.5).",
-      btnText: "🩸 SELLAR JURAMENTO (+12% CRIT, +12% SUERTE, +3 ATQ)",
+      costText: "La fortuna exige audacia en el tapete de juego.",
+      gainText: "+3 Ataque Base, +12% Probabilidad de Crítico y +15% Suerte permanente. Al Doblar (⚡ ¡DOBLAR!) y ganar la mano: recuperas +8 HP y obtienes +6 de Oro extra.",
+      btnText: "🩸 SELLAR JURAMENTO (+3 ATQ, +12% CRIT, +15% SUERTE)",
       onApply: (p, g) => {
         p.curse = "gambler_pact";
-        p.blackjackMultiplier = 3.5;
         p._sacrificeCrit = (p._sacrificeCrit || 0) + 12;
-        p.luck = (p.luck || 0) + 12;
+        p.luck = (p.luck || 0) + 15;
         p.pwr = (p.pwr || 0) + 3;
         if (p.levelUpStats) {
           p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3;
           p.levelUpStats.crit = (p.levelUpStats.crit || 0) + 12;
-          p.levelUpStats.luck = (p.levelUpStats.luck || 0) + 12;
+          p.levelUpStats.luck = (p.levelUpStats.luck || 0) + 15;
         }
-        addLog("🩸 Pacto del Altar: Juramento del Gran Tahúr (+12% Crítico, +12% Suerte, +3 PWR, Blackjack x3.5).", "critical");
+        addLog("🩸 Pacto del Altar: Juramento del Tahúr sellado (+3 ATQ, +12% Crítico, +15% Suerte; Doblar restaura +8 HP y otorga +6 Oro).", "critical");
       }
     }
   ];
 
   const CURSE_NAMES = {
     cursed_deck: "Mazo Astillado (-5 HP por cada As)",
-    gambler_pact: "Juramento del Gran Tahúr (+12% Crítico, +12% Suerte, +3 ATQ, Blackjack x3.5)",
+    gambler_pact: "Juramento del Tahúr (+3 ATQ, +12% Crítico, +15% Suerte; Doblar restaura +8 HP y da +6 Oro)",
     greed_curse: "Avaricia Sellada (+50% costes en tienda)",
     shadow_veil: "Velo del Silencio (Sin pociones curativas)",
     frail_soul: "Alma Desgarrada (-12 HP Máx)",
@@ -15742,7 +16046,7 @@
     scholar_tome: "TOMO DEL GRAN SABIO: +60% de EXP adicional al matar rivales",
     knowledge_talisman: "TALISMÁN DEL CONOCIMIENTO: +35 de EXP fija extra cada vez que elimines a un rival",
     scholar_pact: "PACTO DEL ERUDITO: +100% de EXP (el doble) por baja, pero -10 HP Máximo",
-    gambler_pact: "JURAMENTO DEL GRAN TAHÚR: Apuesta mínima 10 HP, todo Blackjack inflige daño x3.5",
+    gambler_pact: "JURAMENTO DEL TAHÚR: +3 ATQ, +12% Crítico, +15% Suerte permanente. Al Doblar y ganar: recuperas +8 HP y +6 Oro.",
     greed_curse: "AVARICIA SELLADA: Los costes de la tienda aumentan un 50%",
     shadow_veil: "VELO DEL SILENCIO: No puedes beber pociones curativas",
     frail_soul: "ALMA DESGARRADA: -12 HP Máximo permanente",
@@ -15756,13 +16060,19 @@
     if (!e) return "Sin rasgo activo.";
     const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
     if (isEn) {
-      if (e.trait === "thief") return "Thief: If the rival wins the round, steals 5 gold from you.";
-      if (e.trait === "plague") return "Plague: Upon connecting a hit, infects you with +1 Poison stack.";
-      if (e.trait === "undead") return "Resurrection: Upon reaching 0 HP for the first time, revives with 15 HP.";
-      if (e.trait === "carapace") return "Chitin Carapace: Starts combat with an impenetrable barrier (+5 Shield).";
-      if (e.trait === "fury") return "Berserker Fury: Gains +1 permanent Attack (PWR) whenever damaged or losing a hand.";
-      if (e.trait === "stone") return "Stone Skin: Thick granite armor negates all hits dealing 3 damage or less.";
-      if (e.trait === "venom") return "Deadly Venom: Fangs inject +2 Poison stacks after winning a round.";
+      if (e.trait === "thief") return "Cunning Theft: If winning the round, steals 4 gold (reclaimed upon defeat). If you have 0 gold, drains 3 Shield and permanently gains +2 ATK.";
+      if (e.trait === "plague") return "Crypt Plague: When winning the hand, infects you with +2 Poison and corrodes armor reducing DEF by -1 for 1 round.";
+      if (e.trait === "undead") return "Resurrection: Upon reaching 0 HP for the first time, reassembles and revives with 35% Max HP.";
+      if (e.trait === "carapace") return "Chitinous Carapace: At the end of each round if still alive, automatically regenerates +4 Shield.";
+      if (e.trait === "fury") return "Berserker Fury: Whenever taking damage or falling below 50% HP, permanently increases Attack by +2.";
+      if (e.trait === "stone" || e.trait === "bulwark") return "Stone Skin / Bulwark: Mitigates 2 damage on every hit taken, and gains +4 Shield when totaling 19, 20 or 21.";
+      if (e.trait === "venom") return "Voracious Venom: Inoculates +3 Poison stacks on every successful counterattack or round won.";
+      if (e.trait === "spade_lord") return "Swift Blade: Amplifies attack power by +30% when holding Spades in hand.";
+      if (e.trait === "diamond_aegis") return "Diamond Aegis: Automatically deploys +10 protective Shield at the start of every hand.";
+      if (e.trait === "arcane_burst") return "Arcane Eye: Drains 15 Overdrive and inflicts 2 Burn onto the player.";
+      if (e.trait === "void_drain") return "Soul Harvest: Drains 3 HP from player and heals +5 HP whenever you draw a card.";
+      if (e.trait === "shadow_gamble") return "Illusion of 21: Keeps cards face down and deals double damage (x2) with 20 or 21.";
+      if (e.trait === "mandinga_abyss") return "Final Judgment: Its 21s deal Vorpal strikes (x2.5) that completely bypass all armor.";
       if (e.trait === "stealth") return "Shadow Stealth: Plays all cards face down in the shadows until standing.";
       if (e.trait === "disciplined") return "Martial Discipline: Disciplined veteran mind; never stands before reaching 18+ points.";
       if (e.trait === "thorns") return "Obsidian Thorns: Reflects 1 direct puncture damage to your life whenever struck.";
@@ -15774,13 +16084,19 @@
       if (e.trait === "chaos_fury") return "Chaos Fury: Triples 21 damage and gains +2 PWR for every hand you win.";
       return e.traitNameEn || e.traitName || "Special combat trait.";
     }
-    if (e.trait === "thief") return "Robo: Si el rival gana la mano, te despoja de 5 monedas de oro.";
-    if (e.trait === "plague") return "Peste: Al conectar un golpe exitoso, te infecta con +1 acumulación de Veneno.";
-    if (e.trait === "undead") return "Resurrección: Al caer a 0 HP por primera vez, renace inmediatamente con 15 HP.";
-    if (e.trait === "carapace") return "Caparazón de Quitina: Al inicio del combate despliega un escudo de armadura impenetrable (+5 Escudo).";
-    if (e.trait === "fury") return "Furia Berserker: Cada vez que sufre daño directo o pierde una mano, incrementa su Ataque (+1 PWR permanente).";
-    if (e.trait === "stone") return "Piel de Piedra: Su densa coraza de granito bloquea y anula completamente todo impacto de ≤ 3 de daño.";
-    if (e.trait === "venom") return "Ponzoña Letal: Sus colmillos inoculan +2 acumulaciones de Veneno residual tras cada asalto ganado.";
+    if (e.trait === "thief") return "Robo Astuto: Si gana la mano, te roba 4 de oro acumulándolo (recuperable al vencerlo). Si tienes 0 oro, drena 3 de Escudo y gana +2 ATQ permanente.";
+    if (e.trait === "plague") return "Peste de Cripta: Al ganar la mano te aplica +2 de Veneno y reduce tu Defensa en -1 por 1 ronda.";
+    if (e.trait === "undead") return "Resurrección: Al caer a 0 HP por primera vez, recompone sus huesos y revive con el 35% de su HP Máximo.";
+    if (e.trait === "carapace") return "Caparazón Quitinoso: Al finalizar cada mano en la que sigue con vida, regenera automáticamente +4 de Escudo protector.";
+    if (e.trait === "fury") return "Furia Berserker: Cada vez que recibe daño de un golpe o al bajar del 50% de HP, aumenta su Ataque permanentemente (+2 ATQ).";
+    if (e.trait === "stone" || e.trait === "bulwark") return "Piel Pétrea / Baluarte: Mitiga 2 de daño en cada golpe recibido y gana +4 de Escudo protector al sumar 19, 20 o 21.";
+    if (e.trait === "venom") return "Ponzoña Voraz: Inocula +3 acumulaciones de Veneno residual al ganar la mano o conectar un contragolpe.";
+    if (e.trait === "spade_lord") return "Filo Veloz: Si juega cartas de Picas en su mano, amplifica su poder de ataque en un +30%.";
+    if (e.trait === "diamond_aegis") return "Égida de Diamante: Despliega +10 de Escudo protector al inicio de cada mano.";
+    if (e.trait === "arcane_burst") return "Ojo Arcano: Drena 15 de Overdrive al jugador y aplica +2 de Quemadura residual al contraatacar.";
+    if (e.trait === "void_drain") return "Cosecha de Almas: Drena 3 HP al héroe y se cura +5 HP cada vez que el jugador pide carta.";
+    if (e.trait === "shadow_gamble") return "Ilusión del 21: Juega con cartas ocultas y duplica su daño total (x2) si su mano suma 20 o 21.";
+    if (e.trait === "mandinga_abyss") return "Juicio Final: Sus manos de 21 o Blackjack asestan impacto Vorpal (x2.5 daño) ignorando toda armadura.";
     if (e.trait === "stealth") return "Sigilo Umbrío: Juega todas sus cartas 100% ocultas tras las sombras hasta plantarse.";
     if (e.trait === "disciplined") return "Disciplina Marcial: Mente fría de veterano; no se planta jamás antes de alcanzar 18 o más puntos.";
     if (e.trait === "thorns") return "Espinas de Obsidiana: Devuelve 1 punto de daño punzante directo a tu vida cada vez que le asestas un golpe.";
@@ -16824,7 +17140,27 @@
       shop_tab_bazaar: "BAZAR",
       shop_tab_seals: "SELLOS",
       shop_tab_forge: "HERRERO",
-      shop_skip: "CONTINUAR ASCENSO"
+      shop_skip: "CONTINUAR ASCENSO",
+      trait_thief_name: "★ ROBO ASTUTO",
+      trait_thief_desc: "Si gana el asalto, roba hasta 4 de oro acumulándolo (se recupera al abatirlo). Si el jugador tiene 0 oro, drena 3 de Escudo y gana +2 ATQ permanente.",
+      trait_plague_name: "★ PESTE DE CRIPTA",
+      trait_plague_desc: "Al ganar la mano infecta al héroe con +2 de Veneno y corroe su armadura reduciendo su Defensa en -1 por 1 ronda.",
+      trait_venom_name: "★ PONZOÑA VORAZ",
+      trait_venom_desc: "Inocula +3 acumulaciones de Veneno residual en cada contragolpe exitoso.",
+      trait_stone_name: "★ PIEL PÉTREA",
+      trait_stone_desc: "Mitiga pasivamente 2 de daño en cada impacto recibido y anula todo daño menor o igual a 3.",
+      trait_bulwark_name: "★ BALUARTE",
+      trait_bulwark_desc: "Gana +4 de Escudo azul protector cada vez que su mano suma 19, 20 o 21.",
+      trait_fury_name: "★ FURIA BERSERKER",
+      trait_fury_desc: "Cada vez que recibe daño en combate, su Ataque aumenta en +2 permanentemente.",
+      trait_carapace_name: "★ CAPARAZÓN QUITINOSO",
+      trait_carapace_desc: "Al finalizar cada mano en que sigue con vida, regenera automáticamente +4 de Escudo protector.",
+      trait_undead_name: "★ RESURRECCIÓN",
+      trait_undead_desc: "Al caer a 0 HP por primera vez, recompone sus huesos y revive con el 35% de su Salud Máxima.",
+      loot_title: "BOTÍN DE COMBATE OBTENIDO",
+      loot_btn: "RECLAMAR RECOMPENSA",
+      hero_skill_ready: "HABILIDAD LISTA",
+      hero_skill_cooldown: "RECARGA"
     },
     en: {
       tab_tower: "TOWER",
@@ -16889,7 +17225,27 @@
       shop_tab_bazaar: "BAZAAR",
       shop_tab_seals: "SEALS",
       shop_tab_forge: "BLACKSMITH",
-      shop_skip: "CONTINUE ASCENT"
+      shop_skip: "CONTINUE ASCENT",
+      trait_thief_name: "★ CUNNING THIEF",
+      trait_thief_desc: "Steals up to 4 gold when winning a round (reclaimed upon defeat). If player has 0 gold, drains 3 Shield and permanently gains +2 ATK.",
+      trait_plague_name: "★ CRYPT PLAGUE",
+      trait_plague_desc: "When winning, infects player with +2 Poison and corrodes armor reducing DEF by -1 for 1 round.",
+      trait_venom_name: "★ VORACIOUS VENOM",
+      trait_venom_desc: "Inoculates +3 Poison stacks on every successful counterattack.",
+      trait_stone_name: "★ STONE SKIN",
+      trait_stone_desc: "Passively mitigates 2 damage on every hit taken and negates all damage <= 3.",
+      trait_bulwark_name: "★ BULWARK",
+      trait_bulwark_desc: "Gains +4 blue Shield whenever their hand totals 19, 20, or 21.",
+      trait_fury_name: "★ BERSERKER FURY",
+      trait_fury_desc: "Whenever taking damage, permanently increases Attack by +2.",
+      trait_carapace_name: "★ CHITINOUS CARAPACE",
+      trait_carapace_desc: "At the end of each round if still alive, regenerates +4 Shield.",
+      trait_undead_name: "★ RESURRECTION",
+      trait_undead_desc: "Upon reaching 0 HP for the first time, reassembles bones and revives with 35% Max HP.",
+      loot_title: "COMBAT LOOT OBTAINED",
+      loot_btn: "CLAIM REWARD",
+      hero_skill_ready: "SKILL READY",
+      hero_skill_cooldown: "COOLDOWN"
     }
   };
   window.I18N_TRANSLATIONS = I18N_TRANSLATIONS;
@@ -17011,7 +17367,13 @@
       else { cfgLangEs.classList.remove("active"); cfgLangEn.classList.add("active"); }
     }
 
-    // 7. Refrescar HUD y mochila si procede
+    // 7. Textos dinámicos de botín y UI de combate
+    const lootTitle = document.getElementById("combat-loot-title");
+    if (lootTitle) lootTitle.innerText = t.loot_title || "BOTÍN DE COMBATE OBTENIDO";
+    const lootBtn = document.getElementById("btn-combat-loot-continue");
+    if (lootBtn) lootBtn.innerText = t.loot_btn || "RECLAMAR RECOMPENSA";
+
+    // 8. Refrescar HUD y mochila si procede
     if (typeof updateHud === "function" && typeof gameState !== "undefined" && gameState.inCombat) {
       updateHud();
     }
@@ -17830,22 +18192,16 @@
         `<span style="color:#e63946;">👹 Rival: ${e.hp}/${e.maxHp}${eShieldStr}</span>`;
     }
     if (p && p.curse === "gambler_pact" && desc) {
-      desc.innerHTML += `<div style="margin-top:6px;font-size:9px;color:#ffd166;background:rgba(217,119,6,0.15);padding:4px 8px;border-radius:4px;border:1px solid #ffd166;">🎲 Juramento del Gran Tahúr activo: Apuesta mínima fijada en 10 HP (Blackjack x3.5).</div>`;
+      desc.innerHTML += `<div style="margin-top:6px;font-size:9px;color:#ffd166;background:rgba(217,119,6,0.15);padding:4px 8px;border-radius:4px;border:1px solid #ffd166;">🎲 Juramento del Tahúr activo: +3 ATQ, +12% Crítico, +15% Suerte. ¡Doblar y ganar restaura +8 HP y da +6 Oro!</div>`;
     }
     // update card styles
     const cards = document.querySelectorAll("#screen-bet .card");
-    const isGamblerPact = p && p.curse === "gambler_pact";
     cards.forEach((card, i) => {
       const amt = BET_OPTIONS[i];
       card.style.borderColor = BET_COLORS[i];
-      const blockedByCurse = isGamblerPact && p.hp >= 10 && amt < 10;
-      if (amt > p.hp || blockedByCurse) {
+      if (amt > p.hp) {
         card.classList.add("disabled");
-        if (blockedByCurse) {
-          card.setAttribute("title", "🎲 Bloqueado por el Juramento del Gran Tahúr (Apuesta mínima 10 HP)");
-        } else {
-          card.removeAttribute("title");
-        }
+        card.removeAttribute("title");
       } else {
         card.classList.remove("disabled");
         card.removeAttribute("title");
@@ -17854,7 +18210,7 @@
 
     // OPCIÓN A: Combate fluido directo sin interrupciones modales de apuesta previa
     if (!forceModal) {
-      p.betAmount = (isGamblerPact && p.hp >= 10) ? 10 : 0;
+      p.betAmount = 0;
       p.turnDoubleDamage = false;
       gameState.phase = "hand";
       const sBet = document.getElementById("screen-bet");
@@ -17874,10 +18230,6 @@
   function placeBet(amount) {
     if (_isPlacingBet) return;
     const p = gameState.player;
-    if (p && p.curse === "gambler_pact" && p.hp >= 10 && amount < 10) {
-      addLog("🎲 Juramento del Gran Tahúr: Tu apuesta mínima de combate queda fijada en 10 HP.", "warning");
-      return;
-    }
     if (amount > p.hp) {
       addLog(`No puedes apostar ${amount} HP — tienes solo ${p.hp}.`, "warning");
       return;
@@ -17910,6 +18262,7 @@
     p.stand = false;
     p.turnShieldBonus = 0;
     p.turnDoubleDamage = false;
+    p.skillUsedInHand = false;
     p.duplaDef = 0;
     p.activeHandSynergies = {};
     p.cardBonusDamage = 0;
@@ -17922,6 +18275,15 @@
     e.blackjack = (e.enemyScore === 21 && e.enemyHand.length === 2);
     e.stand = false;
     e.enemyRevealed = false;
+
+    // Rasgo Valquiria de Diamantes: Baluarte Sagrado (+10 Escudo al iniciar cada mano)
+    if (e && e.trait === "diamond_aegis" && e.hp > 0) {
+      if (!gameState.status) gameState.status = {};
+      gameState.status.enemyShield = (gameState.status.enemyShield || 0) + 10;
+      e.shield = gameState.status.enemyShield;
+      spawnFloatingText("enemy-sprite", "🛡️ +10 BALUARTE", "shield");
+      addLog("✨ Valquiria de Diamantes [Baluarte Sagrado]: Despliega +10 de Escudo protector al iniciar la mano.", "info");
+    }
 
     // Dupla por rango idéntico (ej: 2 Ases, 2 Reyes, 2 Dieces)
     if (p.playerHand.length === 2 && p.playerHand[0].rank === p.playerHand[1].rank) {
@@ -18920,12 +19282,39 @@
         dmg = Math.round(dmg * doubleMult);
         spawnFloatingText("player-sprite", `⚡ x${doubleMult} DAÑO DOBLADO`, "crit");
         addLog(`⚡ ¡Apuesta Doblada con éxito! Daño de impacto x${doubleMult} = ${dmg}.`, "critical");
+        if (p.curse === "gambler_pact") {
+          p.hp = Math.min(p.maxHp, p.hp + 8);
+          gameState.gold = (gameState.gold || 0) + 6;
+          spawnFloatingText("player-sprite", "🎲 +8 HP +6 🪙", "heal");
+          addLog("🎲 Juramento del Tahúr: ¡Victoria al Doblar te restaura +8 HP y te otorga +6 Oro extra!", "heal");
+        }
         if (p._clubsDoublePayout) {
           gameState.gold = (gameState.gold || 0) + 25;
           if (typeof addCryptCoins === "function") addCryptCoins(1);
           spawnFloatingText("player-sprite", "+25 🪙 +1 💀", "gold");
           addLog("♣️ Doble o Nada (Talento ♣️): +25 Oro adicional y +1 Moneda de Cripta por ganar doblando.", "gold");
         }
+      }
+
+      // Habilidad Vorpal Execution: Ignora defensas y crítico x2.0
+      if (p.skillActive_vorpal && dmg > 0) {
+        if (!gameState.status) gameState.status = {};
+        gameState.status.enemyShield = 0;
+        e.shield = 0;
+        dmg = Math.round(dmg * 2.0);
+        spawnFloatingText("enemy-sprite", "🗡️ CRÍTICO VORPAL x2.0", "crit");
+        addLog("🗡️ Habilidad [Ejecución Vorpal]: ¡El ataque penetra toda defensa y escudo rival con Crítico x2.0!", "critical");
+      }
+
+      // Habilidad Toque del 21: Bono de ataque
+      if (p._skillBonusAtk && p._skillBonusAtk > 0) {
+        dmg += p._skillBonusAtk;
+      }
+
+      // Habilidad Devastación del Campeón: Ataque duplicado
+      if (p._championDevastationActive && dmg > 0) {
+        dmg += p.pwr;
+        spawnFloatingText("player-sprite", `🔥 +${p.pwr} PWR DEVASTACIÓN`, "crit");
       }
 
       // Efectos de cartas dinámicas en ataque (Fase E)
@@ -18992,7 +19381,6 @@
           } else {
             addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Golpe de Blackjack de " + dmg + " daño.", "critical");
           }
-          // SPRINT 4 — Perk Táctico [Corazón de Diamante]: siguiente BJ x4
           if (pendingNextBJx4) {
             addLog("💎 Perk Táctico [Corazón de Diamante]: Blackjack amplificado a x4 (Daño = " + dmg + ").", "critical");
             p._synergyNextBJx4 = false;
@@ -19010,7 +19398,6 @@
         const suddenTag = isSuddenDeath ? ` [🔥FURIA x${suddenMult}]` : "";
         const critTag = isCrit ? ` [⚡CRÍTICO x${critMultiplier}]` : "";
         addLog(`⚔️ ¡${p.name} atacó por ${dmg} de daño${critTag}!`, "heal");
-        // Naipes de Botín: Potenciador Multiplicador x2
         const multCard = p.playerHand && p.playerHand.find(c => c && c.operator === "mult");
         if (multCard) {
           dmg = Math.round(dmg * 2);
@@ -19018,17 +19405,21 @@
           spawnFloatingText("player-sprite", "⚡ x2 DAÑO", "crit");
         }
 
-        // Rasgo Gárgola: Piel Pétrea (anula daño <= 3)
-        if (e.trait === "stone" && dmg <= 3) {
-          dmg = 0;
-          setEnemySpriteState("block");
-          spawnFloatingText("enemy-sprite", "¡PIEL PÉTREA!", "shield");
-          addLog("Gárgola Pétrea: Su dura piel pétrea anula el daño leve.", "warning");
-          await sleep(400);
+        // Rasgo Gárgola / Valquiria: Piel Pétrea / Baluarte
+        if ((e.trait === "stone" || e.trait === "bulwark") && dmg > 0) {
+          dmg = Math.max(0, dmg - 2);
+          addLog(`🦇 Piel Pétrea: ${e.name} mitiga 2 de daño con su corteza mineral.`, "warning");
+          if (dmg <= 3) {
+            dmg = 0;
+            setEnemySpriteState("block");
+            spawnFloatingText("enemy-sprite", "¡PIEL PÉTREA!", "shield");
+            addLog(`🦇 Piel Pétrea: ${e.name} anula totalmente el impacto leve.`, "warning");
+            await sleep(400);
+          }
         }
 
         // Absorción por escudo rival
-        if (gameState.status.enemyShield > 0 && dmg > 0) {
+        if (gameState.status.enemyShield > 0 && dmg > 0 && !p.skillActive_vorpal) {
           const absorbed = Math.min(gameState.status.enemyShield, dmg);
           gameState.status.enemyShield -= absorbed;
           dmg -= absorbed;
@@ -19046,7 +19437,7 @@
 
         // Daño restante impacta en HP del rival
         if (dmg > 0) {
-          const isCritHit = isNatural21 || dmg >= 20;
+          const isCritHit = isNatural21 || dmg >= 20 || p.skillActive_vorpal;
           const eSpriteEl = document.getElementById("enemy-sprite");
           if (isCritHit) {
             await applyHitStop(90, eSpriteEl);
@@ -19076,19 +19467,28 @@
             eSprite.classList.add("flash-damage");
             setTimeout(() => eSprite.classList.remove("flash-damage"), 350);
           }
+
+          // Festín Carmesí: Vampirismo del 20%
+          if (p._crimsonLifestealActive) {
+            const lifeGain = Math.max(1, Math.round(dmg * 0.20));
+            p.hp = Math.min(p.maxHp, p.hp + lifeGain);
+            spawnFloatingText("player-sprite", `🩸 +${lifeGain} HP VAMPIRISMO`, "heal");
+            addLog(`🩸 Habilidad [Festín Carmesí]: Vampirismo activo te restaura +${lifeGain} HP.`, "heal");
+          }
+
           updateHud();
           await sleep(450);
         }
 
         setPlayerSpriteState("idle");
 
-        // Rasgo Guardián de Obsidiana: Espinas reflectantes
+        // Rasgo Guardián de Obsidiana: Espinas reflectantes (+1 estricto)
         if (e.trait === "thorns" && dmg > 0 && p.hp > 0) {
           await sleep(350);
-          p.hp = Math.max(0, p.hp - 2);
-          trackRunStat("damageTaken", 2);
-          spawnFloatingText("player-sprite", "ESPINAS -2", "damage");
-          addLog("Guardián de Obsidiana: Sus espinas devuelven 2 de daño.", "damage");
+          p.hp = Math.max(0, p.hp - 1);
+          trackRunStat("damageTaken", 1);
+          spawnFloatingText("player-sprite", "ESPINAS -1", "damage");
+          addLog("Guardián de Obsidiana: Sus espinas devuelven 1 de daño.", "damage");
           setPlayerSpriteState("hurt");
           playHitSound();
           updateHud();
@@ -19096,12 +19496,18 @@
           setPlayerSpriteState("idle");
         }
 
-        // Rasgo Orco Berserker: Furia
+        // Rasgo Orco Berserker: Furia (+2 ATQ permanente al recibir daño o bajo 50% HP)
         if (e.trait === "fury" && e.hp > 0) {
           await sleep(350);
-          e.pwr += 1;
-          spawnFloatingText("enemy-sprite", "+1 PWR FURIA", "crit");
-          addLog(`¡Orco Berserker se enfurece por el golpe (+1 PWR, ahora ${e.pwr})!`, "warning");
+          e.pwr = (e.pwr || 16) + 2;
+          spawnFloatingText("enemy-sprite", "🔥 ¡FURIA! +2 ATQ", "damage");
+          addLog(`🔥 ¡FURIA! ${e.name} enfurece por el golpe y aumenta su Ataque permanentemente (+2 ATQ, Total: ${e.pwr}).`, "warning");
+          if (!e._furyEnraged && e.hp <= (e.maxHp || 75) * 0.5) {
+            e._furyEnraged = true;
+            e.pwr += 2;
+            spawnFloatingText("enemy-sprite", "🔥 ¡FRENESÍ SANGRIENTO! +2 ATQ", "crit");
+            addLog(`🔥 ¡FRENESÍ! Al caer bajo el 50% de HP, ${e.name} desata furia sangrienta (+2 ATQ extra, Total: ${e.pwr}).`, "warning");
+          }
           updateHud();
           await sleep(600);
         }
@@ -19138,6 +19544,28 @@
         triggerScreenShake("heavy");
         spawnFloatingText("enemy-sprite", "👹 ¡21 CRÍTICO VORPAL!", "crit");
         addLog(`👹 ¡${e.name} DESATA UN 21 CRÍTICO! Perfora 4 DEF e inflige impacto vorpal.`, "damage");
+      }
+
+      // Rasgo Dante de Picas: Filo Veloz (+30% de daño si tiene cartas de Picas en mano)
+      if (e.trait === "spade_lord" && Array.isArray(e.enemyHand) && e.enemyHand.some(c => c && (c.suit === "♠" || c.suit === "♠️"))) {
+        rawDmg = Math.round(rawDmg * 1.30);
+        spawnFloatingText("enemy-sprite", "🗡️ FILO VELOZ (♠)", "crit");
+        addLog(`🗡️ Dante de Picas [Filo Veloz]: Su hoja de Picas corta el aire y amplifica su ataque un +30% (${rawDmg} daño bruto).`, "damage");
+      }
+
+      // Rasgo Sombra del 21: Ilusión 21 (Duplica daño con 20 o 21)
+      if (e.trait === "shadow_gamble" && (e.enemyScore === 20 || e.enemyScore === 21) && !e.bust) {
+        rawDmg = Math.round(rawDmg * 2.0);
+        spawnFloatingText("enemy-sprite", "🎭 ILUSIÓN DEL 21 (x2)", "crit");
+        addLog(`🎭 Sombra del 21 [Ilusión 21]: Su mano suma ${e.enemyScore} y desata un impacto sombrío duplicado (${rawDmg} daño bruto).`, "damage");
+      }
+
+      // Rasgo El Mandinga: Juicio Final (Crítico x2.5 Vorpal, anula armadura)
+      if (e.trait === "mandinga_abyss" && (enemyHasBJ || e.enemyScore === 21)) {
+        rawDmg = Math.round(rawDmg * 2.5);
+        totalDef = 0;
+        spawnFloatingText("enemy-sprite", "👑 JUICIO FINAL (x2.5 VORPAL)", "crit");
+        addLog(`👑 El Mandinga [Juicio Final]: ¡El Señor del 21 descarga un golpe vorpal que anula tus defensas (${rawDmg} daño)!`, "damage");
       }
 
       if (isSuddenDeath) {
@@ -19262,6 +19690,18 @@
           addLog(`🌵 Espinas: Devuelves ${directThorns} de daño directo al rival.`, "critical");
           updateHud();
           if (e.hp <= 0) {
+            if (e.trait === "undead" && !e._resurrected && !gameState.status.enemyRevived) {
+              e._resurrected = true;
+              gameState.status.enemyRevived = true;
+              e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
+              setEnemySpriteState("idle");
+              spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
+              addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
+              updateHud();
+              await sleep(1500);
+              showNextRoundButton();
+              return;
+            }
             await sleep(350);
             await enemyDefeated();
             return;
@@ -19286,6 +19726,23 @@
           spawnFloatingText("enemy-sprite", `🌵 -${directThorns} ESPINAS`, "crit");
           addLog(`🌵 Espinas: Devuelves ${directThorns} de daño directo al rival.`, "critical");
           updateHud();
+          if (e.hp <= 0) {
+            if (e.trait === "undead" && !e._resurrected && !gameState.status.enemyRevived) {
+              e._resurrected = true;
+              gameState.status.enemyRevived = true;
+              e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
+              setEnemySpriteState("idle");
+              spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
+              addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
+              updateHud();
+              await sleep(1500);
+              showNextRoundButton();
+              return;
+            }
+            await sleep(350);
+            await enemyDefeated();
+            return;
+          }
         }
 
         // Subfase 1: Absorción por Escudo azul del jugador
@@ -19374,37 +19831,79 @@
           await sleep(350);
         }
 
-        // Rasgo Duende: Robo de oro
-        if (e.trait === "thief" && gameState.gold > 0) {
-          await sleep(350);
-          const stolen = Math.min(5, gameState.gold);
-          gameState.gold -= stolen;
-          spawnFloatingText("enemy-sprite", `+${stolen} ORO`, "crit");
-          spawnFloatingText("player-sprite", `-${stolen} ORO`, "damage");
-          addLog(`¡El Duende Pilluelo te robó ${stolen} de oro!`, "damage");
+        // Espinas de Baluarte Inmortal (Habilidad de Héroe)
+        if ((p._immortalThornsRounds || 0) > 0 && e && e.hp > 0) {
+          e.hp = Math.max(0, e.hp - 2);
+          spawnFloatingText("enemy-sprite", "🛡️ -2 ESPINAS INMORTALES", "crit");
+          addLog("🛡️ Baluarte Inmortal: Espinas arcanas devuelven 2 de daño punzante al rival.", "critical");
           updateHud();
-          await sleep(650);
         }
 
-        // Rasgo Alimaña: Peste (+1 Veneno al conectar golpe)
+        // Rasgo Duende: Robo de oro (o drenaje de escudo si 0 oro)
+        if (e.trait === "thief") {
+          await sleep(350);
+          if (gameState.gold > 0) {
+            const stolen = Math.min(4, gameState.gold);
+            gameState.gold -= stolen;
+            gameState._duendeStolenGold = (gameState._duendeStolenGold || 0) + stolen;
+            spawnFloatingText("enemy-sprite", `+${stolen} ORO`, "crit");
+            spawnFloatingText("player-sprite", `-${stolen} ORO`, "damage");
+            addLog(`👺 Robo Astuto: ¡El Duende Pilluelo te arrebató ${stolen} de Oro!`, "damage");
+          } else {
+            const curPShield = (gameState.status && gameState.status.playerShield) || 0;
+            const drained = Math.min(3, curPShield);
+            if (gameState.status) gameState.status.playerShield = Math.max(0, curPShield - 3);
+            e.pwr = (e.pwr || 10) + 2;
+            spawnFloatingText("player-sprite", "-3 ESCUDO", "damage");
+            spawnFloatingText("enemy-sprite", "+2 ATQ FURTIVO", "crit");
+            addLog("👺 Robo Desesperado: Al no tener oro, el Duende te drena 3 de Escudo y gana +2 ATQ permanente para el siguiente asalto.", "warning");
+          }
+          updateHud();
+          await sleep(550);
+        }
+
+        // Rasgo Alimaña: Peste (+2 Veneno y -1 DEF por 1 ronda)
         if (e.trait === "plague" && p.hp > 0) {
           await sleep(300);
           if (!gameState.status) gameState.status = {};
-          gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 1;
-          spawnFloatingText("player-sprite", "💀 +1 VENENO", "poison");
-          addLog(`🐀 Peste: ${e.name} te infecta con +1 acumulación de Veneno.`, "damage");
+          gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 2;
+          p._plagueDefDebuff = (p._plagueDefDebuff || 0) + 1;
+          p.def = Math.max(0, p.def - 1);
+          spawnFloatingText("player-sprite", "🐀 +2 VENENO / -1 DEF", "poison");
+          addLog(`🐀 Peste de Cripta: ${e.name} te infecta con +2 de Veneno y reduce tu Defensa en -1 por 1 ronda.`, "damage");
           try { playPoisonSound(); } catch (_) {}
           updateHud();
         }
 
-        // Rasgo Víbora: Ponzoña (+2 Veneno al conectar golpe)
+        // Rasgo Víbora: Ponzoña (+3 Veneno al conectar golpe)
         if (e.trait === "venom" && p.hp > 0) {
           await sleep(300);
           if (!gameState.status) gameState.status = {};
-          gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 2;
-          spawnFloatingText("player-sprite", "💀 +2 VENENO", "poison");
-          addLog(`🐍 Ponzoña: ${e.name} te inocula +2 acumulaciones de Veneno residual.`, "damage");
+          gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 3;
+          spawnFloatingText("player-sprite", "🐍 +3 VENENO", "poison");
+          addLog(`🐍 Ponzoña Voraz: ${e.name} te inocula +3 acumulaciones de Veneno residual.`, "damage");
           try { playPoisonSound(); } catch (_) {}
+          updateHud();
+        }
+
+        // Rasgo Gárgola / Valquiria: Baluarte (+4 Escudo al sumar 19-21)
+        if ((e.trait === "stone" || e.trait === "bulwark") && e.enemyScore >= 19 && e.enemyScore <= 21 && e.hp > 0) {
+          if (!gameState.status) gameState.status = {};
+          gameState.status.enemyShield = (gameState.status.enemyShield || 0) + 4;
+          e.shield = gameState.status.enemyShield;
+          spawnFloatingText("enemy-sprite", "🛡️ +4 BALUARTE", "shield");
+          addLog(`🦇 Baluarte Pétreo: ${e.name} suma ${e.enemyScore} y endurece su coraza (+4 Escudo).`, "info");
+          updateHud();
+        }
+
+        // Rasgo Archimago del Trébol: Ojo Arcano (Drena 15 Overdrive y aplica 2 Quemadura al jugador)
+        if (e.trait === "arcane_burst" && p.hp > 0) {
+          if (typeof drainPlayerOverdrive === "function") drainPlayerOverdrive(15);
+          else if (p.overdrive) p.overdrive = Math.max(0, p.overdrive - 15);
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerBurn = (gameState.status.playerBurn || 0) + 2;
+          spawnFloatingText("player-sprite", "🔮 -15 OD / 🔥 +2 QUEMADURA", "poison");
+          addLog("🔮 Archimago del Trébol [Ojo Arcano]: Drena 15 de Overdrive e incinera tu concentración (+2 Quemadura).", "damage");
           updateHud();
         }
       }
@@ -19533,16 +20032,17 @@
     // Muerte del rival
     if (e.hp <= 0) {
       setEnemySpriteState("dead");
-      // Rasgo Esqueleto: Resurrección
-      if (e.trait === "undead" && !gameState.status.enemyRevived) {
+      // Rasgo Esqueleto: Resurrección (intercepta la muerte antes de la victoria)
+      if (e.trait === "undead" && !e._resurrected && !gameState.status.enemyRevived) {
+        e._resurrected = true;
         gameState.status.enemyRevived = true;
-        e.hp = 15;
+        e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
         setEnemySpriteState("idle");
-        spawnFloatingText("enemy-sprite", "💀 RESURRECCIÓN", "crit");
-        addLog("¡El Esqueleto Maldito se recompone de sus huesos (+15 HP)!", "warning");
+        spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
+        addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
         updateHud();
-        await sleep(2200);
-        showBetScreen();
+        await sleep(1500);
+        showNextRoundButton();
         return;
       }
 
@@ -19578,6 +20078,35 @@
 
       await enemyDefeated();
       return;
+    }
+
+    // Rasgo Escarabajo de Arena: Caparazón (+4 Escudo al finalizar la mano si sigue con vida)
+    if (e.trait === "carapace" && e.hp > 0) {
+      const maxShield = e.maxShield || Math.max(25, Math.round(e.maxHp * 0.4));
+      const curShield = (gameState.status && gameState.status.enemyShield) || 0;
+      const newShield = Math.min(maxShield, curShield + 4);
+      const gained = newShield - curShield;
+      if (gained > 0) {
+        if (!gameState.status) gameState.status = {};
+        gameState.status.enemyShield = newShield;
+        e.shield = newShield;
+        spawnFloatingText("enemy-sprite", `🛡️ +${gained} CAPARAZÓN`, "shield");
+        addLog(`🪲 Caparazón Quitinoso: ${e.name} regenera +${gained} de Escudo protector al resistir la mano.`, "info");
+        updateHud();
+      }
+    }
+
+    // Gestión de enfriamiento de Habilidad de Héroe y restauración de efectos de turno
+    if (p.skillCooldown > 0) p.skillCooldown--;
+    p.skillUsedInHand = false;
+    if (p._immortalThornsRounds > 0) p._immortalThornsRounds--;
+    p.skillActive_vorpal = false;
+    p._skillBonusAtk = 0;
+    p._crimsonLifestealActive = false;
+    p._championDevastationActive = false;
+    if (p._plagueDefDebuff > 0) {
+      p.def += p._plagueDefDebuff;
+      p._plagueDefDebuff = 0;
     }
 
     // -------------------------------------------------------------

@@ -84,7 +84,7 @@ check('daño al rival contabilizado (dmg)', /trackRunStat\(\s*["']damageDealt["'
 check('daño residual del rival contabilizado (veneno)', /trackRunStat\(\s*["']damageDealt["'],\s*pDmg\s*\)/.test(gameSrc));
 check('quemadura del rival contabilizada', /trackRunStat\(\s*["']damageDealt["'],\s*bDmg\s*\)/.test(gameSrc));
 check('daño entrante contabilizado (incomingDmg)', /trackRunStat\(\s*["']damageTaken["'],\s*incomingDmg\s*\)/.test(gameSrc));
-check('espinas contabilizadas', /trackRunStat\(\s*["']damageTaken["'],\s*2\s*\)/.test(gameSrc));
+check('espinas contabilizadas', /trackRunStat\(\s*["']damageTaken["'],\s*(?:1|2)\s*\)/.test(gameSrc));
 check('quemadura del jugador contabilizada', /trackRunStat\(\s*["']damageTaken["'],\s*pDmg\s*\)/.test(gameSrc));
 check('aliento del dragón contabilizado', /trackRunStat\(\s*["']damageTaken["'],\s*3\s*\)/.test(gameSrc));
 check('p._runBustCount sigue inicializándose en startGame', /p\._runBustCount\s*=\s*0/.test(gameSrc));

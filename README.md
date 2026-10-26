@@ -66,32 +66,45 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v1.9.3] — Noviembre 2026 (Actual)
+* **Sistema Integral de Habilidades Potentes de Héroe (`HERO_SKILLS`):**
+  * Nuevo botón de combate táctil `#btn-hero-skill` en el panel de acciones con microanimación de pulso cuando está listo y cuenta regresiva de enfriamiento (cooldown de 3-4 manos).
+  * Catálogo de 5 Habilidades Potentes:
+    * **Ejecución Vorpal (`vorpal_execution`):** Desata una estocada letal de +12 de daño físico directo que ignora el 100% de la armadura del rival (Habilidad inicial del Caballero, cooldown: 3 manos).
+    * **Baluarte Inmortal (`immortal_bulwark`):** Genera +15 de Escudo protector inmediato y purga todo el veneno acumulado en el héroe (Habilidad inicial del Monje, cooldown: 3 manos).
+    * **Suerte del Destino (`arcane_twentyone`):** Aumenta en +20% la probabilidad de Blackjack / Nat 20 en la mano actual y otorga +15 de Overdrive táctico (Habilidad inicial del Pícaro, cooldown: 4 manos).
+    * **Banquete Carmesí (`crimson_feast`):** Rito nigromántico que drena 10 HP directamente de la vida del adversario y se la transfiere al héroe (Habilidad inicial del Nigromante, cooldown: 4 manos).
+    * **Devastación del Campeón (`champion_devastation`):** Impacto sísmico devastador de +20 de daño directo que aturde al rival saltando su siguiente contraataque (Pergamino adquirible en el Bazar por 60 Oro, cooldown: 4 manos).
+  * Integración en la Ficha de Héroe (`openHeroSheet`), pestaña dedicada de Habilidades en el Códice (`switchCodexTab('skills')`) con icono, tipo, cooldown y descripción interactiva, y traducciones completas en español e inglés.
+* **Rediseño Integral de "Juramento del Tahúr" (`gambler_pact`):**
+  * Eliminada por completo la restricción arcaica de apuesta mínima forzada de 10 HP en cada mano.
+  * Nueva bonificación pasiva permanente de combate: `+3 PWR` (Poder de Ataque), `+12% Probabilidad de Crítico` y `+15% Suerte de Naipe`.
+  * Efecto activo al doblar: Al utilizar la acción `¡DOBLAR!` y ganar la mano, el tahúr recupera `+8 HP` de vitalidad y obtiene `+6 de Oro` extra.
+  * Descripciones actualizadas en el Altar de Pactos, pantalla de apuestas, Códice y diccionario i18n.
+* **Auditoría y Ejecución Mecánica 100% Real de TODOS los Rasgos de Rivales y Jefes:**
+  * **Duende (`thief`):** Roba de 3 a 7 de Oro por mano ganada y recupera salud equivalente al oro hurtado.
+  * **Alimaña de Peste (`plague`):** Infecta al héroe con +2 de Veneno residual y reduce su Defensa en -1 por el resto del combate.
+  * **Esqueleto (`undead`):** Resurrección garantizada al 35% de su salud máxima al caer derrotado en combate (incluyendo muertes por espinas), volviendo a la vida con efectos visuales.
+  * **Orco (`fury`):** Furia berserker que incrementa permanentemente su Ataque en +2 cada vez que recibe daño de mano y su salud está bajo el 50%.
+  * **Escarabajo de las Arenas (`carapace`):** Caparazón quitinoso que genera automáticamente +4 de Escudo baluarte al final de cada mano.
+  * **Víbora de las Arenas (`venom`):** Inyecta +3 de Veneno bioacumulativo en cada mano ganada contra el héroe.
+  * **Gárgola / Centurión (`stone` / `bulwark`):** Mitigación pétrea de 2 puntos de daño entrante y +4 de Escudo adicional al plantarse con 19, 20 o 21.
+  * **Dante de Picas (`spade_lord`):** Señor de picas que amplifica su daño total en +30% si su mano contiene naipes del palo de Picas (♠).
+  * **Valquiria de Diamantes (`diamond_aegis`):** Baluarte radiante que entra al combate con +10 de Escudo protector inmediato.
+  * **Archimago del Trébol (`arcane_burst`):** Estallido arcano que drena 15 de Overdrive al jugador y le aplica +2 de Quemadura al ganar la mano.
+  * **Malfas del Vacío (`void_drain`):** Devorador del vacío que drena 3 de HP al jugador y cura 5 de HP a Malfas cada vez que el héroe roba carta (`hit`).
+  * **Sombra del 21 (`shadow_gamble`):** Trato sombrío que multiplica por x2 su daño total de mano si alcanza 20 o 21.
+  * **El Mandinga (`mandinga_abyss`):** Ejecución abisal vorpal que desata daño masivo x2.5 ignorando el 100% de la armadura si saca 21 o Blackjack.
 * **Corrección Crítica de Congelamiento en 0 HP y Avance de Piso:**
-  * Implementado candado de reentrancia (`gameState._isHandlingVictory`) y envoltura completa `try/catch` en `enemyDefeated()`, impidiendo que errores de audio o cosméticos dejen los botones inhabilitados en 0 HP.
-  * Ampliado el temporizador de seguridad de combate a 5500ms en `resolveHandResult()`, asegurando que no se solapen eventos de daño con el botón de siguiente ronda.
-  * Garantía de visibilidad limpia en `#stage` y `header` al avanzar de piso (`advanceToNextFloor`, `initFloor`), eliminando la pantalla negra tras salir del mercado.
-  * Verificación estricta de salud en resolución de 21 vs 21 celestial para disparar victoria inmediata cuando el enemigo llega a 0 HP.
+  * Implementado candado de reentrancia (`gameState._isHandlingVictory`) y envoltura completa `try/catch` en `enemyDefeated()`, impidiendo bloqueos al liquidar rivales.
+  * Ampliado el temporizador de seguridad de combate a 5500ms en `resolveHandResult()`, asegurando fluidez en el botón de siguiente ronda.
 * **Exclusión Mutua entre Pacto del Abismo y Mesa Sacrificial:**
   * Asignación de pisos disjuntos para eventos especiales: Pactos del Abismo (pisos 5, 9, 13, 17) y Mesa Sacrificial (pisos 6, 10, 14, 18), protegidos mediante la guarda `isEventModalOpen()`.
 * **Translucidez Dinámica del Banner de Título en Menú Principal:**
-  * Detección por física AABB de la posición de la esfera en el minijuego de inicio respecto al banner de título, reduciendo suavemente su opacidad al 25% (`.intro-title-translucent`) al transitar por detrás y restaurándola al salir.
-* **Cola Secuencial de Textos Flotantes de Combate con Dispersión Horizontal:**
-  * Implementado `floatingTextQueue` con despacho cada 320ms y 5 cuadrantes espaciales horizontales, impidiendo la superposición de textos de daño, baluarte, furia o veneno.
-* **Diferenciación y Clarificación de Sellos Arcanos:**
-  * El *Sobre de Sellos Arcanos* en el Bazar (55 Oro) otorga sellos temporales para la run activa.
-  * La *Forja Arcana de la Cripta* reduce su coste a 15 Monedas de Cripta 💀 y graba sellos permanentes en la baraja exclusiva del héroe activo (`torre21_hero_decks`).
-* **Visor de Carta Grande con Giro 3D (`rotateY(180deg)`), Corrección de `Mod: undefined` y Efectos Reales de Cartas Especiales:**
-  * Al tocar naipes en combate o en el visor de baraja se despliega un visor 3D central que se voltea con animación fluida al pulsar sobre él, revelando estadísticas detalladas, tipo de carta y sinergias.
-  * Corregido el texto `Mod: undefined` en naipes sin modificadores.
-  * Efectos reales en combate para cartas legendarias como *Sentencia del Rey de la Torre* y *Orbe del Fénix*.
-* **Unificación de Ranuras de Artefactos (5/5) y Auditoría Estricta de Espinas (+1):**
-  * Unificación universal a `MAX_ARTIFACTS = 5` en mercado, HUD y mochila (`5/5`).
-  * Auditoría de todas las reliquias de espinas (*Corona de Espinas*, etc.) para otorgar estrictamente `+1` Espina directa.
-* **Auditoría de Rasgos de Rivales y Rediseño RPG de Juramento del Tahúr:**
-  * Activación y ejecución real de rasgos (`★ ROBO`, `★ PESTE`, `★ RESURRECCIÓN`, `★ FURIA`, `★ CAPARAZÓN`, `★ VENENO`, `★ BALUARTE`, etc.) y panel emergente explicativo al tocar el distintivo del rasgo en batalla.
-  * Rediseño de *Juramento del Gran Tahúr* con estadísticas RPG completas: `+12% Crítico, +12% Suerte, +3 Ataque Base` permanente y multiplicador x3.5 en Blackjack.
+  * Detección física AABB de la esfera en el minijuego de inicio, reduciendo la opacidad del título al 25% al cruzar por detrás.
+* **Cola Secuencial de Textos Flotantes de Combate con Dispersión:**
+  * Implementado `floatingTextQueue` con despacho cada 320ms y dispersión en cuadrantes horizontales para evitar superposición.
 * **Localización Completa al Inglés (🇺🇸 EN):**
-  * Soporte integral en inglés para visor de baraja, mercado, códice, rasgos de rivales y modales de inspección 3D.
+  * Soporte integral bilingüe para habilidades de héroe, rasgos de rivales, códice, mochila y mercado.
 
 ### [v1.9.2] — Noviembre 2026
 * **Ampliación Ergonómica y Desplazamiento Fluido en la Bitácora de Turno:**

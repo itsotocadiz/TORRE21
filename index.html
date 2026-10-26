@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self' data: blob:; img-src 'self' data: blob:;">
   <meta name="theme-color" content="#07090e">
+  <meta name="version" content="v1.9.3 (BUILD 50)">
   <title>TORRE 21: EL PACTO DE BLACK JACK — Roguelike</title>
   <!-- Tipografías locales offline (Fredoka y Nunito) embebidas en css/style.css -->
   <link rel="stylesheet" href="css/style.css">
@@ -918,6 +919,7 @@
         <button class="codex-tab-btn active" id="codex-tab-collection" onclick="switchCodexTab('collection')" title="Cartas Cosméticas" aria-label="Cartas Cosméticas">👑</button>
         <button class="codex-tab-btn" id="codex-tab-blessings" onclick="switchCodexTab('blessings')" title="Bendiciones del Destino" aria-label="Bendiciones del Destino">✨</button>
         <button class="codex-tab-btn" id="codex-tab-relics" onclick="switchCodexTab('relics')" title="Reliquias de la Torre" aria-label="Reliquias de la Torre">🏺</button>
+        <button class="codex-tab-btn" id="codex-tab-skills" onclick="switchCodexTab('skills')" title="Habilidades Potentes" aria-label="Habilidades Potentes">⚡</button>
         <button class="codex-tab-btn" id="codex-tab-enemies" onclick="switchCodexTab('enemies')" title="Bestiario y Rivales" aria-label="Bestiario y Rivales">⚔️</button>
       </div>
       <div class="codex-section-header" id="codex-section-header">
@@ -1602,6 +1604,7 @@
       <button id="btn-double" class="btn-double" onclick="playerAction('double')" title="⚡ Dobla la apuesta de impacto: roba 1 única carta y te plantas. Daño x2 si ganas (¡o contraataque x2 si pierdes!)." disabled><span class="btn-badge-mult">x2</span> ⚡ ¡DOBLAR!</button>
       <button id="btn-reroll" onclick="playerAction('reroll')" title="Descarta tu mano actual y roba 2 naipes nuevos (consume 1 Reroll)." disabled><img src="assets/svg/ui/icon_reroll.svg" class="btn-icon" alt=""> REROLL (0)</button>
       <button id="btn-potion" onclick="playerAction('potion')" title="Consume una poción curativa para restaurar vida inmediatamente."><img src="assets/svg/ui/icon_potion.svg" class="btn-icon" alt=""> POCIÓN (<span id="ui-potions">2</span>)</button>
+      <button id="btn-hero-skill" class="btn-hero-skill" onclick="triggerHeroSkill()" title="⚡ Activa la Habilidad Potente de tu Héroe en este turno."><span class="skill-icon" id="hero-skill-icon">⚡</span> <span class="skill-label" id="hero-skill-label">HABILIDAD</span> <span class="skill-status-pill" id="hero-skill-status">LISTA ⚡</span></button>
     </div>
     <div id="next-round-container" class="next-round-container hidden">
       <button id="btn-next-round" class="btn-next-round" onclick="advanceToNextRound()">▶ SIGUIENTE RONDA</button>
