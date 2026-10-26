@@ -496,7 +496,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.9.0 (BUILD 47)</span>
+          <span id="settings-version">📱 VERSIÓN v1.9.1 (BUILD 48)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -556,6 +556,16 @@
             1. <b>Armadura (DEF)</b>: Reduce el golpe de forma plana. Si tu DEF supera el ataque, sufres <b>0 de daño</b>.<br>
             2. <b>Escudo Azul</b>: Absorbe el exceso de daño que sobrepase tu armadura.<br>
             3. <b>Vida (HP)</b>: Solo el daño que penetre tu DEF y agote tu Escudo restará tus puntos vitales reales.
+          </div>
+        </div>
+
+        <div class="tut-step">
+          <div class="tut-step-num">4</div>
+          <div class="tut-step-body">
+            <b>📱 INTERACCIÓN TÁCTIL EN EL CAMPO DE BATALLA</b>:<br>
+            • <b>Ficha del Héroe o Rival</b>: Toca directamente a tu <b>Héroe</b> o al <b>Rival</b> (sprite, nombre o barra) para abrir su Ficha Completa de Estadísticas y Atributos.<br>
+            • <b>🎒 Mochila y Perks</b>: Toca el icono compacto junto a tu energía para inspeccionar tus 5 Artefactos, Equipamiento, Bendiciones y Perks Activos.<br>
+            • <b>📜 Resumen del Turno</b>: Toca el icono compacto junto a la energía del rival para leer el registro limpio del turno sin saturación.
           </div>
         </div>
       </div>
@@ -928,8 +938,8 @@
         <button class="inspect-close-btn" onclick="closeInGamePauseMenu()">✕</button>
       </div>
 
-      <!-- ESTADÍSTICAS DEL HÉROE EN VIVO (v1.8.0) -->
-      <div class="pause-hero-stats-box" id="pause-hero-stats-container"></div>
+      <!-- ESTADÍSTICAS DEL HÉROE EN VIVO (Oculto en pausa para máxima ergonomía visual; accesibles tocando al héroe en combate) -->
+      <div class="pause-hero-stats-box hidden" id="pause-hero-stats-container" style="display:none !important;"></div>
 
       <!-- Cuadro de confirmación contextual (reiniciar / salir) -->
       <div id="pause-confirm-box" class="pause-confirm-box hidden">
@@ -940,35 +950,26 @@
         </div>
       </div>
 
-      <!-- ACCIONES PRINCIPALES DE PARTIDA -->
-      <div class="pause-actions-group" id="pause-actions-main">
-        <button class="pause-btn resume" onclick="closeInGamePauseMenu()">
+      <!-- ACCIONES PRINCIPALES DE PARTIDA (GRID 2x2 COMPACTO Y LIMPIO) -->
+      <div class="pause-actions-grid-2x2" id="pause-actions-main">
+        <button class="pause-grid-btn resume" onclick="closeInGamePauseMenu()">
           <span class="p-icon">▶</span>
-          <span class="p-text">CONTINUAR COMBATE</span>
+          <span class="p-title">CONTINUAR</span>
         </button>
 
-        <button class="pause-btn deck-view" onclick="openDeckViewerModal()">
+        <button class="pause-grid-btn deck-view" onclick="openDeckViewerModal()">
           <span class="p-icon">🃏</span>
-          <div class="p-info">
-            <span class="p-title">MI BARAJA (52 CARTAS)</span>
-            <span class="p-sub">Ver naipes arcanos de jefes, sellos y baraja de combate</span>
-          </div>
+          <span class="p-title">MI BARAJA</span>
         </button>
 
-        <button class="pause-btn restart" onclick="askRestartRun()">
+        <button class="pause-grid-btn restart" onclick="askRestartRun()">
           <span class="p-icon">🔄</span>
-          <div class="p-info">
-            <span class="p-title">REINICIAR ASCENSO</span>
-            <span class="p-sub">Volver al Piso 1 (conserva la EXP permanente ganada)</span>
-          </div>
+          <span class="p-title">REINICIAR</span>
         </button>
 
-        <button class="pause-btn exit" onclick="askExitToMainMenu()">
-          <span class="p-icon">🏕️</span>
-          <div class="p-info">
-            <span class="p-title">SALIR AL CAMPAMENTO</span>
-            <span class="p-sub">Guarda tu piso actual para continuar luego y vuelve al Menú</span>
-          </div>
+        <button class="pause-grid-btn exit" onclick="askExitToMainMenu()">
+          <span class="p-icon">⛺</span>
+          <span class="p-title">CAMPAMENTO</span>
         </button>
       </div>
 
@@ -1183,7 +1184,7 @@
         <div class="fighter-clash-icon" id="fighter-clash-icon">⚔️</div>
 
         <!-- COLUMNA HÉROE (JACK) -->
-        <div class="fighter-col player-fighter" onclick="openFighterInspect('player')" title="Toca o pasa el cursor para ver ficha de combate">
+        <div class="fighter-col player-fighter" onclick="openFighterInspect('player')" title="Toca para ver ficha de combate">
           <div id="player-sprite" class="sprite">
             <span id="player-sprite-icon"><img src="assets/svg/knight_idle.svg" class="sprite-img" alt="Héroe"></span>
             <div id="player-acc-slot" class="player-acc-slot" onclick="inspectActiveBlessing(event)" title="Medallón de Bendición del Destino (Toca para ver)"></div>
@@ -1192,7 +1193,6 @@
             <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
               <span class="fighter-name" id="player-class-title">CABALLERO</span>
               <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-                <button type="button" class="fighter-inspect-pill-btn" onclick="event.stopPropagation(); openFighterInspect('player');" title="Ver Ficha Completa del Héroe">📊</button>
                 <div id="player-streak-badge" class="player-streak-badge hidden" onclick="event.stopPropagation(); showStreakInfoModal();" title="Racha de victorias (Toca para ver bonificación)">🔥 x1.5</div>
               </div>
             </div>
@@ -1200,67 +1200,76 @@
               <span class="player-hero-badge" id="player-hero-tag">★ HÉROE</span>
             </div>
             <div id="player-status-badges" class="status-badges"></div>
-            <div class="fighter-meters-panel">
-              <!-- BARRA DE VIDA -->
-              <div class="meter-group hp-group">
-                <div class="meter-header">
-                  <span class="meter-title"><img src="assets/svg/ui/icon_hp.svg" class="meter-icon" alt=""> VIDA</span>
-                  <span class="hp-text term" data-term="hp" id="player-hp-text">90/90</span>
+            <div class="fighter-energy-row" style="display:flex;align-items:center;gap:4px;width:100%;">
+              <div class="fighter-meters-panel" style="flex:1;">
+                <!-- BARRA DE VIDA -->
+                <div class="meter-group hp-group">
+                  <div class="meter-header">
+                    <span class="meter-title"><img src="assets/svg/ui/icon_hp.svg" class="meter-icon" alt=""> VIDA</span>
+                    <span class="hp-text term" data-term="hp" id="player-hp-text">90/90</span>
+                  </div>
+                  <div class="bar-container hp-bar-container">
+                    <div id="player-hp-bar" class="bar-fill player-bar"></div>
+                    <div id="player-hp-ghost-bar" class="bar-ghost player-ghost"></div>
+                  </div>
                 </div>
-                <div class="bar-container hp-bar-container">
-                  <div id="player-hp-bar" class="bar-fill player-bar"></div>
-                  <div id="player-hp-ghost-bar" class="bar-ghost player-ghost"></div>
+                <!-- BARRA DE ESCUDO -->
+                <div class="meter-group shield-group" id="player-shield-wrapper" title="Escudo protector absorbente (Toca para ver)">
+                  <div class="meter-header">
+                    <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
+                    <span class="shield-text" id="player-shield-text">0/10</span>
+                  </div>
+                  <div class="shield-bar-container">
+                    <div id="player-shield-bar" class="shield-bar-fill"></div>
+                  </div>
                 </div>
               </div>
-              <!-- BARRA DE ESCUDO -->
-              <div class="meter-group shield-group" id="player-shield-wrapper" title="Escudo protector absorbente (Toca para ver)">
-                <div class="meter-header">
-                  <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
-                  <span class="shield-text" id="player-shield-text">0/10</span>
-                </div>
-                <div class="shield-bar-container">
-                  <div id="player-shield-bar" class="shield-bar-fill"></div>
-                </div>
-              </div>
+              <button type="button" class="combat-compact-icon-btn btn-combat-gear" id="btn-combat-gear-toggle" onclick="event.stopPropagation(); openCombatGearModal()" title="Mochila: Artefactos, Equipamiento y Perks (Toca para abrir)">
+                <span class="combat-compact-icon">🎒</span>
+                <span class="combat-compact-badge" id="combat-gear-badge">0/5</span>
+              </button>
             </div>
             <div id="player-stats-mini" class="fighter-stat-pills hidden" style="display:none;" title="Poder y Defensa del Héroe">⚔️ 2  🛡️ 3</div>
           </div>
         </div>
 
         <!-- COLUMNA RIVAL -->
-        <div class="fighter-col enemy-fighter" onclick="openFighterInspect('enemy')" title="Toca o pasa el cursor para ver ficha de combate">
+        <div class="fighter-col enemy-fighter" onclick="openFighterInspect('enemy')" title="Toca para ver ficha de combate">
           <div class="sprite enemy-avatar" id="enemy-sprite"><img src="assets/svg/enemy_goblin.svg" class="sprite-img" alt="Rival"></div>
           <div class="fighter-meta">
             <div class="fighter-title-row" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
               <span class="fighter-name enemy-name" id="enemy-name-tag">RIVAL</span>
-              <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-                <button type="button" class="fighter-inspect-pill-btn enemy" onclick="event.stopPropagation(); openFighterInspect('enemy');" title="Ver Ficha del Rival">📊</button>
-              </div>
             </div>
             <div class="fighter-badge-zone" id="enemy-badge-zone">
               <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
             </div>
             <div id="enemy-status-badges" class="status-badges"></div>
-            <div class="fighter-meters-panel">
-              <!-- BARRA DE VIDA -->
-              <div class="meter-group hp-group">
-                <div class="meter-header">
-                  <span class="meter-title"><img src="assets/svg/ui/icon_hp.svg" class="meter-icon" alt=""> VIDA</span>
-                  <span class="hp-text" id="enemy-hp-text">0/0</span>
+            <div class="fighter-energy-row" style="display:flex;align-items:center;gap:4px;width:100%;">
+              <button type="button" class="combat-compact-icon-btn btn-combat-log" id="btn-combat-log-toggle" onclick="event.stopPropagation(); openCombatLogModal()" title="Descripción del Turno (Toca para ver resumen)">
+                <span class="combat-compact-icon">📜</span>
+                <span class="combat-compact-dot hidden" id="combat-log-unread-dot"></span>
+              </button>
+              <div class="fighter-meters-panel" style="flex:1;">
+                <!-- BARRA DE VIDA -->
+                <div class="meter-group hp-group">
+                  <div class="meter-header">
+                    <span class="meter-title"><img src="assets/svg/ui/icon_hp.svg" class="meter-icon" alt=""> VIDA</span>
+                    <span class="hp-text" id="enemy-hp-text">0/0</span>
+                  </div>
+                  <div class="bar-container hp-bar-container">
+                    <div id="enemy-hp-bar" class="bar-fill enemy-bar"></div>
+                    <div id="enemy-hp-ghost-bar" class="bar-ghost enemy-ghost"></div>
+                  </div>
                 </div>
-                <div class="bar-container hp-bar-container">
-                  <div id="enemy-hp-bar" class="bar-fill enemy-bar"></div>
-                  <div id="enemy-hp-ghost-bar" class="bar-ghost enemy-ghost"></div>
-                </div>
-              </div>
-              <!-- BARRA DE ESCUDO DEL RIVAL -->
-              <div class="meter-group shield-group" id="enemy-shield-wrapper" title="Escudo protector del rival (Toca para ver)">
-                <div class="meter-header">
-                  <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
-                  <span class="shield-text" id="enemy-shield-text">0/10</span>
-                </div>
-                <div class="shield-bar-container">
-                  <div id="enemy-shield-bar" class="shield-bar-fill"></div>
+                <!-- BARRA DE ESCUDO DEL RIVAL -->
+                <div class="meter-group shield-group" id="enemy-shield-wrapper" title="Escudo protector del rival (Toca para ver)">
+                  <div class="meter-header">
+                    <span class="meter-title shield-title"><img src="assets/svg/ui/icon_shield.svg" class="meter-icon" alt=""> ESCUDO</span>
+                    <span class="shield-text" id="enemy-shield-text">0/10</span>
+                  </div>
+                  <div class="shield-bar-container">
+                    <div id="enemy-shield-bar" class="shield-bar-fill"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1578,20 +1587,6 @@
   </div>
 
   <div id="controls">
-    <!-- BARRA FLOTANTE COMPACTA DE ACCESO RÁPIDO A EQUIPO Y DESCRIPCIÓN DEL TURNO -->
-    <div class="combat-quick-bar" id="combat-quick-bar">
-      <button type="button" class="combat-quick-btn btn-combat-gear" id="btn-combat-gear-toggle" onclick="openCombatGearModal()" title="Mochila: Artefactos, Equipamiento y Perks (Toca para abrir)">
-        <span class="combat-quick-icon">🎒</span>
-        <span class="combat-quick-label">EQUIPO & PERKS</span>
-        <span class="combat-quick-badge" id="combat-gear-badge">0/5</span>
-      </button>
-      <div class="combat-quick-spacer"></div>
-      <button type="button" class="combat-quick-btn btn-combat-log" id="btn-combat-log-toggle" onclick="openCombatLogModal()" title="Descripción del Turno (Toca para ver historial)">
-        <span class="combat-quick-icon">📜</span>
-        <span class="combat-quick-label">TURNO</span>
-        <span class="combat-quick-dot hidden" id="combat-log-unread-dot"></span>
-      </button>
-    </div>
     <!-- BANNER DISCRETO DE SINERGIAS ACTIVAS -->
     <div id="active-synergies-shelf" class="active-synergies-shelf hidden"></div>
 
@@ -2211,7 +2206,6 @@
       <button type="button" class="combat-modal-close" onclick="closeCombatLogModal()">✕</button>
     </div>
     <div class="combat-modal-body">
-      <div class="combat-log-turn-summary" id="combat-log-turn-summary">Historial y sucesos del enfrentamiento actual:</div>
       <div id="log-container" class="log-container-in-modal">
         <div class="log-entry info">¡Un rival bloquea el paso de la torre!</div>
       </div>
@@ -2234,14 +2228,20 @@
       <button type="button" class="combat-modal-close" onclick="closeCombatGearModal()">✕</button>
     </div>
     <div class="combat-modal-body gear-body">
+      <!-- CUADRO DE INSPECCIÓN RÁPIDA DE ARTEFACTO / EQUIPAMIENTO -->
+      <div id="gear-slot-detail-box" class="gear-slot-detail-box">
+        <div id="gear-detail-title" class="gear-detail-title">💡 Toca cualquier icono para ver sus detalles</div>
+        <div id="gear-detail-desc" class="gear-detail-desc">Artefactos pasivos, reliquias bendecidas y perks tácticos del asalto.</div>
+      </div>
+
       <!-- SECCIÓN 1: ARTEFACTOS ACTIVOS (X/5) -->
       <div class="gear-section">
         <div class="gear-section-header">
           <span class="gear-section-title">🎴 ARTEFACTOS ACTIVOS</span>
           <span class="gear-section-count" id="gear-modal-art-count">0/5</span>
         </div>
-        <div class="gear-artifacts-grid" id="gear-modal-artifacts-grid">
-          <!-- Renderizado dinámicamente con los 5 slots y artefactos equipados -->
+        <div class="gear-artifacts-grid compact-row" id="gear-modal-artifacts-grid">
+          <!-- Renderizado dinámicamente con los 5 slots compactos de 48x48px -->
         </div>
         <div class="eq-pill hidden" id="ui-artifacts-pill" style="display:none;" onclick="explainEquipmentPill('artifacts')">
           <b id="ui-artifacts-count">0/5</b>
@@ -2253,11 +2253,27 @@
         <div class="gear-section-header">
           <span class="gear-section-title">⚔️ EQUIPAMIENTO Y BENDICIONES</span>
         </div>
-        <div class="gear-pills-row">
-          <div class="eq-pill" id="ui-gem-pill" onclick="explainEquipmentPill('blessing')" title="Bendición del Destino (Toca para info)">💎 <b id="ui-gem">NINGUNA</b></div>
-          <div class="eq-pill" id="ui-acc-pill" onclick="explainEquipmentPill('accessory')" title="Accesorio equipado (Toca para info)">💍 <b id="ui-acc">NINGUNO</b></div>
-          <div class="eq-pill" id="ui-dupla-pill" onclick="explainEquipmentPill('dupla')" title="Dupla activa en mano (Toca para info)">⚡ <b id="ui-dupla">NO</b></div>
-          <div class="eq-pill highlight" id="ui-synergies-pill" onclick="explainEquipmentPill('synergies')" title="Sinergias elementales activas (Toca para ver)">🔮 <b id="ui-synergies-count">0</b></div>
+        <div class="gear-compact-row" id="gear-compact-eq-row">
+          <button type="button" class="gear-compact-eq-btn" id="ui-gem-pill" onclick="inspectGearSlot('blessing')" title="Bendición del Destino">
+            <span class="gce-icon" id="ui-gem-icon">💎</span>
+            <span class="gce-tag" id="ui-gem-tag">BENDICIÓN</span>
+            <span id="ui-gem" style="display:none;">NINGUNA</span>
+          </button>
+          <button type="button" class="gear-compact-eq-btn" id="ui-acc-pill" onclick="inspectGearSlot('accessory')" title="Accesorio equipado">
+            <span class="gce-icon" id="ui-acc-icon">💍</span>
+            <span class="gce-tag" id="ui-acc-tag">ACCESORIO</span>
+            <span id="ui-acc" style="display:none;">NINGUNO</span>
+          </button>
+          <button type="button" class="gear-compact-eq-btn" id="ui-dupla-pill" onclick="inspectGearSlot('dupla')" title="Dupla activa en mano">
+            <span class="gce-icon" id="ui-dupla-icon">⚡</span>
+            <span class="gce-tag" id="ui-dupla-tag">DUPLA</span>
+            <span id="ui-dupla" style="display:none;">NO</span>
+          </button>
+          <button type="button" class="gear-compact-eq-btn highlight" id="ui-synergies-pill" onclick="inspectGearSlot('synergies')" title="Sinergias elementales">
+            <span class="gce-icon">🔮</span>
+            <span class="gce-tag">SINERGIAS</span>
+            <b id="ui-synergies-count" class="gce-badge">0</b>
+          </button>
         </div>
       </div>
 

@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.0 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.1 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,31 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.0] — Noviembre 2026 (Actual)
+### [v1.9.1] — Noviembre 2026 (Actual)
+* **Solución Definitiva al Congelamiento (Anti-Freeze Guard) en Ataque:**
+  * Corregido el error de ejecución de JavaScript `ReferenceError: isRpgCrit is not defined` en la evaluación de Vampirismo al asestar un golpe, el cual interrumpía silenciosamente la promesa de combate dejando los controles bloqueados tras un BUST del rival.
+  * Implementado un temporizador de seguridad (*Watchdog Fallback* de 1500ms) y encapsulamiento `try / catch / finally` en `resolveHandResult()`. Si cualquier animación DOM o evento de audio se demora, el motor garantiza la aplicación del daño y habilita de inmediato el botón `▶ SIGUIENTE RONDA` (o dispara `enemyDefeated()` si el rival llegó a 0 HP).
+  * Bloqueo ordenado y transparente de controles durante las animaciones y notificaciones de turno, desbloqueando el ritmo de juego con total fluidez táctil.
+* **Rediseño Ergonómico Compacto del Tablero de Batalla:**
+  * **Integración de Vida y Escudo:** Reducido el espaciado vertical (`gap: 2px; padding: 4px 6px;`) entre las barras de Vida y Escudo tanto en el jugador como en el rival, eliminando espacios vacíos.
+  * **Botones `🎒` y `📜` Circulares Compactos al Lado de la Energía:** Eliminada la barra inferior fija `#combat-quick-bar`. El botón de Mochila (`🎒`) se integra como un icono circular de 40x40px junto a la energía del Personaje, y el botón de Turno (`📜`, con punto de notificación reactivo) se ubica junto a la energía del Rival.
+  * **Ergonomía Táctil Directa:** Eliminados los botones redundantes `📊`. Tocar directamente el sprite, el nombre o la barra de energía del Personaje abre la Ficha del Héroe (`openFighterInspect('player')`), y tocar al adversario abre la Ficha del Rival (`openFighterInspect('enemy')`).
+  * **Actualización de Tutoriales:** Incorporada la explicación de la nueva navegación táctil y botones compactos en la guía interactiva.
+* **Mochila Compacta (Slots 48x48px) y Fix de Z-Index del Códice de Perks:**
+  * Las 5 ranuras de Artefactos Activos se condensan en una sola fila horizontal de iconos limpios de `48x48px`.
+  * Los elementos de Equipamiento y Bendiciones se muestran en botones compactos con iconos elegantes sin textos saturados.
+  * Incorporada la caja reactiva de inspección rápida dentro de la mochila (`#gear-slot-detail-box`): tocar cualquier artefacto, gema, accesorio, dupla o sinergia muestra al instante su nombre en mayúsculas y descripción completa.
+  * **Z-Index Fix:** Asignado `z-index: 100050 !important` a `#modal-perks-codex`, garantizando que el Códice de Perks se abra siempre por delante de la Mochila sin necesidad de cerrarla.
+* **Auditoría Estricta de Espinas (+1 Plano) y Erradicación de Símbolo `%`:**
+  * Recompensas de subida de nivel (*Corazón Espinado* / `thorns`) ajustadas estrictamente a `+1 Daño de Espinas` (corregido valor de +6).
+  * Eliminado el símbolo `%` de Espinas en el menú de pausa y en las fichas del héroe (`🌵 ESPINAS: X`, nunca `X%`), consolidando la mecánica como daño plano directo puro.
+  * Auditoría y confirmación de funcionamiento de las 4 mecánicas clave: Espinas (daño puro reflejado), Crítico % (multiplicador RPG), Evasión % (anulación de golpe) y Vampirismo % (curación sobre daño causado).
+* **Menú de Pausa / Ajustes Descongestionado:**
+  * Retirada la tabla redundante de estadísticas en tiempo real del menú de pausa (accesible directamente al tocar al personaje en el campo de batalla).
+  * Convertidos los 4 botones principales (`▶ CONTINUAR`, `🃏 MI BARAJA`, `🔄 REINICIAR`, `⛺ CAMPAMENTO`) en una cuadrícula compacta 2x2 de alta ergonomía.
+  * Bloque de configuración estilizado en filas delgadas que cabe holgadamente en cualquier pantalla móvil sin requerir scroll.
+
+### [v1.9.0] — Noviembre 2026
 * **Corrección Bloqueante de Arranque (Clean Startup Guard):**
   * Solucionado el problema crítico que mostraba el modal de Mochila de Equipo (`#modal-combat-gear`) sobre fondo negro al abrir el juego.
   * Se implementaron reglas CSS estrictas con `#modal-combat-gear.hidden, #modal-combat-log.hidden, .combat-modal-overlay.hidden { display: none !important; }` y `style="display: none !important;"` en el marcado HTML base.

@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.0";
+  const GAME_VERSION = "v1.9.1";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.0)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.1)
      ============================================================ */
 
   const HERO_DATA = {
@@ -6706,7 +6706,7 @@
               <span class="hero-book-stat-pill term" data-term="pwr" title="Estadística Base permanente: ${basePwr} + Legado: ${legPwr}">⚔️ PWR: ${basePwr + legPwr}${legPwr > 0 ? ` <b style="color:#2a9d8f;">(+${legPwr})</b>` : ''}</span>
               <span class="hero-book-stat-pill term" data-term="def" title="Estadística Base permanente: ${baseDef} + Legado: ${legDef}">🛡️ DEF: ${baseDef + legDef}${legDef > 0 ? ` <b style="color:#2a9d8f;">(+${legDef})</b>` : ''}</span>
               ${hero.startingShield ? `<span class="hero-book-stat-pill term" data-term="shield" style="color:#48cae4;">🛡️ Escudo: ${hero.startingShield}</span>` : ''}
-              ${displayThorns > 0 ? `<span class="hero-book-stat-pill" style="color:#ffd166;">🌵 Espinas: ${displayThorns}%</span>` : ''}
+              ${displayThorns > 0 ? `<span class="hero-book-stat-pill" style="color:#ffd166;">🌵 Espinas: ${displayThorns}</span>` : ''}
               ${displayCrit > 0 ? `<span class="hero-book-stat-pill" style="color:#ffd166;">⚡ Crítico: ${displayCrit}%</span>` : ''}
               ${displayDodge > 0 ? `<span class="hero-book-stat-pill" style="color:#66fcf1;">💨 Esquivar: ${displayDodge}%</span>` : ''}
               ${displayLifesteal > 0 ? `<span class="hero-book-stat-pill" style="color:#ff758f;">🩸 Vampirismo: ${displayLifesteal}%</span>` : ''}
@@ -14691,7 +14691,7 @@
       extraPills += `<div class="pause-stat-item"><span class="psi-icon">🩸</span><span class="psi-lbl">VAMPIRISMO:</span><span class="psi-val">${lifestealPct}%</span></div>`;
     }
     if (thornsPct > 0) {
-      extraPills += `<div class="pause-stat-item"><span class="psi-icon">🌵</span><span class="psi-lbl">ESPINAS:</span><span class="psi-val">${thornsPct}%</span></div>`;
+      extraPills += `<div class="pause-stat-item"><span class="psi-icon">🌵</span><span class="psi-lbl">ESPINAS:</span><span class="psi-val">${thornsPct}</span></div>`;
     }
 
     container.innerHTML = `
@@ -14859,8 +14859,6 @@
     });
     if (typeof closeCombatGearModal === "function") closeCombatGearModal();
     if (typeof closeCombatLogModal === "function") closeCombatLogModal();
-    const qBar = document.getElementById("combat-quick-bar");
-    if (qBar) qBar.style.display = "none";
     if (window._introGoldBannerTimer) {
       clearTimeout(window._introGoldBannerTimer);
       window._introGoldBannerTimer = null;
@@ -16299,18 +16297,17 @@
           }
           const name = info ? info.name : String(artId);
           const icon = info ? (info.icon || "🎴") : "🎴";
-          const desc = info ? (info.desc || "") : "";
           html += `
-            <div class="gear-art-slot filled" onclick="explainEquipmentPill('artifacts')" title="${name}: ${desc}">
+            <div class="gear-art-slot filled" onclick="inspectGearSlot('artifact', '${artId}')" title="${name}">
               <span class="gear-slot-icon">${icon}</span>
-              <span class="gear-slot-name">${name}</span>
+              <span class="gear-art-slot-num">${i + 1}</span>
             </div>
           `;
         } else {
           html += `
-            <div class="gear-art-slot empty" title="Ranura Libre (Desbloquea o adquiere hasta 5 artefactos)">
-              <span class="gear-slot-icon">[+]</span>
-              <span class="gear-slot-name">Ranura Libre</span>
+            <div class="gear-art-slot empty" onclick="inspectGearSlot('artifact', null)" title="Ranura Libre">
+              <span class="gear-slot-icon">+</span>
+              <span class="gear-art-slot-num">${i + 1}</span>
             </div>
           `;
         }
@@ -16323,14 +16320,32 @@
     if (gemEl) {
       gemEl.innerText = p.gem ? (typeof getItemSpanishName === "function" ? getItemSpanishName(p.gem) : p.gem.toUpperCase()) : (isEn ? "NONE" : "NINGUNA");
     }
+    const gemBtn = document.getElementById("ui-gem-pill");
+    if (gemBtn) {
+      if (p.gem || p.starterBlessing) gemBtn.classList.add("active");
+      else gemBtn.classList.remove("active");
+    }
+
     const accEl = document.getElementById("ui-acc");
     if (accEl) {
       accEl.innerText = p.accessory ? (typeof getItemSpanishName === "function" ? getItemSpanishName(p.accessory) : p.accessory.toUpperCase()) : (isEn ? "NONE" : "NINGUNO");
     }
+    const accBtn = document.getElementById("ui-acc-pill");
+    if (accBtn) {
+      if (p.accessory) accBtn.classList.add("active");
+      else accBtn.classList.remove("active");
+    }
+
     const duplaEl = document.getElementById("ui-dupla");
     if (duplaEl) {
       duplaEl.innerText = (p.duplaDef > 0) ? (isEn ? `YES (+${p.duplaDef} DEF)` : `SÍ (+${p.duplaDef} DEF)`) : (isEn ? "NO" : "NO");
     }
+    const duplaBtn = document.getElementById("ui-dupla-pill");
+    if (duplaBtn) {
+      if (p.duplaDef > 0) duplaBtn.classList.add("active");
+      else duplaBtn.classList.remove("active");
+    }
+
     const synEl = document.getElementById("ui-synergies-count");
     if (synEl && p.activeHandSynergies) {
       const totalSyns = Object.keys(p.activeHandSynergies).filter(k => p.activeHandSynergies[k]).length;
@@ -16362,6 +16377,79 @@
     }
   }
   window.updateCombatGearModalUI = updateCombatGearModalUI;
+
+  function inspectGearSlot(type, id) {
+    try { playButtonClickSound(); } catch (_) {}
+    const p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+    const titleEl = document.getElementById("gear-detail-title");
+    const descEl = document.getElementById("gear-detail-desc");
+    if (!titleEl || !descEl) return;
+
+    if (type === "artifact") {
+      let info = null;
+      if (id && typeof SHOP_ARTIFACTS !== "undefined") info = SHOP_ARTIFACTS.find(a => a.id === id);
+      if (!info && id && typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+        for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
+          const found = list.find(d => d.id === id);
+          if (found) { info = found; break; }
+        }
+      }
+      if (!info && id && typeof ALL_RELICS !== "undefined") info = ALL_RELICS.find(r => r.id === id);
+      if (info) {
+        titleEl.innerHTML = `${info.icon || '🎴'} ${(info.name || id).toUpperCase()}`;
+        descEl.innerText = info.desc || "Artefacto pasivo que otorga ventajas estratégicas permanentes durante el ascenso.";
+      } else {
+        titleEl.innerHTML = "🎴 RANURA DE ARTEFACTO LIBRE";
+        descEl.innerText = "Esta ranura está disponible. Puedes adquirir hasta 5 artefactos pasivos en la Tienda o en eventos de la Torre.";
+      }
+    } else if (type === "blessing") {
+      if (p && p.starterBlessing && typeof STARTER_BLESSINGS !== "undefined") {
+        const bl = STARTER_BLESSINGS.find(b => b.id === p.starterBlessing);
+        if (bl) {
+          titleEl.innerHTML = `${bl.icon || '💎'} ${(bl.name || 'BENDICIÓN DEL DESTINO').toUpperCase()}`;
+          descEl.innerText = bl.desc || "Bendición divina inicial que acompaña a tu héroe en la Torre.";
+          return;
+        }
+      }
+      if (p && p.gem) {
+        titleEl.innerHTML = `💎 MEDALLÓN: ${(typeof getItemSpanishName === "function" ? getItemSpanishName(p.gem) : p.gem).toUpperCase()}`;
+        descEl.innerText = "Gema engarzada en tu medallón de combate. Amplifica bonificaciones según el elemento de tus cartas.";
+      } else {
+        titleEl.innerHTML = "💎 SIN BENDICIÓN ACTIVA";
+        descEl.innerText = "No tienes ninguna bendición del destino equipada en tu medallón en este momento.";
+      }
+    } else if (type === "accessory") {
+      const acc = (p && p.accessory && typeof AMULET_INFO !== "undefined" && AMULET_INFO[p.accessory]) ? AMULET_INFO[p.accessory] : null;
+      if (acc) {
+        titleEl.innerHTML = `💍 ${(acc.name || 'ACCESORIO').toUpperCase()}`;
+        descEl.innerText = acc.desc || "Accesorio protector equipado.";
+      } else {
+        titleEl.innerHTML = "💍 RANURA DE ACCESORIO";
+        descEl.innerText = "Sin accesorio equipado. Visita la Tienda (Pestaña 2) para adquirir anillos y amuletos defensivos.";
+      }
+    } else if (type === "dupla") {
+      const hasDupla = (p && p.duplaDef > 0);
+      titleEl.innerHTML = hasDupla ? `⚡ DUPLA ACTIVA (+${p.duplaDef} DEF)` : "⚡ DUPLA DEFENSIVA";
+      descEl.innerText = hasDupla
+        ? "¡Tus cartas iniciales tienen el mismo valor numérico! La barrera suma armadura directa en esta mano."
+        : "Si tus dos primeras cartas coinciden en valor (ej. dos Reyes o dos 7), activas un bono defensivo automático.";
+    } else if (type === "synergies") {
+      const synList = [];
+      if (p && p.activeHandSynergies) {
+        if (p.activeHandSynergies["fire"]) synList.push("🔥 Fuego (+10 Daño)");
+        if (p.activeHandSynergies["blood"]) synList.push("🩸 Sangre (Cura vida)");
+        if (p.activeHandSynergies["shield"]) synList.push("🛡️ Acero (+10 Escudo)");
+        if (p.activeHandSynergies["blade"]) synList.push("⚔️ Hojas (+8 Daño)");
+        if (p.activeHandSynergies["toxic"]) synList.push("☠️ Veneno (Toxina)");
+        if (p.activeHandSynergies["arcane"]) synList.push("🔮 Arcano (+1 Reroll)");
+      }
+      titleEl.innerHTML = `🔮 SINERGIAS ELEMENTALES (${synList.length})`;
+      descEl.innerText = synList.length > 0
+        ? `Activas en esta mano: ${synList.join(" • ")}.`
+        : "Reúne dos o más cartas del mismo elemento para activar efectos mágicos situacionales.";
+    }
+  }
+  window.inspectGearSlot = inspectGearSlot;
 
   /* ============================================================
      v1.9.0 — INTERNACIONALIZACIÓN (i18n: ESPAÑOL / INGLÉS)
@@ -17766,7 +17854,7 @@
         { id: `relic_${chosenRelic.id}`, icon: chosenRelic.icon || "🔮", title: `RELIQUIA: ${(chosenRelic.name || '').toUpperCase()}`, desc: chosenRelic.desc || "Reliquia arcana bendecida para tu ascensión." },
         { id: "crit", icon: "⚡", title: "OJO CERTERO", desc: "+5% Probabilidad de Golpe Crítico RPG." },
         { id: "dodge", icon: "💨", title: "PASO FANTASMAL", desc: "+5% Probabilidad de Esquivar contragolpes enemigos." },
-        { id: "thorns", icon: "🌵", title: "CORAZÓN ESPINADO", desc: "+6 Daño de Espinas reflejado al recibir impactos." },
+        { id: "thorns", icon: "🌵", title: "CORAZÓN ESPINADO", desc: "+1 Daño de Espinas reflejado al recibir impactos." },
         { id: "lifesteal", icon: "🩸", title: "SED CARMESÍ", desc: "+6% Vampirismo (curación en base al daño asestado)." },
         { id: "luck", icon: "🍀", title: "FORTUNA ASTRAL", desc: "+8% Suerte permanente en tiradas, drops y dados." }
       ];
@@ -17862,9 +17950,9 @@
       spawnFloatingText("player-sprite", "+5% ESQUIVA", "crit");
       addLog("⭐ Bendición de Nivel " + p.level + ": +5% Probabilidad de Esquiva.", "heal");
     } else if (type === "thorns") {
-      p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 6;
-      spawnFloatingText("player-sprite", "+6 ESPINAS", "crit");
-      addLog("⭐ Bendición de Nivel " + p.level + ": +6 Daño directo de Espinas al rival.", "critical");
+      p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1;
+      spawnFloatingText("player-sprite", "+1 ESPINA", "crit");
+      addLog("⭐ Bendición de Nivel " + p.level + ": +1 Daño directo de Espinas al rival.", "critical");
     } else if (type === "lifesteal") {
       p.levelUpStats.lifesteal = (p.levelUpStats.lifesteal || 0) + 6;
       spawnFloatingText("player-sprite", "+6% VAMPIRISMO", "heal");
@@ -17927,20 +18015,44 @@
      RESOLVER RESULTADO DE MANO CON EFECTOS DE ESTADO Y RASGOS
      ============================================================ */
   async function resolveHandResult(result) {
-    const p = gameState.player;
-    const e = gameState.enemy;
-    const bet = p.betAmount;
-    const enemyHasBJ = e.blackjack && e.enemyHand.length === 2;
-    const isPlayerWin = (result === true || result === "win");
-    const isPush = (result === "push");
-    const isSuddenDeath = (p.handNumber >= TURNS_PER_FLOOR);
-    const suddenRound = isSuddenDeath ? (p.handNumber - TURNS_PER_FLOOR + 1) : 0;
-    const suddenMult = isSuddenDeath ? (1 + suddenRound) : 1;
+    gameState.isRolling = true;
+    const actionGrid = document.getElementById("action-grid");
+    if (actionGrid) {
+      const actBtns = actionGrid.querySelectorAll("button");
+      actBtns.forEach(b => { b.disabled = true; });
+    }
 
-    // SPRINT 6: estadísticas de la run para el widget de resumen en Game Over
-    if (p.blackjack && p.playerHand.length === 2) trackRunStat("blackjacks", 1);
-    if (enemyHasBJ) trackRunStat("enemyBlackjacks", 1);
-    setRunStatMax("bestHand", p.playerScore || 0);
+    let resolutionDone = false;
+    const safetyWatchdog = setTimeout(() => {
+      if (!resolutionDone && gameState && gameState.inCombat) {
+        console.warn("[Combat Safety Watchdog] Forzando conclusión del asalto tras timeout de seguridad.");
+        resolutionDone = true;
+        gameState.isRolling = false;
+        const clIcon = document.getElementById("fighter-clash-icon");
+        if (clIcon) clIcon.classList.remove("clashing");
+        if (gameState.enemy && gameState.enemy.hp <= 0) {
+          enemyDefeated();
+        } else {
+          showNextRoundButton();
+        }
+      }
+    }, 1500);
+
+    try {
+      const p = gameState.player;
+      const e = gameState.enemy;
+      const bet = p.betAmount;
+      const enemyHasBJ = e.blackjack && e.enemyHand.length === 2;
+      const isPlayerWin = (result === true || result === "win");
+      const isPush = (result === "push");
+      const isSuddenDeath = (p.handNumber >= TURNS_PER_FLOOR);
+      const suddenRound = isSuddenDeath ? (p.handNumber - TURNS_PER_FLOOR + 1) : 0;
+      const suddenMult = isSuddenDeath ? (1 + suddenRound) : 1;
+
+      // SPRINT 6: estadísticas de la run para el widget de resumen en Game Over
+      if (p.blackjack && p.playerHand.length === 2) trackRunStat("blackjacks", 1);
+      if (enemyHasBJ) trackRunStat("enemyBlackjacks", 1);
+      setRunStatMax("bestHand", p.playerScore || 0);
 
     const clashIcon = document.getElementById("fighter-clash-icon");
     if (clashIcon) clashIcon.classList.add("clashing");
@@ -18264,8 +18376,8 @@
       let dmg = Math.max(0, totalPlayerAttack - effectiveEnemyDef);
 
       // Vampirismo / Robo de Alma (Stat Lifesteal)
-      if (dmg > 0 && ((p.lifesteal || 0) > 0 || (p._spadesCritLifesteal && isRpgCrit))) {
-        const lsPct = Math.max((p.lifesteal || 0), (isRpgCrit && p._spadesCritLifesteal ? Math.round(p._spadesCritLifesteal * 100) : 0));
+      if (dmg > 0 && ((p.lifesteal || 0) > 0 || (p._spadesCritLifesteal && isCrit))) {
+        const lsPct = Math.max((p.lifesteal || 0), (isCrit && p._spadesCritLifesteal ? Math.round(p._spadesCritLifesteal * 100) : 0));
         if (lsPct > 0) {
           const leechHp = Math.max(1, Math.round(dmg * (lsPct / 100)));
           p.hp = Math.min(p.maxHp, p.hp + leechHp);
@@ -18454,7 +18566,7 @@
       }
 
       if (dmg === 0) {
-        addLog(`🛡️ ¡GOLPE RESISTIDO! La armadura de ${e.name} (DEF ${effectiveEnemyDef}) bloqueó tu ataque (${totalPlayerAttack} vs ${effectiveEnemyDef} DEF). ¡0 daño infligido!`, "warning");
+        addLog(`🛡️ Armadura de ${e.name} bloqueó tu golpe (0 daño).`, "warning");
         showCombatBanner("🛡️ ¡GOLPE RESISTIDO!", `${e.name} resistió tu impacto con su armadura (DEF ${effectiveEnemyDef})`, "tie");
         spawnFloatingText("enemy-sprite", "🛡️ BLOQUEADO (0)", "shield");
         playShieldSound();
@@ -18487,7 +18599,7 @@
         setPlayerSpriteState("strike");
         const suddenTag = isSuddenDeath ? ` [🔥FURIA x${suddenMult}]` : "";
         const critTag = isCrit ? ` [⚡CRÍTICO x${critMultiplier}]` : "";
-        addLog(`⚔️ ¡${p.name} asesta un golpe${suddenTag}${critTag}! [Ataque Base: ${baseAtkComponent}] + [Bonos: ${flatBonuses}] - DEF (${effectiveEnemyDef}) = ${dmg} daño total.`, "heal");
+        addLog(`⚔️ ¡${p.name} atacó por ${dmg} de daño${critTag}!`, "heal");
         // Naipes de Botín: Potenciador Multiplicador x2
         const multCard = p.playerHand && p.playerHand.find(c => c && c.operator === "mult");
         if (multCard) {
@@ -18722,7 +18834,7 @@
       if (incomingDmg === 0) {
         // BLOQUEO TOTAL POR ARMADURA (DEF)
         const suddenNote = isSuddenDeath ? ` [EN MUERTE SÚBITA x${suddenMult}]` : "";
-        addLog(`🛡️ ¡BLOQUEO HEROICO${suddenNote}! Tu armadura (DEF ${totalDef}) neutraliza el ataque de ${e.name} (${rawDmg} Ataque vs ${totalDef} DEF). ¡0 daño recibido!`, "heal");
+        addLog(`🛡️ Tu armadura bloqueó el contraataque de ${e.name} (0 daño recibido).`, "heal");
         showCombatBanner("🛡️ ¡GOLPE BLOQUEADO!", `Tu armadura (DEF ${totalDef}) neutralizó el ataque x${suddenMult} de ${e.name} (0 daño)`, "player-win");
         spawnFloatingText("player-sprite", "🛡️ BLOQUEADO (0)", "shield");
         playShieldSound();
@@ -18749,10 +18861,10 @@
         setEnemySpriteState("idle");
       } else {
         if (isSuddenDeath) {
-          addLog(`🔥 ¡FURIA ASALTO ${suddenRound}! ${e.name} ataca con daño x${suddenMult} y perfora armadura (${rawDmg} Ataque - ${totalDef} DEF = ${incomingDmg} daño entrante).`, "damage");
+          addLog(`🔥 ¡Furia Asalto ${suddenRound}! ${e.name} ataca por ${incomingDmg} de daño.`, "damage");
           showCombatBanner(`🔥 ¡GOLPE DE FURIA (x${suddenMult})!`, `Ataque x${suddenMult} (${rawDmg}) - DEF (${totalDef}) = ${incomingDmg} daño`, "enemy-win");
         } else {
-          addLog(`👹 ¡${e.name} contraataca! Ataque Rival (${rawDmg}) - Tu DEF (${totalDef}) = ${incomingDmg} daño entrante.`, "damage");
+          addLog(`👹 ${e.name} contraataca por ${incomingDmg} de daño.`, "damage");
           showCombatBanner("🛡️ ¡CONTRAGOLPE RIVAL!", `Ataque (${rawDmg}) - DEF (${totalDef}) = ${incomingDmg} daño`, "enemy-win");
         }
         await sleep(50);
@@ -18773,7 +18885,7 @@
           incomingDmg -= absorbed;
           setPlayerSpriteState("block");
           spawnFloatingText("player-sprite", `🛡️ -${absorbed} ESCUDO`, "shield");
-          addLog(`¡Tu Escudo azul absorbió ${absorbed} de daño! (Quedan ${gameState.status.playerShield} escudo)`, "heal");
+          addLog(`🛡️ Escudo absorbió ${absorbed} de daño (${gameState.status.playerShield} restante).`, "heal");
           playShieldSound();
           const pShieldWrap = document.getElementById("player-shield-wrapper");
           if (pShieldWrap) {
@@ -19024,7 +19136,25 @@
     // -------------------------------------------------------------
     // FASE 4: PAUSA TÁCTICA Y BOTÓN MANUAL DE SIGUIENTE RONDA
     // -------------------------------------------------------------
+    resolutionDone = true;
+    clearTimeout(safetyWatchdog);
     showNextRoundButton();
+  } catch (combatErr) {
+      console.error("[Combat Engine] Error durante la resolución del asalto:", combatErr);
+      resolutionDone = true;
+      clearTimeout(safetyWatchdog);
+      gameState.isRolling = false;
+      const clIcon = document.getElementById("fighter-clash-icon");
+      if (clIcon) clIcon.classList.remove("clashing");
+      if (gameState.enemy && gameState.enemy.hp <= 0) {
+        await enemyDefeated();
+      } else {
+        showNextRoundButton();
+      }
+    } finally {
+      resolutionDone = true;
+      clearTimeout(safetyWatchdog);
+    }
   }
 
     
@@ -19693,8 +19823,6 @@
     document.body.classList.remove("sudden-death-active");
     if (typeof closeCombatGearModal === "function") closeCombatGearModal();
     if (typeof closeCombatLogModal === "function") closeCombatLogModal();
-    const qb = document.getElementById("combat-quick-bar");
-    if (qb) qb.style.display = "flex";
     if (typeof updateCombatGearModalUI === "function") updateCombatGearModalUI();
     try { updateBattleZoneAtmosphere(gameState.floor); } catch (_) {}
     const p = gameState.player;
@@ -20657,8 +20785,6 @@
 
     if (typeof closeCombatGearModal === "function") closeCombatGearModal();
     if (typeof closeCombatLogModal === "function") closeCombatLogModal();
-    const qb = document.getElementById("combat-quick-bar");
-    if (qb) qb.style.display = "none";
 
     const intro = document.getElementById("screen-intro");
     const title = document.getElementById("screen-title");
@@ -21098,8 +21224,6 @@
   try {
     closeCombatGearModal();
     closeCombatLogModal();
-    const qb = document.getElementById("combat-quick-bar");
-    if (qb) qb.style.display = "none";
     applyGameLanguage();
     updateHud();
     updateHeroSelectUI();

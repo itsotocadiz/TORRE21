@@ -1,13 +1,13 @@
 /**
  * ============================================================
- *  improvements.js - Fases 2, 3, 5, 6 del Plan de Mejora (v1.9.0)
+ *  improvements.js - Fases 2, 3, 5, 6 del Plan de Mejora (v1.9.1)
  *  Blackjack Tower: The Jack's Ascent
  *  Cargado DESPUES de game.js
  * ============================================================
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v1.9.0";
+  window.IMPROVEMENTS_VERSION = "v1.9.1";
 
   // FIX CRÍTICO BLOQUEANTE (v1.9.0): Forzar cierre de modales de combate en el arranque
   try {
