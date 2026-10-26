@@ -496,7 +496,7 @@
         </details>
 
         <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;min-height:38px;">
-          <span id="settings-version">📱 VERSIÓN v1.9.2 (BUILD 49)</span>
+          <span id="settings-version">📱 VERSIÓN v1.9.3 (BUILD 50)</span>
           <span style="color:#2a9d8f;">● 100% OFFLINE READY</span>
         </div>
       </div>
@@ -1082,38 +1082,45 @@
     </div>
   </div>
 
-  <!-- MODAL / POPUP DE INSPECCIÓN DETALLADA DE CARTA Y SELLO ARCANO -->
+  <!-- MODAL / POPUP DE INSPECCIÓN DETALLADA DE CARTA Y SELLO ARCANO (GIRO 3D FLIP) -->
   <div id="screen-card-detail" class="overlay hidden" onclick="closeCardDetailModal(event)">
-    <div class="card-detail-modal" onclick="event.stopPropagation()">
+    <div class="card-detail-modal card-detail-modal-3d" onclick="event.stopPropagation()">
       <div class="card-detail-header">
-        <div class="card-detail-badge" id="card-detail-badge">🃏 CARTA DE LA BARAJA</div>
-        <button class="inspect-close-btn" onclick="closeCardDetailModal()">✕</button>
+        <div class="card-detail-badge" id="card-detail-badge">🃏 INSPECCIÓN 3D DE CARTA</div>
+        <button class="inspect-close-btn" onclick="closeCardDetailModal()" aria-label="Cerrar">✕</button>
       </div>
 
-      <div class="card-detail-body">
-        <!-- Visualización gráfica de la carta destacada -->
-        <div class="card-detail-preview-container">
-          <div class="card-face card-detail-card" id="card-detail-card-preview">
-            <span class="card-seal-icon" id="card-detail-seal-icon">✨</span>
+      <!-- CONTENEDOR DE LA CARTA EN GRANDE CON GIRO 3D -->
+      <div class="card-3d-flip-scene" onclick="toggleCardDetailFlip(event)">
+        <div class="card-3d-flipper" id="card-detail-flipper">
+          <!-- CARA FRONTAL (ARTE LIMPIO EN GRANDE) -->
+          <div class="card-3d-face card-3d-front card-face" id="card-detail-card-preview">
+            <span class="card-seal-icon" id="card-detail-seal-icon" style="display:none;">✨</span>
             <span class="card-value" id="card-detail-rank">A</span>
             <span class="suit" id="card-detail-suit">♠</span>
             <span class="card-label" id="card-detail-val">11</span>
-          </div>
-        </div>
-
-        <!-- Información táctica del Sello -->
-        <div class="card-detail-info">
-          <div class="card-detail-name" id="card-detail-name">AS DE PICAS</div>
-          <div class="card-detail-seal-badge" id="card-detail-seal-badge">🔥 SELLO ÍGNEO (RARO)</div>
-          
-          <div class="card-detail-desc-box">
-            <div class="cd-section-title">📜 EFECTO EN PARTIDA:</div>
-            <div class="cd-desc-text" id="card-detail-desc">Al jugarse en tu mano: Quema al rival e inflige daño residual.</div>
+            <div class="card-3d-flip-hint">👆 Toca para girar 3D (Ver Efecto)</div>
           </div>
 
-          <div class="card-detail-synergy-box" id="card-detail-synergy-box">
-            <div class="cd-section-title">⚡ ELEMENTO Y SINERGIA:</div>
-            <div class="cd-synergy-text" id="card-detail-synergy">Fuego (1/2 para Explosión Ígnea)</div>
+          <!-- CARA TRASERA (DETALLES TÁCTICOS Y HABILIDAD EXACTA) -->
+          <div class="card-3d-face card-3d-back" id="card-detail-back">
+            <div class="card-3d-back-inner">
+              <div class="card-3d-back-header">
+                <span class="card-3d-back-icon" id="card-detail-back-icon">🃏</span>
+                <div class="card-detail-name" id="card-detail-name">AS DE PICAS</div>
+                <div class="card-detail-seal-badge" id="card-detail-seal-badge">CARTA ESTÁNDAR</div>
+              </div>
+              <div class="card-3d-back-divider"></div>
+              <div class="card-detail-desc-box">
+                <div class="cd-section-title">📜 HABILIDAD Y EFECTO EXACTO:</div>
+                <div class="cd-desc-text" id="card-detail-desc">Al jugarse en combate: Inflige daño normal de Blackjack.</div>
+              </div>
+              <div class="card-detail-synergy-box" id="card-detail-synergy-box">
+                <div class="cd-section-title">⚡ CATEGORÍA Y SINERGIA:</div>
+                <div class="cd-synergy-text" id="card-detail-synergy">Naipe Común de la Baraja.</div>
+              </div>
+              <div class="card-3d-flip-hint">👆 Toca para volver al frente</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1240,7 +1247,7 @@
               <span class="fighter-name enemy-name" id="enemy-name-tag">RIVAL</span>
             </div>
             <div class="fighter-badge-zone" id="enemy-badge-zone">
-              <span class="enemy-trait-badge" id="enemy-trait-tag"></span>
+              <span class="enemy-trait-badge" id="enemy-trait-tag" onclick="explainEnemyTrait()" style="cursor:pointer;" title="Toca para ver efecto del rasgo"></span>
             </div>
             <div id="enemy-status-badges" class="status-badges"></div>
             <div class="fighter-energy-row" style="display:flex;align-items:center;gap:4px;width:100%;">

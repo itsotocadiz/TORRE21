@@ -1,13 +1,13 @@
 /**
  * ============================================================
- *  improvements.js - Fases 2, 3, 5, 6 del Plan de Mejora (v1.9.2)
+ *  improvements.js - Fases 2, 3, 5, 6 del Plan de Mejora (v1.9.3)
  *  Blackjack Tower: The Jack's Ascent
  *  Cargado DESPUES de game.js
  * ============================================================
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v1.9.2";
+  window.IMPROVEMENTS_VERSION = "v1.9.3";
 
   // FIX CRÍTICO BLOQUEANTE (v1.9.0): Forzar cierre de modales de combate en el arranque
   try {
@@ -437,11 +437,14 @@
   ];
   window.ABYSS_PACTS = ABYSS_PACTS;
 
+  const ABYSS_PACT_FLOORS = [5, 9, 13, 17];
   function checkAbyssPactEvent(gs) {
+    if (!gs) return false;
     const f = gs.floor || 1;
-    if (f < 3 || f > 12) return false;
+    if (!ABYSS_PACT_FLOORS.includes(f)) return false;
     if (gs._pactOfferedThisFloor) return false;
-    return Math.random() < 0.22; // 22% de probabilidad al inicio del combate
+    if (typeof isEventModalOpen === "function" && isEventModalOpen()) return false;
+    return true;
   }
   window.checkAbyssPactEvent = checkAbyssPactEvent;
 
@@ -449,17 +452,19 @@
     const gs = window.gameState;
     if (!gs) return;
     const floor = gs.floor || 1;
-    if (floor < 3 || floor > 12) return;
+    if (!ABYSS_PACT_FLOORS.includes(floor)) return;
 
-    // Blindaje contra superposición: si hay modales críticos activos, esperar
+    // Blindaje contra superposición: si hay modales críticos activos o mesa sacrificial, esperar o cancelar
     const blockingIds = [
+      "screen-event", "screen-combat-loot", "screen-reward",
       "screen-starter-blessing", "screen-chronicle", "screen-first-run-tutorial",
-      "screen-pack-open", "screen-campfire-modal", "screen-fate-wheel"
+      "screen-pack-open", "screen-campfire-modal", "screen-fate-wheel", "screen-card-detail"
     ];
     const isBlocked = blockingIds.some(id => {
       const el = document.getElementById(id);
       return el && !el.classList.contains("hidden");
-    });
+    }) || (typeof isEventModalOpen === "function" && isEventModalOpen());
+
     if (isBlocked) {
       setTimeout(showAbyssPactModal, 1500);
       return;

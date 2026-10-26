@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.2";
+  const GAME_VERSION = "v1.9.3";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.2)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.3)
      ============================================================ */
 
   const HERO_DATA = {
@@ -2747,13 +2747,13 @@
 
     if (darkCardsCount > 0) {
       const darkPool = [
-        { rank: "10", suit: "♠", value: 10, name: "Hoja Umbría 10♠", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "shadow_slash", desc: "Corte Sombrío del Rival (+3 Daño)" },
-        { rank: "A", suit: "♥", value: 11, isAce: true, name: "Pacto Tiránico A♥", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "tyrant_pact", desc: "Aura Tiránica" },
-        { rank: "K", suit: "♦", value: 10, name: "Baluarte de Obsidiana K♦", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "obsidian_aegis", desc: "Coraza Pétrea" },
-        { rank: "Q", suit: "♣", value: 10, name: "Vórtice Abisal Q♣", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "abyssal_vortex", desc: "Vórtice Oscuro" },
-        { rank: "J", suit: "♠", value: 10, name: "Sentencia del Rey de la Torre J♠", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "tower_sentinel", desc: "Sentencia Inapelable" },
-        { rank: "9", suit: "♦", value: 9, name: "Espina de Malaquita 9♦", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "toxic_thorn", desc: "Espina Tóxica" },
-        { rank: "8", suit: "♣", value: 8, name: "Maldición del Ojo Ciego 8♣", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "blind_curse", desc: "Niebla del Vacío" }
+        { rank: "10", suit: "♠", value: 10, name: "Hoja Umbría 10♠", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "shadow_slash", desc: "Corte Sombrío: +3 de Daño perforante directo al jugar" },
+        { rank: "A", suit: "♥", value: 11, isAce: true, name: "Pacto Tiránico A♥", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "tyrant_pact", desc: "Aura Tiránica: Aplica +2 de Quemadura residual al jugador" },
+        { rank: "K", suit: "♦", value: 10, name: "Baluarte de Obsidiana K♦", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "obsidian_aegis", desc: "Coraza Pétrea: Otorga +12 de Escudo inmediato al rival" },
+        { rank: "Q", suit: "♣", value: 10, name: "Vórtice Abisal Q♣", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "abyssal_vortex", desc: "Vórtice Oscuro: Drena 4 HP del jugador y sana 4 HP al rival" },
+        { rank: "J", suit: "♠", value: 10, name: "Sentencia del Rey de la Torre J♠", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "tower_sentinel", desc: "Sentencia Inapelable: +4 de Ataque directo y aplica +3 de Veneno al jugador" },
+        { rank: "9", suit: "♦", value: 9, name: "Espina de Malaquita 9♦", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "toxic_thorn", desc: "Espina Tóxica: Inocula +2 de Veneno residual al jugador" },
+        { rank: "8", suit: "♣", value: 8, name: "Maldición del Ojo Ciego 8♣", isEnemyCard: true, isEnemySpecialCard: true, rarity: "dark_arcane", darkSigil: "blind_curse", desc: "Niebla del Vacío: Reduce un -10% la Probabilidad Crítica del jugador por este asalto" }
       ];
 
       const toInsert = darkPool.slice(0, Math.min(darkCardsCount, darkPool.length));
@@ -3045,71 +3045,84 @@
   window.cleanupBattleRuntimeState = cleanupBattleRuntimeState;
 
   /* ============================================================
-     EFECTOS VISUALES Y FLOATING COMBAT TEXT (RADIAL FAN v1.9.2)
+     EFECTOS VISUALES Y FLOATING COMBAT TEXT (COLA SECUENCIAL v1.9.3)
      ============================================================ */
-  const _activeFloatingCounters = {};
-  const _floatingResetTimers = {};
+  const floatingTextQueue = [];
+  let isProcessingFloatingQueue = false;
+  let floatingDirectionIndex = 0;
+
+  // 5 Direcciones Espaciales Horizontales (Cero Superposición en "X")
+  const FLOATING_DIRECTIONS = [
+    { dx: -52, dy: -46 }, // 1. Arriba-Izquierda
+    { dx: 52, dy: -46 },  // 2. Arriba-Derecha
+    { dx: -64, dy: -18 }, // 3. Izquierda-Media
+    { dx: 64, dy: -18 },  // 4. Derecha-Media
+    { dx: 0, dy: -66 }    // 5. Arriba-Centro
+  ];
 
   function spawnFloatingText(targetOrId, text, type = "damage") {
-    const target = (typeof targetOrId === "string") ? document.getElementById(targetOrId) : targetOrId;
-    if (!target) return;
-    const rect = target.getBoundingClientRect();
-    const stage = document.getElementById("stage");
-    if (!stage) return;
-    const stageRect = stage.getBoundingClientRect();
-
-    const targetKey = (typeof targetOrId === "string") ? targetOrId : (target.id || "default");
-    const count = _activeFloatingCounters[targetKey] || 0;
-    _activeFloatingCounters[targetKey] = count + 1;
-
-    if (_floatingResetTimers[targetKey]) clearTimeout(_floatingResetTimers[targetKey]);
-    _floatingResetTimers[targetKey] = setTimeout(() => {
-      _activeFloatingCounters[targetKey] = 0;
-    }, 1400);
-
-    // Sistema de disparo radial por ángulos y carriles sin colisión
-    const radialPatterns = [
-      { dx: -44, dy: -28, rot: -38 },
-      { dx: 44, dy: -28, rot: 38 },
-      { dx: -22, dy: -48, rot: -16 },
-      { dx: 22, dy: -48, rot: 16 },
-      { dx: -58, dy: -14, rot: -52 },
-      { dx: 58, dy: -14, rot: 52 }
-    ];
-    const pattern = radialPatterns[count % radialPatterns.length];
-    const staggerDelay = (count % 6) * 140;
-
-    const el = document.createElement("div");
-    el.className = `floating-text radial-fan ${type}`;
-    el.innerText = text;
-    if (el.style) {
-      if (typeof el.style.setProperty === "function") {
-        el.style.setProperty("--fly-dx", `${pattern.dx}px`);
-        el.style.setProperty("--fly-dy", `${pattern.dy}px`);
-        el.style.setProperty("--fly-rot", `${pattern.rot}deg`);
-      } else {
-        el.style["--fly-dx"] = `${pattern.dx}px`;
-        el.style["--fly-dy"] = `${pattern.dy}px`;
-        el.style["--fly-rot"] = `${pattern.rot}deg`;
-      }
-      el.style.animationDelay = `${staggerDelay}ms`;
+    if (typeof document === "undefined" || !document) return;
+    floatingTextQueue.push({ targetOrId, text, type });
+    if (!isProcessingFloatingQueue) {
+      processNextFloatingText();
     }
-
-    // Si el objetivo es el héroe o enemigo, desplazar ligeramente al centro del cuerpo del sprite para no tapar los puntajes de cartas
-    const isPlayer = (target.id && target.id.includes("player")) || (target.classList && target.classList.contains("player-fighter"));
-    const isEnemy = (target.id && target.id.includes("enemy")) || (target.classList && target.classList.contains("enemy-fighter"));
-    let xOffset = (rect.width / 2) - 24;
-    if (isPlayer) xOffset -= 8;
-    else if (isEnemy) xOffset += 8;
-
-    el.style.left = `${Math.max(10, rect.left - stageRect.left + xOffset)}px`;
-    el.style.top = `${Math.max(10, rect.top - stageRect.top + (rect.height * 0.35))}px`;
-    stage.appendChild(el);
-    setTimeout(() => {
-      if (el.parentNode) el.parentNode.removeChild(el);
-    }, 1800 + staggerDelay);
   }
   window.spawnFloatingText = spawnFloatingText;
+
+  function processNextFloatingText() {
+    if (floatingTextQueue.length === 0) {
+      isProcessingFloatingQueue = false;
+      return;
+    }
+    isProcessingFloatingQueue = true;
+    const item = floatingTextQueue.shift();
+    _renderFloatingTextImmediate(item.targetOrId, item.text, item.type);
+    // Delay secuencial obligatorio de 320ms entre cada texto flotante
+    setTimeout(processNextFloatingText, 320);
+  }
+
+  function _renderFloatingTextImmediate(targetOrId, text, type) {
+    try {
+      const target = (typeof targetOrId === "string") ? document.getElementById(targetOrId) : targetOrId;
+      if (!target) return;
+      const stage = document.getElementById("stage") || document.body;
+      if (!stage) return;
+
+      const rect = (typeof target.getBoundingClientRect === "function") ? target.getBoundingClientRect() : { left: 50, top: 100, width: 80, height: 80 };
+      const stageRect = (typeof stage.getBoundingClientRect === "function") ? stage.getBoundingClientRect() : { left: 0, top: 0, width: 400, height: 600 };
+
+      const pattern = FLOATING_DIRECTIONS[floatingDirectionIndex % FLOATING_DIRECTIONS.length];
+      floatingDirectionIndex++;
+
+      const el = document.createElement("div");
+      el.className = `floating-text radial-fan ${type}`;
+      el.innerText = text;
+      if (el.style) {
+        if (typeof el.style.setProperty === "function") {
+          el.style.setProperty("--fly-dx", `${pattern.dx}px`);
+          el.style.setProperty("--fly-dy", `${pattern.dy}px`);
+          el.style.setProperty("--fly-rot", "0deg");
+        } else {
+          el.style["--fly-dx"] = `${pattern.dx}px`;
+          el.style["--fly-dy"] = `${pattern.dy}px`;
+          el.style["--fly-rot"] = "0deg";
+        }
+      }
+
+      const isPlayer = (target.id && target.id.includes("player")) || (target.classList && target.classList.contains("player-fighter"));
+      const isEnemy = (target.id && target.id.includes("enemy")) || (target.classList && target.classList.contains("enemy-fighter"));
+      let xOffset = (rect.width / 2) - 24;
+      if (isPlayer) xOffset -= 8;
+      else if (isEnemy) xOffset += 8;
+
+      el.style.left = `${Math.max(10, rect.left - stageRect.left + xOffset)}px`;
+      el.style.top = `${Math.max(10, rect.top - stageRect.top + (rect.height * 0.35))}px`;
+      stage.appendChild(el);
+      setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 1700);
+    } catch (_) {}
+  }
 
   function explainCombatStatus(type, isEnemy = false) {
     try { playButtonClickSound(); } catch (_) {}
@@ -9477,18 +9490,26 @@
      ENEMIGO DERROTADO
      ============================================================ */
   async function enemyDefeated() {
+    if (gameState && gameState._isHandlingVictory) return;
+    if (gameState) {
+      gameState._isHandlingVictory = true;
+      gameState.isRolling = false;
+    }
     try {
-      stopSuddenDeathTension();
-      stopCombatMusic();
-    } catch (_) {}
-    const p = gameState.player;
-    const e = gameState.enemy;
-    const sprite = document.getElementById("enemy-sprite");
-    const flash = document.getElementById("damage-flash");
+      try {
+        stopSuddenDeathTension();
+        stopCombatMusic();
+      } catch (_) {}
+      const p = gameState.player;
+      const e = gameState.enemy;
+      const sprite = document.getElementById("enemy-sprite");
+      const flash = document.getElementById("damage-flash");
 
-    sprite.classList.add("flash-kill");
-    flash.className = "green";
-    setTimeout(() => { flash.className = ""; }, 350);
+      if (sprite) sprite.classList.add("flash-kill");
+      if (flash) {
+        flash.className = "green";
+        setTimeout(() => { flash.className = ""; }, 350);
+      }
 
     addLog(`¡${e.name} ha sido derrotado!`, "kill");
     playVictorySound();
@@ -9748,16 +9769,33 @@
       }
     };
 
-    showCombatLootModal(lootData, async () => {
-      // Secuencia Poscombate v1.8.3: primero se procesan las subidas de nivel pendientes
-      if (gameState.pendingLevelUps && gameState.pendingLevelUps > 0) {
-        while (gameState.pendingLevelUps > 0) {
-          gameState.pendingLevelUps--;
-          await triggerLevelUp();
+      showCombatLootModal(lootData, async () => {
+        // Secuencia Poscombate v1.8.3: primero se procesan las subidas de nivel pendientes
+        if (gameState.pendingLevelUps && gameState.pendingLevelUps > 0) {
+          while (gameState.pendingLevelUps > 0) {
+            gameState.pendingLevelUps--;
+            await triggerLevelUp();
+          }
         }
+        await proceedAfterLoot();
+      });
+    } catch (err) {
+      console.error("[Combat Engine] Error en secuencia enemyDefeated:", err);
+      if (typeof showCombatLootModal === "function") {
+        showCombatLootModal({
+          enemyName: (gameState.enemy && gameState.enemy.name) || "Rival",
+          gold: 25,
+          exp: 65,
+          cryptCoins: 2
+        }, async () => {
+          if (typeof finishFloor === "function") await finishFloor(true);
+        });
+      } else if (typeof finishFloor === "function") {
+        await finishFloor(true);
       }
-      await proceedAfterLoot();
-    });
+    } finally {
+      if (gameState) gameState._isHandlingVictory = false;
+    }
   }
 
   let _currentCombatLootCallback = null;
@@ -9888,6 +9926,10 @@
     try { playButtonClickSound(); } catch (_) {}
     const modal = document.getElementById("screen-combat-loot");
     if (modal) modal.classList.add("hidden");
+    const stageEl = document.getElementById("stage");
+    if (stageEl) stageEl.style.visibility = "";
+    const headerEl = document.querySelector("header");
+    if (headerEl) headerEl.style.visibility = "";
     const cb = _currentCombatLootCallback;
     _currentCombatLootCallback = null;
     if (typeof cb === "function") cb();
@@ -11539,8 +11581,7 @@
   window.sanitizePlayerArtifacts = sanitizePlayerArtifacts;
 
   function getMaxArtifactSlots() {
-    const lvl = (gameState.player && gameState.player.level) ? gameState.player.level : 1;
-    return Math.min(MAX_ARTIFACTS, Math.max(1, lvl));
+    return MAX_ARTIFACTS; // 5 ranuras fijas y unificadas en toda la ascensión
   }
   window.getMaxArtifactSlots = getMaxArtifactSlots;
 
@@ -11724,7 +11765,7 @@
       tier: 3,
       unlockLevel: 6,
       price: 52,
-      desc: "Cuando recibes un golpe rival, el enemigo sufre 5 de daño punzante inmediato.",
+      desc: "Cuando recibes un golpe rival, el enemigo sufre 1 de daño punzante inmediato (+1 Espina directa).",
       apply: () => {}
     },
     {
@@ -12905,6 +12946,18 @@
     addLog(`✨ Sobre Arcano: Has impregnado la carta [${card.rank} de ${card.suit}] con el ${seal.name} (${seal.icon}). ¡Se activará cada vez que la juegues!`, "critical");
 
     const wasPostCombat = (source === "postCombat");
+
+    // Si la forja proviene de Cripta (Forja Arcana de la Cripta), se graba permanente para el Héroe activo
+    if (source === "shop_crypt_permanent" || source === "crypt_permanent") {
+      if (typeof savePersistentDeckSeal === "function") {
+        savePersistentDeckSeal(cid, seal);
+      }
+      addLog(`✨ ¡SELLO ETERNO! El naipe [${card.rank} de ${card.suit}] queda grabado para siempre en el mazo de tu Héroe activo.`, "gold");
+      if (typeof showGameToast === "function") {
+        showGameToast(`✨ ¡Sello eterno grabado para siempre en tu Héroe!`, "gold");
+      }
+    }
+
     closeBoosterPackModal(true);
     saveMidRunState();
     if (wasPostCombat) {
@@ -13563,30 +13616,30 @@
       `;
     }
 
-    const cryptForgePrice = 50;
+    const cryptForgePrice = 18;
     const playerCrypts = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : 0;
     const canBuyCryptForge = playerCrypts >= cryptForgePrice;
 
     const cryptForgeCardHtml = `
-      <!-- FORJA ARCANA DE LA CRIPTA (50 CRIPTAS • EXCLUSIVO PARA LA RUN) -->
+      <!-- FORJA ARCANA DE LA CRIPTA (18 CRIPTAS • PERMANENTE EN EL MAZO DEL HÉROE) -->
       <div class="shop-card ${canBuyCryptForge ? 'affordable' : 'unaffordable'}" style="border: 2px solid #f87171; background: radial-gradient(circle at 10% 10%, rgba(239,68,68,0.15), rgba(13,18,28,0.95)); margin-top:8px;">
         <div class="shop-card-left">
           <div class="shop-item-icon-box card-forge" style="border-color:#f87171;font-size:28px;">💀⚡</div>
           <div class="shop-item-details">
             <div class="shop-item-badge" style="display:flex;gap:4px;align-items:center;background:rgba(239,68,68,0.2);color:#fca5a5;border-color:#f87171;">
               <span class="card-tier-badge legendary">OFRENDA DE CRIPTA</span>
-              <span>EXCLUSIVO DE ESTA RUN</span>
+              <span>SELLO PERMANENTE DE HÉROE</span>
             </div>
             <div class="shop-item-name" style="color:#fca5a5;">Forja Arcana de la Cripta</div>
-            <div class="shop-item-desc">Ofrenda 50 Monedas de Cripta 💀 para forjar un <b>Sello Arcano Supremo</b> en 1 naipe de tu baraja. Beneficio de máximo poder activo <b>solo durante esta ascensión</b> (no se guarda en el perfil permanente).</div>
-            <div class="shop-item-stock" style="color:#ffd166;">💀 Tienes ${playerCrypts} Monedas de Cripta • Poder temporal de ascensión</div>
+            <div class="shop-item-desc">Ofrenda 18 Monedas de Cripta 💀 para forjar un <b>Sello Arcano Eterno</b> en 1 naipe de tu baraja. Queda <b>grabado para siempre</b> en el mazo exclusivo del Héroe activo para todas las partidas.</div>
+            <div class="shop-item-stock" style="color:#ffd166;">💀 Tienes ${playerCrypts} Monedas de Cripta • Grabado permanente en el mazo</div>
           </div>
         </div>
         <div class="shop-card-right">
           ${canBuyCryptForge
             ? `<button class="shop-action-btn buy" style="border-color:#f87171;color:#fca5a5;background:rgba(239,68,68,0.18);" onclick="buyCryptForgeBoosterPack()">
                  <span class="shop-btn-price">💀 ${cryptForgePrice} CRIPTAS</span>
-                 <span class="shop-btn-action">FORJAR PARA LA RUN</span>
+                 <span class="shop-btn-action">FORJAR PERMANENTE</span>
                </button>`
             : `<button class="shop-action-btn locked" disabled>
                  <span class="shop-btn-price">💀 ${cryptForgePrice} CRIPTAS</span>
@@ -13597,27 +13650,27 @@
       </div>
     `;
 
-    // TAB 3: SOBRES ARCANOS (APLICA A 1 CARTA INDIVIDUAL)
+    // TAB 3: SOBRES ARCANOS (APLICA A 1 CARTA INDIVIDUAL • SOLO RUN ACTUAL)
     const cardsBoosterHtml = `
-      <!-- SOBRE DE SELLOS ARCANOS (1 CARTA INDIVIDUAL) -->
+      <!-- SOBRE DE SELLOS ARCANOS (1 CARTA INDIVIDUAL • SOLO RUN ACTUAL) -->
       <div class="shop-card ${canBuyBooster ? 'affordable' : 'unaffordable'}" style="border: 2px solid #ffd166; background: radial-gradient(circle at 10% 10%, rgba(255,209,102,0.12), rgba(13,18,28,0.95));">
         <div class="shop-card-left">
           <div class="shop-item-icon-box card-forge" style="border-color:#ffd166;font-size:28px;">📦✨</div>
           <div class="shop-item-details">
             <div class="shop-item-badge" style="display:flex;gap:4px;align-items:center;background:rgba(255,209,102,0.2);color:#ffd166;border-color:#ffd166;">
               <span class="card-tier-badge mythic">SELLO INDIVIDUAL</span>
-              <span>3 SELLOS • ELIGE 1 PARA 1 CARTA</span>
+              <span>SOLO ESTA RUN ACTUAL</span>
             </div>
             <div class="shop-item-name" style="color:#ffd166;">Sobre de Sellos Arcanos</div>
-            <div class="shop-item-desc">Abre este sobre para revelar 3 <b>Sellos Arcanos</b> legendarios. Escoge 1 para imbuirlo en <b>1 sola carta</b> de tu baraja.</div>
-            <div class="shop-item-stock" style="color:#66fcf1;">✨ Revelación 3D • Encanta permanentemente 1 naipe para toda la run</div>
+            <div class="shop-item-desc">Abre este sobre para revelar 3 <b>Sellos Arcanos</b> legendarios. Escoge 1 para imbuirlo en <b>1 sola carta</b>. Activo <b>solo durante esta ascensión actual</b> (se disipa al finalizar la run).</div>
+            <div class="shop-item-stock" style="color:#66fcf1;">✨ Revelación 3D • Encantamiento temporal para esta run</div>
           </div>
         </div>
         <div class="shop-card-right">
           ${canBuyBooster
             ? `<button class="shop-action-btn buy gold-relic" onclick="openBoosterPackBySource('arcane')">
                  <span class="shop-btn-price">🪙 ${boosterPrice} ORO</span>
-                 <span class="shop-btn-action">ABRIR SOBRE</span>
+                 <span class="shop-btn-action">ABRIR SOBRE (RUN)</span>
                </button>`
             : `<button class="shop-action-btn locked" disabled>
                  <span class="shop-btn-price">🪙 ${boosterPrice} ORO</span>
@@ -14278,7 +14331,7 @@
   function buyCryptForgeBoosterPack() {
     const p = gameState.player;
     if (!p) return;
-    const cryptCost = 50;
+    const cryptCost = 18;
     const curCrypts = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : 0;
     if (curCrypts < cryptCost) {
       if (typeof showGameToast === "function") {
@@ -14290,9 +14343,9 @@
     }
     spendPlayerCryptCoins(cryptCost);
     try { playCoinSound(); } catch (_) {}
-    spawnFloatingText("screen-shop", "-50 💀 CRIPTAS", "shield");
-    addLog(`💀 Forja de Cripta: Has ofrendado ${cryptCost} Monedas de Cripta para forjar un Sello Arcano temporal exclusivo para esta ascensión (no se guarda en el perfil permanente).`, "critical");
-    openBoosterPackBySource("arcane", { free: true, source: "shop_crypt_run_only" });
+    spawnFloatingText("screen-shop", "-18 💀 CRIPTAS", "shield");
+    addLog(`💀 Forja de Cripta: Has ofrendado ${cryptCost} Monedas de Cripta para forjar un Sello Arcano Permanente en el mazo de tu Héroe activo.`, "critical");
+    openBoosterPackBySource("arcane", { free: true, source: "shop_crypt_permanent" });
   }
   window.buyCryptForgeBoosterPack = buyCryptForgeBoosterPack;
 
@@ -14618,6 +14671,9 @@
       document.activeElement.blur();
     }
 
+    const flipper = document.getElementById("card-detail-flipper");
+    if (flipper) flipper.classList.remove("is-flipped");
+
     const rankEl = document.getElementById("card-detail-rank");
     const suitEl = document.getElementById("card-detail-suit");
     const valEl = document.getElementById("card-detail-val");
@@ -14627,16 +14683,17 @@
     const sealBadgeEl = document.getElementById("card-detail-seal-badge");
     const descEl = document.getElementById("card-detail-desc");
     const synergyEl = document.getElementById("card-detail-synergy");
+    const backIconEl = document.getElementById("card-detail-back-icon");
 
     const rank = data.rank || "?";
     const suit = data.suit || "♠";
-    const isRed = (suit === "♥" || suit === "♦");
-    const seal = data.seal || null;
+    const isRed = (suit === "♥" || suit === "♦" || suit === "hearts" || suit === "diamonds");
+    const seal = data.seal || data.enchantment || (typeof gameState !== "undefined" && gameState.player && gameState.player.cardEnchantments && gameState.player.cardEnchantments[`${suit}_${rank}`]) || null;
 
     let suitName = "Picas";
-    if (suit === "♥") suitName = "Corazones";
-    else if (suit === "♦") suitName = "Diamantes";
-    else if (suit === "♣") suitName = "Tréboles";
+    if (suit === "♥" || suit === "hearts") suitName = "Corazones";
+    else if (suit === "♦" || suit === "diamonds") suitName = "Diamantes";
+    else if (suit === "♣" || suit === "clubs") suitName = "Tréboles";
 
     let rankName = rank;
     if (rank === "A") rankName = "As";
@@ -14654,9 +14711,41 @@
     if (valEl) valEl.innerText = data.value || (rank === "A" ? "1 u 11" : (["K", "Q", "J"].includes(rank) ? "10" : rank));
 
     if (nameEl) nameEl.innerText = `${rankName.toUpperCase()} DE ${suitName.toUpperCase()}`;
+    if (backIconEl) backIconEl.innerText = isRed ? "♦" : "♠";
 
-    if (data.name) {
+    // Cartas de Jefes / Oscuras / Botín de Torre
+    if (data.isEnemySpecialCard || data.darkSigil || (data.name && (data.name.includes("Sentencia") || data.name.includes("Vórtice") || data.name.includes("Obsidiana") || data.name.includes("Tiránico") || data.name.includes("Malaquita")))) {
+      if (nameEl) nameEl.innerText = (data.name || "CARTA OSCURA DE JEFE").toUpperCase();
+      if (backIconEl) backIconEl.innerText = "💀";
+      if (sealIconEl) {
+        sealIconEl.innerText = "💀";
+        sealIconEl.style.display = "";
+      }
+      if (sealBadgeEl) {
+        sealBadgeEl.innerText = "💀 CARTA OSCURA DE JEFE";
+        sealBadgeEl.style.display = "";
+      }
+      if (descEl) {
+        if (data.darkSigil === "tower_sentinel" || (data.name && data.name.includes("Sentencia"))) {
+          descEl.innerText = "Sentencia Inapelable: Al jugarse, inflige 4 de daño directo atravesando defensas y aplica +3 acumulaciones de Veneno residual.";
+        } else if (data.darkSigil === "abyssal_vortex" || (data.name && data.name.includes("Abisal"))) {
+          descEl.innerText = "Vórtice Abisal: Drena 4 HP del rival de inmediato y regenera +4 HP a quien la juega.";
+        } else if (data.darkSigil === "obsidian_aegis" || (data.name && data.name.includes("Obsidiana"))) {
+          descEl.innerText = "Baluarte de Obsidiana: Otorga +12 puntos de Escudo protector instantáneo.";
+        } else if (data.darkSigil === "tyrant_pact" || (data.name && data.name.includes("Tiránico"))) {
+          descEl.innerText = "Aura Tiránica: Envuelve al rival en llamas aplicando +2 de Quemadura residual al final del turno.";
+        } else if (data.darkSigil === "toxic_thorn" || (data.name && data.name.includes("Malaquita"))) {
+          descEl.innerText = "Espina de Malaquita: Inocula +2 acumulaciones de Veneno residual al rival.";
+        } else if (data.darkSigil === "shadow_slash" || (data.name && data.name.includes("Umbría"))) {
+          descEl.innerText = "Corte Sombrío: Asesta 3 de daño perforante directo a los puntos de vida del rival.";
+        } else {
+          descEl.innerText = data.desc || "Habilidad oscura desatada por el jefe de la Torre.";
+        }
+      }
+      if (synergyEl) synergyEl.innerText = "Efecto de impacto abisal. Se ejecuta inmediatamente al salir al tapete.";
+    } else if (data.name && !seal) {
       if (nameEl) nameEl.innerText = data.name.toUpperCase();
+      if (backIconEl) backIconEl.innerText = "⭐";
       if (sealIconEl) {
         sealIconEl.innerText = "⭐";
         sealIconEl.style.display = "";
@@ -14668,6 +14757,7 @@
       if (descEl) descEl.innerText = data.desc || "Naipe legendario ganado al conquistar la Torre del 21.";
       if (synergyEl) synergyEl.innerText = "Habilidad arcana permanente activa en combate.";
     } else if (seal) {
+      if (backIconEl) backIconEl.innerText = seal.icon || "✨";
       if (sealIconEl) {
         sealIconEl.innerText = seal.icon || "✨";
         sealIconEl.style.display = "";
@@ -14729,10 +14819,22 @@
   }
   window.showCardDetailModal = showCardDetailModal;
 
+  function toggleCardDetailFlip(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const flipper = document.getElementById("card-detail-flipper");
+    if (!flipper) return;
+    flipper.classList.toggle("is-flipped");
+    try { playCardFlipSound(); } catch (_) {}
+    try { triggerHaptic("selection_change"); } catch (_) {}
+  }
+  window.toggleCardDetailFlip = toggleCardDetailFlip;
+
   function closeCardDetailModal(e) {
     if (e && e.target && e.target.classList && e.target.classList.contains("card-detail-card")) return;
     const modal = document.getElementById("screen-card-detail");
     if (modal) modal.classList.add("hidden");
+    const flipper = document.getElementById("card-detail-flipper");
+    if (flipper) flipper.classList.remove("is-flipped");
     document.querySelectorAll(".player-card.lifted, .fan-card.lifted, .card-face.lifted").forEach(c => c.classList.remove("lifted"));
   }
   window.closeCardDetailModal = closeCardDetailModal;
@@ -15264,6 +15366,10 @@
     else if (prevFloor === 19) newActNum = 6;
 
     const proceedToFloor = () => {
+      const stageEl = document.getElementById("stage");
+      if (stageEl) stageEl.style.visibility = "";
+      const headerEl = document.querySelector("header");
+      if (headerEl) headerEl.style.visibility = "";
       showFloorTransition(() => {
         if (gameState.player) {
           gameState.player.turnShieldBonus = 0;
@@ -15440,15 +15546,27 @@
       title: "Juramento del Gran Tahúr",
       icon: "🎲",
       costText: "Tu apuesta mínima de combate queda fijada en 10 HP.",
-      gainText: "¡Blackjack Letal! Todo 21 multiplica tu impacto por x3.5.",
-      btnText: "🩸 SELLAR PACTO (BLACKJACK x3.5)",
-      onApply: (p, g) => { p.curse = "gambler_pact"; p.blackjackMultiplier = 3.5; addLog("🩸 Pacto del Altar: Gran Tahúr sellado (Apuestas altas, Blackjack x3.5).", "critical"); }
+      gainText: "+12% Crítico, +12% Suerte y +3 Ataque Base permanente (Blackjack x3.5).",
+      btnText: "🩸 SELLAR JURAMENTO (+12% CRIT, +12% SUERTE, +3 ATQ)",
+      onApply: (p, g) => {
+        p.curse = "gambler_pact";
+        p.blackjackMultiplier = 3.5;
+        p._sacrificeCrit = (p._sacrificeCrit || 0) + 12;
+        p.luck = (p.luck || 0) + 12;
+        p.pwr = (p.pwr || 0) + 3;
+        if (p.levelUpStats) {
+          p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3;
+          p.levelUpStats.crit = (p.levelUpStats.crit || 0) + 12;
+          p.levelUpStats.luck = (p.levelUpStats.luck || 0) + 12;
+        }
+        addLog("🩸 Pacto del Altar: Juramento del Gran Tahúr (+12% Crítico, +12% Suerte, +3 PWR, Blackjack x3.5).", "critical");
+      }
     }
   ];
 
   const CURSE_NAMES = {
     cursed_deck: "Mazo Astillado (-5 HP por cada As)",
-    gambler_pact: "Juramento del Gran Tahúr (Apuesta mín. 10 HP, Blackjack x3.5)",
+    gambler_pact: "Juramento del Gran Tahúr (+12% Crítico, +12% Suerte, +3 ATQ, Blackjack x3.5)",
     greed_curse: "Avaricia Sellada (+50% costes en tienda)",
     shadow_veil: "Velo del Silencio (Sin pociones curativas)",
     frail_soul: "Alma Desgarrada (-12 HP Máx)",
@@ -15457,6 +15575,20 @@
     crushing_gravity: "Hierro Quebrado (-2 DEF)"
   };
   window.CURSE_NAMES = CURSE_NAMES;
+
+  function isEventModalOpen() {
+    const modalIds = [
+      "screen-event", "screen-abyss-pact-modal", "screen-combat-loot",
+      "screen-reward", "screen-chronicle", "screen-campfire-modal",
+      "screen-pack-open", "screen-fate-wheel", "screen-levelup",
+      "screen-booster-pack", "screen-card-detail", "shop-modal"
+    ];
+    return modalIds.some(id => {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains("hidden");
+    });
+  }
+  window.isEventModalOpen = isEventModalOpen;
 
   let currentAltarPacts = [];
 
@@ -15621,16 +15753,58 @@
      INSPECCIÓN DETALLADA DE PERSONAJES (FICHA DE COMBATE)
      ============================================================ */
   function getEnemyTraitDescription(e) {
-    if (e.trait === "thief") return "Robo: Si el rival gana la mano, te roba 5 de oro.";
-    if (e.trait === "undead") return "Resurrección: Al caer a 0 HP, revive inmediatamente una vez con 15 HP.";
-    if (e.trait === "fury") return "Furia: Cada vez que recibe daño, su ira aumenta (+1 PWR permanente).";
-    if (e.trait === "stone") return "Piel Pétrea: Su corteza de granito anula y bloquea todo golpe de ≤ 3 de daño.";
-    if (e.trait === "stealth") return "Sigilo: Juega con cartas totalmente ocultas hasta que se planta.";
-    if (e.trait === "disciplined") return "Disciplina: No se planta jamás hasta alcanzar 18 o más puntos.";
-    if (e.trait === "thorns") return "Espinas: Devuelve 1 de daño directo al atacante cada vez que es golpeado.";
-    if (e.trait === "dragon") return "Aliento Ígneo: Quema 3 HP cada 2 manos y su Blackjack inflige daño triple (x3).";
+    if (!e) return "Sin rasgo activo.";
+    const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
+    if (isEn) {
+      if (e.trait === "thief") return "Thief: If the rival wins the round, steals 5 gold from you.";
+      if (e.trait === "plague") return "Plague: Upon connecting a hit, infects you with +1 Poison stack.";
+      if (e.trait === "undead") return "Resurrection: Upon reaching 0 HP for the first time, revives with 15 HP.";
+      if (e.trait === "carapace") return "Chitin Carapace: Starts combat with an impenetrable barrier (+5 Shield).";
+      if (e.trait === "fury") return "Berserker Fury: Gains +1 permanent Attack (PWR) whenever damaged or losing a hand.";
+      if (e.trait === "stone") return "Stone Skin: Thick granite armor negates all hits dealing 3 damage or less.";
+      if (e.trait === "venom") return "Deadly Venom: Fangs inject +2 Poison stacks after winning a round.";
+      if (e.trait === "stealth") return "Shadow Stealth: Plays all cards face down in the shadows until standing.";
+      if (e.trait === "disciplined") return "Martial Discipline: Disciplined veteran mind; never stands before reaching 18+ points.";
+      if (e.trait === "thorns") return "Obsidian Thorns: Reflects 1 direct puncture damage to your life whenever struck.";
+      if (e.trait === "dragon") return "Dragon Breath: Burns 3 HP every 2 rounds and its 21s deal triple damage (x3).";
+      if (e.trait === "abyss") return "Abyss 21: Its Blackjacks drain 10 HP and it is immune to poison.";
+      if (e.trait === "frost") return "Arctic Frost: Freezing aura drains stamina and slows your reflexes.";
+      if (e.trait === "astral_drain") return "Astral Radiance: Drains 15 points of Overdrive upon winning a hand.";
+      if (e.trait === "void_shatter") return "Abyssal Sunder: Bypasses 50% of your shield dealing pure direct damage.";
+      if (e.trait === "chaos_fury") return "Chaos Fury: Triples 21 damage and gains +2 PWR for every hand you win.";
+      return e.traitNameEn || e.traitName || "Special combat trait.";
+    }
+    if (e.trait === "thief") return "Robo: Si el rival gana la mano, te despoja de 5 monedas de oro.";
+    if (e.trait === "plague") return "Peste: Al conectar un golpe exitoso, te infecta con +1 acumulación de Veneno.";
+    if (e.trait === "undead") return "Resurrección: Al caer a 0 HP por primera vez, renace inmediatamente con 15 HP.";
+    if (e.trait === "carapace") return "Caparazón de Quitina: Al inicio del combate despliega un escudo de armadura impenetrable (+5 Escudo).";
+    if (e.trait === "fury") return "Furia Berserker: Cada vez que sufre daño directo o pierde una mano, incrementa su Ataque (+1 PWR permanente).";
+    if (e.trait === "stone") return "Piel de Piedra: Su densa coraza de granito bloquea y anula completamente todo impacto de ≤ 3 de daño.";
+    if (e.trait === "venom") return "Ponzoña Letal: Sus colmillos inoculan +2 acumulaciones de Veneno residual tras cada asalto ganado.";
+    if (e.trait === "stealth") return "Sigilo Umbrío: Juega todas sus cartas 100% ocultas tras las sombras hasta plantarse.";
+    if (e.trait === "disciplined") return "Disciplina Marcial: Mente fría de veterano; no se planta jamás antes de alcanzar 18 o más puntos.";
+    if (e.trait === "thorns") return "Espinas de Obsidiana: Devuelve 1 punto de daño punzante directo a tu vida cada vez que le asestas un golpe.";
+    if (e.trait === "dragon") return "Aliento Dracónico: Incinera 3 HP de tu vida cada 2 asaltos y sus manos de 21 multiplican su impacto x3.";
+    if (e.trait === "abyss") return "Abismo del 21: Sus Blackjacks absorben 10 HP de tu vida y es totalmente inmune a toxinas.";
+    if (e.trait === "frost") return "Escarcha Ártica: Su frío polar entumece tus reflejos y drena tu aguante al recibir impacto.";
+    if (e.trait === "astral_drain") return "Resplandor Astral: Absorbe 15 puntos de tu medidor de Overdrive si gana la mano.";
+    if (e.trait === "void_shatter") return "Ruptura Abisal: Atraviesa el 50% de tus escudos activos asestando daño puro directo.";
+    if (e.trait === "chaos_fury") return "Furia del Caos: Multiplica sus 21 por x3 y gana +2 PWR por cada asalto que tú ganes.";
     return e.traitName || "Sin rasgo especial activo.";
   }
+  window.getEnemyTraitDescription = getEnemyTraitDescription;
+
+  function explainEnemyTrait() {
+    const e = gameState.enemy;
+    if (!e || !e.trait) return;
+    const title = e.traitShort || e.traitName || "RASGO DEL RIVAL";
+    const desc = getEnemyTraitDescription(e);
+    if (typeof showGameToast === "function") {
+      showGameToast(`${title}: ${desc}`, "info");
+    }
+    try { triggerHaptic("selection_change"); } catch (_) {}
+  }
+  window.explainEnemyTrait = explainEnemyTrait;
 
   function getItemSpanishName(item) {
     if (!item) return "";
@@ -15670,8 +15844,8 @@
       shadow_cloak: "🧥 Capa de Sombras (+10% Esquivar)",
       wind_cloak: "💨 Manto del Viento (+10% Esquivar)",
       lucky_coin: "🪙 Moneda de la Suerte (+10% Suerte)",
-      thorn_crown: "👑 Corona de Espinas (+5 Espinas)",
-      mirror_shield: "🪞 Escudo Espejo (+5 Espinas, +30% Reflejo)",
+      thorn_crown: "👑 Corona de Espinas (+1 Espina)",
+      mirror_shield: "🪞 Escudo Espejo (+1 Espina, +30% Reflejo)",
       hourglass: "⏳ Reloj de Arena (+Tiempo de turno y concentración)",
       hourglass_time: "⏳ Reloj de Arena (+Tiempo de turno)",
       relic_hourglass: "⏳ Reloj de Arena (+Tiempo de turno y concentración)",
@@ -16633,7 +16807,24 @@
       stat_luck: "SUERTE",
       pause_title: "JUEGO EN PAUSA",
       next_round_btn: "▶ SIGUIENTE RONDA",
-      enchant_btn: "✨ ENCANTAR"
+      enchant_btn: "✨ ENCANTAR",
+      deck_title: "TU BARAJA ACTIVA",
+      deck_cards: "CARTAS EN MAZO",
+      deck_filter_all: "TODAS",
+      deck_filter_atk: "ATAQUE",
+      deck_filter_def: "DEFENSA",
+      deck_filter_special: "ESPECIALES",
+      deck_filter_dark: "OSCURAS",
+      deck_close: "VOLVER AL COMBATE",
+      deck_tap_hint: "Toca cualquier carta para inspección 3D",
+      card_3d_flip_front: "👆 Toca la carta para voltearla y ver estadísticas",
+      card_3d_flip_back: "👆 Toca la carta para ver el arte frontal",
+      card_3d_close: "CERRAR INSPECCIÓN",
+      shop_title: "MERCADO DE LA TORRE",
+      shop_tab_bazaar: "BAZAR",
+      shop_tab_seals: "SELLOS",
+      shop_tab_forge: "HERRERO",
+      shop_skip: "CONTINUAR ASCENSO"
     },
     en: {
       tab_tower: "TOWER",
@@ -16681,7 +16872,24 @@
       stat_critical: "CRITICAL",
       stat_dodge: "DODGE",
       stat_lifesteal: "LIFESTEAL",
-      stat_luck: "LUCK"
+      stat_luck: "LUCK",
+      deck_title: "YOUR ACTIVE RUN DECK",
+      deck_cards: "CARDS IN DECK",
+      deck_filter_all: "ALL",
+      deck_filter_atk: "ATTACK",
+      deck_filter_def: "DEFENSE",
+      deck_filter_special: "SPECIAL",
+      deck_filter_dark: "DARK",
+      deck_close: "RETURN TO COMBAT",
+      deck_tap_hint: "Tap any card for 3D inspection",
+      card_3d_flip_front: "👆 Tap card to flip and reveal stats",
+      card_3d_flip_back: "👆 Tap card to view front artwork",
+      card_3d_close: "CLOSE INSPECTION",
+      shop_title: "TOWER BAZAAR",
+      shop_tab_bazaar: "BAZAAR",
+      shop_tab_seals: "SEALS",
+      shop_tab_forge: "BLACKSMITH",
+      shop_skip: "CONTINUE ASCENT"
     }
   };
   window.I18N_TRANSLATIONS = I18N_TRANSLATIONS;
@@ -17775,7 +17983,11 @@
       addLog(`⚔️ ¡PARRY CELESTIAL! Ambos obtienen 21 natural en primera mano. Recibes 0 daño y devuelves ${Math.round(reflectPct * 100)}% del ataque enemigo (${reflectedDmg} daño reflejado al rival).`, "critical");
       updateHud();
       await sleep(1300);
-      showNextRoundButton();
+      if (e.hp <= 0) {
+        await enemyDefeated();
+      } else {
+        showNextRoundButton();
+      }
       return;
     } else if (p.blackjack && p.playerHand.length === 2) {
       try { playBlackjackFanfareSound(); } catch (_) {}
@@ -18175,7 +18387,7 @@
     let resolutionDone = false;
     const safetyWatchdog = setTimeout(() => {
       if (!resolutionDone && gameState && gameState.inCombat) {
-        console.warn("[Combat Safety Watchdog] Forzando conclusión del asalto tras timeout de seguridad.");
+        console.warn("[Combat Safety Watchdog] Concluyendo asalto de forma segura tras timeout prolongado (5.5s).");
         resolutionDone = true;
         gameState.isRolling = false;
         const clIcon = document.getElementById("fighter-clash-icon");
@@ -18186,7 +18398,7 @@
           showNextRoundButton();
         }
       }
-    }, 1500);
+    }, 5500);
 
     try {
       const p = gameState.player;
@@ -18249,6 +18461,23 @@
             spawnFloatingText("player-sprite", "🩸 -4 DRENADO", "damage");
             spawnFloatingText("enemy-sprite", "🩸 +4 ABSORBIDO", "heal");
             addLog(`🌀 ${ec.name || 'Vórtice Abisal'} (${ec.rank}${ec.suit}): ${e.name} drena 4 puntos de tu vida.`, "damage");
+          } else if (ec.darkSigil === "tower_sentinel" || (ec.name && ec.name.includes("Sentencia"))) {
+            p.hp = Math.max(1, p.hp - 4);
+            if (!gameState.status) gameState.status = {};
+            gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 3;
+            spawnFloatingText("player-sprite", "⚔️ -4 SENTENCIA", "damage");
+            spawnFloatingText("player-sprite", "💀 +3 VENENO", "poison");
+            addLog(`👑 ${ec.name || 'Sentencia del Rey de la Torre'} (${ec.rank}${ec.suit}): El veredicto te asesta 4 de daño directo y aplica +3 de Veneno.`, "critical");
+            try { playHitSound(); playPoisonSound(); } catch (_) {}
+          } else if (ec.darkSigil === "shadow_slash" || (ec.name && ec.name.includes("Umbría"))) {
+            p.hp = Math.max(1, p.hp - 3);
+            spawnFloatingText("player-sprite", "🗡️ -3 CORTE SOMBRÍO", "damage");
+            addLog(`🗡️ ${ec.name || 'Hoja Umbría'} (${ec.rank}${ec.suit}): Asalto sombrío perforante (-3 daño directo).`, "damage");
+            try { playHitSound(); } catch (_) {}
+          } else if (ec.darkSigil === "blind_curse" || (ec.name && ec.name.includes("Ciego"))) {
+            p._tempCritPenalty = (p._tempCritPenalty || 0) + 10;
+            spawnFloatingText("player-sprite", "👁️ -10% CRÍTICO", "warning");
+            addLog(`👁️ ${ec.name || 'Maldición del Ojo Ciego'} (${ec.rank}${ec.suit}): Niebla del vacío reduce tu probabilidad crítica.`, "warning");
           }
         }
       }
@@ -19117,9 +19346,9 @@
             addLog("🪞 Escudo de Espejo: Reflejaste " + refl + " de daño al rival.", "critical");
           }
           if (hasArtifact("thorn_crown") && incomingDmg > 0 && gameState.enemy) {
-            gameState.enemy.hp = Math.max(0, gameState.enemy.hp - 5);
-            spawnFloatingText("enemy-sprite", "👑 -5 ESPINAS", "damage");
-            addLog("👑 Corona de Espinas: El rival sufre 5 de daño punzante.", "damage");
+            gameState.enemy.hp = Math.max(0, gameState.enemy.hp - 1);
+            spawnFloatingText("enemy-sprite", "👑 -1 ESPINA", "damage");
+            addLog("👑 Corona de Espinas: El rival sufre 1 de daño punzante directo.", "damage");
           }
           if (p.accessory === "spiked_belt" && incomingDmg > 0 && gameState.enemy) {
             const beltDmg = 2;
@@ -19155,6 +19384,28 @@
           addLog(`¡El Duende Pilluelo te robó ${stolen} de oro!`, "damage");
           updateHud();
           await sleep(650);
+        }
+
+        // Rasgo Alimaña: Peste (+1 Veneno al conectar golpe)
+        if (e.trait === "plague" && p.hp > 0) {
+          await sleep(300);
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 1;
+          spawnFloatingText("player-sprite", "💀 +1 VENENO", "poison");
+          addLog(`🐀 Peste: ${e.name} te infecta con +1 acumulación de Veneno.`, "damage");
+          try { playPoisonSound(); } catch (_) {}
+          updateHud();
+        }
+
+        // Rasgo Víbora: Ponzoña (+2 Veneno al conectar golpe)
+        if (e.trait === "venom" && p.hp > 0) {
+          await sleep(300);
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerPoison = (gameState.status.playerPoison || 0) + 2;
+          spawnFloatingText("player-sprite", "💀 +2 VENENO", "poison");
+          addLog(`🐍 Ponzoña: ${e.name} te inocula +2 acumulaciones de Veneno residual.`, "damage");
+          try { playPoisonSound(); } catch (_) {}
+          updateHud();
         }
       }
     }
@@ -19972,9 +20223,12 @@
     e.def = t.def + floorDefBonus;
 
     let enemyStartShield = 0;
+    if (t.trait === "carapace") {
+      enemyStartShield += 5;
+    }
     if (gameState.floor >= 4) {
       const shieldMult = (diffKey === "normal") ? 2 : (diffKey === "hard" ? 3 : 4);
-      enemyStartShield = Math.min(30, (gameState.floor - 3) * shieldMult);
+      enemyStartShield += Math.min(30, (gameState.floor - 3) * shieldMult);
     }
     if (!gameState.status) gameState.status = {};
     gameState.status.enemyShield = enemyStartShield;
@@ -20338,8 +20592,15 @@
       p.hp = Math.min(p.maxHp, p.hp + 1);
     }
 
-    // Si piso 5 o 9 y aún no se eligió maldición en este piso:
-    if ((gameState.floor === 5 || gameState.floor === 9) && !gameState.curseTakenOnFloor[gameState.floor]) {
+    // Restaurar visibilidad garantizada de stage y header
+    const stageEl = document.getElementById("stage");
+    if (stageEl) stageEl.style.visibility = "";
+    const headerEl = document.querySelector("header");
+    if (headerEl) headerEl.style.visibility = "";
+
+    // Mesa Sacrificial (Pisos 6, 10, 14, 18): Exclusión mutua garantizada con Pactos del Abismo [5, 9, 13, 17]
+    const SACRIFICE_ALTAR_FLOORS = [6, 10, 14, 18];
+    if (SACRIFICE_ALTAR_FLOORS.includes(gameState.floor) && !gameState.curseTakenOnFloor[gameState.floor] && (typeof isEventModalOpen !== "function" || !isEventModalOpen())) {
       showCurseAltar();
       return;
     }
@@ -20953,6 +21214,26 @@
         container.style.left = introMinigameState.x + "px";
         container.style.top = introMinigameState.y + "px";
 
+        // Detección de intersección dinámica con el cartel de títulos (#intro-header-box)
+        const headerBox = document.getElementById("intro-header-box");
+        if (headerBox && headerBox.getBoundingClientRect) {
+          const hbRect = headerBox.getBoundingClientRect();
+          const ballRect = container.getBoundingClientRect ? container.getBoundingClientRect() : null;
+          if (ballRect) {
+            const isIntersecting = !(
+              ballRect.right < hbRect.left ||
+              ballRect.left > hbRect.right ||
+              ballRect.bottom < hbRect.top ||
+              ballRect.top > hbRect.bottom
+            );
+            if (isIntersecting) {
+              headerBox.classList.add("intro-title-translucent");
+            } else {
+              headerBox.classList.remove("intro-title-translucent");
+            }
+          }
+        }
+
         const currentSpeed = Math.hypot(introMinigameState.vx, introMinigameState.vy);
         if (currentSpeed < 0.25) {
           introMinigameState.isFlying = false;
@@ -20961,6 +21242,8 @@
           medallion.classList.remove("flying");
           introMinigameState.anchorX = introMinigameState.x;
           introMinigameState.anchorY = introMinigameState.y;
+          const hb = document.getElementById("intro-header-box");
+          if (hb) hb.classList.remove("intro-title-translucent");
         }
       }
 
@@ -24912,7 +25195,9 @@
       return;
     }
 
-    grid.innerHTML = filtered.map(card => {
+    window._currentDeckViewerCards = filtered;
+
+    grid.innerHTML = filtered.map((card, idx) => {
       const arcane = isCardArcane(card);
       const isRed = (card.suit === "♥" || card.suit === "♦" || card.suit === "hearts" || card.suit === "diamonds");
       const colorClass = isRed ? "card-red" : "card-black";
@@ -24932,14 +25217,30 @@
         `;
       }
 
-      const bonusDesc = card.fusion ? `Fusión: ${card.fusion.name || 'Arcana'}` :
-                        (card.modifier ? `Mod: ${card.modifier.name || card.modifier.type}` :
-                        (card.operator ? `Op: ${card.operator.label || card.operator.type}` :
+      // Extracción limpia y robusta del modificador / sello / efecto para evitar "Mod: undefined"
+      let modLabel = "";
+      if (card.modifier) {
+        if (typeof card.modifier === "string") modLabel = card.modifier;
+        else if (card.modifier.name) modLabel = card.modifier.name;
+        else if (card.modifier.type) modLabel = card.modifier.type;
+        else if (card.modifier.id) modLabel = card.modifier.id;
+        else if (card.modifier.val !== undefined) modLabel = `+${card.modifier.val}`;
+        else modLabel = "Especial";
+      }
+
+      const pState = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+      const cardSeal = card.enchantment || card.sealEffect || (pState && pState.cardEnchantments && pState.cardEnchantments[`${card.suit}_${card.rank}`]);
+
+      const bonusDesc = card.desc ? card.desc.slice(0, 22) :
+                        (card.fusion ? `Fusión: ${card.fusion.name || 'Arcana'}` :
+                        (modLabel ? `Efecto: ${modLabel}` :
+                        (card.operator ? `Op: ${card.operator.label || card.operator.type || '+'}` :
+                        (cardSeal ? `Sello: ${cardSeal.name || cardSeal.id || 'Arcano'}` :
                         (cosmetic ? `👑 ${cosmetic.enemyName}` :
-                        (arcane ? 'Naipe de Jefe' : 'Naipe Común'))));
+                        (arcane ? 'Naipe de Jefe' : 'Naipe Común'))))));
 
       return `
-        <div class="deck-card-item ${arcaneClass} ${colorClass} ${cosmeticClass}">
+        <div class="deck-card-item ${arcaneClass} ${colorClass} ${cosmeticClass}" onclick="inspectDeckViewerCard(${idx})" style="cursor:pointer;" title="Toca para inspeccionar en 3D">
           ${cosmeticBgHtml}
           <div class="deck-card-top">
             <span class="deck-card-rank">${card.rank || card.value}</span>
@@ -24953,3 +25254,11 @@
     }).join("");
   }
   window.renderDeckViewerContent = renderDeckViewerContent;
+
+  function inspectDeckViewerCard(idx) {
+    const card = window._currentDeckViewerCards && window._currentDeckViewerCards[idx];
+    if (card && typeof showCardDetailModal === "function") {
+      showCardDetailModal(card);
+    }
+  }
+  window.inspectDeckViewerCard = inspectDeckViewerCard;

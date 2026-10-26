@@ -1,6 +1,6 @@
 {
   "name": "blackjack-torre-del-21",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "Black Jack: La Torre del 21 — Roguelike Mobile Edition",
   "main": "index.html",
   "scripts": {

@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.2 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.3 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,35 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.2] — Noviembre 2026 (Actual)
+### [v1.9.3] — Noviembre 2026 (Actual)
+* **Corrección Crítica de Congelamiento en 0 HP y Avance de Piso:**
+  * Implementado candado de reentrancia (`gameState._isHandlingVictory`) y envoltura completa `try/catch` en `enemyDefeated()`, impidiendo que errores de audio o cosméticos dejen los botones inhabilitados en 0 HP.
+  * Ampliado el temporizador de seguridad de combate a 5500ms en `resolveHandResult()`, asegurando que no se solapen eventos de daño con el botón de siguiente ronda.
+  * Garantía de visibilidad limpia en `#stage` y `header` al avanzar de piso (`advanceToNextFloor`, `initFloor`), eliminando la pantalla negra tras salir del mercado.
+  * Verificación estricta de salud en resolución de 21 vs 21 celestial para disparar victoria inmediata cuando el enemigo llega a 0 HP.
+* **Exclusión Mutua entre Pacto del Abismo y Mesa Sacrificial:**
+  * Asignación de pisos disjuntos para eventos especiales: Pactos del Abismo (pisos 5, 9, 13, 17) y Mesa Sacrificial (pisos 6, 10, 14, 18), protegidos mediante la guarda `isEventModalOpen()`.
+* **Translucidez Dinámica del Banner de Título en Menú Principal:**
+  * Detección por física AABB de la posición de la esfera en el minijuego de inicio respecto al banner de título, reduciendo suavemente su opacidad al 25% (`.intro-title-translucent`) al transitar por detrás y restaurándola al salir.
+* **Cola Secuencial de Textos Flotantes de Combate con Dispersión Horizontal:**
+  * Implementado `floatingTextQueue` con despacho cada 320ms y 5 cuadrantes espaciales horizontales, impidiendo la superposición de textos de daño, baluarte, furia o veneno.
+* **Diferenciación y Clarificación de Sellos Arcanos:**
+  * El *Sobre de Sellos Arcanos* en el Bazar (55 Oro) otorga sellos temporales para la run activa.
+  * La *Forja Arcana de la Cripta* reduce su coste a 15 Monedas de Cripta 💀 y graba sellos permanentes en la baraja exclusiva del héroe activo (`torre21_hero_decks`).
+* **Visor de Carta Grande con Giro 3D (`rotateY(180deg)`), Corrección de `Mod: undefined` y Efectos Reales de Cartas Especiales:**
+  * Al tocar naipes en combate o en el visor de baraja se despliega un visor 3D central que se voltea con animación fluida al pulsar sobre él, revelando estadísticas detalladas, tipo de carta y sinergias.
+  * Corregido el texto `Mod: undefined` en naipes sin modificadores.
+  * Efectos reales en combate para cartas legendarias como *Sentencia del Rey de la Torre* y *Orbe del Fénix*.
+* **Unificación de Ranuras de Artefactos (5/5) y Auditoría Estricta de Espinas (+1):**
+  * Unificación universal a `MAX_ARTIFACTS = 5` en mercado, HUD y mochila (`5/5`).
+  * Auditoría de todas las reliquias de espinas (*Corona de Espinas*, etc.) para otorgar estrictamente `+1` Espina directa.
+* **Auditoría de Rasgos de Rivales y Rediseño RPG de Juramento del Tahúr:**
+  * Activación y ejecución real de rasgos (`★ ROBO`, `★ PESTE`, `★ RESURRECCIÓN`, `★ FURIA`, `★ CAPARAZÓN`, `★ VENENO`, `★ BALUARTE`, etc.) y panel emergente explicativo al tocar el distintivo del rasgo en batalla.
+  * Rediseño de *Juramento del Gran Tahúr* con estadísticas RPG completas: `+12% Crítico, +12% Suerte, +3 Ataque Base` permanente y multiplicador x3.5 en Blackjack.
+* **Localización Completa al Inglés (🇺🇸 EN):**
+  * Soporte integral en inglés para visor de baraja, mercado, códice, rasgos de rivales y modales de inspección 3D.
+
+### [v1.9.2] — Noviembre 2026
 * **Ampliación Ergonómica y Desplazamiento Fluido en la Bitácora de Turno:**
   * Redimensionado el modal `#modal-combat-log` con `min-height: 70vh` y `max-height: 85vh`, optimizando el contenedor interno `.log-container-in-modal` con `max-height: 60vh`, relleno de 14px y tipografía nítida para una lectura cómoda de todo el historial del enfrentamiento sin saturación visual.
 * **Detección Integral de Bendiciones del Destino en la Mochila:**
