@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.8";
+  const GAME_VERSION = "v1.9.9";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.8)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.9)
      ============================================================ */
 
   const HERO_DATA = {
@@ -68,7 +68,7 @@
       dodgeChance: 5,
       lifesteal: 12,
       luck: 0,
-      startingSkill: "arcane_twentyone",
+      startingSkill: "crimson_feast",
       styleClass: "zen-bio",
       desc: "Guerrero Carmesí y Sostén: Equilibrio vital. Drena vida en cada impacto mediante Vampirismo y enfoca su mente (+1 punto al plantarse con 18/19)."
     },
@@ -90,7 +90,7 @@
       dodgeChance: 5,
       lifesteal: 0,
       luck: 15,
-      startingSkill: "crimson_feast",
+      startingSkill: "arcane_twentyone",
       styleClass: "blood-bio",
       desc: "Arcanista del Destino: Maestro de la magia y la fortuna. Manipulador del azar que devora el alma de rivales abatidos (+8 HP)."
     }
@@ -127,7 +127,7 @@
       name: "🃏 Toque del 21 (Destino Arcano)",
       nameEn: "🃏 Touch of 21 (Arcane Destiny)",
       icon: "🃏",
-      heroClass: "monk",
+      heroClass: "necromancer",
       cooldownMax: 4,
       desc: "Conjura la carta exacta que necesitas para dejar tu mano en 20 o 21 sin pasarte y suma +5 de Ataque en este turno.",
       descEn: "Conjures the exact card needed to set your hand to 20 or 21 without busting, and adds +5 Attack this turn."
@@ -137,7 +137,7 @@
       name: "🩸 Festín Carmesí",
       nameEn: "🩸 Crimson Feast",
       icon: "🩸",
-      heroClass: "necromancer",
+      heroClass: "monk",
       cooldownMax: 3,
       desc: "Drena inmediatamente 10 HP directos al rival para curarte a ti mismo y otorga +20% Vampirismo en esta ronda.",
       descEn: "Instantly drains 10 HP directly from rival to heal yourself and grants +20% Lifesteal this round."
@@ -154,6 +154,21 @@
     }
   };
   window.HERO_SKILLS = HERO_SKILLS;
+
+  function getHeroDefaultStartingSkill(heroClass) {
+    const classKey = (heroClass === "necro") ? "necromancer" : heroClass;
+    if (HERO_DATA[classKey] && HERO_DATA[classKey].startingSkill) {
+      return HERO_DATA[classKey].startingSkill;
+    }
+    const fallbackMap = {
+      knight: "immortal_bulwark",
+      rogue: "vorpal_execution",
+      monk: "crimson_feast",
+      necromancer: "arcane_twentyone"
+    };
+    return fallbackMap[classKey] || "immortal_bulwark";
+  }
+  window.getHeroDefaultStartingSkill = getHeroDefaultStartingSkill;
 
   const HERO_LORES = {
     knight: {
@@ -8681,11 +8696,17 @@
     p.hasGoldenDie = false;
     p.starterBlessing = null;
     p.blessing = null;
-    p.activeBlessing = null;
-    // HABILIDAD DE COMBATE: Bloqueada al inicio de run hasta despertarla en la Forja
-    p.activeSkill = null;
-    p.skillUnlocked = false;
-    p.skillCooldown = 0;
+    // HABILIDAD DE COMBATE: Desbloqueo automático al alcanzar Nivel 6+ con habilidad inicial propia; bloqueada en Niveles 1-5
+    const isSkillEligibleAtStart = ((p.level || heroLevel || 1) >= 6);
+    if (isSkillEligibleAtStart) {
+      p.activeSkill = getHeroDefaultStartingSkill(heroKey);
+      p.skillUnlocked = true;
+      p.skillCooldown = 0;
+    } else {
+      p.activeSkill = null;
+      p.skillUnlocked = false;
+      p.skillCooldown = 0;
+    }
     p.artifacts = [];
     p.cardEnchantments = {};
     p.sacrificialPacts = [];
@@ -9196,7 +9217,7 @@
       const heroTag = document.getElementById("player-hero-tag");
       if (heroTag) {
         heroTag.innerText = getPlayerHeroBadgeText(p);
-        heroTag.title = (isUnlocked && skill && skill.desc) ? `Habilidad Activa: ${skill.name} - ${skill.desc}` : "Poder especial dormido — Despiértalo en la Forja";
+        heroTag.title = (isUnlocked && skill && skill.desc) ? `Habilidad Activa: ${skill.name} - ${skill.desc}` : "Habilidad de Combate bloqueada — Se desbloquea automáticamente al alcanzar el Nivel 6";
       }
     }
   }
@@ -9224,10 +9245,10 @@
     const e = gameState.enemy;
     if (!p || !e) return;
 
-    // Si la habilidad aún está bloqueada, mensaje sutil y persuasivo
-    if (!p.skillUnlocked || !p.activeSkill) {
+    // Si la habilidad aún está bloqueada (Niveles 1 a 5 o sin habilidad activa), mensaje sutil indicando Nivel 6
+    if (!p.skillUnlocked || !p.activeSkill || (p.level || 1) < 6) {
       if (typeof showGameToast === "function") {
-        showGameToast("🔒 Tu poder especial aún aguarda dormido... Visita la Forja en el Bazar para despertar una Habilidad de Combate.", "info", 4500);
+        showGameToast("🔒 Habilidad Bloqueada: Se desbloquea automáticamente al alcanzar el Nivel 6.", "info", 4500);
       }
       return;
     }
@@ -13122,7 +13143,14 @@
   function openBoosterPackBySource(packType, options) {
     options = options || {};
     const p = gameState.player;
-    if (!p) return;
+    if (packType === "skills" && (p.level || 1) < 6) {
+      addLog("🔒 Habilidad Bloqueada: Requiere alcanzar el Nivel 6 para forjar o cambiar habilidades.", "warning");
+      spawnFloatingText("screen-shop", "🔒 REQUIERE NIVEL 6", "warning");
+      if (typeof showGameToast === "function") {
+        showGameToast("🔒 Requiere Nivel 6 para forjar o cambiar Habilidades de Combate.", "warning");
+      }
+      return;
+    }
 
     const shopDiscount = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 0.8 : 1.0;
     let baseCost = 40;
@@ -13319,7 +13347,7 @@
       playEnchantChimeSound();
       triggerHaptic("blackjack");
       spawnFloatingText("stage", `⚡ ¡${chosen.name}!`, "heal");
-      addLog(`⚡ ¡FORJA DE HABILIDADES: Despertaste [${chosen.name}]! Habilidad de combate lista para la batalla.`, "critical");
+      addLog(`⚡ ¡FORJA DE HABILIDADES: Re-roll completado. Equipaste [${chosen.name}] para esta ascensión!`, "critical");
       closePackOpeningModal();
       saveMidRunState();
       updateHud();
@@ -14327,9 +14355,10 @@
       </div>
     `;
 
-    // TAB 4: FORJA DE HABILIDADES DE COMBATE (EXCLUSIVA POR 200 MONEDAS DE ORO)
+    // TAB 4: FORJA DE HABILIDADES DE COMBATE (EXCLUSIVA POR 200 MONEDAS DE ORO • RE-ROLL EN NIVEL 6+)
     const skillPackPrice = 200;
-    const canBuySkillPack = gameState.gold >= skillPackPrice;
+    const isLevelEligibleForSkill = ((p.level || 1) >= 6);
+    const canBuySkillPack = isLevelEligibleForSkill && (gameState.gold >= skillPackPrice);
     const isSkillUnlocked = !!(p.skillUnlocked && p.activeSkill);
     const currentHeroSkill = (isSkillUnlocked && HERO_SKILLS[p.activeSkill]) ? HERO_SKILLS[p.activeSkill] : null;
 
@@ -14340,8 +14369,8 @@
           <span style="color:#66fcf1;font-size: 9px;">🪙 ${gameState.gold} ORO</span>
         </div>
 
-        <!-- SOBRE DE HABILIDADES DE COMBATE (200 ORO • REVELA 3 Y ELIGE 1) -->
-        <div class="shop-card ${canBuySkillPack ? 'affordable' : 'unaffordable'}" style="border: 2px solid #ffd166; background: radial-gradient(circle at 10% 10%, rgba(255,209,102,0.18), rgba(13,18,28,0.98)); margin-bottom:12px;">
+        <!-- SOBRE DE HABILIDADES DE COMBATE (200 ORO • RE-ROLL DE HABILIDAD) -->
+        <div class="shop-card ${(!isLevelEligibleForSkill || !canBuySkillPack) ? 'unaffordable' : 'affordable'}" style="border: 2px solid #ffd166; background: radial-gradient(circle at 10% 10%, rgba(255,209,102,0.18), rgba(13,18,28,0.98)); margin-bottom:12px;">
           <div class="shop-card-left">
             <div class="shop-item-icon-box card-forge" style="border-color:#ffd166;font-size:32px;">⚡📜</div>
             <div class="shop-item-details">
@@ -14349,25 +14378,33 @@
                 <span class="card-tier-badge legendary">PODER HEROICO</span>
                 <span>3 HABILIDADES • ELIGE 1</span>
               </div>
-              <div class="shop-item-name" style="color:#ffd166;font-size:12px;">Sobre de Habilidades de Combate</div>
-              <div class="shop-item-desc">Despierta el poder definitivo de tu héroe forjando un pacto arcano. Abre este sobre especial para revelar <b>3 Habilidades de Combate al azar</b> y equipar la que mejor se adapte a tu estrategia para el resto de la ascensión.</div>
+              <div class="shop-item-name" style="color:#ffd166;font-size:12px;">Re-roll de Habilidad de Combate</div>
+              <div class="shop-item-desc">Abre este sobre especial para revelar <b>3 Habilidades de Combate al azar</b> y cambiar tu habilidad activa durante esta ascensión. Al comenzar una nueva run volverás a tener tu habilidad inicial propia.</div>
               <div class="shop-item-stock" style="color:#66fcf1;margin-top:4px;">
-                ${currentHeroSkill 
-                  ? `⚡ Habilidad activa: <b style="color:#ffd166;">${currentHeroSkill.icon || '⚡'} ${currentHeroSkill.name}</b>`
-                  : `🔒 Habilidad dormida: Despiértala con 200 🪙 en este sobre`}
+                ${isLevelEligibleForSkill
+                  ? (currentHeroSkill 
+                      ? `⚡ Habilidad actual: <b style="color:#ffd166;">${currentHeroSkill.icon || '⚡'} ${currentHeroSkill.name}</b>`
+                      : `⚡ Habilidad desbloqueada: Lista para re-rollear`)
+                  : `🔒 Bloqueado: Requiere alcanzar el <b style="color:#ffd166;">Nivel 6</b> para desbloquear la Habilidad de Combate`}
               </div>
             </div>
           </div>
           <div class="shop-card-right">
-            ${canBuySkillPack 
-              ? `<button class="shop-action-btn buy gold-relic" onclick="openBoosterPackBySource('skills')">
-                   <span class="shop-btn-price">🪙 200 ORO</span>
-                   <span class="shop-btn-action">FORJAR PODER</span>
+            ${!isLevelEligibleForSkill
+              ? `<button class="shop-action-btn locked" disabled>
+                   <span class="shop-btn-price">🔒 BLOQUEADO</span>
+                   <span class="shop-btn-action">REQUIERE NIVEL 6</span>
                  </button>`
-              : `<button class="shop-action-btn locked" disabled>
-                   <span class="shop-btn-price">🪙 200 ORO</span>
-                   <span class="shop-btn-action">FALTAN ${200 - gameState.gold} 🪙</span>
-                 </button>`
+              : (canBuySkillPack 
+                  ? `<button class="shop-action-btn buy gold-relic" onclick="openBoosterPackBySource('skills')">
+                       <span class="shop-btn-price">🪙 200 ORO</span>
+                       <span class="shop-btn-action">RE-ROLL (CAMBIAR)</span>
+                     </button>`
+                  : `<button class="shop-action-btn locked" disabled>
+                       <span class="shop-btn-price">🪙 200 ORO</span>
+                       <span class="shop-btn-action">FALTAN ${200 - gameState.gold} 🪙</span>
+                     </button>`
+                )
             }
           </div>
         </div>
@@ -14378,7 +14415,7 @@
             ⚡ INFORMACIÓN DE COMBATE:
           </div>
           <div style="font-size:9.5px;color:#cbd5e1;line-height:1.5;">
-            Las Habilidades de Combate se activan durante tu turno de pedir cartas en la batalla contra cualquier enemigo o jefe. Cada habilidad cuenta con un enfriamiento medido en manos de Blackjack. Al adquirir una nueva habilidad en este sobre, reemplazará tu habilidad anterior si ya poseías una.
+            Las Habilidades de Combate se desbloquean automáticamente al alcanzar el Nivel 6 con la habilidad inicial de cada héroe. En esta Forja puedes pagar 200 🪙 para hacer Re-roll y cambiarla por otra al azar para el resto de la ascensión actual.
           </div>
         </div>
       </div>
@@ -18948,6 +18985,22 @@
       // SPRINT 1: Nivel Permanente Real — el crecimiento automático de clase se guarda para siempre.
       // (Los Puntos de Legado ya no se otorgan por subir de nivel: solo al completar la Torre.)
       saveHeroRunProgress(p, { hp: hpGain, pwr: pwrGain, def: defGain });
+
+      // Desbloqueo Automático de la Habilidad Inicial en Nivel 6
+      if (p.level >= 6 && (!p.skillUnlocked || !p.activeSkill)) {
+        p.activeSkill = (typeof getHeroDefaultStartingSkill === "function") 
+          ? getHeroDefaultStartingSkill(p.class) 
+          : (HERO_DATA[p.class]?.startingSkill || "immortal_bulwark");
+        p.skillUnlocked = true;
+        p.skillCooldown = 0;
+        const unlockedSkillData = (typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[p.activeSkill]) ? HERO_SKILLS[p.activeSkill] : null;
+        const skillNameShow = unlockedSkillData ? unlockedSkillData.name : p.activeSkill;
+        spawnFloatingText("player-sprite", `⚡ ¡HABILIDAD DESBLOQUEADA!`, "heal");
+        addLog(`⚡ ¡HABILIDAD DE COMBATE DESBLOQUEADA: Has alcanzado el Nivel 6! Se ha equipado automáticamente tu habilidad inicial [${skillNameShow}].`, "critical");
+        if (typeof showGameToast === "function") {
+          showGameToast(`⚡ ¡Habilidad Desbloqueada! Nivel 6 alcanzado: ${skillNameShow} equipada.`, "success", 4000);
+        }
+      }
 
       spawnFloatingText("player-sprite", `⭐ ¡NIVEL ${p.level}!`, "crit");
       addLog(`✨ ¡SUBISTE AL NIVEL ${p.level}! Crecimiento de ${growth.name}: +${hpGain} HP Máx, +${pwrGain} PWR, +${defGain} DEF (+5 Atributos RPG).`, "critical");

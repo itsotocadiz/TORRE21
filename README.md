@@ -6,14 +6,14 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 ## 📱 Descarga del APK para Móviles
 
-👉 **[📥 DESCARGAR APK TORRE21 v1.9.8 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/raw/main/TORRE21-v1.9.8.apk)**
+👉 **[📥 DESCARGAR APK TORRE21 v1.9.9 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/raw/main/TORRE21-v1.9.9.apk)**
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.8 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
+👉 **[Descargar última versión v1.9.9 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
-1. Descarga el archivo `TORRE21-v1.9.8.apk` o `BlackjackTorre21.apk` desde tu celular Android.
+1. Descarga el archivo `TORRE21-v1.9.9.apk` o `BlackjackTorre21.apk` desde tu celular Android.
 2. Ábrelo para instalar o actualizar (permite la instalación de aplicaciones de fuentes confiables si tu dispositivo lo solicita). Preserva intactos todos tus progresos, talentos y partidas guardadas.
 3. ¡Asciende por la Torre!
 
@@ -67,7 +67,24 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.8] — Noviembre 2026 (Actual)
+### [v1.9.9] — Noviembre 2026 (Actual)
+* **Desbloqueo Automático de Habilidad Inicial en Nivel 6:**
+  * En Niveles 1 al 5 (`level < 6`), la Habilidad de Combate se mantiene bloqueada con aviso sutil que indica su despertar al alcanzar el Nivel 6.
+  * Al alcanzar el Nivel 6 (o iniciar una run teniendo Nivel 6+), se desbloquea automáticamente y se equipa por defecto la Habilidad Inicial propia de cada héroe:
+    * **Caballero:** `Baluarte Inmortal` (`immortal_bulwark`)
+    * **Pícaro:** `Ejecución Vorpal` (`vorpal_execution`)
+    * **Monje:** `Festín Carmesí` (`crimson_feast`)
+    * **Nigromante:** `Toque del 21` (`arcane_twentyone`)
+* **Re-roll de Habilidad en la Forja (`🔨 FORJA`):**
+  * La opción de compra en la Forja permanece bloqueada antes del Nivel 6 (`🔒 BLOQUEADO • REQUIERE NIVEL 6`).
+  * En Nivel 6+, permite pagar `200 🪙` para abrir el sobre de 3 opciones al azar y hacer Re-roll (cambiar la habilidad activa durante esa ascensión).
+  * Al iniciar una nueva partida, el héroe siempre recupera su Habilidad Inicial propia.
+* **Versión v1.9.9 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 49` y `versionName "1.9.9"` en `android/app/build.gradle` y `package.json`.
+  * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Generación y publicación del ejecutable `TORRE21-v1.9.9.apk`.
+
+### [v1.9.8] — Noviembre 2026
 * **Auditoría Integral de Idioma y Español Predeterminado:**
   * Enforzado estricto del idioma español (`'es'`) como predeterminado en instalaciones limpias y cuando `localStorage.getItem('torre21_lang')` no esté inicializado.
   * Traducción y cambio dinámico entre `🇪🇸 Español` y `🇺🇸 English` en menús, botones de combate, pausa y botines sin textos fijos erróneos.
@@ -75,9 +92,14 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * Implementación y blindaje de `window.forceOpenInRunBazaar(event)` y corrección del error `ReferenceError: ownedUpgrades is not defined` en `showShopModal()`.
   * Integración de listener global en fase de captura (`capture: true`) para garantizar que cualquier toque sobre `🛒 VISITAR EL BAZAR` abra el Bazar sin ser interceptado.
   * Jerarquía de capas CSS blindada: `#screen-event.bazaar-open` (`z-index: 200000 !important`), Yunque Tahúr (`z-index: 250000 !important`), Apertura de Sobres (`z-index: 300000 !important`) e Inspección 3D (`z-index: 350000 !important`).
-* **Habilidades de Combate en la Forja (200 🪙):**
-  * Sobre de Habilidades ubicado exclusivamente en la pestaña `🔨 FORJA` por 200 monedas de oro (ofrece 3 habilidades al azar para elegir 1).
-  * Botón inferior de combate bloqueado al inicio (`🔒 HABILIDAD BLOQUEADA`), con mensaje explicativo en español al pulsarlo.
+* **Sistema Quirúrgico de Habilidades de Combate (Desbloqueo Automático en Nivel 6 y Re-roll en Forja):**
+  * **Niveles 1 al 5 (`level < 6`):** La Habilidad de Combate permanece bloqueada (`player.skillUnlocked = false`, `player.activeSkill = null`). Al presionar el botón en batalla, se informa que la habilidad se desbloquea al alcanzar el **Nivel 6**. En la pestaña `🔨 FORJA` del Bazar, el botón permanece bloqueado mostrando `🔒 BLOQUEADO • REQUIERE NIVEL 6`.
+  * **Nivel 6 o superior (`level >= 6`):** Al alcanzar el Nivel 6 (durante la run mediante `gainExp`) o al iniciar una run con un personaje de Nivel 6+, se desbloquea automáticamente y se asigna su **Habilidad Inicial propia**:
+    * **Caballero:** `Baluarte Inmortal` (`immortal_bulwark`)
+    * **Pícaro:** `Ejecución Vorpal` (`vorpal_execution`)
+    * **Monje:** `Festín Carmesí` (`crimson_feast`)
+    * **Nigromante:** `Toque del 21` (`arcane_twentyone`)
+  * **Re-roll en la Forja (`200 🪙`):** Estando en Nivel 6+, el botón de la Forja permite pagar `200 🪙` para abrir el sobre con 3 opciones al azar y re-rollear (cambiar) la habilidad durante esa run. Al comenzar una nueva run, el héroe de Nivel 6+ vuelve a iniciar con su Habilidad Inicial propia.
 * **Metamonedas (`💀`), Ranuras de Artefactos e Inspección 3D:**
   * Mercado de Metamonedas con Cartas Transmutadas, Sellos de Alto Nivel y botón funcional `🎲 EDITAR PODER AL AZAR (5 💀)`.
   * Ranuras de artefactos escaladas 1:1 con el nivel del héroe (`Nvl 1 = 1 ... Nvl 5+ = 5`), mostrando candados `🔒 Nvl X` en ranuras bloqueadas sin desbordes.

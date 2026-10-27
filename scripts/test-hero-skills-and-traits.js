@@ -70,4 +70,13 @@ assert(gameSrc.includes('e.trait === "void_drain"'), 'void_drain debe evaluarse'
 assert(gameSrc.includes('e.trait === "shadow_gamble"'), 'shadow_gamble debe evaluarse');
 assert(gameSrc.includes('e.trait === "mandinga_abyss"'), 'mandinga_abyss debe evaluarse');
 
+// 5. Verificación de Desbloqueo Automático en Nivel 6 y Re-roll en Forja (v1.9.8)
+assert(gameSrc.includes('getHeroDefaultStartingSkill'), 'game.js debe definir getHeroDefaultStartingSkill');
+assert(gameSrc.includes('isSkillEligibleAtStart = ((p.level || heroLevel || 1) >= 6)'), 'startGame debe evaluar si heroLevel >= 6');
+assert(gameSrc.includes('p.level >= 6 && (!p.skillUnlocked || !p.activeSkill)'), 'gainExp debe auto-desbloquear la habilidad en nivel 6');
+assert(gameSrc.includes('Se desbloquea automáticamente al alcanzar el Nivel 6'), 'triggerHeroSkill debe avisar que se desbloquea en Nivel 6');
+assert(gameSrc.includes('REQUIERE NIVEL 6'), 'La Forja debe bloquear el botón antes de nivel 6');
+assert(gameSrc.includes('RE-ROLL (CAMBIAR)'), 'La Forja debe permitir Re-roll si es nivel 6 o superior');
+
 console.log("PASS: Todas las pruebas de Habilidades de Héroe y Rasgos de Rivales superadas con éxito.");
+
