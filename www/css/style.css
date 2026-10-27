@@ -9628,7 +9628,7 @@ body.sudden-death-active #stage {
    MODAL DEL YUNQUE TAHÚR (APUESTA RIESGOSA)
    ============================================================ */
 #screen-gamble-forge.overlay {
-  z-index: 100000 !important;
+  z-index: 250000 !important;
   background: #0a0e17 !important;
   position: fixed !important;
 }
@@ -14517,7 +14517,7 @@ body.sudden-death-active #stage {
 }
 
 #screen-card-detail {
-  z-index: 2000 !important;
+  z-index: 350000 !important;
 }
 
 /* ==========================================================================
@@ -14846,6 +14846,14 @@ body.sudden-death-active #stage {
   z-index: 120 !important;
 }
 
+#screen-event.bazaar-open:not(.hidden) {
+  z-index: 200000 !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #0a0e17 !important;
+}
+
 .shop-top-header,
 .shop-grid,
 .shop-card,
@@ -15089,7 +15097,7 @@ body:has(#screen-event:not(.hidden)) header {
   left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  z-index: 100000 !important;
+  z-index: 300000 !important;
 }
 
 .booster-card-item {

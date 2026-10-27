@@ -6,12 +6,14 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 ## 📱 Descarga del APK para Móviles
 
+👉 **[📥 DESCARGAR APK TORRE21 v1.9.8 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/raw/main/TORRE21-v1.9.8.apk)**
+
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.6 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
+👉 **[Descargar última versión v1.9.8 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
-1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
+1. Descarga el archivo `TORRE21-v1.9.8.apk` o `BlackjackTorre21.apk` desde tu celular Android.
 2. Ábrelo para instalar o actualizar (permite la instalación de aplicaciones de fuentes confiables si tu dispositivo lo solicita). Preserva intactos todos tus progresos, talentos y partidas guardadas.
 3. ¡Asciende por la Torre!
 
@@ -65,7 +67,31 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.7] — Noviembre 2026 (Actual)
+### [v1.9.8] — Noviembre 2026 (Actual)
+* **Auditoría Integral de Idioma y Español Predeterminado:**
+  * Enforzado estricto del idioma español (`'es'`) como predeterminado en instalaciones limpias y cuando `localStorage.getItem('torre21_lang')` no esté inicializado.
+  * Traducción y cambio dinámico entre `🇪🇸 Español` y `🇺🇸 English` en menús, botones de combate, pausa y botines sin textos fijos erróneos.
+* **Acceso In-Run al Bazar del Destino y Reparación de ReferenceError:**
+  * Implementación y blindaje de `window.forceOpenInRunBazaar(event)` y corrección del error `ReferenceError: ownedUpgrades is not defined` en `showShopModal()`.
+  * Integración de listener global en fase de captura (`capture: true`) para garantizar que cualquier toque sobre `🛒 VISITAR EL BAZAR` abra el Bazar sin ser interceptado.
+  * Jerarquía de capas CSS blindada: `#screen-event.bazaar-open` (`z-index: 200000 !important`), Yunque Tahúr (`z-index: 250000 !important`), Apertura de Sobres (`z-index: 300000 !important`) e Inspección 3D (`z-index: 350000 !important`).
+* **Habilidades de Combate en la Forja (200 🪙):**
+  * Sobre de Habilidades ubicado exclusivamente en la pestaña `🔨 FORJA` por 200 monedas de oro (ofrece 3 habilidades al azar para elegir 1).
+  * Botón inferior de combate bloqueado al inicio (`🔒 HABILIDAD BLOQUEADA`), con mensaje explicativo en español al pulsarlo.
+* **Metamonedas (`💀`), Ranuras de Artefactos e Inspección 3D:**
+  * Mercado de Metamonedas con Cartas Transmutadas, Sellos de Alto Nivel y botón funcional `🎲 EDITAR PODER AL AZAR (5 💀)`.
+  * Ranuras de artefactos escaladas 1:1 con el nivel del héroe (`Nvl 1 = 1 ... Nvl 5+ = 5`), mostrando candados `🔒 Nvl X` en ranuras bloqueadas sin desbordes.
+  * Inspección 3D de naipes centrada y de tamaño grande (`240x340px`) tanto en cara frontal como trasera con giro 3D.
+* **Persistencia Roguelike, Anti-Trampa y Descongelamiento de Batalla:**
+  * Tabla de la Ficha (`📊`) separada con precisión entre `BASE PERMANENTE` y `BUFF / NERF` temporal de la ascensión.
+  * Anti-trampa en salida y reanudación que restaura exactamente la mano del jugador y rival sin reinicios injustos.
+  * Eliminación de freezes en oleadas dobles (`1/2` y `2/2`) y resurrección al llegar a 0 HP del Esqueleto Maldito.
+* **Versión v1.9.8 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 48` y `versionName "1.9.8"` en `android/app/build.gradle` y `package.json`.
+  * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Generación y publicación del ejecutable `TORRE21-v1.9.8.apk`.
+
+### [v1.9.7] — Noviembre 2026
 * **Reparación Crítica del Botón "🛒 VISITAR EL BAZAR":**
   * Botón `🛒 VISITAR EL BAZAR` corregido para llamar directamente a `window.showShopModal('consumables')` con `pointer-events: auto !important; cursor: pointer; position: relative; z-index: 20;` inline, garantizando funcionalidad táctil en dispositivos móviles.
   * `showShopModal()` forzado a mostrar `#screen-event` con `display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 99999 !important` al final de la función, previniendo que ningún `setTimeout` u otra lógica lo oculte.

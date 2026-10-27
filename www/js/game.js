@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.7";
+  const GAME_VERSION = "v1.9.8";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.7)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.8)
      ============================================================ */
 
   const HERO_DATA = {
@@ -11206,7 +11206,7 @@
             <span class="stat-tag">🪙 TUS FONDOS</span>
             <span class="stat-highlight gold">${gameState.gold} ORO DISPONIBLE</span>
           </div>
-          <button class="fork-action-btn shop-btn" style="pointer-events: auto !important; cursor: pointer; position: relative; z-index: 20;" onclick="event.stopPropagation(); window.showShopModal('consumables');">
+          <button type="button" id="btn-visit-bazaar" class="fork-action-btn shop-btn btn-bazaar-enter" style="pointer-events: auto !important; cursor: pointer !important; position: relative; z-index: 20;" onclick="window.forceOpenInRunBazaar(event)">
             🛒 VISITAR EL BAZAR
           </button>
         </div>
@@ -13945,9 +13945,11 @@
   }
   window.getAccessoryDisplay = getAccessoryDisplay;
 
-  function showShopModal() {
-    try { playBazaarShopSound(); } catch (_) {}
+  function showShopModal(tab) {
     try { startTrackedSceneMusic("bazaar", null); } catch (_) {}
+    try { playBazaarShopSound(); } catch (_) {}
+    const VALID_SHOP_TABS = ["consumables", "artifacts", "cards", "forge", "hero_market", "iap"];
+    if (typeof tab === "string" && VALID_SHOP_TABS.includes(tab)) currentShopTab = tab;
     // Reiniciar contador de compras al abrir el Bazar
     shopPurchasesThisFloor = 0;
     if (typeof resetShopPurchaseCount === "function") resetShopPurchaseCount();
@@ -13959,6 +13961,9 @@
     if (!p.artifacts) p.artifacts = [];
     if (!p.cardUpgrades) p.cardUpgrades = [];
     const maxSlots = getMaxArtifactSlots();
+    // v1.9.8: antes se usaba `ownedUpgrades` sin declarar → ReferenceError que impedía abrir el Bazar
+    const ownedUpgrades = Array.isArray(p.cardUpgrades) ? p.cardUpgrades : [];
+    const shownArtifactCount = Math.min(sanitizePlayerArtifacts(p).length, maxSlots);
 
     const titleEl = document.getElementById("event-title");
     const descEl = document.getElementById("event-desc");
@@ -14111,7 +14116,7 @@
             </div>
             <div class="shop-item-name" style="color:#66fcf1;">Sobre de Artefactos de la Torre</div>
             <div class="shop-item-desc">Abre este sobre de artefactos escalado por piso y nivel para elegir 1 artefacto permanente entre 3 revelaciones.</div>
-            <div class="shop-item-stock" style="color:#ffd166;">Ranuras: <b>${p.artifacts.length} / ${maxSlots}</b> ${isSlotsFull ? '(Al límite: reemplazará una)' : '(Espacio libre)'}</div>
+            <div class="shop-item-stock" style="color:#ffd166;">Ranuras: <b>${shownArtifactCount} / ${maxSlots}</b> ${isSlotsFull ? '(Al límite: reemplazará una)' : '(Espacio libre)'}</div>
           </div>
         </div>
         <div class="shop-card-right">
@@ -14187,7 +14192,7 @@
       <!-- RESUMEN DE EQUIPAMIENTO ACTIVO DEL HÉROE -->
       <div style="background:rgba(0,0,0,0.35);border:1px dashed rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;text-align:left;">
         <div style="font-family:var(--font-pixel);font-size: 9px;color:#66fcf1;margin-bottom:4px;display:flex;justify-content:space-between;">
-          <span>🎴 ARTEFACTOS ACTIVOS (${p.artifacts.length}/${maxSlots}):</span>
+          <span>🎴 ARTEFACTOS ACTIVOS (${shownArtifactCount}/${maxSlots}):</span>
           <span style="color:#ffd166;">Nivel ${p.level}</span>
         </div>
         ${ownedArtifactsList.length > 0 
@@ -14537,7 +14542,7 @@
           </button>
           <button class="shop-tab-btn ${currentShopTab === 'artifacts' ? 'active' : ''}" onclick="switchShopTab('artifacts')">
             <span class="shop-tab-ico">🎴</span>
-            <span class="shop-tab-lbl">ARTEFACTOS (${p.artifacts.length}/${maxSlots})</span>
+            <span class="shop-tab-lbl">ARTEFACTOS (${shownArtifactCount}/${maxSlots})</span>
           </button>
           <button class="shop-tab-btn ${currentShopTab === 'cards' ? 'active' : ''}" onclick="switchShopTab('cards')">
             <span class="shop-tab-ico">📦</span>
@@ -14545,7 +14550,7 @@
           </button>
           <button class="shop-tab-btn ${currentShopTab === 'forge' ? 'active' : ''}" onclick="switchShopTab('forge')">
             <span class="shop-tab-ico">🔨</span>
-            <span class="shop-tab-lbl">FORJA (${ownedUpgrades.length})</span>
+            <span class="shop-tab-lbl">FORJA ${(p.skillUnlocked && p.activeSkill) ? '⚡' : '🔒'}</span>
           </button>
           <button class="shop-tab-btn ${currentShopTab === 'hero_market' ? 'active' : ''}" onclick="switchShopTab('hero_market')">
             <span class="shop-tab-ico">💀</span>
@@ -14571,11 +14576,12 @@
     `;
     const eventScEl = document.getElementById("screen-event");
     if (eventScEl) {
+      // v1.9.8: la visibilidad forzada se aplica por CSS (#screen-event.bazaar-open:not(.hidden)).
+      // NO usar estilos inline !important: impedirían que .hidden cierre la tienda al continuar.
+      ["display", "visibility", "opacity", "z-index", "background"].forEach(prop => eventScEl.style.removeProperty(prop));
+      eventScEl.classList.add("bazaar-open");
       eventScEl.classList.remove("hidden");
-      eventScEl.style.setProperty("display", "flex", "important");
-      eventScEl.style.setProperty("visibility", "visible", "important");
-      eventScEl.style.setProperty("opacity", "1", "important");
-      eventScEl.style.setProperty("z-index", "99999", "important");
+      eventScEl.scrollTop = 0;
     }
     if (typeof updateShopPurchaseBadge === "function") {
       updateShopPurchaseBadge();
@@ -14585,6 +14591,43 @@
   window.openShop = showShopModal;
   window.renderShop = showShopModal;
   window.visitBazaar = showShopModal;
+
+  /**
+   * ✅ forceOpenInRunBazaar — Versión definitiva v1.9.8
+   * Cierra modales superpuestos, fuerza z-index y muestra el bazar sin retornos tempranos.
+   */
+  window.forceOpenInRunBazaar = function(event) {
+    if (event) {
+      try {
+        if (typeof event.preventDefault === "function") event.preventDefault();
+        if (typeof event.stopPropagation === "function") event.stopPropagation();
+      } catch (_) {}
+    }
+    // Cerrar posibles modales superpuestos
+    const campOverlay = document.getElementById("screen-campfire-modal");
+    if (campOverlay) campOverlay.classList.add("hidden");
+    const gambleModal = document.getElementById("screen-gamble-forge");
+    if (gambleModal) gambleModal.classList.add("hidden");
+
+    // Forzar visibilidad del contenedor del bazar
+    const screenEvent = document.getElementById("screen-event");
+    if (screenEvent) {
+      screenEvent.classList.add("bazaar-open");
+      screenEvent.classList.remove("hidden");
+      screenEvent.style.zIndex = "200000";
+      screenEvent.style.display = "flex";
+      screenEvent.style.visibility = "visible";
+      screenEvent.style.opacity = "1";
+      screenEvent.style.background = "#0a0e17";
+    }
+
+    try {
+      showShopModal("consumables");
+    } catch (err) {
+      console.error("Error al abrir el Bazar:", err);
+    }
+    return false;
+  };
 
   function refreshActiveHeroMarketUI(heroId) {
     const marketModal = document.getElementById("screen-hero-market-modal");
@@ -16042,7 +16085,11 @@
 
   function skipShop() {
     const screenEvent = document.getElementById("screen-event");
-    if (screenEvent) screenEvent.classList.add("hidden");
+    if (screenEvent) {
+      screenEvent.classList.remove("bazaar-open");
+      screenEvent.classList.add("hidden");
+      ["display", "visibility", "opacity", "z-index", "background"].forEach(prop => screenEvent.style.removeProperty(prop));
+    }
     const stageEl = document.getElementById("stage");
     if (stageEl) stageEl.style.visibility = "";
     const headerEl = document.querySelector("header");
@@ -26288,4 +26335,21 @@
       showCardDetailModal(card);
     }
   }
+
+  /* ============================================================
+     LISTENER GLOBAL DE CAPTURA — INTERCEPCIÓN DO BOTÓN BAZAR
+     Capta clics nesta fase (true) para redirixirlos a forceOpenInRunBazaar
+     ============================================================ */
+  document.addEventListener("click", function(e) {
+    var btn = e.target && e.target.closest ? e.target.closest("button, .btn, [onclick]") : null;
+    if (!btn) return;
+    var txt = (btn.textContent || btn.innerText || "").toUpperCase();
+    if (btn.id === "btn-visit-bazaar" || txt.includes("VISITAR EL BAZAR") || txt.includes("VISIT BAZAAR")) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof window.forceOpenInRunBazaar === "function") {
+        window.forceOpenInRunBazaar(e);
+      }
+    }
+  }, true);
   window.inspectDeckViewerCard = inspectDeckViewerCard;

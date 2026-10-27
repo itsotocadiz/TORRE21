@@ -66,10 +66,12 @@ check('game.js define openCombatLogModal y closeCombatLogModal', /function openC
 check('game.js forzado de cierre en init y DOMContentLoaded', /closeCombatGearModal\(\);[\s\S]*?closeCombatLogModal\(\);/.test(gameJs));
 check('improvements.js incluye guardia de cierre en arranque', /modal-combat-gear[\s\S]*?classList\.add\("hidden"\)/.test(improvementsJs));
 
-console.log('== 6. Versión Sincronizada v1.9.7 ==');
-check('index.html muestra versión v1.9.7', /v1\.9\.7/.test(indexHtml));
-check('game.js tiene GAME_VERSION = "v1.9.7"', /const GAME_VERSION\s*=\s*"v1\.9\.7"/.test(gameJs));
-check('improvements.js tiene IMPROVEMENTS_VERSION = "v1.9.7"', /window\.IMPROVEMENTS_VERSION\s*=\s*"v1\.9\.7"/.test(improvementsJs));
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+const expVer = 'v' + pkg.version;
+console.log(`== 6. Versión Sincronizada ${expVer} ==`);
+check(`index.html muestra versión ${expVer}`, new RegExp(expVer.replace(/\./g, '\\.')).test(indexHtml));
+check(`game.js tiene GAME_VERSION = "${expVer}"`, new RegExp(`const GAME_VERSION\\s*=\\s*"${expVer.replace(/\./g, '\\.')}"`).test(gameJs));
+check(`improvements.js tiene IMPROVEMENTS_VERSION = "${expVer}"`, new RegExp(`window\\.IMPROVEMENTS_VERSION\\s*=\\s*"${expVer.replace(/\./g, '\\.')}"`).test(improvementsJs));
 
 console.log('\n---------------------------------------');
 console.log(`RESULTADO: ${passed} pass / ${total - passed} fail\n`);

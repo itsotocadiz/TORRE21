@@ -7,7 +7,7 @@
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v1.9.7";
+  window.IMPROVEMENTS_VERSION = "v1.9.8";
 
   // FIX CRÍTICO BLOQUEANTE (v1.9.0): Forzar cierre de modales de combate en el arranque
   try {
@@ -33,7 +33,7 @@
         _gameToastEl.id = "game-toast";
         _gameToastEl.setAttribute("role", "status");
         _gameToastEl.setAttribute("aria-live", "polite");
-        _gameToastEl.style.cssText = "position:absolute;left:50%;bottom:15%;transform:translateX(-50%);z-index:130;background:rgba(11,12,16,0.97);border:1.5px solid #ffd166;border-radius:10px;padding:9px 14px;font-family:var(--font-pixel,monospace);font-size:9px;line-height:1.5;color:#ffd166;box-shadow:0 8px 24px rgba(0,0,0,0.85);text-align:center;max-width:84%;pointer-events:none;display:none;animation:popInModal 0.25s ease;";
+        _gameToastEl.style.cssText = "position:absolute;left:50%;bottom:15%;transform:translateX(-50%);z-index:500000;background:rgba(11,12,16,0.97);border:1.5px solid #ffd166;border-radius:10px;padding:9px 14px;font-family:var(--font-pixel,monospace);font-size:9px;line-height:1.5;color:#ffd166;box-shadow:0 8px 24px rgba(0,0,0,0.85);text-align:center;max-width:84%;pointer-events:none;display:none;animation:popInModal 0.25s ease;";
         container.appendChild(_gameToastEl);
       }
       const warn = (kind === "warn" || kind === "error");
@@ -81,7 +81,7 @@
     const el = document.createElement("div");
     el.id = "game-confirm";
     el.setAttribute("role", "alertdialog");
-    el.style.cssText = "position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:140;background:rgba(11,12,16,0.98);border:1.5px solid #ffd166;border-radius:12px;padding:14px 16px;max-width:86%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.9);animation:popInModal 0.2s ease;";
+    el.style.cssText = "position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:500000;background:rgba(11,12,16,0.98);border:1.5px solid #ffd166;border-radius:12px;padding:14px 16px;max-width:86%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.9);animation:popInModal 0.2s ease;";
     const buttonsHtml = o.single
       ? '<button id="game-confirm-ok" style="width:100%;min-height:42px;background:linear-gradient(135deg,#2a9d8f,#1b6b62);border:1px solid #66fcf1;color:#fff;font-family:var(--font-pixel,monospace);font-size: 9px;border-radius:8px;cursor:pointer;">' + (o.okLabel || 'ACEPTAR') + '</button>'
       : '<div style="display:flex;gap:8px;justify-content:center;">' +
