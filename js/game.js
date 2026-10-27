@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.4";
+  const GAME_VERSION = "v1.9.5";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.4)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.5)
      ============================================================ */
 
   const HERO_DATA = {
@@ -3641,9 +3641,9 @@
     }
 
     if (imgSrc) {
-      spIcon.innerHTML = `<img src="${imgSrc}" class="sprite-img" alt="${hero.name}" onerror="this.outerHTML='${hero.sprite}'">`;
+      spIcon.innerHTML = `<img src="${imgSrc}" class="sprite-img player-sprite-img" alt="" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='${hero.img || 'assets/svg/knight_idle.svg'}';}">`;
     } else {
-      spIcon.innerText = hero.sprite;
+      spIcon.innerHTML = `<img src="${hero.img || 'assets/svg/knight_idle.svg'}" class="sprite-img player-sprite-img" alt="">`;
     }
 
     sp.className = `sprite ${hero.styleClass || ""}`;
@@ -5635,7 +5635,19 @@
       }
     }
 
-    // 5. BENDICIONES DEL DESTINO
+    // Estadísticas Base Permanentes del Héroe (Nivel + Maestría + Talentos + Atributos)
+    p.permanentBase = {
+      hp: baseMaxHp,
+      pwr: basePwr,
+      def: baseDef,
+      crit: baseCrit,
+      dodge: baseDodge,
+      luck: baseLuck,
+      lifesteal: baseLifesteal,
+      thorns: baseThorns
+    };
+
+    // 5. BENDICIONES DEL DESTINO (Temporales de la Run)
     if (p.starterBlessing) {
       const bId = (typeof p.starterBlessing === "object") ? p.starterBlessing.id : p.starterBlessing;
       if (bId === "wind_cloak") baseDodge += 15;
@@ -7717,10 +7729,10 @@
     if (p) {
       const pSpriteIcon = document.getElementById("player-sprite-icon");
       if (pSpriteIcon) {
-        const heroSvg = p.sprite || (typeof getCurrentSkinSvg === "function" ? getCurrentSkinSvg(p.class, p.equippedSkinId) : null) || "assets/svg/knight_idle.svg";
+        const heroSvg = (typeof getCurrentSkinSvg === "function" ? getCurrentSkinSvg(p.class, p.equippedSkinId) : null) || (HERO_DATA[p.class] && HERO_DATA[p.class].img) || "assets/svg/knight_idle.svg";
         const currentImg = (typeof pSpriteIcon.querySelector === "function") ? pSpriteIcon.querySelector("img") : null;
         if (!currentImg || (typeof currentImg.getAttribute === "function" && currentImg.getAttribute("src") !== heroSvg) || (!String(pSpriteIcon.innerHTML || "").includes("<img"))) {
-          pSpriteIcon.innerHTML = `<img src="${heroSvg}" class="sprite-img player-sprite-img" alt="${p.name || 'Héroe'}">`;
+          pSpriteIcon.innerHTML = `<img src="${heroSvg}" class="sprite-img player-sprite-img" alt="" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='assets/svg/knight_idle.svg';}">`;
         }
       }
     }
@@ -8328,6 +8340,9 @@
         diff: gameState.diff,
         isCampaignMode: (gameState.isCampaignMode !== undefined) ? gameState.isCampaignMode : true,
         chapter: gameState.chapter || ((typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1),
+        currentEnemyIndex: (gameState.currentEnemyIndex || 0),
+        floorEnemies: (gameState.floorEnemies || []),
+        drawPile: (typeof drawPile !== "undefined" && Array.isArray(drawPile)) ? drawPile : [],
         status: gameState.status,
         player: gameState.player,
         enemy: gameState.enemy,
@@ -8451,17 +8466,45 @@
         updatePlayerAccSlot();
       }
 
-      // La mano en curso se reinicia de forma limpia (las cartas no se pueden reconstruir con seguridad)
-      p.playerHand = []; p.playerScore = 0; p.bust = false; p.blackjack = false; p.stand = false; p.crimsonApplied = false; p.frozenApplied = false;
-      p.betAmount = 0; p.turnShieldBonus = 0; p.turnDoubleDamage = false; p.duplaDef = 0;
-      if (e) { e.enemyHand = []; e.enemyScore = 0; e.bust = false; e.blackjack = false; e.stand = false; e.enemyRevealed = false; }
+      // ANTI-CHEAT (v1.9.5): Restaurar exactamente las cartas en mano sin barajar de nuevo
+      const hasSavedHand = saved.player && Array.isArray(saved.player.playerHand) && saved.player.playerHand.length > 0;
+      if (hasSavedHand) {
+        p.playerHand = saved.player.playerHand;
+        p.playerScore = saved.player.playerScore || calculateHandScore(p.playerHand);
+        p.bust = !!saved.player.bust;
+        p.blackjack = !!saved.player.blackjack;
+        p.stand = !!saved.player.stand;
+        p.turnShieldBonus = saved.player.turnShieldBonus || 0;
+        p.turnDoubleDamage = !!saved.player.turnDoubleDamage;
+        p.duplaDef = saved.player.duplaDef || 0;
+        p.betAmount = saved.player.betAmount || 0;
+        if (e && saved.enemy && Array.isArray(saved.enemy.enemyHand) && saved.enemy.enemyHand.length > 0) {
+          e.enemyHand = saved.enemy.enemyHand;
+          e.enemyScore = saved.enemy.enemyScore || calculateHandScore(e.enemyHand);
+          e.bust = !!saved.enemy.bust;
+          e.blackjack = !!saved.enemy.blackjack;
+          e.stand = !!saved.enemy.stand;
+          e.enemyRevealed = !!saved.enemy.enemyRevealed;
+        }
+      } else {
+        p.playerHand = []; p.playerScore = 0; p.bust = false; p.blackjack = false; p.stand = false; p.crimsonApplied = false; p.frozenApplied = false;
+        p.betAmount = 0; p.turnShieldBonus = 0; p.turnDoubleDamage = false; p.duplaDef = 0;
+        if (e) { e.enemyHand = []; e.enemyScore = 0; e.bust = false; e.blackjack = false; e.stand = false; e.enemyRevealed = false; }
+      }
+
+      if (saved.drawPile && Array.isArray(saved.drawPile) && saved.drawPile.length > 0) {
+        drawPile = saved.drawPile;
+      } else {
+        try { rebuildDrawPile(); } catch (_) {}
+      }
+      if (typeof saved.currentEnemyIndex === "number") gameState.currentEnemyIndex = saved.currentEnemyIndex;
+      if (Array.isArray(saved.floorEnemies) && saved.floorEnemies.length > 0) gameState.floorEnemies = saved.floorEnemies;
 
       ["screen-title", "screen-intro", "screen-controls", "screen-config"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add("hidden");
       });
       try { setPlayerSpriteState("idle"); } catch (_) {}
-      try { rebuildDrawPile(); } catch (_) {}
 
       const enemyAlive = e && e.name && e.hp > 0;
       const floorCleared = !enemyAlive && gameState.enemyFloor === gameState.floor;
@@ -8470,11 +8513,25 @@
       triggerHaptic("stand");
 
       if (enemyAlive) {
-        // Combate en curso: retomar contra el mismo rival, desde una mano nueva
+        // Combate en curso: retomar contra el mismo rival
         renderEnemyIdentity();
         renderCards();
         updateHud();
-        showBetScreen();
+        updateCombatState();
+        if (hasSavedHand) {
+          // Continuar exactamente la misma mano sin reiniciar
+          const betScreen = document.getElementById("screen-bet");
+          if (betScreen) betScreen.classList.add("hidden");
+          const controls = document.getElementById("controls");
+          if (controls) controls.style.display = "flex";
+          const nextRoundCont = document.getElementById("next-round-container");
+          if (nextRoundCont) nextRoundCont.classList.add("hidden");
+          const actionGrid = document.getElementById("action-grid");
+          if (actionGrid) actionGrid.classList.remove("hidden");
+          setButtonsDisabled(false);
+        } else {
+          showBetScreen();
+        }
       } else if (floorCleared) {
         // Rival ya vencido en este piso: mostrar selección de caminos y beneficios (Hoguera / Tienda / Forja)
         updateHud();
@@ -8565,7 +8622,10 @@
     gameState.floor = (typeof customStartFloor === "number" && customStartFloor >= 1) ? customStartFloor : 1;
     gameState.isCampaignMode = true;
     gameState.chapter = (typeof customChapter === "number" && customChapter >= 1) ? customChapter : ((typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1);
-    const minigameGold = window.introMinigameGold || 0;
+    const minigameGold = Math.max(
+      Number(window.introMinigameGold) || 0,
+      Number(typeof sessionStorage !== "undefined" ? sessionStorage.getItem("torre21_minigame_gold") : 0) || 0
+    );
     const frenzyBonus = (window.introFrenzyMultiplier > 1 || window._frenzyTowerBenefit) ? 50 : 0;
     const actGoldBonus = (gameState.chapter > 1) ? (gameState.chapter - 1) * 60 : 0;
     gameState.gold = (masteryBonuses.gold || 0) + minigameGold + frenzyBonus + actGoldBonus;
@@ -8588,6 +8648,7 @@
     const p = gameState.player;
     p.class = hero.class;
     p.name = hero.name;
+    p.gold = gameState.gold;
     p.sprite = (equippedSkin && equippedSkin.sprite) ? equippedSkin.sprite : hero.sprite;
     p.equippedSkinId = equippedSkin ? equippedSkin.id : null;
     p.masteryLevel = heroLevel;
@@ -8730,9 +8791,12 @@
     if (minigameGold > 0) {
       addLog(`🪙 ¡Comienzas la aventura con +${minigameGold} de Oro obtenido cazando cartas en la intro!`, "gold");
       window.introMinigameGold = 0;
+      try { sessionStorage.removeItem("torre21_minigame_gold"); } catch (_) {}
       const goldBanner = document.getElementById("intro-gold-reward-banner");
       if (goldBanner) goldBanner.classList.add("hidden");
     }
+    p.gold = gameState.gold;
+    updateHud();
 
     if (frenzyBonus > 0) {
       addLog(`⚡ ¡Bono de Frenesí (+${frenzyBonus} Oro) aplicado para esta run!`, "gold");
@@ -9094,8 +9158,8 @@
         if (skillIconEl) skillIconEl.innerText = "🔒";
         if (skillLabelEl) skillLabelEl.innerText = isEn ? "LOCKED SKILL" : "HABILIDAD BLOQUEADA";
         if (skillStatusEl) {
-          skillStatusEl.innerText = isEn ? "200🪙 FORGE" : "200🪙 FORJA";
-          skillStatusEl.className = "skill-status-pill locked";
+          skillStatusEl.innerText = "";
+          skillStatusEl.style.display = "none";
         }
         skillBtn.classList.add("skill-btn-locked");
         skillBtn.disabled = false;
@@ -9109,6 +9173,7 @@
           skillLabelEl.innerText = shortName.toUpperCase();
         }
         if (skillStatusEl) {
+          skillStatusEl.style.display = "";
           if (cd <= 0) {
             skillStatusEl.innerText = isEn ? "READY ⚡" : "LISTA ⚡";
             skillStatusEl.className = "skill-status-pill ready";
@@ -9121,20 +9186,31 @@
         skillBtn.disabled = !!isSkillBlocked;
       }
 
-      // Etiqueta bajo el héroe en batalla
+      // Etiqueta fija bajo el héroe en batalla
       const heroTag = document.getElementById("player-hero-tag");
       if (heroTag) {
-        if (isUnlocked) {
-          heroTag.innerText = `⚡ ${(skill.name || 'HABILIDAD').toUpperCase()}`;
-          heroTag.title = skill.desc || "Habilidad de combate activa";
-        } else {
-          const heroCfg = (typeof HERO_DATA !== "undefined" && HERO_DATA[p.class]) ? HERO_DATA[p.class] : (HERO_DATA.knight || {});
-          heroTag.innerText = `★ ${(heroCfg.traitShort || heroCfg.trait || 'HÉROE').toUpperCase()}`;
-          heroTag.title = heroCfg.traitName || "Poder especial dormido — Despiértalo en la Forja";
-        }
+        heroTag.innerText = getPlayerHeroBadgeText(p);
+        heroTag.title = (isUnlocked && skill && skill.desc) ? `Habilidad Activa: ${skill.name} - ${skill.desc}` : "Poder especial dormido — Despiértalo en la Forja";
       }
     }
   }
+
+  function getPlayerHeroBadgeText(p) {
+    if (!p) return "★ BASTIÓN DE DIAMANTE";
+    if (p.skillUnlocked && p.activeSkill && typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[p.activeSkill]) {
+      const sk = HERO_SKILLS[p.activeSkill];
+      return `⚡ ${(sk.name || 'HABILIDAD').toUpperCase()}`;
+    }
+    const heroClassTraits = {
+      knight: "★ BASTIÓN DE DIAMANTE",
+      rogue: "★ HOJA GEMELA SOMBRÍA",
+      monk: "★ VISIÓN ILUMINADA",
+      necromancer: "★ SEGAALMAS DE CRIPTA"
+    };
+    const hKey = p.classKey || p.class || "knight";
+    return heroClassTraits[hKey] || "★ BASTIÓN DE DIAMANTE";
+  }
+  window.getPlayerHeroBadgeText = getPlayerHeroBadgeText;
 
   async function triggerHeroSkill() {
     if (gameState.isRolling || window.gamePaused || gamePaused) return;
@@ -9145,7 +9221,7 @@
     // Si la habilidad aún está bloqueada, mensaje sutil y persuasivo
     if (!p.skillUnlocked || !p.activeSkill) {
       if (typeof showGameToast === "function") {
-        showGameToast("🔒 Tu poder especial aún aguarda dormido... Reúne 200 monedas de oro y visita la Forja en el Bazar para despertar una Habilidad de Combate.", "info", 4500);
+        showGameToast("🔒 Tu poder especial aún aguarda dormido... Visita la Forja en el Bazar para despertar una Habilidad de Combate.", "info", 4500);
       }
       return;
     }
@@ -9321,6 +9397,7 @@
         }
 
         updateCombatState();
+        if (typeof saveMidRunState === "function") saveMidRunState();
 
         if (p.blackjack) {
           try { playBlackjackFanfareSound(); } catch (_) {}
@@ -9401,6 +9478,7 @@
 
       renderCards();
       updateHud();
+      if (typeof saveMidRunState === "function") saveMidRunState();
 
       const newCardEl = document.getElementById("player-cards") ? document.getElementById("player-cards").lastElementChild : null;
       if (newCardEl) {
@@ -9587,6 +9665,7 @@
 
       renderCards();
       updateHud();
+      if (typeof saveMidRunState === "function") saveMidRunState();
 
       const newCardEl = document.getElementById("player-cards").lastElementChild;
       if (newCardEl) {
@@ -9654,6 +9733,7 @@
       pCardEl.classList.remove("rolling");
 
       await enemyPlayAuto(e);
+      if (typeof saveMidRunState === "function") saveMidRunState();
 
       gameState.isRolling = false;
       const playerScoreValid = !p.bust && p.playerScore <= BUST_LIMIT;
@@ -10255,6 +10335,44 @@
       if (gameState) gameState._isHandlingVictory = false;
     }
   }
+
+  async function checkCombatEnd() {
+    if (!gameState || !gameState.inCombat) return false;
+    const e = gameState.enemy;
+    const p = gameState.player;
+    if (!e || !p) return false;
+
+    if (e.hp <= 0) {
+      if (e.trait === "undead" && !e._resurrected && (!gameState.status || !gameState.status.enemyRevived)) {
+        e._resurrected = true;
+        if (!gameState.status) gameState.status = {};
+        gameState.status.enemyRevived = true;
+        e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
+        if (typeof setEnemySpriteState === "function") setEnemySpriteState("idle");
+        if (typeof spawnFloatingText === "function") spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
+        if (typeof addLog === "function") addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
+        try { if (typeof playResurrectionSound === "function") playResurrectionSound(); } catch (_) {}
+        updateHud();
+        showNextRoundButton();
+        return true;
+      }
+      if (gameState._isHandlingVictory) {
+        gameState._isHandlingVictory = false;
+      }
+      await enemyDefeated();
+      return true;
+    }
+    if (p.hp <= 0) {
+      if (gameState.revivesUsed < 1) {
+        showFateWheel("death");
+      } else {
+        showGameOver();
+      }
+      return true;
+    }
+    return false;
+  }
+  window.checkCombatEnd = checkCombatEnd;
 
   let _currentCombatLootCallback = null;
 
@@ -16475,13 +16593,13 @@
         `;
       }
 
-      // Cálculo de Estadísticas en Vivo: Base vs Buff/Nerf vs Total
-      const baseHp = hero.hp || 80;
-      const hpDiff = p.maxHp - baseHp;
+      // Cálculo de Estadísticas en Vivo (v1.9.5): Base Permanente vs Buff/Nerf Temporal de la Run
+      const permHp = (p.permanentBase && p.permanentBase.hp) || hero.maxHp || 80;
+      const hpDiff = p.maxHp - permHp;
       const hpBuffStr = hpDiff > 0 ? `<b style="color:#2a9d8f;">+${hpDiff}</b>` : (hpDiff < 0 ? `<b style="color:#e63946;">${hpDiff}</b>` : "--");
 
-      const basePwr = hero.pwr || 2;
-      let pwrBuffVal = p.pwr - basePwr;
+      const permPwr = (p.permanentBase && p.permanentBase.pwr) || hero.pwr || 10;
+      let pwrBuffVal = p.pwr - permPwr;
       let pwrBuffParts = [];
       if (pwrBuffVal !== 0) pwrBuffParts.push(pwrBuffVal > 0 ? `+${pwrBuffVal}` : `${pwrBuffVal}`);
       if (p.turnDoubleDamage) pwrBuffParts.push("x2 Mano");
@@ -16489,42 +16607,43 @@
       const pwrBuffStr = pwrBuffParts.length ? `<b style="color:#2a9d8f;">${pwrBuffParts.join(", ")}</b>` : "--";
       const totalEffectivePwr = (p.pwr * (p.turnDoubleDamage ? 2 : 1)) + (p.hasGoldenDie ? 3 : 0);
 
-      const baseDef = hero.def || 0;
+      const permDef = (p.permanentBase && p.permanentBase.def) || hero.def || 0;
       const effDef = (p.def || 0) + (p.turnShieldBonus || 0) + (p.duplaDef || 0) + (p._synergyBonusDef || 0);
-      const defDiff = effDef - baseDef;
       let defBuffParts = [];
+      if (p.def > permDef) defBuffParts.push(`+${p.def - permDef}`);
+      else if (p.def < permDef) defBuffParts.push(`${p.def - permDef}`);
       if (p.turnShieldBonus > 0) defBuffParts.push(`+${p.turnShieldBonus} Pasiva`);
       if (p.duplaDef > 0) defBuffParts.push(`+${p.duplaDef} Dupla`);
       if ((p._synergyBonusDef || 0) > 0) defBuffParts.push(`+${p._synergyBonusDef} Perk`);
-      const defBuffStr = defBuffParts.length ? `<b style="color:#2a9d8f;">${defBuffParts.join(", ")}</b>` : (defDiff > 0 ? `<b style="color:#2a9d8f;">+${defDiff}</b>` : "--");
+      const defBuffStr = defBuffParts.length ? `<b style="color:#2a9d8f;">${defBuffParts.join(", ")}</b>` : "--";
 
       const pShield = gameState.status.playerShield || 0;
       const pMaxShield = Math.max(pShield, 10 + effDef);
       const shieldBuffStr = pShield > 0 ? `<b style="color:#48cae4;">+${pShield}</b>` : "--";
 
-      const baseCrit = hero.critChance || 0;
-      const critDiff = (p.critChance || 0) - baseCrit;
-      const critBuffStr = critDiff > 0 ? `<b style="color:#2a9d8f;">+${critDiff}%</b>` : "--";
+      const permCrit = (p.permanentBase && p.permanentBase.crit) || hero.critChance || 0;
+      const critDiff = (p.critChance || 0) - permCrit;
+      const critBuffStr = critDiff > 0 ? `<b style="color:#2a9d8f;">+${critDiff}%</b>` : (critDiff < 0 ? `<b style="color:#e63946;">${critDiff}%</b>` : "--");
 
-      const baseDodge = hero.dodgeChance || 0;
+      const permDodge = (p.permanentBase && p.permanentBase.dodge) || hero.dodgeChance || 0;
       const dodgeBonus = Math.round((p._synergyExtraDodge || 0) * 100);
       const totalDodge = Math.min(45, (p.dodgeChance || 0) + dodgeBonus);
-      const dodgeDiff = totalDodge - baseDodge;
-      const dodgeBuffStr = dodgeDiff > 0 ? `<b style="color:#2a9d8f;">+${dodgeDiff}%</b>` : "--";
+      const dodgeDiff = totalDodge - permDodge;
+      const dodgeBuffStr = dodgeDiff > 0 ? `<b style="color:#2a9d8f;">+${dodgeDiff}%</b>` : (dodgeDiff < 0 ? `<b style="color:#e63946;">${dodgeDiff}%</b>` : "--");
 
-      const baseThorns = hero.thorns || 0;
+      const permThorns = (p.permanentBase && p.permanentBase.thorns) || hero.thorns || 0;
       const thornsVal = p.thorns || 0;
-      const thornsDiff = thornsVal - baseThorns;
+      const thornsDiff = thornsVal - permThorns;
       const thornsBuffStr = thornsDiff > 0 ? `<b style="color:#2a9d8f;">+${thornsDiff}</b>` : (thornsDiff < 0 ? `<b style="color:#e63946;">${thornsDiff}</b>` : "--");
 
-      const baseLifesteal = hero.lifesteal || 0;
+      const permLifesteal = (p.permanentBase && p.permanentBase.lifesteal) || hero.lifesteal || 0;
       const lifestealVal = p.lifesteal || 0;
-      const lifestealDiff = lifestealVal - baseLifesteal;
+      const lifestealDiff = lifestealVal - permLifesteal;
       const lifestealBuffStr = lifestealDiff > 0 ? `<b style="color:#2a9d8f;">+${lifestealDiff}%</b>` : (lifestealDiff < 0 ? `<b style="color:#e63946;">${lifestealDiff}%</b>` : "--");
 
-      const baseLuck = hero.luck || 0;
+      const permLuck = (p.permanentBase && p.permanentBase.luck) || hero.luck || 0;
       const luckVal = p.luck || 0;
-      const luckDiff = luckVal - baseLuck;
+      const luckDiff = luckVal - permLuck;
       const luckBuffStr = luckDiff > 0 ? `<b style="color:#2a9d8f;">+${luckDiff}%</b>` : (luckDiff < 0 ? `<b style="color:#e63946;">${luckDiff}%</b>` : "--");
 
       // Renderizar tabla en tbody
@@ -16532,19 +16651,19 @@
         tbody.innerHTML = `
           <tr>
             <td><span class="stat-ico">❤️</span> <b>Salud (HP)</b></td>
-            <td>${baseHp}</td>
+            <td>${permHp}</td>
             <td>${hpBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#2a9d8f;">${p.hp} / ${p.maxHp}</td>
           </tr>
           <tr>
             <td><span class="stat-ico">⚔️</span> <b>Poder (Ataque)</b></td>
-            <td>${basePwr}</td>
+            <td>${permPwr}</td>
             <td>${pwrBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#ffd166;">${totalEffectivePwr}</td>
           </tr>
           <tr>
             <td><span class="stat-ico">🛡️</span> <b>Defensa (DEF)</b></td>
-            <td>${baseDef}</td>
+            <td>${permDef}</td>
             <td>${defBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#66fcf1;">${effDef}</td>
           </tr>
@@ -16556,31 +16675,31 @@
           </tr>
           <tr>
             <td><span class="stat-ico">⚡</span> <b>% Golpe Crítico</b></td>
-            <td>${baseCrit}%</td>
+            <td>${permCrit}%</td>
             <td>${critBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#f39c12;">${p.critChance || 0}%</td>
           </tr>
           <tr>
             <td><span class="stat-ico">💨</span> <b>% Esquiva (Dodge)</b></td>
-            <td>${baseDodge}%</td>
+            <td>${permDodge}%</td>
             <td>${dodgeBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#38bdf8;">${totalDodge}%</td>
           </tr>
           <tr>
             <td><span class="stat-ico">🌵</span> <b>Espinas (Daño Puro)</b></td>
-            <td>${baseThorns}</td>
+            <td>${permThorns}</td>
             <td>${thornsBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#10b981;">${thornsVal}</td>
           </tr>
           <tr>
             <td><span class="stat-ico">🩸</span> <b>% Vampirismo</b></td>
-            <td>${baseLifesteal}%</td>
+            <td>${permLifesteal}%</td>
             <td>${lifestealBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#e63946;">${lifestealVal}%</td>
           </tr>
           <tr>
             <td><span class="stat-ico">🍀</span> <b>% Suerte (Luck)</b></td>
-            <td>${baseLuck}%</td>
+            <td>${permLuck}%</td>
             <td>${luckBuffStr}</td>
             <td style="text-align:right;font-weight:bold;color:#a3e635;">${luckVal}%</td>
           </tr>
@@ -16595,7 +16714,7 @@
           const sk = HERO_SKILLS[p.activeSkill];
           itemsList.push(`<div style="background:rgba(102,252,241,0.08);border:1px solid rgba(102,252,241,0.35);padding:8px;border-radius:6px;margin-bottom:8px;">⚡ <b>Habilidad de Combate:</b> <b style="color:#66fcf1;">${sk.icon || '⚡'} ${sk.name}</b> — <span style="color:#e2e8f0;">${sk.desc}</span> (Recarga: ${sk.cooldownMax || 3} manos).</div>`);
         } else {
-          itemsList.push(`<div style="background:rgba(255,209,102,0.08);border:1px dashed rgba(255,209,102,0.4);padding:8px;border-radius:6px;margin-bottom:8px;color:#ffd166;">🔒 <b>Habilidad de Combate:</b> Bloqueada. Reúne 200 monedas de oro y visita la <b>Forja</b> en el Bazar de la Torre para despertar una Habilidad Heroica.</div>`);
+          itemsList.push(`<div style="background:rgba(255,209,102,0.08);border:1px dashed rgba(255,209,102,0.4);padding:8px;border-radius:6px;margin-bottom:8px;color:#ffd166;">🔒 <b>Habilidad de Combate:</b> Bloqueada. Visita la <b>Forja</b> en el Bazar de la Torre para despertar una Habilidad Heroica.</div>`);
         }
         if (p.starterBlessing) {
           const b = p.starterBlessing;
@@ -16792,20 +16911,12 @@
 
     const pHeroTag = document.getElementById("player-hero-tag");
     if (pHeroTag) {
+      pHeroTag.innerText = getPlayerHeroBadgeText(p);
       if (p.skillUnlocked && p.activeSkill && typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[p.activeSkill]) {
         const sk = HERO_SKILLS[p.activeSkill];
-        pHeroTag.innerText = `⚡ ${sk.name.toUpperCase()}`;
         pHeroTag.title = `Habilidad Activa: ${sk.name} - ${sk.desc}`;
       } else {
-        const heroClassTraits = {
-          knight: "★ BASTIÓN DE DIAMANTE",
-          rogue: "★ HOJA GEMELA SOMBRÍA",
-          monk: "★ VISIÓN ILUMINADA",
-          necromancer: "★ SEGAALMAS DE CRIPTA"
-        };
-        const hKey = p.class || "knight";
-        pHeroTag.innerText = heroClassTraits[hKey] || "★ HÉROE";
-        pHeroTag.title = "Visita la Forja en el Bazar (200🪙) para despertar una Habilidad de Combate.";
+        pHeroTag.title = "Visita la Forja en el Bazar para despertar una Habilidad de Combate.";
       }
     }
     if (typeof renderFighterSprites === "function") renderFighterSprites();
@@ -19948,13 +20059,15 @@
           addLog(`🌵 Espinas: Devuelves ${directThorns} de daño directo al rival.`, "critical");
           updateHud();
           if (e.hp <= 0) {
-            if (e.trait === "undead" && !e._resurrected && !gameState.status.enemyRevived) {
+            if (e.trait === "undead" && !e._resurrected && (!gameState.status || !gameState.status.enemyRevived)) {
               e._resurrected = true;
+              if (!gameState.status) gameState.status = {};
               gameState.status.enemyRevived = true;
               e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
               setEnemySpriteState("idle");
               spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
               addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
+              try { if (typeof playResurrectionSound === "function") playResurrectionSound(); } catch (_) {}
               updateHud();
               await sleep(1500);
               showNextRoundButton();
@@ -19985,13 +20098,15 @@
           addLog(`🌵 Espinas: Devuelves ${directThorns} de daño directo al rival.`, "critical");
           updateHud();
           if (e.hp <= 0) {
-            if (e.trait === "undead" && !e._resurrected && !gameState.status.enemyRevived) {
+            if (e.trait === "undead" && !e._resurrected && (!gameState.status || !gameState.status.enemyRevived)) {
               e._resurrected = true;
+              if (!gameState.status) gameState.status = {};
               gameState.status.enemyRevived = true;
               e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
               setEnemySpriteState("idle");
               spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
               addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
+              try { if (typeof playResurrectionSound === "function") playResurrectionSound(); } catch (_) {}
               updateHud();
               await sleep(1500);
               showNextRoundButton();
@@ -20291,13 +20406,15 @@
     if (e.hp <= 0) {
       setEnemySpriteState("dead");
       // Rasgo Esqueleto: Resurrección (intercepta la muerte antes de la victoria)
-      if (e.trait === "undead" && !e._resurrected && !gameState.status.enemyRevived) {
+      if (e.trait === "undead" && !e._resurrected && (!gameState.status || !gameState.status.enemyRevived)) {
         e._resurrected = true;
+        if (!gameState.status) gameState.status = {};
         gameState.status.enemyRevived = true;
         e.hp = Math.max(15, Math.round(e.maxHp * 0.35));
         setEnemySpriteState("idle");
         spawnFloatingText("enemy-sprite", `💀 ¡RESURRECCIÓN! (+${e.hp} HP)`, "crit");
         addLog(`💀 ¡RESURRECCIÓN! El ${e.name} vuelve a levantarse recomponiendo sus huesos (+${e.hp} HP).`, "warning");
+        try { if (typeof playResurrectionSound === "function") playResurrectionSound(); } catch (_) {}
         updateHud();
         await sleep(1500);
         showNextRoundButton();
@@ -20334,7 +20451,21 @@
       // Misión de Jack Nigromante: derrotar rivales
       checkHeroUnlockCondition("necromancer", 1, "add");
 
-      await enemyDefeated();
+      let victoryHandled = false;
+      const victoryWatchdog = setTimeout(() => {
+        if (!victoryHandled && gameState && gameState.inCombat && gameState.enemy && gameState.enemy.hp <= 0) {
+          console.warn("[Combat Engine] Watchdog 1200ms activado tras muerte del rival: forzando resolución.");
+          if (gameState) gameState._isHandlingVictory = false;
+          if (typeof checkCombatEnd === "function") checkCombatEnd();
+        }
+      }, 1200);
+
+      try {
+        await enemyDefeated();
+        victoryHandled = true;
+      } finally {
+        clearTimeout(victoryWatchdog);
+      }
       return;
     }
 
@@ -20381,13 +20512,34 @@
       const clIcon = document.getElementById("fighter-clash-icon");
       if (clIcon) clIcon.classList.remove("clashing");
       if (gameState.enemy && gameState.enemy.hp <= 0) {
-        await enemyDefeated();
+        if (typeof checkCombatEnd === "function") {
+          await checkCombatEnd();
+        } else {
+          await enemyDefeated();
+        }
       } else {
         showNextRoundButton();
       }
     } finally {
       resolutionDone = true;
       clearTimeout(safetyWatchdog);
+      gameState.isRolling = false;
+      const clIcon = document.getElementById("fighter-clash-icon");
+      if (clIcon) clIcon.classList.remove("clashing");
+      if (gameState && gameState.inCombat && gameState.enemy && gameState.enemy.hp <= 0) {
+        const lootModal = document.getElementById("screen-combat-loot");
+        const nextRoundCont = document.getElementById("next-round-container");
+        const isLootVisible = lootModal && !lootModal.classList.contains("hidden");
+        const isNextRoundVisible = nextRoundCont && !nextRoundCont.classList.contains("hidden");
+        if (!isLootVisible && !isNextRoundVisible) {
+          console.warn("[Combat Engine] Estado congelado en 0 HP detectado en finally. Disparando checkCombatEnd().");
+          if (typeof checkCombatEnd === "function") {
+            checkCombatEnd();
+          } else if (typeof enemyDefeated === "function") {
+            enemyDefeated();
+          }
+        }
+      }
     }
   }
 
@@ -21002,6 +21154,9 @@
 
     e.maxHp = t.isActBoss ? Math.round(enemyHpFor(t) * 1.25) : enemyHpFor(t);
     e.hp = e.maxHp;
+    e._resurrected = false;
+    if (!gameState.status) gameState.status = {};
+    gameState.status.enemyRevived = false;
 
     const floorPwrBonus = Math.floor((gameState.floor - 1) / (cfg.pwrBonusFloorDiv || 4));
     const levelPwrBonus = cfg.levelPwrBonus ? Math.floor(Math.max(0, (p.level || 1) - 1) / 3) * cfg.levelPwrBonus : 0;
@@ -22052,7 +22207,8 @@
     if (intro) intro.classList.add("hidden");
     if (title) title.classList.remove("hidden");
 
-    // Mostrar el botín ganado en la pantalla de títulos
+    // Mostrar el botín ganado en la pantalla de títulos y persistirlo
+    try { sessionStorage.setItem("torre21_minigame_gold", String(window.introMinigameGold || 0)); } catch (_) {}
     const goldBanner = document.getElementById("intro-gold-reward-banner");
     const goldValEl = document.getElementById("title-minigame-gold-val");
     if (goldBanner && goldValEl) {

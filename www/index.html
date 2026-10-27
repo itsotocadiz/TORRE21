@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self' data: blob:; img-src 'self' data: blob:;">
   <meta name="theme-color" content="#07090e">
-  <meta name="version" content="v1.9.4 (BUILD 51)">
+  <meta name="version" content="v1.9.5 (BUILD 52)">
   <title>TORRE 21: EL PACTO DE BLACK JACK — Roguelike</title>
   <!-- Tipografías locales offline (Fredoka y Nunito) embebidas en css/style.css -->
   <link rel="stylesheet" href="css/style.css">
@@ -212,7 +212,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.9.4</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.9.5</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -1195,7 +1195,7 @@
         <!-- COLUMNA HÉROE (JACK) -->
         <div class="fighter-col player-fighter" onclick="openFighterInspect('player')" title="Toca para ver ficha de combate">
           <div id="player-sprite" class="sprite">
-            <span id="player-sprite-icon"><img src="assets/svg/knight_idle.svg" class="sprite-img" alt="Héroe"></span>
+            <span id="player-sprite-icon"><img src="assets/svg/knight_idle.svg" class="sprite-img player-sprite-img" alt="" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='assets/svg/knight_idle.svg';}"></span>
             <div id="player-streak-badge" class="player-streak-badge hidden" onclick="event.stopPropagation(); showStreakInfoModal();" title="Racha de victorias (Toca para ver bonificación)">🔥 x1.5</div>
             <div id="player-acc-slot" class="player-acc-slot" onclick="inspectActiveBlessing(event)" title="Medallón de Bendición del Destino (Toca para ver)"></div>
           </div>
@@ -1205,7 +1205,7 @@
               <div class="fighter-action-badges" style="display:flex;align-items:center;gap:4px;flex-shrink:0;"></div>
             </div>
             <div class="fighter-badge-zone" id="player-badge-zone">
-              <span class="player-hero-badge" id="player-hero-tag">★ HÉROE</span>
+              <span class="player-hero-badge" id="player-hero-tag">★ BASTIÓN DE DIAMANTE</span>
             </div>
             <div id="player-status-badges" class="status-badges"></div>
             <div class="fighter-energy-row" style="display:flex;align-items:center;gap:4px;width:100%;">

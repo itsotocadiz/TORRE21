@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.4 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.5 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,27 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.4] — Noviembre 2026 (Actual)
+### [v1.9.5] — Noviembre 2026 (Actual)
+* **Corrección Crítica Visual de Avatar e Insignia Heroica:**
+  * Limpieza del sprite de combate del héroe (`#player-sprite-icon`): eliminación de iconos de imagen rota y texto `alt` invasivo (`"Caba"`), renderizado SVG vectorial puro con fallback transparente e inmutable respecto a medallones y badges.
+  * Botón de habilidad heroica limpio: eliminación de la píldora fija `200 🪙 FORJA` cuando está bloqueada, dejando un botón pulcro `🔒 HABILIDAD BLOQUEADA` que explica su despertar en la Forja únicamente al ser pulsado.
+  * Insignia fija bajo el héroe (`#player-hero-tag`): inicialización uniforme y eliminación de parpadeo errático entre `★ HÉROE` y `★ BASTIÓN DE DIAMANTE` tras ataques o daño recibido, exhibiendo el rasgo de clase o la habilidad activa.
+* **Acumulación Real del Oro del Minijuego de Lanzamiento:**
+  * Garantizada la acreditación inmediata del oro capturado en el minijuego introductorio (`introMinigameGold` y respaldo en `sessionStorage`) en la bolsa del héroe y en `gameState.gold` al pisar el Piso 1, reflejándose al instante en el HUD de combate sin sobreescrituras en 0.
+* **Transparencia en Ficha de Personaje (Estadísticas Base vs Buffs/Nerfs Temporales):**
+  * La columna `BASE` refleja fielmente el valor permanente completo del héroe (estadísticas base de clase + crecimiento por nivel permanente + bonificaciones acumuladas del árbol de talentos y atributos).
+  * La columna `BUFF / NERF` exhibe única y exclusivamente los modificadores temporales de la run en curso (bendiciones del destino, reliquias, sellos de run y estados de combate), mostrando `--` (0) limpio al iniciar una ascensión sin ítems.
+* **Persistencia Anti-Cheat de Mano en Curso:**
+  * `saveMidRunState()` ahora resguarda las cartas exactas en mano del jugador (`playerHand`), del rival (`enemyHand`), la pila de robo (`drawPile`) y el índice de oleada (`currentEnemyIndex`). Al reanudar una partida guardada a mitad de mano, el duelo continúa exactamente donde se dejó sin barajar de nuevo ni permitir trampas por reinicio.
+* **Blindaje Total contra Congelamiento (Esqueleto Maldito 0 HP / Oleada 2):**
+  * Reseteo riguroso de banderas de resurrección (`_resurrected = false` y `gameState.status.enemyRevived = false`) al iniciar cada oleada y en `initEnemyForCombat()`, permitiendo que esbirros no-muertos en oleadas avanzadas resuciten limpiamente.
+  * Implementación de `checkCombatEnd()` exportada a `window` y guardia de watchdog de 1200ms en `resolveHandResult()`, garantizando que ante la caída del rival a 0 HP se dispare fluidamente la resurrección o la pantalla de botín/victoria sin dejar controles bloqueados.
+* **Versión v1.9.5 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 44` y `versionName "1.9.5"` en `android/app/build.gradle` y `package.json`.
+  * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Compilación del APK de lanzamiento `BlackjackTorre21.apk`.
+
+### [v1.9.4] — Noviembre 2026
 * **Blindaje Crítico de Persistencia Roguelike (`_saveSecure` y `_loadSecure`):**
   * Protección inmutable del progreso del personaje permanente (Nivel, EXP total acumulada, talentos, cartas transmutadas, sellos de cripta y metamonedas 💀). La EXP y el nivel permanente de los Jacks jamás se pierden al morir o reiniciar una ascensión roguelike.
   * Guardias estrictas de no-regresión mediante `Math.max(saved.level, current.level)` y `Math.max(saved.exp, current.exp)` en `saveHeroRunProgress()`, garantizando que ninguna transición de run pueda sobrescribir ni degradar el nivel permanente alcanzado.
