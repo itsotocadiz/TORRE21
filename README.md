@@ -65,6 +65,16 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
+### [v1.9.7] — Noviembre 2026 (Actual)
+* **Reparación Crítica del Botón "🛒 VISITAR EL BAZAR":**
+  * Botón `🛒 VISITAR EL BAZAR` corregido para llamar directamente a `window.showShopModal('consumables')` con `pointer-events: auto !important; cursor: pointer; position: relative; z-index: 20;` inline, garantizando funcionalidad táctil en dispositivos móviles.
+  * `showShopModal()` forzado a mostrar `#screen-event` con `display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 99999 !important` al final de la función, previniendo que ningún `setTimeout` u otra lógica lo oculte.
+  * Verificado que no existen `return` bloqueantes, condiciones `shopVisited`, `isCombatLocked` o `gamePaused` que impidan el acceso al Bazar durante la partida.
+* **Versión v1.9.7 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 47` y `versionName "1.9.7"` en `android/app/build.gradle` y `package.json`.
+  * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Compilación del APK de lanzamiento `BlackjackTorre21.apk` y publicación en el repositorio de GitHub.
+
 ### [v1.9.6] — Noviembre 2026 (Actual)
 * **Eliminación del Botón Fantasma "REANUDAR PARTIDA" en Instalaciones Limpias:**
   * `saveMidRunState()` ahora solo guarda en `localStorage` si `gameState.inRun === true`, evitando que el estado por defecto se registre como una partida activa.

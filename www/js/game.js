@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.6";
+  const GAME_VERSION = "v1.9.7";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.5)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.7)
      ============================================================ */
 
   const HERO_DATA = {
@@ -11206,7 +11206,7 @@
             <span class="stat-tag">🪙 TUS FONDOS</span>
             <span class="stat-highlight gold">${gameState.gold} ORO DISPONIBLE</span>
           </div>
-          <button class="fork-action-btn shop-btn" onclick="event.stopPropagation(); showShopModal();">
+          <button class="fork-action-btn shop-btn" style="pointer-events: auto !important; cursor: pointer; position: relative; z-index: 20;" onclick="event.stopPropagation(); window.showShopModal('consumables');">
             🛒 VISITAR EL BAZAR
           </button>
         </div>
@@ -14570,7 +14570,13 @@
       </div>
     `;
     const eventScEl = document.getElementById("screen-event");
-    if (eventScEl) eventScEl.classList.remove("hidden");
+    if (eventScEl) {
+      eventScEl.classList.remove("hidden");
+      eventScEl.style.setProperty("display", "flex", "important");
+      eventScEl.style.setProperty("visibility", "visible", "important");
+      eventScEl.style.setProperty("opacity", "1", "important");
+      eventScEl.style.setProperty("z-index", "99999", "important");
+    }
     if (typeof updateShopPurchaseBadge === "function") {
       updateShopPurchaseBadge();
     }

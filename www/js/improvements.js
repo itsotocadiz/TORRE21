@@ -7,7 +7,7 @@
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v1.9.6";
+  window.IMPROVEMENTS_VERSION = "v1.9.7";
 
   // FIX CRÍTICO BLOQUEANTE (v1.9.0): Forzar cierre de modales de combate en el arranque
   try {
