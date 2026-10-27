@@ -1,5 +1,5 @@
 "use strict";
-  const GAME_VERSION = "v1.9.5";
+  const GAME_VERSION = "v1.9.6";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
      TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.5)
@@ -267,6 +267,7 @@
     floor: 1,
     gold: 0,
     isRolling: false,
+    inRun: false,
     diff: "normal",
     showEnemyCards: false,
     audioEnabled: true,
@@ -292,8 +293,8 @@
       class: "knight",
       name: "Caballero",
       sprite: "🛡️",
-      maxHp: 80,
-      hp: 80,
+      maxHp: 110,
+      hp: 110,
       pwr: 14,
       def: 3,
       potions: 2,
@@ -8312,7 +8313,7 @@
   const TORRE21_ACTIVE_RUN_KEY = "torre21_active_run_state";
 
   function saveMidRunState() {
-    if (!gameState.player || gameState.player.hp <= 0) return;
+    if (!gameState.inRun || !gameState.player || gameState.player.hp <= 0) return;
     const titleEl = document.getElementById("screen-title");
     if (titleEl && !titleEl.classList.contains("hidden")) return;
     // Una partida ya terminada (Torre superada) no debe re-guardarse
@@ -8328,6 +8329,7 @@
     try {
       const stateToSave = {
         version: 3,
+        inRun: true,
         floor: gameState.floor,
         enemyFloor: gameState.enemyFloor || gameState.floor,
         gold: gameState.gold,
@@ -8371,7 +8373,7 @@
       const raw = localStorage.getItem(TORRE21_ACTIVE_RUN_KEY) || localStorage.getItem(MID_RUN_STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.player && saved.player.hp > 0 && saved.floor >= 1) {
+        if (saved && saved.inRun === true && saved.player && saved.player.hp > 0 && saved.floor >= 1) {
           const heroName = String(saved.player.name || "Héroe").replace(/^jack\s+/i, "");
           container.innerHTML = `
             <button class="btn-resume-run" onclick="resumeSavedRun()">
@@ -8383,6 +8385,8 @@
       }
     } catch (e) {}
     container.innerHTML = "";
+    container.classList.add("hidden");
+    container.style.display = "none";
   }
 
   // Pinta nombre, rasgo y retrato del rival actual (usado al reanudar sin regenerar el piso)
@@ -8449,6 +8453,7 @@
         enemyShield: 0, enemyPoison: 0, enemyBurn: 0, enemyRevived: false
       }, saved.status || {});
       gameState.isRolling = false;
+      gameState.inRun = true;
       Object.assign(gameState.player, saved.player);
       if (saved.enemy) Object.assign(gameState.enemy, saved.enemy);
 
@@ -8562,7 +8567,7 @@
         const rawRun = localStorage.getItem("torre21_active_run_state") || localStorage.getItem(MID_RUN_STORAGE_KEY);
         if (rawRun) savedRun = JSON.parse(rawRun);
       } catch (_) {}
-      if (savedRun && savedRun.player && savedRun.player.hp > 0 && savedRun.floor >= 1) {
+      if (savedRun && savedRun.inRun === true && savedRun.player && savedRun.player.hp > 0 && savedRun.floor >= 1) {
         const heroName = String(savedRun.player.name || "Héroe").replace(/^jack\s+/i, "");
         if (typeof showGameConfirm === "function") {
           showGameConfirm({
@@ -8630,6 +8635,7 @@
     const actGoldBonus = (gameState.chapter > 1) ? (gameState.chapter - 1) * 60 : 0;
     gameState.gold = (masteryBonuses.gold || 0) + minigameGold + frenzyBonus + actGoldBonus;
     gameState.isRolling = false;
+    gameState.inRun = true;
     gameState.killCount = 0;
     gameState.revivesUsed = 0;
     gameState.curseTakenOnFloor = {};
@@ -11283,6 +11289,7 @@
 
   let selectedGambleTier = "gold";
   let isGambleForging = false;
+  let shopPurchasesThisFloor = 0;
 
   const CRYPT_COINS_KEY = "bj_crypt_coins";
   const CRYPT_COINS_LEGACY_KEY = "blackjack" + "_crypt_coins";
@@ -13941,6 +13948,9 @@
   function showShopModal() {
     try { playBazaarShopSound(); } catch (_) {}
     try { startTrackedSceneMusic("bazaar", null); } catch (_) {}
+    // Reiniciar contador de compras al abrir el Bazar
+    shopPurchasesThisFloor = 0;
+    if (typeof resetShopPurchaseCount === "function") resetShopPurchaseCount();
     const stageEl = document.getElementById("stage");
     if (stageEl) stageEl.style.visibility = "hidden";
     const headerEl = document.querySelector("header");
@@ -14568,6 +14578,7 @@
   window.showShopModal = showShopModal;
   window.openShop = showShopModal;
   window.renderShop = showShopModal;
+  window.visitBazaar = showShopModal;
 
   function refreshActiveHeroMarketUI(heroId) {
     const marketModal = document.getElementById("screen-hero-market-modal");

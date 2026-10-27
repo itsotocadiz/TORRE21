@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.5 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.6 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -64,6 +64,24 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ---
 
 ## 📜 Historial de Versiones (Changelog)
+
+### [v1.9.6] — Noviembre 2026 (Actual)
+* **Eliminación del Botón Fantasma "REANUDAR PARTIDA" en Instalaciones Limpias:**
+  * `saveMidRunState()` ahora solo guarda en `localStorage` si `gameState.inRun === true`, evitando que el estado por defecto se registre como una partida activa.
+  * `checkResumeRunButton()` valida `saved.inRun === true` antes de renderizar el botón de reanudación; en caso contrario, limpia el registro residual y fuerza `display: none` + clase `.hidden`.
+  * Unificado el HP base del Caballero a `110/110 HP` en `HERO_DATA` y `gameState.player`, eliminando el valor residual de `80/80 HP`.
+* **Desbloqueo de "El Bazar del Destino" en Caminos entre Pisos:**
+  * `showShopModal()` reinicia el contador de compras (`shopPurchasesThisFloor = 0` y `resetShopPurchaseCount()`) al abrir el Bazar.
+  * Exportada `window.visitBazaar = showShopModal` para garantizar que el onclick del botón "🛒 VISITAR EL BAZAR" funcione siempre.
+  * Verificado que no existen atributos `disabled` ni clases `.locked`/`.disabled` en el botón del Bazar.
+* **Restauración del Menú "El Yunque Tahúr (Apuesta de la Forja)":**
+  * `openGambleForgeModal()` y `executeGambleForge()` siguen exportadas a `window`; el modal HTML está completo.
+  * Añadido `#screen-gamble-forge.overlay` con `z-index: 100000 !important`, `background: #0a0e17 !important` y `position: fixed !important` en CSS.
+  * Botón de salida actualizado: "◀ VOLVER A LOS CAMINOS".
+* **Versión v1.9.6 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 46` y `versionName "1.9.6"` en `android/app/build.gradle` y `package.json`.
+  * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Compilación del APK de lanzamiento `BlackjackTorre21.apk`.
 
 ### [v1.9.5] — Noviembre 2026 (Actual)
 * **Corrección Crítica Visual de Avatar e Insignia Heroica:**
