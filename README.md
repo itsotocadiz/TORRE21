@@ -8,7 +8,7 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.3 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
+👉 **[Descargar última versión v1.9.4 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
 1. Descarga el archivo `BlackjackTorre21.apk` desde tu celular Android.
@@ -65,7 +65,38 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v1.9.3] — Noviembre 2026 (Actual)
+### [v1.9.4] — Noviembre 2026 (Actual)
+* **Blindaje Crítico de Persistencia Roguelike (`_saveSecure` y `_loadSecure`):**
+  * Protección inmutable del progreso del personaje permanente (Nivel, EXP total acumulada, talentos, cartas transmutadas, sellos de cripta y metamonedas 💀). La EXP y el nivel permanente de los Jacks jamás se pierden al morir o reiniciar una ascensión roguelike.
+  * Guardias estrictas de no-regresión mediante `Math.max(saved.level, current.level)` y `Math.max(saved.exp, current.exp)` en `saveHeroRunProgress()`, garantizando que ninguna transición de run pueda sobrescribir ni degradar el nivel permanente alcanzado.
+  * Respaldo de emergencia sin hash (`_raw_backup`) en `_saveSecure()` y recuperación automática ante discordancia de integridad en `_loadSecure()`, evitando borrados accidentales de partidas guardadas.
+  * Detección y renderizado proactivo del botón de reanudar partida guardada (`#container-resume-run`) en el ciclo de vida de la app (`startFromIntro()`, `initIntro()`, `DOMContentLoaded`), permitiendo continuar una run activa inmediatamente.
+  * Garantía de renderizado vectorial SVG en avatares de combate (`renderFighterSprites()`), previniendo caídas a emojis huérfanos (`👺`).
+* **Visor de Baraja y Ficha de Personaje: Reflejo Completo de Sellos Arcanos:**
+  * En el Visor de Baraja (`renderDeckViewerContent`), toda carta grabada con Sello (temporal de run o permanente histórico de cripta) se visualiza destacada con resplandor cromático según su afinidad elemental, icono distintivo y etiqueta clara (`⏳ Run` o `♾️ Permanente`).
+  * Contabilización precisa de todas las cartas con sello dentro del contador de Naipes Arcanos de la baraja.
+  * En la Ficha del Personaje (`openFighterInspect`), optimización del contenedor de naipes forjados (`#inspect-enchanted-grid`, `.forged-cards-grid`, `.hand-deck-cards-scroll`) con altura mínima de 120px, relleno de 10px y `overflow: visible` para que todas las cartas de la baraja se lean nítidas y completas sin truncamiento inferior.
+* **Habilidad de Combate Bloqueada al Inicio con Mensaje Táctico:**
+  * Al iniciar una ascensión, la Habilidad de Combate permanece en estado latente (`🔒 HABILIDAD BLOQUEADA` / `200🪙 FORJA`) hasta ser despertada en el Bazar.
+  * Al presionar el botón bloqueado en combate, el héroe recibe un mensaje sutil e inmersivo: *"🔒 Tu poder especial aún aguarda dormido... Reúne 200 monedas de oro y visita la Forja en el Bazar para despertar una Habilidad de Combate."*
+  * Dinamismo en la etiqueta bajo el héroe (`#player-hero-tag`): exhibe la habilidad activa desbloqueada (`⚡ HABILIDAD`) o el rasgo de clase respectivo (`★ RASGO`) si aún no ha forjado una.
+  * Traducción completa de accesorios y amuletos en la Ficha del Personaje (`Seer eye` ➔ `Ojo del Vidente`).
+* **Pestaña "FORJA" Exclusiva para Habilidades Heroicas (200 Monedas de Oro):**
+  * Rediseño total de la pestaña `🔨 FORJA` del Bazar: eliminadas duplicaciones arcaicas para albergar exclusivamente el **Sobre de Habilidades de Combate** por 200 Oro (🪙).
+  * Apertura de sobre con animación 3D Foil y revelación al azar de 3 habilidades heroicas para elegir 1 y equiparla al instante.
+  * Eliminados los pergaminos de habilidad redundantes de la pestaña Provisiones.
+* **Pestaña "METAMONEDAS" (💀): Adquisición y Re-roll de Poder:**
+  * Compra funcional con Metamonedas (💀) para el personaje activo seleccionado: Cartas Transmutadas (12 💀) y Sellos de Alto Nivel (10 💀).
+  * Nuevo botón interactivo `🎲 EDITAR PODER AL AZAR (5 💀)` junto a cada carta transmutada y sello permanente para re-rollar su efecto mágico por otro del catálogo arcano y grabarlo para siempre.
+* **Modelo de Artefactos Escalado por Nivel (1 a 5) e Inspección 3D Centrada:**
+  * Capacidad máxima de artefactos (`getMaxArtifactSlots`) ligada estrictamente al nivel del héroe (Nivel 1 = 1 ranura, Nivel 2 = 2, Nivel 3 = 3, Nivel 4 = 4, Nivel 5+ = 5). Las ranuras aún bloqueadas muestran su candado informativo `🔒 Nvl X`.
+  * En el modal `🃏 INSPECCIÓN 3D DE CARTA`, tamaño de la cara frontal fijado exactamente a `240x340px` centrado con perspectiva preserve-3d, idéntico al reverso táctico desde su apertura inicial.
+* **Versión v1.9.4 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 43` y `versionName "1.9.4"` en `android/app/build.gradle` y `package.json`.
+  * Sincronización perfecta entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Compilación exitosa del APK de lanzamiento `BlackjackTorre21.apk`.
+
+### [v1.9.3] — Noviembre 2026
 * **Sistema Integral de Habilidades Potentes de Héroe (`HERO_SKILLS`):**
   * Nuevo botón de combate táctil `#btn-hero-skill` en el panel de acciones con microanimación de pulso cuando está listo y cuenta regresiva de enfriamiento (cooldown de 3-4 manos).
   * Catálogo de 5 Habilidades Potentes:

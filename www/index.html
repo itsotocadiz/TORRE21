@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self' data: blob:; img-src 'self' data: blob:;">
   <meta name="theme-color" content="#07090e">
-  <meta name="version" content="v1.9.3 (BUILD 50)">
+  <meta name="version" content="v1.9.4 (BUILD 51)">
   <title>TORRE 21: EL PACTO DE BLACK JACK — Roguelike</title>
   <!-- Tipografías locales offline (Fredoka y Nunito) embebidas en css/style.css -->
   <link rel="stylesheet" href="css/style.css">
@@ -212,7 +212,7 @@
   <!-- ===== PANTALLA DE TÍTULO EXTENDIDA: LOS CUATRO HERALDOS ===== -->
   <div id="screen-title" class="overlay hidden">
     <h2>♠ TORRE 21: EL PACTO DE BLACK JACK ♥</h2>
-    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.8.5</span></div>
+    <div style="text-align:center;margin:-6px 0 8px 0;"><span style="font-size:11px;font-weight:700;color:#94a3b8;background:rgba(15,23,42,0.6);border:1px solid rgba(148,163,184,0.25);border-radius:12px;padding:3px 10px;letter-spacing:0.5px;">v1.9.4</span></div>
 
     <!-- CHIP DE PERFIL / CUENTA (FASE 4) -->
     <div id="user-profile-chip" class="user-profile-chip" onclick="switchTitleTab('config')">
@@ -1096,7 +1096,7 @@
       <div class="card-3d-flip-scene" onclick="toggleCardDetailFlip(event)">
         <div class="card-3d-flipper" id="card-detail-flipper">
           <!-- CARA FRONTAL (ARTE LIMPIO EN GRANDE) -->
-          <div class="card-3d-face card-3d-front card-face" id="card-detail-card-preview">
+          <div class="card-3d-face card-3d-front" id="card-detail-card-preview">
             <span class="card-seal-icon" id="card-detail-seal-icon" style="display:none;">✨</span>
             <span class="card-value" id="card-detail-rank">A</span>
             <span class="suit" id="card-detail-suit">♠</span>

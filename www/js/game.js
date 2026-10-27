@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.3";
+  const GAME_VERSION = "v1.9.4";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.3)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.4)
      ============================================================ */
 
   const HERO_DATA = {
@@ -363,6 +363,8 @@
       const payload = JSON.stringify(data);
       const hash = _simpleHash(payload + _INTEGRITY_SALT);
       localStorage.setItem(key, JSON.stringify({ d: payload, h: hash, v: 2 }));
+      // Respaldo de emergencia en texto plano para garantizar persistencia indestructible
+      localStorage.setItem(`${key}_raw_backup`, payload);
     } catch (e) {
       _storageBroken = true;
       _memoryStorageFallback[key] = data;
@@ -374,13 +376,18 @@
     try {
       const raw = localStorage.getItem(key);
       if (!raw) {
+        const backupRaw = localStorage.getItem(`${key}_raw_backup`);
+        if (backupRaw) {
+          try { return JSON.parse(backupRaw); } catch (_) {}
+        }
         if (_storageBroken && key in _memoryStorageFallback) return _memoryStorageFallback[key];
         return fallback;
       }
-      const parsed = JSON.parse(raw);
+      let parsed = null;
+      try { parsed = JSON.parse(raw); } catch (_) { parsed = null; }
+      if (!parsed) return fallback;
       // Soporte legado: datos guardados sin hash (versión 1)
       if (!parsed.v || parsed.v < 2) {
-        // Migrar dato legado: re-guardar con hash
         const legacyData = parsed;
         _saveSecure(key, legacyData);
         return legacyData;
@@ -388,13 +395,30 @@
       // Validar hash
       const expectedHash = _simpleHash(parsed.d + _INTEGRITY_SALT);
       if (parsed.h !== expectedHash) {
-        console.warn(`⚠️ [ANTI-CHEAT] Dato corrupto o editado manualmente detectado en '${key}'. Reseteando.`);
-        localStorage.removeItem(key);
-        delete _memoryStorageFallback[key];
+        console.warn(`⚠️ [ANTI-CHEAT] Hash discordante en '${key}'. Recuperando datos protegidos.`);
+        try {
+          if (parsed.d) {
+            const recovered = JSON.parse(parsed.d);
+            _saveSecure(key, recovered);
+            return recovered;
+          }
+        } catch (_) {}
+        const backupRaw = localStorage.getItem(`${key}_raw_backup`);
+        if (backupRaw) {
+          try {
+            const recBackup = JSON.parse(backupRaw);
+            _saveSecure(key, recBackup);
+            return recBackup;
+          } catch (_) {}
+        }
         return fallback;
       }
-      return JSON.parse(parsed.d);
+      try { return JSON.parse(parsed.d); } catch (_) { return fallback; }
     } catch (e) {
+      const backupRaw = localStorage.getItem(`${key}_raw_backup`);
+      if (backupRaw) {
+        try { return JSON.parse(backupRaw); } catch (_) {}
+      }
       if (_storageBroken && key in _memoryStorageFallback) return _memoryStorageFallback[key];
       return fallback;
     }
@@ -502,9 +526,17 @@
       h.basePwr = _clamp(Math.floor(h.basePwr), 0, 999);
       h.baseDef = _clamp(Math.floor(h.baseDef), 0, 999);
     }
-    h.level = p.level || 1;
+    // GUARDIA ROGUELIKE INMUTABLE: NUNCA DEGRADAR NIVEL NI EXP PERMANENTE
+    const prevLevel = h.level || h.masteryLevel || 1;
+    const candidateLevel = p.level || 1;
+    h.level = Math.max(prevLevel, candidateLevel);
     h.masteryLevel = h.level;
-    h.exp = Math.max(0, Math.floor(p.exp || 0));
+    if (candidateLevel > prevLevel) {
+      h.exp = Math.max(0, Math.floor(p.exp || 0));
+    } else if (candidateLevel === prevLevel) {
+      h.exp = Math.max(h.exp || 0, Math.floor(p.exp || 0));
+    }
+    h.totalExp = Math.max(h.totalExp || 0, p.totalPermanentExp || 0);
     saveHeroMeta(meta);
     return h;
   }
@@ -3735,7 +3767,39 @@
   }
 
   function saveHeroMeta(meta) {
+    if (!meta || typeof meta !== "object") return;
     try {
+      // GUARDIA ROGUELIKE INMUTABLE: Nunca degradar nivel, EXP, estadísticas ni talentos permanentes
+      const existing = _loadSecure(HERO_META_KEY, null);
+      if (existing && typeof existing === "object") {
+        ["knight", "rogue", "monk", "necromancer"].forEach(hk => {
+          if (existing[hk] && meta[hk]) {
+            const oldH = existing[hk];
+            const newH = meta[hk];
+            const prevLvl = oldH.level || oldH.masteryLevel || 1;
+            const candLvl = newH.level || newH.masteryLevel || 1;
+            newH.level = Math.max(prevLvl, candLvl);
+            newH.masteryLevel = newH.level;
+            newH.totalExp = Math.max(oldH.totalExp || 0, newH.totalExp || 0);
+            if (newH.level === prevLvl && typeof oldH.exp === "number") {
+              newH.exp = Math.max(oldH.exp, newH.exp || 0);
+            }
+            if (typeof oldH.baseMaxHp === "number" && oldH.baseMaxHp > (newH.baseMaxHp || 0)) {
+              newH.baseMaxHp = oldH.baseMaxHp;
+            }
+            if (typeof oldH.basePwr === "number" && oldH.basePwr > (newH.basePwr || 0)) {
+              newH.basePwr = oldH.basePwr;
+            }
+            if (typeof oldH.baseDef === "number" && oldH.baseDef > (newH.baseDef || 0)) {
+              newH.baseDef = oldH.baseDef;
+            }
+            newH.runs = Math.max(oldH.runs || 0, newH.runs || 0);
+            newH.wins = Math.max(oldH.wins || 0, newH.wins || 0);
+            newH.legacyPoints = Math.max(oldH.legacyPoints || 0, newH.legacyPoints || 0);
+            newH.prestigeTrophies = Math.max(oldH.prestigeTrophies || 0, newH.prestigeTrophies || 0);
+          }
+        });
+      }
       _saveSecure(HERO_META_KEY, meta);
     } catch (e) {
       console.warn("Error guardando meta-progresión:", e);
@@ -7613,6 +7677,69 @@
   }
   window.getEnemySvgFallback = getEnemySvgFallback;
 
+  function getEnemySvg(e) {
+    if (!e) return "assets/svg/enemy_goblin.svg";
+    if (e.img && typeof e.img === "string" && e.img.endsWith(".svg")) return e.img;
+    const nameNorm = String(e.name || "").toLowerCase();
+    const traitNorm = String(e.trait || "").toLowerCase();
+
+    if (nameNorm.includes("duende") || nameNorm.includes("goblin")) return "assets/svg/enemy_goblin.svg";
+    if (nameNorm.includes("alimaña") || nameNorm.includes("rata") || nameNorm.includes("rat") || traitNorm.includes("plague")) return "assets/svg/enemy_plague_rat.svg";
+    if (nameNorm.includes("esqueleto") || nameNorm.includes("skeleton") || traitNorm.includes("undead")) return "assets/svg/enemy_skeleton.svg";
+    if (nameNorm.includes("escarabajo") || nameNorm.includes("beetle") || traitNorm.includes("carapace")) return "assets/svg/enemy_sand_beetle.svg";
+    if (nameNorm.includes("orco") || nameNorm.includes("orc") || traitNorm.includes("fury")) return "assets/svg/enemy_orc.svg";
+    if (nameNorm.includes("gárgola") || nameNorm.includes("gargoyle") || nameNorm.includes("murciélago") || nameNorm.includes("bat") || traitNorm.includes("stone")) return "assets/svg/enemy_gargoyle.svg";
+    if (nameNorm.includes("víbora") || nameNorm.includes("viper") || nameNorm.includes("serpiente") || traitNorm.includes("venom")) return "assets/svg/enemy_viper.svg";
+    if (nameNorm.includes("sombras") || nameNorm.includes("shadow") || nameNorm.includes("fantasma") || nameNorm.includes("ghost") || traitNorm.includes("stealth")) return "assets/svg/enemy_shadowbeast.svg";
+    if (nameNorm.includes("centurión") || nameNorm.includes("centurion") || nameNorm.includes("ballestero") || traitNorm.includes("disciplined")) return "assets/svg/enemy_centurion.svg";
+    if (nameNorm.includes("obsidiana") || nameNorm.includes("obsidian") || nameNorm.includes("coloso") || nameNorm.includes("guardián") || traitNorm.includes("thorns")) return "assets/svg/enemy_obsidian.svg";
+    if (nameNorm.includes("escarcha") || nameNorm.includes("frost") || nameNorm.includes("asesino") || traitNorm.includes("frost")) return "assets/svg/enemy_frost_assassin.svg";
+    if (nameNorm.includes("astral") || nameNorm.includes("heraldo")) return "assets/svg/enemy_astral_herald.svg";
+    if (nameNorm.includes("tiempo") || nameNorm.includes("cronos") || nameNorm.includes("specter")) return "assets/svg/enemy_chronos_specter.svg";
+    if (nameNorm.includes("vacío") || nameNorm.includes("titán") || nameNorm.includes("titan") || nameNorm.includes("gólem") || nameNorm.includes("golem")) return "assets/svg/enemy_void_titan.svg";
+    if (nameNorm.includes("caos") || nameNorm.includes("quimera") || nameNorm.includes("chimera")) return "assets/svg/enemy_chaos_chimera.svg";
+    if (nameNorm.includes("dragón") || nameNorm.includes("dragon")) return "assets/svg/enemy_dragon.svg";
+    if (nameNorm.includes("dante")) return "assets/svg/enemy_dante_spades.svg";
+    if (nameNorm.includes("valquiria") || nameNorm.includes("valkyrie")) return "assets/svg/enemy_valkyrie_diamonds.svg";
+    if (nameNorm.includes("archimago") || nameNorm.includes("archmage")) return "assets/svg/enemy_archmage_clubs.svg";
+    if (nameNorm.includes("malfas") || nameNorm.includes("vampir") || nameNorm.includes("vampiro")) return "assets/svg/enemy_necro_void.svg";
+    if (nameNorm.includes("mandinga")) return "assets/svg/enemy_mandinga.svg";
+    if (nameNorm.includes("black")) return "assets/svg/enemy_black.svg";
+    if (nameNorm.includes("cultista")) return "assets/svg/enemy_obsidian.svg";
+
+    return getEnemySvgFallback(e.id || getEnemyCosmeticId(e.name));
+  }
+  window.getEnemySvg = getEnemySvg;
+
+  function renderFighterSprites() {
+    const p = (typeof gameState !== "undefined") ? gameState.player : null;
+    const e = (typeof gameState !== "undefined") ? gameState.enemy : null;
+    if (p) {
+      const pSpriteIcon = document.getElementById("player-sprite-icon");
+      if (pSpriteIcon) {
+        const heroSvg = p.sprite || (typeof getCurrentSkinSvg === "function" ? getCurrentSkinSvg(p.class, p.equippedSkinId) : null) || "assets/svg/knight_idle.svg";
+        const currentImg = (typeof pSpriteIcon.querySelector === "function") ? pSpriteIcon.querySelector("img") : null;
+        if (!currentImg || (typeof currentImg.getAttribute === "function" && currentImg.getAttribute("src") !== heroSvg) || (!String(pSpriteIcon.innerHTML || "").includes("<img"))) {
+          pSpriteIcon.innerHTML = `<img src="${heroSvg}" class="sprite-img player-sprite-img" alt="${p.name || 'Héroe'}">`;
+        }
+      }
+    }
+    if (e && e.name) {
+      const eSpriteEl = document.getElementById("enemy-sprite");
+      if (eSpriteEl) {
+        const svgSrc = e.img || (typeof getEnemySvg === "function" ? getEnemySvg(e) : "assets/svg/enemy_goblin.svg");
+        const currentImg = (typeof eSpriteEl.querySelector === "function") ? eSpriteEl.querySelector("img") : null;
+        if (!currentImg || (typeof currentImg.getAttribute === "function" && currentImg.getAttribute("src") !== svgSrc) || (!String(eSpriteEl.innerHTML || "").includes("<img"))) {
+          eSpriteEl.innerHTML = `<img src="${svgSrc}" class="sprite-img enemy-sprite-img" alt="${e.name}" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='assets/svg/enemy_goblin.svg';}">`;
+        }
+        if (eSpriteEl.classList && typeof eSpriteEl.classList.contains === "function" && !eSpriteEl.classList.contains("enemy-avatar")) {
+          eSpriteEl.classList.add("enemy-avatar");
+        }
+      }
+    }
+  }
+  window.renderFighterSprites = renderFighterSprites;
+
   function getCosmeticDeckBindings(heroKey) {
     const hKey = (typeof getTargetHeroKey === "function") ? getTargetHeroKey(heroKey) : (heroKey || "knight");
     try {
@@ -8170,6 +8297,7 @@
      PERSISTENCIA MÓVIL: GUARDADO ANTI-INTERRUPCIONES
      ============================================================ */
   const MID_RUN_STORAGE_KEY = "blackjack_active_run_v1";
+  const TORRE21_ACTIVE_RUN_KEY = "torre21_active_run_state";
 
   function saveMidRunState() {
     if (!gameState.player || gameState.player.hp <= 0) return;
@@ -8179,9 +8307,15 @@
     const maxFloors = (typeof getMaxFloorsForDifficulty === "function") ? getMaxFloorsForDifficulty() : 13;
     if (gameState.floor > maxFloors) return;
 
+    if (gameState.enemy) {
+      if (!gameState.enemy.img || !gameState.enemy.img.endsWith(".svg")) {
+        gameState.enemy.img = getEnemySvg(gameState.enemy);
+      }
+    }
+
     try {
       const stateToSave = {
-        version: 2,
+        version: 3,
         floor: gameState.floor,
         enemyFloor: gameState.enemyFloor || gameState.floor,
         gold: gameState.gold,
@@ -8200,6 +8334,7 @@
         phase: gameState.phase,
         savedAt: Date.now()
       };
+      localStorage.setItem(TORRE21_ACTIVE_RUN_KEY, JSON.stringify(stateToSave));
       localStorage.setItem(MID_RUN_STORAGE_KEY, JSON.stringify(stateToSave));
     } catch (e) {
       console.warn("Error guardando estado de partida activa:", e);
@@ -8208,6 +8343,7 @@
 
   function clearMidRunState() {
     try {
+      localStorage.removeItem(TORRE21_ACTIVE_RUN_KEY);
       localStorage.removeItem(MID_RUN_STORAGE_KEY);
     } catch (e) {}
     checkResumeRunButton();
@@ -8217,7 +8353,7 @@
     const container = document.getElementById("container-resume-run");
     if (!container) return;
     try {
-      const raw = localStorage.getItem(MID_RUN_STORAGE_KEY);
+      const raw = localStorage.getItem(TORRE21_ACTIVE_RUN_KEY) || localStorage.getItem(MID_RUN_STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
         if (saved && saved.player && saved.player.hp > 0 && saved.floor >= 1) {
@@ -8238,6 +8374,9 @@
   function renderEnemyIdentity() {
     const e = gameState.enemy;
     if (!e || !e.name) return;
+    if (!e.img || !e.img.endsWith(".svg")) {
+      e.img = getEnemySvg(e);
+    }
     const nameTag = document.getElementById("enemy-name-tag");
     if (nameTag) nameTag.innerText = e.name.toUpperCase();
     const traitTag = document.getElementById("enemy-trait-tag");
@@ -8249,11 +8388,8 @@
     }
     const sprite = document.getElementById("enemy-sprite");
     if (sprite) {
-      if (e.img) {
-        sprite.innerHTML = `<img src="${e.img}" class="sprite-img" alt="${e.name}" onerror="this.outerHTML='${e.sprite}'">`;
-      } else {
-        sprite.innerText = e.sprite || "👺";
-      }
+      const svgSrc = e.img || getEnemySvg(e);
+      sprite.innerHTML = `<img src="${svgSrc}" class="sprite-img enemy-sprite-img" alt="${e.name}" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='assets/svg/enemy_goblin.svg';}">`;
       sprite.className = "sprite enemy-avatar";
     }
   }
@@ -8261,7 +8397,7 @@
   function resumeSavedRun() {
     let saved = null;
     try {
-      saved = JSON.parse(localStorage.getItem(MID_RUN_STORAGE_KEY) || "null");
+      saved = JSON.parse(localStorage.getItem(TORRE21_ACTIVE_RUN_KEY) || localStorage.getItem(MID_RUN_STORAGE_KEY) || "null");
     } catch (_) { saved = null; }
     if (!saved || !saved.player) {
       checkResumeRunButton();
@@ -8363,6 +8499,31 @@
      ============================================================ */
   function startGame(heroKey = "knight", bypassPendingCheck = false, customStartFloor = null, customChapter = null) {
     if (!bypassPendingCheck) {
+      // 1. Detección de partida en curso: evitar sobreescribir accidentalmente la run activa
+      let savedRun = null;
+      try {
+        const rawRun = localStorage.getItem("torre21_active_run_state") || localStorage.getItem(MID_RUN_STORAGE_KEY);
+        if (rawRun) savedRun = JSON.parse(rawRun);
+      } catch (_) {}
+      if (savedRun && savedRun.player && savedRun.player.hp > 0 && savedRun.floor >= 1) {
+        const heroName = String(savedRun.player.name || "Héroe").replace(/^jack\s+/i, "");
+        if (typeof showGameConfirm === "function") {
+          showGameConfirm({
+            title: "⚠️ PARTIDA EN CURSO DETECTADA",
+            message: `Tienes una ascensión activa con ${heroName} en el Piso ${savedRun.floor} (${savedRun.player.hp}/${savedRun.player.maxHp} HP).\n\n¿Deseas reanudar tu partida o iniciar una nueva run sobreescribiéndola?`,
+            onConfirm: () => {
+              resumeSavedRun();
+            },
+            onCancel: () => {
+              startGame(heroKey, true, customStartFloor, customChapter);
+            },
+            okLabel: "▶ REANUDAR RUN",
+            cancelLabel: "INICIAR NUEVA (SOBREESCRIBIR)"
+          });
+          return;
+        }
+      }
+
       let hasPendingReward = false;
       try {
         hasPendingReward = Boolean(localStorage.getItem("bj_pending_tower_victory_reward"));
@@ -8397,7 +8558,7 @@
     heroMeta.runs = (heroMeta.runs || 0) + 1;
     saveHeroMeta(meta);
 
-    const heroLevel = heroMeta.level || heroMeta.masteryLevel || 1;
+    const heroLevel = Math.max(heroMeta.level || 1, heroMeta.masteryLevel || 1, 1);
     const masteryBonuses = getMasteryBonuses(heroLevel);
 
     gameState.diff = (typeof getGameDifficulty === "function") ? getGameDifficulty() : "normal";
@@ -8435,7 +8596,6 @@
     const legPwr = (heroMeta.legacyPwr || 0) * 1;
     const legDef = (heroMeta.legacyDef || 0) * 1;
     // SPRINT 1: NIVEL PERMANENTE REAL — el héroe arranca con su nivel, EXP y stats acumulados.
-    // Las Estadísticas Base ya incluyen el crecimiento de clase + bono de maestría inicial (sembrado en migración).
     p.level = heroLevel;
     p.exp = heroMeta.exp || 0;
     p.nextLevelExp = getExpRequiredForLevel(p.level);
@@ -8455,6 +8615,10 @@
     p.starterBlessing = null;
     p.blessing = null;
     p.activeBlessing = null;
+    // HABILIDAD DE COMBATE: Bloqueada al inicio de run hasta despertarla en la Forja
+    p.activeSkill = null;
+    p.skillUnlocked = false;
+    p.skillCooldown = 0;
     p.artifacts = [];
     p.cardEnchantments = {};
     p.sacrificialPacts = [];
@@ -8916,6 +9080,7 @@
 
     const skillBtn = document.getElementById("btn-hero-skill");
     if (skillBtn && p) {
+      const isUnlocked = !!(p.skillUnlocked && p.activeSkill);
       const activeSkillId = p.activeSkill || "immortal_bulwark";
       const skill = HERO_SKILLS[activeSkillId] || HERO_SKILLS.immortal_bulwark;
       const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
@@ -8925,25 +9090,49 @@
       const skillLabelEl = document.getElementById("hero-skill-label");
       const skillStatusEl = document.getElementById("hero-skill-status");
 
-      if (skillIconEl) skillIconEl.innerText = skill.icon || "⚡";
-      if (skillLabelEl) {
-        const fullTitle = isEn ? (skill.nameEn || skill.name) : skill.name;
-        const parts = fullTitle.split(" ");
-        const shortName = parts.length > 1 ? parts.slice(1).join(" ") : fullTitle;
-        skillLabelEl.innerText = shortName.toUpperCase();
-      }
-      if (skillStatusEl) {
-        if (cd <= 0) {
-          skillStatusEl.innerText = isEn ? "READY ⚡" : "LISTA ⚡";
-          skillStatusEl.className = "skill-status-pill ready";
-        } else {
-          skillStatusEl.innerText = isEn ? `⏳ ${cd} hands` : `⏳ ${cd} manos`;
-          skillStatusEl.className = "skill-status-pill cooldown";
+      if (!isUnlocked) {
+        if (skillIconEl) skillIconEl.innerText = "🔒";
+        if (skillLabelEl) skillLabelEl.innerText = isEn ? "LOCKED SKILL" : "HABILIDAD BLOQUEADA";
+        if (skillStatusEl) {
+          skillStatusEl.innerText = isEn ? "200🪙 FORGE" : "200🪙 FORJA";
+          skillStatusEl.className = "skill-status-pill locked";
         }
+        skillBtn.classList.add("skill-btn-locked");
+        skillBtn.disabled = false;
+      } else {
+        skillBtn.classList.remove("skill-btn-locked");
+        if (skillIconEl) skillIconEl.innerText = skill.icon || "⚡";
+        if (skillLabelEl) {
+          const fullTitle = isEn ? (skill.nameEn || skill.name) : skill.name;
+          const parts = fullTitle.split(" ");
+          const shortName = parts.length > 1 ? parts.slice(1).join(" ") : fullTitle;
+          skillLabelEl.innerText = shortName.toUpperCase();
+        }
+        if (skillStatusEl) {
+          if (cd <= 0) {
+            skillStatusEl.innerText = isEn ? "READY ⚡" : "LISTA ⚡";
+            skillStatusEl.className = "skill-status-pill ready";
+          } else {
+            skillStatusEl.innerText = isEn ? `⏳ ${cd} hands` : `⏳ ${cd} manos`;
+            skillStatusEl.className = "skill-status-pill cooldown";
+          }
+        }
+        const isSkillBlocked = gameState.isRolling || p.bust || p.stand || cd > 0 || p.skillUsedInHand;
+        skillBtn.disabled = !!isSkillBlocked;
       }
 
-      const isSkillBlocked = gameState.isRolling || p.bust || p.stand || cd > 0 || p.skillUsedInHand;
-      skillBtn.disabled = !!isSkillBlocked;
+      // Etiqueta bajo el héroe en batalla
+      const heroTag = document.getElementById("player-hero-tag");
+      if (heroTag) {
+        if (isUnlocked) {
+          heroTag.innerText = `⚡ ${(skill.name || 'HABILIDAD').toUpperCase()}`;
+          heroTag.title = skill.desc || "Habilidad de combate activa";
+        } else {
+          const heroCfg = (typeof HERO_DATA !== "undefined" && HERO_DATA[p.class]) ? HERO_DATA[p.class] : (HERO_DATA.knight || {});
+          heroTag.innerText = `★ ${(heroCfg.traitShort || heroCfg.trait || 'HÉROE').toUpperCase()}`;
+          heroTag.title = heroCfg.traitName || "Poder especial dormido — Despiértalo en la Forja";
+        }
+      }
     }
   }
 
@@ -8952,6 +9141,15 @@
     const p = gameState.player;
     const e = gameState.enemy;
     if (!p || !e) return;
+
+    // Si la habilidad aún está bloqueada, mensaje sutil y persuasivo
+    if (!p.skillUnlocked || !p.activeSkill) {
+      if (typeof showGameToast === "function") {
+        showGameToast("🔒 Tu poder especial aún aguarda dormido... Reúne 200 monedas de oro y visita la Forja en el Bazar para despertar una Habilidad de Combate.", "info", 4500);
+      }
+      return;
+    }
+
     if (p.bust || p.stand) {
       if (typeof showGameToast === "function") showGameToast("No puedes activar habilidades tras plantarte o bust.", "warning");
       return;
@@ -11840,8 +12038,11 @@
   }
   window.sanitizePlayerArtifacts = sanitizePlayerArtifacts;
 
-  function getMaxArtifactSlots() {
-    return MAX_ARTIFACTS; // 5 ranuras fijas y unificadas en toda la ascensión
+  function getMaxArtifactSlots(player) {
+    const p = player || (typeof gameState !== "undefined" ? gameState.player : null);
+    const lvl = (p && typeof p.level === "number" && p.level >= 1) ? p.level : 1;
+    // Modelo de Artefactos Escalado por Nivel: Nvl 1 = 1, Nvl 2 = 2, Nvl 3 = 3, Nvl 4 = 4, Nvl 5+ = 5
+    return Math.max(1, Math.min(5, lvl));
   }
   window.getMaxArtifactSlots = getMaxArtifactSlots;
 
@@ -12575,6 +12776,22 @@
           rarityLabel: rConf.label
         });
       }
+    } else if (packType === "skills") {
+      const allSkills = Object.values(HERO_SKILLS);
+      const shuffled = [...allSkills].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3);
+      for (const sk of selected) {
+        items.push({
+          type: "skill",
+          id: sk.id,
+          name: sk.name,
+          icon: sk.icon || "⚡",
+          desc: sk.desc,
+          rarity: "legendary",
+          rarityLabel: "HABILIDAD",
+          cooldownMax: sk.cooldownMax || 3
+        });
+      }
     } else if (packType === "arcane_group") {
       // SPRINT 3 + TAHÚR: Forja Arquetípica de Lote (3 arquetipos, eliges 1 para todo el grupo)
       const archetypes = generateArchetypeBlessings(lvl, fl, forceEpicPity);
@@ -12784,7 +13001,8 @@
 
     const shopDiscount = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 0.8 : 1.0;
     let baseCost = 40;
-    if (packType === "arcane") baseCost = Math.round(55 * shopDiscount);
+    if (packType === "skills") baseCost = 200;
+    else if (packType === "arcane") baseCost = Math.round(55 * shopDiscount);
     else if (packType === "artifacts") baseCost = Math.round(40 * shopDiscount);
     else if (packType === "accessories") baseCost = Math.round(40 * shopDiscount);
 
@@ -12845,6 +13063,12 @@
       if (foilTitle) foilTitle.innerText = "FORJA ARQUETÍPICA DE LOTE";
       if (foilSub) foilSub.innerText = "3 BENDICIONES DE GRUPO • ELIGE 1";
       if (packInstructions) packInstructions.innerText = "✨ Elige 1 Bendición Arquetípica: ¡encantará a TODO el grupo de cartas!";
+    } else if (packType === "skills") {
+      if (badgeEl) badgeEl.innerText = "⚡ FORJA • SOBRE DE HABILIDADES";
+      if (foilArt) foilArt.innerText = "⚡📜";
+      if (foilTitle) foilTitle.innerText = "SOBRE DE HABILIDADES DE COMBATE";
+      if (foilSub) foilSub.innerText = "CONTIENE 3 HABILIDADES • ELIGE 1";
+      if (packInstructions) packInstructions.innerText = "✨ Elige 1 Habilidad de Combate para equipar en tu héroe:";
     } else {
       if (badgeEl) badgeEl.innerText = isFree ? "✨ FORJA • SOBRE GRATUITO" : "📦 SOBRE DE SELLOS ARCANOS";
       if (foilArt) foilArt.innerText = "✨";
@@ -12962,7 +13186,25 @@
     const p = gameState.player;
     if (!p) return;
 
-    if (currentActivePack.packType === "artifacts") {
+    if (currentActivePack.packType === "skills") {
+      p.activeSkill = chosen.id;
+      p.skillUnlocked = true;
+      p.skillCooldown = 0;
+      p.skillUsedInHand = false;
+      playEnchantChimeSound();
+      triggerHaptic("blackjack");
+      spawnFloatingText("stage", `⚡ ¡${chosen.name}!`, "heal");
+      addLog(`⚡ ¡FORJA DE HABILIDADES: Despertaste [${chosen.name}]! Habilidad de combate lista para la batalla.`, "critical");
+      closePackOpeningModal();
+      saveMidRunState();
+      updateHud();
+      if (typeof updateCombatState === "function") updateCombatState();
+      if (isPostCombat) {
+        showChronicleModal();
+      } else {
+        showShopModal();
+      }
+    } else if (currentActivePack.packType === "artifacts") {
       if (!p.artifacts) p.artifacts = [];
       const maxSlots = getMaxArtifactSlots();
       if (p.artifacts.length >= maxSlots) {
@@ -13707,31 +13949,6 @@
           }
         </div>
       </div>
-
-      <!-- PERGAMINO DE HABILIDAD: DEVASTACIÓN DEL CAMPEÓN -->
-      <div class="shop-card ${gameState.gold >= 60 ? 'affordable' : 'unaffordable'}" style="border: 2px solid #f97316; background: radial-gradient(circle at 10% 10%, rgba(249,115,22,0.15), rgba(13,18,28,0.95));">
-        <div class="shop-card-left">
-          <div class="shop-item-icon-box skill" style="border-color:#f97316; font-size:24px;">🔥📜</div>
-          <div class="shop-item-details">
-            <div class="shop-item-badge tactic" style="background:rgba(249,115,22,0.2); color:#f97316; border-color:#f97316;">HABILIDAD DE COMBATE</div>
-            <div class="shop-item-name" style="color:#fdba74;">Pergamino: Devastación del Campeón</div>
-            <div class="shop-item-desc">Aprende esta habilidad activa legendaria (recarga 4 manos): Duplica tu Ataque Base e inflige 3 Quemadura y 3 Veneno al rival.</div>
-            <div class="shop-item-stock">Habilidad actual: <b style="color:#6ee7b7;">${(HERO_SKILLS[p.activeSkill] || {}).name || p.activeSkill}</b></div>
-          </div>
-        </div>
-        <div class="shop-card-right">
-          ${gameState.gold >= 60
-            ? `<button class="shop-action-btn buy" style="border-color:#f97316; color:#fdba74;" onclick="buyHeroSkill('champion_devastation', 60)">
-                 <span class="shop-btn-price">🪙 60 ORO</span>
-                 <span class="shop-btn-action">APRENDER</span>
-               </button>`
-            : `<button class="shop-action-btn locked" disabled>
-                 <span class="shop-btn-price">🪙 60 ORO</span>
-                 <span class="shop-btn-action">FALTAN ${60 - gameState.gold} 🪙</span>
-               </button>`
-          }
-        </div>
-      </div>
     `;
 
     const cleanArts = sanitizePlayerArtifacts(p);
@@ -13977,78 +14194,59 @@
       </div>
     `;
 
-    // TAB 4: YUNQUE DE CARTAS (SOBRE MISTERIOSO ROGUELIKE DE MEJORA PASIVA)
-    const heroClass = (p && p.class) ? p.class : "knight";
-    const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : {};
-    const heroMeta = meta[heroClass] || { totalExp: 0, masteryLevel: 1 };
-    const mLevel = heroMeta.level || heroMeta.masteryLevel || (p && p.masteryLevel) || 1;
-    const ownedUpgrades = (p.cardUpgrades || []).map(id => CARD_UPGRADES.find(c => c.id === id)).filter(Boolean);
-    const unownedCandidates = CARD_UPGRADES.filter(cu => !hasCardUpgrade(cu.id));
+    // TAB 4: FORJA DE HABILIDADES DE COMBATE (EXCLUSIVA POR 200 MONEDAS DE ORO)
+    const skillPackPrice = 200;
+    const canBuySkillPack = gameState.gold >= skillPackPrice;
+    const isSkillUnlocked = !!(p.skillUnlocked && p.activeSkill);
+    const currentHeroSkill = (isSkillUnlocked && HERO_SKILLS[p.activeSkill]) ? HERO_SKILLS[p.activeSkill] : null;
 
-    const forgePackPrice = 50;
-    const canBuyForgePack = gameState.gold >= forgePackPrice && unownedCandidates.length > 0;
-    let forgeOffersHtml = "";
-    if (unownedCandidates.length > 0) {
-      forgeOffersHtml = `
-        <div class="shop-card ${canBuyForgePack ? 'affordable' : 'unaffordable'}" style="border: 2px solid #66fcf1; background: radial-gradient(circle at 10% 10%, rgba(102,252,241,0.15), rgba(13,18,28,0.95)); margin-bottom:8px;">
+    const forgeTabHtml = `
+      <div style="text-align:left;">
+        <div style="font-family:var(--font-pixel);font-size: 10px;color:#ffd166;margin-bottom:10px;border-bottom:1px solid rgba(255,209,102,0.3);padding-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+          <span>🔨 FORJA ANCESTRAL: HABILIDADES DE COMBATE</span>
+          <span style="color:#66fcf1;font-size: 9px;">🪙 ${gameState.gold} ORO</span>
+        </div>
+
+        <!-- SOBRE DE HABILIDADES DE COMBATE (200 ORO • REVELA 3 Y ELIGE 1) -->
+        <div class="shop-card ${canBuySkillPack ? 'affordable' : 'unaffordable'}" style="border: 2px solid #ffd166; background: radial-gradient(circle at 10% 10%, rgba(255,209,102,0.18), rgba(13,18,28,0.98)); margin-bottom:12px;">
           <div class="shop-card-left">
-            <div class="shop-item-icon-box card-forge" style="border-color:#66fcf1;font-size:28px;">🔨</div>
+            <div class="shop-item-icon-box card-forge" style="border-color:#ffd166;font-size:32px;">⚡📜</div>
             <div class="shop-item-details">
-              <div class="shop-item-badge" style="display:flex;gap:4px;align-items:center;background:rgba(102,252,241,0.2);color:#66fcf1;border-color:#66fcf1;">
-                <span class="card-tier-badge rare">FORJA ROGUELIKE</span>
-                <span>SOBRE DE MEJORA PASIVA</span>
+              <div class="shop-item-badge" style="display:flex;gap:4px;align-items:center;background:rgba(255,209,102,0.25);color:#ffd166;border-color:#ffd166;">
+                <span class="card-tier-badge legendary">PODER HEROICO</span>
+                <span>3 HABILIDADES • ELIGE 1</span>
               </div>
-              <div class="shop-item-name" style="color:#66fcf1;">Sobre del Yunque Ancestral</div>
-              <div class="shop-item-desc">Abre este sobre de forja roguelike para extraer 1 mejora pasiva al azar para tu baraja de entre ${unownedCandidates.length} mejoras disponibles.</div>
-              <div class="shop-item-stock" style="color:#ffd166;">🎲 Azar puro: forja pasivos de gran impacto durante la run</div>
+              <div class="shop-item-name" style="color:#ffd166;font-size:12px;">Sobre de Habilidades de Combate</div>
+              <div class="shop-item-desc">Despierta el poder definitivo de tu héroe forjando un pacto arcano. Abre este sobre especial para revelar <b>3 Habilidades de Combate al azar</b> y equipar la que mejor se adapte a tu estrategia para el resto de la ascensión.</div>
+              <div class="shop-item-stock" style="color:#66fcf1;margin-top:4px;">
+                ${currentHeroSkill 
+                  ? `⚡ Habilidad activa: <b style="color:#ffd166;">${currentHeroSkill.icon || '⚡'} ${currentHeroSkill.name}</b>`
+                  : `🔒 Habilidad dormida: Despiértala con 200 🪙 en este sobre`}
+              </div>
             </div>
           </div>
           <div class="shop-card-right">
-            ${canBuyForgePack 
-              ? `<button class="shop-action-btn buy gold-relic" onclick="buyForgeBoosterPack()">
-                   <span class="shop-btn-price">🪙 ${forgePackPrice} ORO</span>
-                   <span class="shop-btn-action">FORJAR AL AZAR</span>
+            ${canBuySkillPack 
+              ? `<button class="shop-action-btn buy gold-relic" onclick="openBoosterPackBySource('skills')">
+                   <span class="shop-btn-price">🪙 200 ORO</span>
+                   <span class="shop-btn-action">FORJAR PODER</span>
                  </button>`
               : `<button class="shop-action-btn locked" disabled>
-                   <span class="shop-btn-price">🪙 ${forgePackPrice} ORO</span>
-                   <span class="shop-btn-action">FALTAN ${forgePackPrice - gameState.gold} 🪙</span>
+                   <span class="shop-btn-price">🪙 200 ORO</span>
+                   <span class="shop-btn-action">FALTAN ${200 - gameState.gold} 🪙</span>
                  </button>`
             }
           </div>
         </div>
-      `;
-    } else {
-      forgeOffersHtml = `
-        <div style="font-size:9.5px;color:#2a9d8f;padding:12px;background:rgba(42,157,143,0.1);border-radius:8px;border:1px dashed #2a9d8f;text-align:center;margin-bottom:8px;">
-          ✓ ¡Has forjado todas las mejoras pasivas disponibles del Yunque para tu héroe!
-        </div>
-      `;
-    }
 
-    const forgeTabHtml = `
-      <div style="text-align:left;">
-        <div style="font-family:var(--font-pixel);font-size: 9px;color:#66fcf1;margin-bottom:8px;border-bottom:1px solid rgba(102,252,241,0.2);padding-bottom:4px;display:flex;justify-content:space-between;">
-          <span>🔨 YUNQUE ANCESTRAL: FORJA Y MEJORAS DE ASCENSIÓN</span>
-          <span style="color:#ffd166;font-size: 9px;">Maestría Nvl ${mLevel}</span>
-        </div>
-        ${forgeOffersHtml}
-        ${cryptForgeCardHtml}
-
-        <!-- LISTA DE PASIVAS DEL YUNQUE ACTIVAS EN ESTA RUN -->
-        <div style="margin-top:10px;background:rgba(0,0,0,0.35);border:1px dashed rgba(102,252,241,0.25);border-radius:8px;padding:8px 10px;">
-          <div style="font-family:var(--font-pixel);font-size: 9px;color:#66fcf1;margin-bottom:4px;">
-            🔨 PASIVAS DEL YUNQUE ACTIVAS EN TU BARAJA (${ownedUpgrades.length}):
+        <!-- ESTADO Y EXPLICACIÓN DEL PODER ESPECIAL -->
+        <div style="background:rgba(0,0,0,0.4);border:1px dashed rgba(255,209,102,0.3);border-radius:8px;padding:10px 12px;">
+          <div style="font-family:var(--font-pixel);font-size: 9px;color:#ffd166;margin-bottom:4px;">
+            ⚡ INFORMACIÓN DE COMBATE:
           </div>
-          ${ownedUpgrades.length > 0
-            ? `<div style="display:flex;flex-wrap:wrap;gap:6px;">
-                ${ownedUpgrades.map(u => `
-                  <span style="font-size: 9px;background:#0d1420;border:1px solid #2a9d8f;padding:2px 6px;border-radius:4px;color:#cbd5e1;" title="${u.desc}">
-                    ${u.icon} <b>${u.name}</b>
-                  </span>
-                `).join("")}
-              </div>`
-            : `<span style="font-size: 9px;color:#94a3b8;">Aún no has forjado mejoras pasivas del Yunque en esta ascensión.</span>`
-          }
+          <div style="font-size:9.5px;color:#cbd5e1;line-height:1.5;">
+            Las Habilidades de Combate se activan durante tu turno de pedir cartas en la batalla contra cualquier enemigo o jefe. Cada habilidad cuenta con un enfriamiento medido en manos de Blackjack. Al adquirir una nueva habilidad en este sobre, reemplazará tu habilidad anterior si ya poseías una.
+          </div>
         </div>
       </div>
     `;
@@ -14061,10 +14259,10 @@
     const heroSealsList = Object.keys(heroSeals);
     const playerCryptCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
 
-    const costNewCard = 25;
-    const costRerollCard = 10;
-    const costNewSeal = 20;
-    const costRerollSeal = 8;
+    const costNewCard = 12;
+    const costRerollCard = 5;
+    const costNewSeal = 10;
+    const costRerollSeal = 5;
 
     const heroMarketHtml = `
       <div class="shop-hero-market-container" style="text-align:left; width:100%;">
@@ -14109,7 +14307,7 @@
                     <div style="font-size:9px; color:#94a3b8;">${c.desc || 'Efecto arcano activo'}</div>
                   </div>
                   <button onclick="rerollHeroCardEffect('${currentShopHero}', ${idx})" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #ffd166; background:rgba(255,209,102,0.15); color:#ffd166;" ${playerCryptCoins < costRerollCard ? 'disabled' : ''}>
-                    🔄 RE-ROLLEAR (${costRerollCard} 💀)
+                    🎲 EDITAR PODER AL AZAR (${costRerollCard} 💀)
                   </button>
                 </div>
               `).join("")}
@@ -14143,7 +14341,7 @@
                     <div style="font-size:9px; color:#94a3b8;">${s.desc || 'Efecto de maestría'}</div>
                   </div>
                   <button onclick="transmuteHeroSeal('${currentShopHero}', '${cid}')" style="padding:6px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer; min-height:44px; border:1px solid #2a9d8f; background:rgba(42,157,143,0.15); color:#2a9d8f;" ${playerCryptCoins < costRerollSeal ? 'disabled' : ''}>
-                    ⚗️ TRANSMUTAR (${costRerollSeal} 💀)
+                    🎲 EDITAR PODER AL AZAR (${costRerollSeal} 💀)
                   </button>
                 </div>
               `;}).join("")}
@@ -14404,7 +14602,7 @@
 
   function buyHeroTransmutedCard(heroId) {
     const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
-    const cost = 25;
+    const cost = 12;
     if (curCoins < cost) {
       spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
       return;
@@ -14448,7 +14646,7 @@
 
   function rerollHeroCardEffect(heroId, cardIndex) {
     const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
-    const cost = 10;
+    const cost = 5;
     if (curCoins < cost) {
       spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
       return;
@@ -14478,7 +14676,7 @@
 
   function buyHeroHighLevelSeal(heroId) {
     const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
-    const cost = 20;
+    const cost = 10;
     if (curCoins < cost) {
       spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
       return;
@@ -14509,7 +14707,7 @@
 
   function transmuteHeroSeal(heroId, cid) {
     const curCoins = (typeof getPlayerCryptCoins === "function") ? getPlayerCryptCoins() : parseInt(localStorage.getItem("bj_crypt_coins") || "0", 10);
-    const cost = 8;
+    const cost = 5;
     if (curCoins < cost) {
       spawnFloatingText("player-sprite", "METAMONEDAS INSUFICIENTES", "damage");
       return;
@@ -14991,9 +15189,23 @@
     const backIconEl = document.getElementById("card-detail-back-icon");
 
     const rank = data.rank || "?";
-    const suit = data.suit || "♠";
-    const isRed = (suit === "♥" || suit === "♦" || suit === "hearts" || suit === "diamonds");
-    const seal = data.seal || data.enchantment || (typeof gameState !== "undefined" && gameState.player && gameState.player.cardEnchantments && gameState.player.cardEnchantments[`${suit}_${rank}`]) || null;
+    let seal = data.seal || data.enchantment || data.sealEffect || null;
+    if (!seal) {
+      const keys = [`${suit}_${rank}`, `${rank}${suit}`, `${suit}${rank}`, `${rank}_${suit}`, data.id].filter(Boolean);
+      if (typeof gameState !== "undefined" && gameState.player && gameState.player.cardEnchantments) {
+        for (const k of keys) {
+          if (gameState.player.cardEnchantments[k]) { seal = gameState.player.cardEnchantments[k]; break; }
+        }
+      }
+      if (!seal && typeof getPersistentDeckSeals === "function") {
+        try {
+          const pSeals = getPersistentDeckSeals();
+          for (const k of keys) {
+            if (pSeals && pSeals[k]) { seal = { ...pSeals[k], isPermanent: true }; break; }
+          }
+        } catch (_) {}
+      }
+    }
 
     let suitName = "Picas";
     if (suit === "♥" || suit === "hearts") suitName = "Corazones";
@@ -16125,10 +16337,18 @@
   function getItemSpanishName(item) {
     if (!item) return "";
     if (typeof item === "object") {
+      const nm = String(item.name || "").toLowerCase();
+      const idStr = String(item.id || "").toLowerCase();
+      if (nm.includes("seer") || idStr.includes("seer") || nm.includes("vidente")) {
+        return "👁️ Ojo del Vidente (Permite atisbar la carta oculta del rival)";
+      }
       return item.name ? `${item.icon || '🔮'} ${item.name}` : (item.id || "");
     }
-    const id = String(item);
+    const id = String(item).toLowerCase();
     const dict = {
+      seer_eye: "👁️ Ojo del Vidente (Permite atisbar la carta oculta del rival)",
+      "seer eye": "👁️ Ojo del Vidente (Permite atisbar la carta oculta del rival)",
+      eye_of_the_seer: "👁️ Ojo del Vidente (Permite atisbar la carta oculta del rival)",
       mercury_band: "💫 Brazalete de Mercurio (+2 PWR, +1 DEF)",
       ruby: "🔴 Rubí Ígneo (+2 daño en manos impares)",
       sapphire: "🔵 Zafiro Guardián (+5 Escudo al iniciar piso)",
@@ -16371,6 +16591,12 @@
       if (activeItemsSec) activeItemsSec.style.display = "block";
       if (activeItemsEl) {
         let itemsList = [];
+        if (p.skillUnlocked && p.activeSkill && typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[p.activeSkill]) {
+          const sk = HERO_SKILLS[p.activeSkill];
+          itemsList.push(`<div style="background:rgba(102,252,241,0.08);border:1px solid rgba(102,252,241,0.35);padding:8px;border-radius:6px;margin-bottom:8px;">⚡ <b>Habilidad de Combate:</b> <b style="color:#66fcf1;">${sk.icon || '⚡'} ${sk.name}</b> — <span style="color:#e2e8f0;">${sk.desc}</span> (Recarga: ${sk.cooldownMax || 3} manos).</div>`);
+        } else {
+          itemsList.push(`<div style="background:rgba(255,209,102,0.08);border:1px dashed rgba(255,209,102,0.4);padding:8px;border-radius:6px;margin-bottom:8px;color:#ffd166;">🔒 <b>Habilidad de Combate:</b> Bloqueada. Reúne 200 monedas de oro y visita la <b>Forja</b> en el Bazar de la Torre para despertar una Habilidad Heroica.</div>`);
+        }
         if (p.starterBlessing) {
           const b = p.starterBlessing;
           itemsList.push(`<div>✨ <b>Bendición del Destino [${b.tierLabel || ('Tier ' + b.tier)}]:</b> ${b.icon || '✨'} ${b.name} — <span style="color:#ffd166;">${b.desc}</span></div>`);
@@ -16563,6 +16789,26 @@
 
     const pClassTitle = document.getElementById("player-class-title");
     if (pClassTitle) pClassTitle.innerText = p.name ? p.name.toUpperCase().replace(/^JACK\s+/i, "") : "CABALLERO";
+
+    const pHeroTag = document.getElementById("player-hero-tag");
+    if (pHeroTag) {
+      if (p.skillUnlocked && p.activeSkill && typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[p.activeSkill]) {
+        const sk = HERO_SKILLS[p.activeSkill];
+        pHeroTag.innerText = `⚡ ${sk.name.toUpperCase()}`;
+        pHeroTag.title = `Habilidad Activa: ${sk.name} - ${sk.desc}`;
+      } else {
+        const heroClassTraits = {
+          knight: "★ BASTIÓN DE DIAMANTE",
+          rogue: "★ HOJA GEMELA SOMBRÍA",
+          monk: "★ VISIÓN ILUMINADA",
+          necromancer: "★ SEGAALMAS DE CRIPTA"
+        };
+        const hKey = p.class || "knight";
+        pHeroTag.innerText = heroClassTraits[hKey] || "★ HÉROE";
+        pHeroTag.title = "Visita la Forja en el Bazar (200🪙) para despertar una Habilidad de Combate.";
+      }
+    }
+    if (typeof renderFighterSprites === "function") renderFighterSprites();
 
     const pHpText = document.getElementById("player-hp-text");
     if (pHpText) pHpText.innerText = `${Math.max(0, p.hp)}/${p.maxHp}`;
@@ -16864,7 +17110,8 @@
     const p = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
     if (!p) return;
     const cleanArts = (typeof sanitizePlayerArtifacts === "function") ? sanitizePlayerArtifacts(p) : (p.artifacts || []);
-    const maxSlots = 5;
+    const maxSlots = (typeof getMaxArtifactSlots === "function") ? getMaxArtifactSlots(p) : Math.max(1, Math.min(5, p.level || 1));
+    const totalSlots = 5;
 
     const countEl = document.getElementById("gear-modal-art-count");
     if (countEl) countEl.innerText = `${cleanArts.length}/${maxSlots}`;
@@ -16875,35 +17122,45 @@
     const gridEl = document.getElementById("gear-modal-artifacts-grid");
     if (gridEl) {
       let html = "";
-      for (let i = 0; i < maxSlots; i++) {
-        if (i < cleanArts.length) {
-          const artId = cleanArts[i];
-          let info = null;
-          if (typeof SHOP_ARTIFACTS !== "undefined") {
-            info = SHOP_ARTIFACTS.find(a => a.id === artId);
-          }
-          if (!info && typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
-            for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
-              const found = list.find(d => d.id === artId);
-              if (found) { info = found; break; }
+      for (let i = 0; i < totalSlots; i++) {
+        const slotNum = i + 1;
+        if (slotNum <= maxSlots) {
+          if (i < cleanArts.length) {
+            const artId = cleanArts[i];
+            let info = null;
+            if (typeof SHOP_ARTIFACTS !== "undefined") {
+              info = SHOP_ARTIFACTS.find(a => a.id === artId);
             }
+            if (!info && typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+              for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
+                const found = list.find(d => d.id === artId);
+                if (found) { info = found; break; }
+              }
+            }
+            if (!info && typeof ALL_RELICS !== "undefined") {
+              info = ALL_RELICS.find(r => r.id === artId);
+            }
+            const name = info ? info.name : String(artId);
+            const icon = info ? (info.icon || "🎴") : "🎴";
+            html += `
+              <div class="gear-art-slot filled" onclick="inspectGearSlot('artifact', '${artId}')" title="${name}">
+                <span class="gear-slot-icon">${icon}</span>
+                <span class="gear-art-slot-num">${slotNum}</span>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="gear-art-slot empty" onclick="inspectGearSlot('artifact', null)" title="Ranura Libre">
+                <span class="gear-slot-icon">+</span>
+                <span class="gear-art-slot-num">${slotNum}</span>
+              </div>
+            `;
           }
-          if (!info && typeof ALL_RELICS !== "undefined") {
-            info = ALL_RELICS.find(r => r.id === artId);
-          }
-          const name = info ? info.name : String(artId);
-          const icon = info ? (info.icon || "🎴") : "🎴";
-          html += `
-            <div class="gear-art-slot filled" onclick="inspectGearSlot('artifact', '${artId}')" title="${name}">
-              <span class="gear-slot-icon">${icon}</span>
-              <span class="gear-art-slot-num">${i + 1}</span>
-            </div>
-          `;
         } else {
           html += `
-            <div class="gear-art-slot empty" onclick="inspectGearSlot('artifact', null)" title="Ranura Libre">
-              <span class="gear-slot-icon">+</span>
-              <span class="gear-art-slot-num">${i + 1}</span>
+            <div class="gear-art-slot locked" onclick="if(typeof showGameToast==='function') showGameToast('🔒 Sube a Nivel ${slotNum} para desbloquear esta ranura.', 'info')" title="Bloqueado: Requiere Nivel ${slotNum}">
+              <span class="gear-slot-icon" style="font-size:12px;opacity:0.8;">🔒</span>
+              <span class="gear-art-slot-num" style="font-size:8px;color:#ffd166;">Nvl ${slotNum}</span>
             </div>
           `;
         }
@@ -18309,6 +18566,7 @@
     updateHud();
     updateCombatState();
     updateHUDHandNumber();
+    if (typeof saveMidRunState === "function") saveMidRunState();
 
     const betInfo = (p.betAmount && p.betAmount > 0) ? ` — Apuesta: ${p.betAmount} HP` : "";
     addLog(`MANO ${p.handNumber + 1}/${TURNS_PER_FLOOR}${betInfo}`, "info");
@@ -20210,6 +20468,7 @@
     const p = gameState.player;
     const e = gameState.enemy;
     p.handNumber++;
+    if (typeof saveMidRunState === "function") saveMidRunState();
 
     if (p.handNumber >= TURNS_PER_FLOOR) {
       document.body.classList.add("sudden-death-active");
@@ -20764,7 +21023,7 @@
 
     e.name = t.name;
     e.sprite = t.sprite;
-    e.img = t.img;
+    e.img = t.img || getEnemySvg(t);
     e.trait = t.trait;
     e.traitShort = t.traitShort;
     e.traitName = t.traitName;
@@ -20781,12 +21040,9 @@
 
     const eSpriteEl = document.getElementById("enemy-sprite");
     if (eSpriteEl) {
-      if (e.img) {
-        eSpriteEl.innerHTML = `<img src="${e.img}" class="enemy-sprite-img" alt="${e.name}">`;
-      } else {
-        eSpriteEl.innerText = e.sprite;
-      }
-      eSpriteEl.className = "sprite sprite-idle-enemy";
+      const svgSrc = e.img || (typeof getEnemySvg === "function" ? getEnemySvg(e) : "assets/svg/enemy_goblin.svg");
+      eSpriteEl.innerHTML = `<img src="${svgSrc}" class="sprite-img enemy-sprite-img" alt="${e.name}" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='assets/svg/enemy_goblin.svg';}">`;
+      eSpriteEl.className = "sprite sprite-idle-enemy enemy-avatar";
     }
     const eNameEl = document.getElementById("enemy-name-tag");
     if (eNameEl) eNameEl.innerText = e.name.toUpperCase();
@@ -21097,11 +21353,8 @@
     if (typeof setEnemySpriteState === "function") setEnemySpriteState("idle");
     const sprite = document.getElementById("enemy-sprite");
     if (sprite) sprite.classList.remove("flash-kill", "sprite-dead-enemy");
-    if (e.img) {
-      sprite.innerHTML = `<img src="${e.img}" class="sprite-img" alt="${e.name}" onerror="this.outerHTML='${e.sprite}'">`;
-    } else {
-      sprite.innerText = e.sprite;
-    }
+    const svgSrc = e.img || getEnemySvg(e);
+    sprite.innerHTML = `<img src="${svgSrc}" class="sprite-img enemy-sprite-img" alt="${e.name}" onerror="if(!this.getAttribute('data-retried')){this.setAttribute('data-retried','1');this.src='assets/svg/enemy_goblin.svg';}">`;
     sprite.className = "sprite enemy-avatar";
 
     if (baseHeroShield > 0) {
@@ -21814,6 +22067,10 @@
         goldBanner.classList.add("hidden");
       }
     }
+
+    if (typeof checkResumeRunButton === "function") checkResumeRunButton();
+    if (typeof renderHeroBook === "function") renderHeroBook();
+    if (typeof renderCampaignChaptersUI === "function") renderCampaignChaptersUI();
   }
   window.startFromIntro = startFromIntro;
 
@@ -22252,11 +22509,15 @@
       closeCombatGearModal();
       closeCombatLogModal();
       applyGameLanguage();
+      if (typeof checkResumeRunButton === "function") checkResumeRunButton();
+      if (typeof renderHeroBook === "function") renderHeroBook();
     });
   } else {
     closeCombatGearModal();
     closeCombatLogModal();
     applyGameLanguage();
+    if (typeof checkResumeRunButton === "function") checkResumeRunButton();
+    if (typeof renderHeroBook === "function") renderHeroBook();
   }
 
   /* ============================================================
@@ -25700,10 +25961,69 @@
       ? gameState.deck
       : ((typeof buildStandardDeck === "function") ? buildStandardDeck() : []);
 
-    const isCardArcane = (c) => !!c.isWonCard || !!c.fusion || !!c.modifier || !!c.operator || (Array.isArray(c.dynamicValues) && c.dynamicValues.length > 0) || !!c.specialId;
+    function getCardSeal(card) {
+      if (!card) return null;
+      let seal = card.sealEffect || card.enchantment || card.seal || null;
+      const keys = [`${card.suit}_${card.rank}`, `${card.rank}${card.suit}`, `${card.suit}${card.rank}`, `${card.rank}_${card.suit}`, card.id, card.cid].filter(Boolean);
+      
+      let pSeals = {};
+      try {
+        if (typeof getPersistentDeckSeals === "function") pSeals = getPersistentDeckSeals() || {};
+      } catch (_) {}
+
+      // 1. Revisar si está grabado permanentemente en la baraja histórica del héroe
+      if (!seal) {
+        for (const k of keys) {
+          if (pSeals[k]) {
+            seal = typeof pSeals[k] === "object" ? { ...pSeals[k], isPermanent: true } : { id: pSeals[k], isPermanent: true };
+            break;
+          }
+        }
+      }
+
+      // 2. Revisar si está en la baraja activa de la run
+      const pState = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
+      if (!seal && pState && pState.cardEnchantments) {
+        for (const k of keys) {
+          if (pState.cardEnchantments[k]) {
+            const enc = pState.cardEnchantments[k];
+            const isPerm = !!(pSeals[k] || enc.isPermanent || enc.permanent);
+            seal = typeof enc === "object" ? { ...enc, isPermanent: isPerm, isRun: !isPerm } : { id: enc, isPermanent: isPerm, isRun: !isPerm };
+            break;
+          }
+        }
+      }
+
+      // 3. Revisar en meta.seals
+      if (!seal) {
+        try {
+          const meta = (typeof getHeroMeta === "function") ? getHeroMeta() : null;
+          if (meta && meta.seals) {
+            for (const k of keys) {
+              if (meta.seals[k]) {
+                const s = meta.seals[k];
+                seal = typeof s === "object" ? { ...s, isPermanent: true } : { id: s, isPermanent: true };
+                break;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (seal) {
+        // Enriquecer sello si solo viene como ID
+        if (typeof seal === "object" && seal.id && typeof SEAL_ENCHANTMENTS !== "undefined" && SEAL_ENCHANTMENTS[seal.id]) {
+          seal = { ...SEAL_ENCHANTMENTS[seal.id], ...seal };
+        }
+        return seal;
+      }
+      return null;
+    }
+
+    const isCardArcane = (c) => !!c.isWonCard || !!c.fusion || !!c.modifier || !!c.operator || (Array.isArray(c.dynamicValues) && c.dynamicValues.length > 0) || !!c.specialId || !!getCardSeal(c);
     const arcaneCount = deck.filter(isCardArcane).length;
     if (summary) {
-      summary.innerHTML = `Baraja Activa: <b>${deck.length} Cartas</b> • <b>${arcaneCount} Naipes Arcanos de Jefe</b>`;
+      summary.innerHTML = `Baraja Activa: <b>${deck.length} Cartas</b> • <b>${arcaneCount} Arcanas y Selladas</b>`;
     }
 
     let filtered = deck;
@@ -25727,11 +26047,18 @@
     window._currentDeckViewerCards = filtered;
 
     grid.innerHTML = filtered.map((card, idx) => {
+      const seal = getCardSeal(card);
+      const hasSeal = !!seal;
       const arcane = isCardArcane(card);
       const isRed = (card.suit === "♥" || card.suit === "♦" || card.suit === "hearts" || card.suit === "diamonds");
       const colorClass = isRed ? "card-red" : "card-black";
       const arcaneClass = arcane ? "card-transmuted-arcane card-holographic" : "";
+      const sealClass = hasSeal ? "card-has-seal" : "";
       const badge = arcane ? '<span class="card-loot-badge arcane-sigil" title="Naipe Arcano">✦</span>' : '';
+
+      const sealTypeLabel = seal ? (seal.isPermanent || seal.permanent ? "♾️ Perm" : "⏳ Run") : "";
+      const sealIcon = seal ? (seal.icon || "🔮") : "";
+      const sealBadge = hasSeal ? `<div class="deck-card-seal-icon" title="Sello Activo (${sealTypeLabel})">${sealIcon} <span class="seal-badge-tag">${sealTypeLabel}</span></div>` : "";
 
       const cosmetic = card.cosmetic || (typeof getCosmeticForCard === "function" ? getCosmeticForCard(card) : null);
       const cosmeticClass = cosmetic ? `card-cosmetic-fullart cosmetic-tier-${cosmetic.tier || 'common'}` : '';
@@ -25757,20 +26084,18 @@
         else modLabel = "Especial";
       }
 
-      const pState = (typeof gameState !== "undefined" && gameState.player) ? gameState.player : null;
-      const cardSeal = card.enchantment || card.sealEffect || (pState && pState.cardEnchantments && pState.cardEnchantments[`${card.suit}_${card.rank}`]);
-
       const bonusDesc = card.desc ? card.desc.slice(0, 22) :
+                        (seal ? `Sello: ${seal.name || seal.id || 'Arcano'}` :
                         (card.fusion ? `Fusión: ${card.fusion.name || 'Arcana'}` :
                         (modLabel ? `Efecto: ${modLabel}` :
                         (card.operator ? `Op: ${card.operator.label || card.operator.type || '+'}` :
-                        (cardSeal ? `Sello: ${cardSeal.name || cardSeal.id || 'Arcano'}` :
                         (cosmetic ? `👑 ${cosmetic.enemyName}` :
                         (arcane ? 'Naipe de Jefe' : 'Naipe Común'))))));
 
       return `
-        <div class="deck-card-item ${arcaneClass} ${colorClass} ${cosmeticClass}" onclick="inspectDeckViewerCard(${idx})" style="cursor:pointer;" title="Toca para inspeccionar en 3D">
+        <div class="deck-card-item ${arcaneClass} ${sealClass} ${colorClass} ${cosmeticClass}" onclick="inspectDeckViewerCard(${idx})" style="cursor:pointer;" title="Toca para inspeccionar en 3D">
           ${cosmeticBgHtml}
+          ${sealBadge}
           <div class="deck-card-top">
             <span class="deck-card-rank">${card.rank || card.value}</span>
             <span class="deck-card-suit">${card.suit}</span>
