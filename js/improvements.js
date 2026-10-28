@@ -7,7 +7,7 @@
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v1.9.9";
+  window.IMPROVEMENTS_VERSION = "v2.0.0";
 
   // FIX CRÍTICO BLOQUEANTE (v1.9.0): Forzar cierre de modales de combate en el arranque
   try {
@@ -320,22 +320,36 @@
   let _shopPurchasesThisVisit = 0;
   const SHOP_MAX_PURCHASES = 2;
 
-  function resetShopPurchaseCount() { _shopPurchasesThisVisit = 0; }
+  /* BLOQUE 3: usar gameState.shopPurchasesThisFloor como fuente única de verdad */
+  function _getShopPurchases() {
+    if (typeof window !== "undefined" && window.gameState && typeof window.gameState.shopPurchasesThisFloor === "number") {
+      return window.gameState.shopPurchasesThisFloor;
+    }
+    return _shopPurchasesThisVisit;
+  }
+  function _setShopPurchases(n) {
+    _shopPurchasesThisVisit = n;
+    if (typeof window !== "undefined" && window.gameState) {
+      window.gameState.shopPurchasesThisFloor = n;
+    }
+  }
+
+  function resetShopPurchaseCount() { _setShopPurchases(0); }
   window.resetShopPurchaseCount = resetShopPurchaseCount;
 
-  function canMakeShopPurchase() { return _shopPurchasesThisVisit < SHOP_MAX_PURCHASES; }
+  function canMakeShopPurchase() { return _getShopPurchases() < SHOP_MAX_PURCHASES; }
   window.canMakeShopPurchase = canMakeShopPurchase;
 
   function recordShopPurchase() {
-    _shopPurchasesThisVisit++;
+    _setShopPurchases(_getShopPurchases() + 1);
     updateShopPurchaseBadge();
-    if (_shopPurchasesThisVisit >= SHOP_MAX_PURCHASES && typeof addLog === "function") {
-      addLog("Limite de compras alcanzado para esta visita.", "warning");
+    if (_getShopPurchases() >= SHOP_MAX_PURCHASES && typeof addLog === "function") {
+      addLog("Límite de compras alcanzado para esta visita.", "warning");
     }
   }
   window.recordShopPurchase = recordShopPurchase;
 
-  function getShopPurchasesRemaining() { return Math.max(0, SHOP_MAX_PURCHASES - _shopPurchasesThisVisit); }
+  function getShopPurchasesRemaining() { return Math.max(0, SHOP_MAX_PURCHASES - _getShopPurchases()); }
   window.getShopPurchasesRemaining = getShopPurchasesRemaining;
 
   function updateShopPurchaseBadge() {
@@ -359,6 +373,47 @@
     }
   }
   window.updateShopPurchaseBadge = updateShopPurchaseBadge;
+
+  /* ============================================================
+     BLOQUE 4: Catálogo y aplicación de Mejoras de Ascenso
+     ============================================================ */
+  const ASCENSION_UPGRADES = [
+    { id: "hp",        icon: "💖", title: "VITALIDAD DE JACK",   desc: "+20 Salud Máxima y curación inmediata de +30 HP.",          category: "buff" },
+    { id: "pwr",       icon: "⚔️", title: "FURIA DE JACK",       desc: "+2 PWR de ataque durante esta ascensión.",                 category: "buff" },
+    { id: "def",       icon: "🛡️", title: "BASTIÓN DE JACK",      desc: "+1 DEF y +8 Escudo azul protector para esta run.",          category: "buff" },
+    { id: "crit",      icon: "⚡", title: "OJO CERTERO",           desc: "+5% Probabilidad de Golpe Crítico en esta ascensión.",       category: "buff" },
+    { id: "dodge",     icon: "💨", title: "PASO FANTASMAL",       desc: "+5% Probabilidad de Esquivar contragolpes enemigos.",      category: "buff" },
+    { id: "thorns",    icon: "🌵", title: "CORAZÓN ESPINADO",     desc: "+1 Daño de Espinas reflejado al recibir impactos.",         category: "buff" },
+    { id: "lifesteal", icon: "🩸", title: "SED CARMESÍ",          desc: "+6% Vampirismo (curación en base al daño asestado).",       category: "buff" },
+    { id: "luck",      icon: "🍀", title: "FORTUNA ASTRAL",       desc: "+8% Suerte en tiradas, drops y dados de esta ascensión.",     category: "buff" }
+  ];
+  window.ASCENSION_UPGRADES_LOCAL = ASCENSION_UPGRADES;
+
+  function generateAscensionUpgrades() {
+    return [...ASCENSION_UPGRADES];
+  }
+  window.generateAscensionUpgrades = generateAscensionUpgrades;
+
+  function applyAscensionUpgrade(p, type) {
+    if (!p) return false;
+    if (!p.runAscensionUpgrades) p.runAscensionUpgrades = [];
+    if (!p._runBuffs) p._runBuffs = {};
+    const opt = ASCENSION_UPGRADES.find(u => u.id === type);
+    if (!opt) return false;
+    switch (type) {
+      case "hp":        p.maxHp += 20; p.hp = Math.min(p.maxHp, p.hp + 30); p._runBuffs.hp = (p._runBuffs.hp || 0) + 20; break;
+      case "pwr":       p.pwr += 2; p._runBuffs.pwr = (p._runBuffs.pwr || 0) + 2; break;
+      case "def":       p.def += 1; if (!window.gameState) window.gameState = {}; if (!window.gameState.status) window.gameState.status = {}; window.gameState.status.playerShield = (window.gameState.status.playerShield || 0) + 8; p._runBuffs.def = (p._runBuffs.def || 0) + 1; break;
+      case "crit":      p._runBuffs.crit = (p._runBuffs.crit || 0) + 5; break;
+      case "dodge":     p._runBuffs.dodge = (p._runBuffs.dodge || 0) + 5; break;
+      case "thorns":    p._runBuffs.thorns = (p._runBuffs.thorns || 0) + 1; break;
+      case "lifesteal": p._runBuffs.lifesteal = (p._runBuffs.lifesteal || 0) + 6; break;
+      case "luck":      p._runBuffs.luck = (p._runBuffs.luck || 0) + 8; break;
+      default: return false;
+    }
+    return true;
+  }
+  window.applyAscensionUpgrade = applyAscensionUpgrade;
 
   /* ============================================================
      FASE 2.5 - CAP DE MULTIPLICADORES DE DANO

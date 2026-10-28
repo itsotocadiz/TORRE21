@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v1.9.9";
+  const GAME_VERSION = "v2.0.0";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v1.9.9)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v2.0.0)
      ============================================================ */
 
   const HERO_DATA = {
@@ -8391,10 +8391,14 @@
         if (saved && saved.inRun === true && saved.player && saved.player.hp > 0 && saved.floor >= 1) {
           const heroName = String(saved.player.name || "Héroe").replace(/^jack\s+/i, "");
           container.innerHTML = `
-            <button class="btn-resume-run" onclick="resumeSavedRun()">
+            <button id="btn-resume-run" class="btn-resume-run" onclick="resumeSavedRun()">
               ▶ REANUDAR PARTIDA (PISO ${saved.floor} • ${heroName} [${saved.player.hp}/${saved.player.maxHp} HP])
             </button>
           `;
+          container.classList.remove("hidden");
+          container.style.display = "block";
+          const btn = document.getElementById("btn-resume-run");
+          if (btn) btn.style.display = "flex";
           return;
         }
       }
@@ -8655,6 +8659,8 @@
     gameState.revivesUsed = 0;
     gameState.curseTakenOnFloor = {};
     gameState.wheelMode = "death";
+    // BLOQUE 3: Inicializar contador de compras por piso al iniciar run
+    gameState.shopPurchasesThisFloor = 0;
     gameState.status = {
       playerShield: hero.startingShield || 0,
       playerPoison: 0,
@@ -8696,6 +8702,10 @@
     p.hasGoldenDie = false;
     p.starterBlessing = null;
     p.blessing = null;
+    // BLOQUE 3: Inicializar registro de compras y mejoras de ascenso
+    p.shopBoughtItemsThisFloor = {};
+    // BLOQUE 4: Mejoras de ascenso (por pasar de Acto) — solo para la run actual
+    p.runAscensionUpgrades = [];
     // HABILIDAD DE COMBATE: Desbloqueo automático al alcanzar Nivel 6+ con habilidad inicial propia; bloqueada en Niveles 1-5
     const isSkillEligibleAtStart = ((p.level || heroLevel || 1) >= 6);
     if (isSkillEligibleAtStart) {
@@ -9057,17 +9067,21 @@
         el.classList.add("interactive-card");
         el.style.cursor = "pointer";
         el.title = card.name || `${card.rank} de ${card.suit} (Toca para inspeccionar)`;
+        el._cardData = {
+          rank: card.rank,
+          suit: card.suit,
+          value: card.currentAdaptedValue || card.value,
+          name: card.name || (card.isEnemySpecialCard ? "Carta Oscura del Rival" : `${card.rank} de ${card.suit}`),
+          desc: card.desc || (card.isEnemySpecialCard ? "Habilidad especial oscura invocada por el rival." : "Carta estándar jugada por el rival."),
+          badgeText: card.badgeText || (card.isEnemySpecialCard ? "Habilidad Oscura" : null),
+          seal: card.enchantment || null,
+          darkSigil: card.darkSigil || card.darkSigilEffect || null,
+          specialEffect: card.specialEffect || null,
+          isEnemyCard: true,
+          cosmetic: null
+        };
         el.onclick = () => {
-          showCardDetailModal({
-            rank: card.rank,
-            suit: card.suit,
-            value: card.currentAdaptedValue || card.value,
-            name: card.name || (card.isEnemySpecialCard ? "Carta Oscura del Rival" : `${card.rank} de ${card.suit}`),
-            desc: card.desc || (card.isEnemySpecialCard ? "Habilidad especial oscura invocada por el rival." : "Carta estándar jugada por el rival."),
-            badgeText: card.badgeText || (card.isEnemySpecialCard ? "Habilidad Oscura" : null),
-            seal: card.enchantment || null,
-            cosmetic: null
-          });
+          showCardDetailModal(el._cardData, true);
         };
       }
       eHandEl.appendChild(el);
@@ -11310,7 +11324,30 @@
 
   let selectedGambleTier = "gold";
   let isGambleForging = false;
-  let shopPurchasesThisFloor = 0;
+
+  /* ============================================================\
+     BLOQUE 3: Límite estricto de compras por piso (2 objetos)
+     ============================================================ */
+  function checkShopGoldLimit() {
+    if ((gameState.shopPurchasesThisFloor || 0) >= 2) {
+      showGameToast("⚠️ Solo puedes comprar un máximo de 2 objetos por piso.", "warning");
+      return true;
+    }
+    return false;
+  }
+  window.checkShopGoldLimit = checkShopGoldLimit;
+
+  function recordGoldShopPurchase(itemType) {
+    const p = gameState.player;
+    gameState.shopPurchasesThisFloor = (gameState.shopPurchasesThisFloor || 0) + 1;
+    if (p) {
+      p.shopPurchasesThisFloor = gameState.shopPurchasesThisFloor;
+      if (!p.shopBoughtItemsThisFloor) p.shopBoughtItemsThisFloor = {};
+      if (itemType) p.shopBoughtItemsThisFloor[itemType] = true;
+    }
+    if (typeof updateShopPurchaseBadge === "function") updateShopPurchaseBadge();
+  }
+  window.recordGoldShopPurchase = recordGoldShopPurchase;
 
   const CRYPT_COINS_KEY = "bj_crypt_coins";
   const CRYPT_COINS_LEGACY_KEY = "blackjack" + "_crypt_coins";
@@ -11642,6 +11679,7 @@
   function buyRelicBoosterPack() {
     const p = gameState.player;
     const price = 45;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     if (gameState.gold < price) {
       showGameToast(`No posees suficiente oro (cuesta ${price} 🪙). Te faltan ${price - gameState.gold} 🪙.`, "warn");
       return;
@@ -11652,6 +11690,7 @@
       return;
     }
     gameState.gold -= price;
+    recordGoldShopPurchase("relic_pack");
     const chosen = unowned[Math.floor(Math.random() * unowned.length)];
     selectRandomRelic(chosen);
     try { playCoinSound(); } catch (_) {}
@@ -13162,6 +13201,9 @@
     const isFree = !!options.free;
     const packCost = isFree ? 0 : baseCost;
 
+    // BLOQUE 3: Máximo 2 objetos de oro por piso (no aplica a sobres gratuitos/arcane)
+    if (!isFree && typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
+
     if (!isFree && gameState.gold < packCost) {
       addLog("Oro insuficiente: necesitas " + packCost + " monedas de oro.", "warning");
       spawnFloatingText("screen-shop", `⚠️ ORO INSUFICIENTE (${packCost} 🪙)`, "warning");
@@ -13171,6 +13213,7 @@
 
     if (!isFree) {
       gameState.gold -= packCost;
+      if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase(packType);
       try { playCoinSound(); } catch (_) {}
     }
 
@@ -13978,9 +14021,8 @@
     try { playBazaarShopSound(); } catch (_) {}
     const VALID_SHOP_TABS = ["consumables", "artifacts", "cards", "forge", "hero_market", "iap"];
     if (typeof tab === "string" && VALID_SHOP_TABS.includes(tab)) currentShopTab = tab;
-    // Reiniciar contador de compras al abrir el Bazar
-    shopPurchasesThisFloor = 0;
-    if (typeof resetShopPurchaseCount === "function") resetShopPurchaseCount();
+    // BLOQUE 3: NO reiniciar shopPurchasesThisFloor al abrir el Bazar — el contador
+    // persiste durante todo el piso y se reinicia solo en initFloor / startGame.
     const stageEl = document.getElementById("stage");
     if (stageEl) stageEl.style.visibility = "hidden";
     const headerEl = document.querySelector("header");
@@ -14009,6 +14051,13 @@
     const canShieldMajor = gameState.gold >= shieldMajorPrice;
     const canR = gameState.gold >= rerollPrice;
 
+    // BLOQUE 3: Estado de compra por ítem en este piso (máx 1 por tipo)
+    const boughtPotions = (p.shopBoughtItemsThisFloor || {});
+    const potionBought = !!boughtPotions["potion"];
+    const shieldMinorBought = !!boughtPotions["shield_minor"];
+    const shieldMajorBought = !!boughtPotions["shield_major"];
+    const rerollBought = !!boughtPotions["reroll"];
+
     // Pestaña 1: Provisiones (Poción vida, pociones armadura, reroll)
     let consumablesHtml = `
       <!-- POCIÓN CURATIVA -->
@@ -14023,7 +14072,12 @@
           </div>
         </div>
         <div class="shop-card-right">
-          ${canP 
+          ${potionBought
+            ? `<button class="shop-action-btn locked shop-locked" disabled title="✓ COMPRADO EN ESTE PISO">
+                 <span class="shop-btn-price">🪙 ${potionPrice} ORO</span>
+                 <span class="shop-btn-action">✓ COMPRADO EN ESTE PISO</span>
+               </button>`
+            : canP
             ? `<button class="shop-action-btn buy" onclick="buyPotion()">
                  <span class="shop-btn-price">🪙 ${potionPrice} ORO</span>
                  <span class="shop-btn-action">COMPRAR +1</span>
@@ -14048,7 +14102,12 @@
           </div>
         </div>
         <div class="shop-card-right">
-          ${canShieldMinor 
+          ${shieldMinorBought
+            ? `<button class="shop-action-btn locked shop-locked" disabled title="✓ COMPRADO EN ESTE PISO">
+                 <span class="shop-btn-price">🪙 ${shieldMinorPrice} ORO</span>
+                 <span class="shop-btn-action">✓ COMPRADO EN ESTE PISO</span>
+               </button>`
+            : canShieldMinor
             ? `<button class="shop-action-btn buy" onclick="buyShieldPotion(10, ${shieldMinorPrice})">
                  <span class="shop-btn-price">🪙 ${shieldMinorPrice} ORO</span>
                  <span class="shop-btn-action">BEBER (+10)</span>
@@ -14073,7 +14132,12 @@
           </div>
         </div>
         <div class="shop-card-right">
-          ${canShieldMajor 
+          ${shieldMajorBought
+            ? `<button class="shop-action-btn locked shop-locked" disabled title="✓ COMPRADO EN ESTE PISO">
+                 <span class="shop-btn-price">🪙 ${shieldMajorPrice} ORO</span>
+                 <span class="shop-btn-action">✓ COMPRADO EN ESTE PISO</span>
+               </button>`
+            : canShieldMajor
             ? `<button class="shop-action-btn buy" onclick="buyShieldPotion(20, ${shieldMajorPrice})">
                  <span class="shop-btn-price">🪙 ${shieldMajorPrice} ORO</span>
                  <span class="shop-btn-action">BEBER (+20)</span>
@@ -14098,7 +14162,12 @@
           </div>
         </div>
         <div class="shop-card-right">
-          ${canR 
+          ${rerollBought
+            ? `<button class="shop-action-btn locked shop-locked" disabled title="✓ COMPRADO EN ESTE PISO">
+                 <span class="shop-btn-price">🪙 ${rerollPrice} ORO</span>
+                 <span class="shop-btn-action">✓ COMPRADO EN ESTE PISO</span>
+               </button>`
+            : canR
             ? `<button class="shop-action-btn buy" onclick="buyReroll()">
                  <span class="shop-btn-price">🪙 ${rerollPrice} ORO</span>
                  <span class="shop-btn-action">COMPRAR +1</span>
@@ -14948,6 +15017,7 @@
   function buyArtifact(id) {
     const p = gameState.player;
     if (!p) return;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     sanitizePlayerArtifacts(p);
     const item = SHOP_ARTIFACTS.find(a => a.id === id);
     if (!item) return;
@@ -14965,6 +15035,7 @@
       return;
     }
     gameState.gold -= item.price;
+    if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("artifact");
     p.artifacts.push(item.id);
     sanitizePlayerArtifacts(p);
     if (typeof item.apply === "function") item.apply(p);
@@ -14978,6 +15049,8 @@
 
   function buyCardUpgrade(id) {
     const p = gameState.player;
+    if (!p) return;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     if (!p.cardUpgrades) p.cardUpgrades = [];
     const item = CARD_UPGRADES.find(c => c.id === id);
     if (!item) return;
@@ -14990,6 +15063,7 @@
       return;
     }
     gameState.gold -= item.price;
+    if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("card_upgrade");
     p.cardUpgrades.push(item.id);
     playCoinSound();
     addLog("✨ Fragua: ¡" + item.name + " forjada con éxito! (-" + item.price + " oro).", "critical");
@@ -15001,6 +15075,7 @@
   function buyForgeBoosterPack() {
     const p = gameState.player;
     if (!p) return;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     const forgePackPrice = 50;
     if (gameState.gold < forgePackPrice) {
       addLog("Oro insuficiente: necesitas " + forgePackPrice + " oro.", "warning");
@@ -15014,6 +15089,7 @@
       return;
     }
     gameState.gold -= forgePackPrice;
+    if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("forge_pack");
     const chosen = unowned[Math.floor(Math.random() * unowned.length)];
     if (!p.cardUpgrades) p.cardUpgrades = [];
     p.cardUpgrades.push(chosen.id);
@@ -15049,9 +15125,11 @@
 
   function buyAmulet(type) {
     const p = gameState.player;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     const price = AMULET_PRICES[type];
     if (!price || p.accessory === type || gameState.gold < price) return;
     gameState.gold -= price;
+    if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("amulet");
     p.accessory = type;
     registerCodexDiscovery("amulets", type);
     saveMidRunState();
@@ -15064,9 +15142,16 @@
 
   function buyPotion() {
     const cost = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 16 : 20;
+    const p = gameState.player;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
+    if (p && p.shopBoughtItemsThisFloor && p.shopBoughtItemsThisFloor["potion"]) {
+      showGameToast("⚠️ Ya has comprado esta poción en este piso.", "warning");
+      return;
+    }
     if (gameState.gold >= cost) {
       gameState.gold -= cost;
       gameState.player.potions++;
+      if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("potion");
       playPotionDrinkSound();
       playCoinSound();
       addLog(`Compraste una Poción Curativa (+1) por ${cost} 🪙.`, "heal");
@@ -15079,8 +15164,16 @@
   window.buyPotion = buyPotion;
 
   function buyShieldPotion(amount, price) {
+    const p = gameState.player;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
+    const itemKey = (amount === 10) ? "shield_minor" : (amount === 20) ? "shield_major" : "shield";
+    if (p && p.shopBoughtItemsThisFloor && p.shopBoughtItemsThisFloor[itemKey]) {
+      showGameToast("⚠️ Ya has comprado esta poción en este piso.", "warning");
+      return;
+    }
     if (gameState.gold >= price) {
       gameState.gold -= price;
+      if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase(itemKey);
       gameState.status.playerShield = (gameState.status.playerShield || 0) + amount;
       playPotionDrinkSound();
       playCoinSound();
@@ -15097,8 +15190,15 @@
 
   function buyReroll() {
     const cost = (hasArtifact("merchant_coin") || hasArtifact("golden_horseshoe")) ? 12 : 15;
+    const p = gameState.player;
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
+    if (p && p.shopBoughtItemsThisFloor && p.shopBoughtItemsThisFloor["reroll"]) {
+      showGameToast("⚠️ Ya has comprado este dado de reroll en este piso.", "warning");
+      return;
+    }
     if (gameState.gold >= cost) {
       gameState.gold -= cost;
+      if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("reroll");
       gameState.player.rerollsAvailable++;
       playRerollActionSound();
       playCoinSound();
@@ -15112,8 +15212,10 @@
   window.buyReroll = buyReroll;
 
   function buyGoldenDie() {
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     if (gameState.gold >= 50 && !gameState.player.hasGoldenDie) {
       gameState.gold -= 50;
+      if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("golden_die");
       gameState.player.hasGoldenDie = true;
       playEnchantChimeSound();
       playCoinSound();
@@ -15125,6 +15227,7 @@
   window.buyGoldenDie = buyGoldenDie;
 
   function buyHeroSkill(skillId, price) {
+    if (typeof checkShopGoldLimit === "function" && checkShopGoldLimit()) return;
     if (gameState.gold < price) {
       if (typeof showGameToast === "function") showGameToast("No tienes suficiente oro.", "warning");
       return;
@@ -15132,6 +15235,7 @@
     const skill = (typeof HERO_SKILLS !== "undefined" && HERO_SKILLS[skillId]) ? HERO_SKILLS[skillId] : null;
     if (!skill) return;
     gameState.gold -= price;
+    if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("hero_skill");
     gameState.player.activeSkill = skillId;
     gameState.player.skillCooldown = 0;
     try { playEnchantChimeSound(); } catch (_) {}
@@ -15377,11 +15481,21 @@
   }
   window.setupHandFanInteractions = setupHandFanInteractions;
 
-  function showCardDetailModal(data) {
+  function showCardDetailModal(data, isEnemyCard = false) {
     if (!data) return;
     const modal = document.getElementById("screen-card-detail");
     if (!modal) return;
     if (typeof window.dismissTacticalPerkToasts === "function") window.dismissTacticalPerkToasts();
+    // BLOQUE 1: Marcar el modal como inspección de carta del rival
+    if (isEnemyCard) {
+      modal.classList.add("enemy-card-inspection");
+      const scene = modal.querySelector(".card-3d-flip-scene");
+      if (scene) scene.classList.add("enemy-card-inspection");
+    } else {
+      modal.classList.remove("enemy-card-inspection");
+      const scene = modal.querySelector(".card-3d-flip-scene");
+      if (scene) scene.classList.remove("enemy-card-inspection");
+    }
 
     // Desactivar cualquier carta elevada o foco residual de la mano para evitar miniaturas duplicadas flotantes
     document.querySelectorAll(".player-card.lifted, .fan-card.lifted, .card-face.lifted").forEach(c => c.classList.remove("lifted"));
@@ -15571,7 +15685,26 @@
   }
   window.closeCardDetailModal = closeCardDetailModal;
 
-  /* ============================================================
+  /* BLOQUE 1: Listener delegado en fase de captura para cartas visibles del rival */
+  document.addEventListener("click", function(e) {
+    if (!e || !e.target) return;
+    if (e.target.classList && (e.target.classList.contains("interactive-card") || e.target.closest(".interactive-card"))) {
+      const cardEl = e.target.classList.contains("interactive-card") ? e.target : e.target.closest(".interactive-card");
+      const parentContainer = cardEl.closest("#enemy-cards, #enemy-hand, #dealer-cards");
+      if (parentContainer) {
+        if (typeof window.showCardDetailModal === "function") {
+          var parsedCardData = null;
+          if (cardEl.dataset && cardEl.dataset.cardData) {
+            try { parsedCardData = JSON.parse(cardEl.dataset.cardData); } catch (e) { parsedCardData = null; }
+          }
+          window.showCardDetailModal(cardEl._cardData || parsedCardData || {}, true);
+        }
+        return;
+      }
+    }
+  }, true);
+
+  /* =============================================================
      FASE 5: SISTEMA DE PAUSA Y MENÚ IN-GAME
      ============================================================ */
   let gameSpeedMultiplier = 1;
@@ -15769,6 +15902,7 @@
 
   function exitToMainMenu(saveCamp = true) {
     if (saveCamp && gameState.player && gameState.player.hp > 0 && gameState.floor >= 1) {
+      gameState.inRun = true;
       saveMidRunState();
     } else {
       clearMidRunState();
@@ -16112,10 +16246,19 @@
       });
     };
 
+    // BLOQUE 4: Al detectar un nuevo Acto, ofrecer Mejora de Ascenso antes de continuar
+    const proceedWithAscension = () => {
+      if (newActNum && gameState.player && gameState.player.hp > 0 && typeof showAscensionUpgradeModal === "function") {
+        showAscensionUpgradeModal(newActNum, proceedToFloor);
+      } else {
+        proceedToFloor();
+      }
+    };
+
     if (newActNum && typeof showActCinematic === "function") {
-      showActCinematic(newActNum, proceedToFloor);
+      showActCinematic(newActNum, proceedWithAscension);
     } else {
-      proceedToFloor();
+      proceedWithAscension();
     }
   }
   window.advanceToNextFloor = advanceToNextFloor;
@@ -18584,9 +18727,16 @@
       gameState.player.relics = [];
       gameState.player.artifacts = [];
       gameState.player.cardUpgrades = [];
-      gameState.gold = 0;
-      gameState.floor = 1;
-      updateHud();
+    gameState.gold = 0;
+    gameState.floor = 1;
+    // BLOQUE 3: Reiniciar contador de compras por piso al reiniciar progreso
+    gameState.shopPurchasesThisFloor = 0;
+    if (gameState.player) {
+      gameState.player.shopPurchasesThisFloor = 0;
+      gameState.player.shopBoughtItemsThisFloor = {};
+      gameState.player.runAscensionUpgrades = [];
+    }
+    updateHud();
     }
 
     // 3. Actualizar tarjetas en pantalla de selección de héroe
@@ -19071,16 +19221,15 @@
       const selectedChoices = [shuffledPrim[0], shuffledBuild[0], shuffledBuild[1]];
 
       choicesEl.innerHTML = `
-        <!-- chooseLevelUpReward('relic_${chosenRelic.id}') -->
-        <!-- DESGLOSE DE CRECIMIENTO AUTOMÁTICO RPG -->
+        <!-- DESGLOSE DE CRECIMIENTO AUTÓMATO RPG -->
         <div style="background:rgba(102,252,241,0.08);border:1px solid rgba(102,252,241,0.3);border-radius:8px;padding:8px;margin-bottom:8px;text-align:center;">
           <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:#66fcf1;margin-bottom:3px;">
-            👑 CRECIMIENTO NATURAL DE ${growth.name.toUpperCase()}:
+            👑 CRECIMIENTO NATURAL DE ${growth.name.toUpperCase()} (PERMANENTE):
           </div>
           <div style="font-size:10px;font-weight:bold;color:#ffd166;">
             ❤️ +${hpGain} HP &nbsp;•&nbsp; ⚔️ +${pwrGain} PWR &nbsp;•&nbsp; 🛡️ +${defGain} DEF
           </div>
-          <div style="font-size:9px;color:#94a3b8;margin-top:2px;">${growth.desc}</div>
+          <div style="font-size:9px;color:#94a3b8;margin-top:2px;">${growth.desc} (+5 puntos de atributos RPG)</div>
         </div>
 
         <!-- GANANCIA DE PUNTOS DE TALENTO ELEMENTAL -->
@@ -19089,26 +19238,19 @@
             🌳 ¡HAS OBTENIDO 1 PUNTO DE TALENTO!
           </div>
           <div style="font-size:9.5px;color:#cbd5e1;line-height:1.4;margin-bottom:8px;">
-            Especializa a tu Héroe en las 4 Ramas (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) en el Árbol de Talentos.
+            Especializa a tu Héroe en las 4 Ramas (♠️ Filo, ♦️ Baluarte, ♥️ Vitalidad, ♣️ Fortuna) en el Árbol de Talentos Permanente.
           </div>
           <button type="button" class="aoc-confirm-btn" onclick="openHeroTalentsModal('${p.classKey || p.class || 'knight'}')" style="padding:6px 12px; font-size:10px; min-height:32px; width:auto; margin:0 auto; background:linear-gradient(135deg,#0284c7,#0369a1); border-color:#38bdf8;">
             🌳 ABRIR ÁRBOL DE TALENTOS
           </button>
         </div>
 
-        <div class="levelup-sub" style="margin-bottom:8px;font-size:9px;color:#94a3b8;line-height:1.4;">
-          ⚡ Elige una bendición adicional para continuar la ascensión:
+        <!-- CONTINUAR ASCENSO -->
+        <div style="text-align:center;padding-top:6px;">
+          <button type="button" class="aoc-confirm-btn" onclick="continueLevelUp()" style="padding:8px 20px; font-size:11px; min-height:36px; background:linear-gradient(135deg,#2a9d8f,#21867a); border-color:#2a9d8f;">
+            ✅ CONTINUAR ASCENSO
+          </button>
         </div>
-
-        ${selectedChoices.map(opt => `
-          <div class="levelup-option-card" onclick="chooseLevelUpReward('${opt.id}')">
-            <div class="levelup-opt-icon">${opt.icon}</div>
-            <div>
-              <div class="levelup-opt-title">${opt.title}</div>
-              <div class="levelup-opt-desc">${opt.desc}</div>
-            </div>
-          </div>
-        `).join("")}
       `;
     }
     const screenLvl = document.getElementById("screen-levelup");
@@ -19222,8 +19364,168 @@
   window.showLevelUpModal = showLevelUpModal;
 
   /* ============================================================
-     RESOLVER RESULTADO DE MANO CON EFECTOS DE ESTADO Y RASGOS
+     BLOQUE 4: CONTINUAR ASCENSO (cierra el modal de nivel y
+     resuelve el promise de subida de nivel)
      ============================================================ */
+  function continueLevelUp() {
+    const screenLvl = document.getElementById("screen-levelup");
+    if (screenLvl) screenLvl.classList.add("hidden");
+    if (levelUpResolver) {
+      const res = levelUpResolver;
+      levelUpResolver = null;
+      res();
+    } else {
+      closeLevelUpModalSafe();
+    }
+  }
+  window.continueLevelUp = continueLevelUp;
+
+  function closeLevelUpModalSafe() {
+    const screenLvl = document.getElementById("screen-levelup");
+    if (screenLvl) screenLvl.classList.add("hidden");
+  }
+
+  /* ============================================================
+     BLOQUE 4: MEJORA DE ASCENSO (por pasar de Acto — solo run)
+     ============================================================ */
+  function showAscensionUpgradeModal(actNum, onProceed) {
+    const modal = document.getElementById("screen-ascension-upgrade");
+    if (!modal) {
+      // Fallback: si no existe el modal, proceder directamente
+      if (typeof onProceed === "function") onProceed();
+      return;
+    }
+    const p = gameState.player;
+    if (!p) {
+      if (typeof onProceed === "function") onProceed();
+      return;
+    }
+
+    // Generar 3 opciones al azar del catálogo de mejoras de ascenso
+    let upgrades;
+    try {
+      upgrades = typeof window.generateAscensionUpgrades === "function"
+        ? window.generateAscensionUpgrades()
+        : ASCENSION_UPGRADES_LOCAL;
+    } catch (_) {
+      upgrades = ASCENSION_UPGRADES_LOCAL;
+    }
+    if (!upgrades || upgrades.length === 0) {
+      if (typeof onProceed === "function") onProceed();
+      return;
+    }
+    const shuffled = [...upgrades].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, Math.min(3, shuffled.length));
+
+    // Guardar referencia al callback para que chooseAscensionUpgrade lo invoque
+    ascensionUpgradeCallback = onProceed;
+
+    const choicesEl = document.getElementById("ascension-upgrade-choices");
+    if (choicesEl) {
+      choicesEl.innerHTML = selected.map(opt => `
+        <div class="levelup-option-card" onclick="chooseAscensionUpgrade('${opt.id}')">
+          <div class="levelup-opt-icon">${opt.icon}</div>
+          <div>
+            <div class="levelup-opt-title">${opt.title}</div>
+            <div class="levelup-opt-desc">${opt.desc}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    try { playLevelUpSound(); } catch (_) {}
+  }
+  window.showAscensionUpgradeModal = showAscensionUpgradeModal;
+
+  let ascensionUpgradeCallback = null;
+
+  function chooseAscensionUpgrade(type) {
+    const p = gameState.player;
+    if (!p) {
+      if (typeof ascensionUpgradeCallback === "function") ascensionUpgradeCallback();
+      ascensionUpgradeCallback = null;
+      return;
+    }
+    if (!p.runAscensionUpgrades) p.runAscensionUpgrades = [];
+
+    // Aplicar la mejora elegida a BUFF / NERF de la run (no permanente)
+    let applied = false;
+    try {
+      if (typeof window.applyAscensionUpgrade === "function") {
+        applied = window.applyAscensionUpgrade(p, type);
+      }
+    } catch (_) {}
+    if (!applied) applyAscensionUpgradeLocal(p, type);
+
+    p.runAscensionUpgrades.push(type);
+
+    const modal = document.getElementById("screen-ascension-upgrade");
+    if (modal) modal.classList.add("hidden");
+
+    // Mostrar notificación y aplicar efectos visuales
+    const opt = (window.ASCENSION_UPGRADES_LOCAL || []).find(u => u.id === type);
+    if (opt) {
+      spawnFloatingText("player-sprite", `${opt.icon} ¡${opt.title.toUpperCase()}!`, "crit");
+      addLog(`⚡ Mejora de Ascenso: ${type} aplicada esta run.`, "critical");
+      try { showGameToast(`⚡ ${opt.title}: ¡Mejora de ascenso activada!`, "success", 3000); } catch (_) {}
+    }
+
+    if (typeof ascensionUpgradeCallback === "function") {
+      const cb = ascensionUpgradeCallback;
+      ascensionUpgradeCallback = null;
+      cb();
+    }
+  }
+  window.chooseAscensionUpgrade = chooseAscensionUpgrade;
+
+  function closeAscensionUpgradeModal(e) {
+    if (e && e.target && e.target.classList && e.target.classList.contains("ascension-upgrade-modal")) return;
+    const modal = document.getElementById("screen-ascension-upgrade");
+    if (modal) modal.classList.add("hidden");
+    if (typeof ascensionUpgradeCallback === "function") {
+      const cb = ascensionUpgradeCallback;
+      ascensionUpgradeCallback = null;
+      cb();
+    }
+  }
+  window.closeAscensionUpgradeModal = closeAscensionUpgradeModal;
+
+  function skipAscensionUpgrade() {
+    closeAscensionUpgradeModal();
+  }
+  window.skipAscensionUpgrade = skipAscensionUpgrade;
+
+  // Catálogo local de respaldo de Mejoras de Ascenso (también en improvements.js)
+  const ASCENSION_UPGRADES_LOCAL = [
+    { id: "hp",          icon: "💖", title: "VITALIDAD DE JACK",   desc: "+20 Salud Máxima y curación inmediata de +30 HP.",          category: "buff" },
+    { id: "pwr",         icon: "⚔️", title: "FURIA DE JACK",       desc: "+2 PWR permanente de ataque.",                              category: "buff" },
+    { id: "def",         icon: "🛡️", title: "BASTIÓN DE JACK",      desc: "+1 DEF permanente y +8 de Escudo protector azul.",           category: "buff" },
+    { id: "crit",        icon: "⚡", title: "OJO CERTERO",           desc: "+5% Probabilidad de Golpe Crítico RPG.",                    category: "buff" },
+    { id: "dodge",       icon: "💨", title: "PASO FANTASMAL",       desc: "+5% Probabilidad de Esquivar contragolpes enemigos.",      category: "buff" },
+    { id: "thorns",      icon: "🌵", title: "CORAZÓN ESPINADO",     desc: "+1 Daño de Espinas reflejado al recibir impactos.",         category: "buff" },
+    { id: "lifesteal",   icon: "🩸", title: "SED CARMESÍ",          desc: "+6% Vampirismo (curación en base al daño asestado).",       category: "buff" },
+    { id: "luck",        icon: "🍀", title: "FORTUNA ASTRAL",       desc: "+8% Suerte permanente en tiradas, drops y dados.",          category: "buff" }
+  ];
+
+  // Aplicación local de efectos de mejora de ascenso (solo run, no permanente)
+  function applyAscensionUpgradeLocal(p, type) {
+    if (!p) return;
+    if (!p.runAscensionUpgrades) p.runAscensionUpgrades = {};
+    if (!p._runBuffs) p._runBuffs = {};
+    switch (type) {
+      case "hp":       p.maxHp += 20; p.hp = Math.min(p.maxHp, p.hp + 30); p._runBuffs.hp = (p._runBuffs.hp || 0) + 20; break;
+      case "pwr":      p.pwr += 2; p._runBuffs.pwr = (p._runBuffs.pwr || 0) + 2; break;
+      case "def":      p.def += 1; if (!gameState.status) gameState.status = {}; gameState.status.playerShield = (gameState.status.playerShield || 0) + 8; p._runBuffs.def = (p._runBuffs.def || 0) + 1; break;
+      case "crit":     p._runBuffs.crit = (p._runBuffs.crit || 0) + 5; break;
+      case "dodge":    p._runBuffs.dodge = (p._runBuffs.dodge || 0) + 5; break;
+      case "thorns":   p._runBuffs.thorns = (p._runBuffs.thorns || 0) + 1; break;
+      case "lifesteal": p._runBuffs.lifesteal = (p._runBuffs.lifesteal || 0) + 6; break;
+      case "luck":     p._runBuffs.luck = (p._runBuffs.luck || 0) + 8; break;
+    }
+  }
+  window.applyAscensionUpgradeLocal = applyAscensionUpgradeLocal;
+
   async function resolveHandResult(result) {
     gameState.isRolling = true;
     const actionGrid = document.getElementById("action-grid");
@@ -21334,6 +21636,13 @@
     try { updateBattleZoneAtmosphere(gameState.floor); } catch (_) {}
     const p = gameState.player;
     const e = gameState.enemy;
+
+    // BLOQUE 3: Reiniciar contador de compras por piso al cambiar de piso
+    gameState.shopPurchasesThisFloor = 0;
+    if (p) {
+      p.shopPurchasesThisFloor = 0;
+      p.shopBoughtItemsThisFloor = {};
+    }
 
     p.handNumber = 0;
     p.betAmount = 0;

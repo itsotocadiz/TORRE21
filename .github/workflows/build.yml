@@ -65,16 +65,16 @@ jobs:
         continue-on-error: true
         with:
           tag_name: build-${{ github.run_number }}
-          name: Black Jack Torre 21 — v1.8.1 (Build #${{ github.run_number }})
+          name: Black Jack Torre 21 — v2.0.0 (Build #${{ github.run_number }})
           body: |
-            ### ♠ Black Jack: La Torre del 21 — v1.8.1 (BUILD 42)
+            ### ♠ Black Jack: La Torre del 21 — v2.0.0 (BUILD 57)
             Compilación continua generada automáticamente en GitHub Actions para Android.
             
             * Toca `BlackjackTorre21.apk` para instalar o actualizar el juego en tu dispositivo móvil.
-            * Novedades v1.8.1:
-              - Blindaje contra crash/salida en el primer combate (inicialización defensiva `ensureBattleStateInitialized`).
-              - Corrección del selector de bendiciones del destino (`STARTER_BLESSINGS`) y guardado persistente en el Códice.
-              - Códice 100% coleccionable con 5 pestañas: Memorias, Cartas Cosméticas, Bendiciones, Reliquias y Bestiario con siluetas `?`.
-              - Unificación de metamonedas a Calavera de Cripta `💀` en tienda, compras y transmutación de cartas/sellos.
-              - Ficha de combate traducida al español con iconos, eliminación de bonos inexistentes y desglose dinámico de atributos RPG.
+            * Novedades v2.0.0:
+              - **BLOQUE 1**: Las cartas visibles del rival ahora se expanden en 3D (240x340px) al tocarlas, mostrando su nombre, valor y habilidades oscuras (`darkSigil` / `specialEffect`) con giro `rotateY(180deg)`.
+              - **BLOQUE 2**: El botón `▶ REANUDAR PARTIDA` ahora siempre aparece al volver al Campamento desde una partida activa, manteniendo el estado guardado en `localStorage`.
+              - **BLOQUE 3**: Candado estricto en la tienda: máximo 1 poción por tipo y máximo 2 objetos de oro por piso (el contador persiste entre aperturas de la tienda y se reinicia solo al cambiar de piso).
+              - **BLOQUE 4**: Separación de mecánicas: el Árbol de Talentos (28 nodos) es PERMANENTE y se otiene al subir de nivel; la Mejora de Ascenso (Buff/Nerf) es exclusiva de la run y se elige al pasar de Acto.
+            * APK `BlackjackTorre21.apk` y `TORRE21-v2.0.0.apk` listos para descargar.
           files: BlackjackTorre21.apk

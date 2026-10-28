@@ -27,7 +27,7 @@ console.log('== 1. Auditoría de ALL_RELICS y Conexión en Partida ==');
 check('ALL_RELICS está definido en game.js', /const ALL_RELICS = \[/.test(gameSrc));
 check('selectRandomRelic no está vacía y aplica la reliquia', /function selectRandomRelic\(/.test(gameSrc) && /relic\.apply\(p\)/.test(gameSrc));
 check('buyRelicBoosterPack está implementado y exportado', /function buyRelicBoosterPack\(/.test(gameSrc) && /window\.buyRelicBoosterPack = buyRelicBoosterPack/.test(gameSrc));
-check('showLevelUpModal ofrece opción dinámica de ALL_RELICS', /chooseLevelUpReward\('relic_\$\{chosenRelic\.id\}'\)/.test(gameSrc));
+check('showLevelUpModal ya no ofrece ALL_RELICS (migrado a showAscensionUpgradeModal)', !/chooseLevelUpReward\('relic_\$\{chosenRelic\.id\}'\)/.test(gameSrc));
 check('chooseLevelUpReward procesa relic_ y llama a selectRandomRelic', /type\.startsWith\("relic_"\)/.test(gameSrc) && /selectRandomRelic\(relId\)/.test(gameSrc));
 check('La tienda ofrece el Cofre de Reliquias Sagradas', /buyRelicBoosterPack\(\)/.test(gameSrc));
 

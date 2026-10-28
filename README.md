@@ -6,14 +6,14 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 ## 📱 Descarga del APK para Móviles
 
-👉 **[📥 DESCARGAR APK TORRE21 v1.9.9 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/raw/main/TORRE21-v1.9.9.apk)**
+👉 **[📥 DESCARGAR APK TORRE21 v2.0.0 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/releases/latest/download/BlackjackTorre21.apk)**
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v1.9.9 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
+👉 **[Descargar última versión v2.0.0 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
-1. Descarga el archivo `TORRE21-v1.9.9.apk` o `BlackjackTorre21.apk` desde tu celular Android.
+1. Descarga el archivo `TORRE21-v2.0.0.apk` o `BlackjackTorre21.apk` desde tu celular Android.
 2. Ábrelo para instalar o actualizar (permite la instalación de aplicaciones de fuentes confiables si tu dispositivo lo solicita). Preserva intactos todos tus progresos, talentos y partidas guardadas.
 3. ¡Asciende por la Torre!
 
@@ -66,6 +66,34 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ---
 
 ## 📜 Historial de Versiones (Changelog)
+
+### [v2.0.0] — Noviembre 2026 (Actual)
+* **BLOQUE 1 — Expansión 3D de Cartas del Rival:**
+  * Las cartas visibles del rival (`#enemy-cards`, `#enemy-hand`) ahora pueden tocarse para ampliarlas al **240x340px** en el modal `🃏 INSPECCIÓN 3D DE CARTA` (`#screen-card-detail`).
+  * Al tocar la carta en el modal, gira en **3D (`rotateY(180deg)`)** mostrando su nombre, valor y la descripción completa de sus habilidades/efectos oscuros (`darkSigil` / `specialEffect`).
+  * Listener delegado en fase de captura (`document.addEventListener('click', ..., true)`) para detectar toques en cartas del rival.
+* **BLOQUE 2 — Botón de Reanudar Partida:**
+  * Al salir al Campamento (`⛺ SALIR AL CAMPAMENTO`) desde una partida activa con vida (`hp > 0`), el botón `▶ REANUDAR PARTIDA` ahora siempre aparece visible en el menú principal con el piso, héroe y HP guardados.
+  * Se mantiene `gameState.inRun = true` y se llama a `saveMidRunState()` antes de cambiar de vista.
+  * El estado de la run solo se borra al morir (`hp <= 0`), completar la Torre o pulsar "REINICIAR ASCENSO".
+* **BLOQUE 3 — Candado Estricto en la Tienda:**
+  * **Máximo 1 poción por tipo por piso:** Poción Curativa, Poción de Armadura Menor/Mayor y Dado de Reroll se bloquean individualmente tras comprarlas (`✓ COMPRADO EN ESTE PISO`).
+  * **Máximo 2 objetos de oro por piso:** Todas las compras de oro (pociones, rerolls, sobres, cofres, forjas, artefactos, amuletos, dados dorados, habilidades) comparten un contador (`gameState.shopPurchasesThisFloor`) que **no se reinicia al abrir/refrescar la tienda** — solo al cambiar de piso (`initFloor`) o iniciar una nueva run.
+  * Al llegar a 2/2, todos los botones de oro se bloquean con clase `.shop-locked` y el indicador muestra `0 compras restantes (Límite alcanzado)`.
+* **BLOQUE 4 — Separación de Árbol de Talentos y Mejora de Ascenso:**
+  * **Al subir de nivel (`¡SUBIDA DE NIVEL!`):** Solo se muestra el 👑 Crecimiento Natural (`+HP, +PWR, +DEF`) y el 🌳 +1 Punto de Talento con botón `🌳 ABRIR ÁRBOL DE TALENTOS` y `✅ CONTINUAR ASCENSO`. Se eliminaron las 3 tarjetas de bendición de ascenso.
+  * **Al pasar de Acto (`⚡ ¡ACTO SUPERADO!`):** Nueva ventana modal con 3 opciones al azar de Mejoras de Ascenso (`Vitalidad de Jack`, `Furia de Jack`, `Bastión de Jack`, `Ojo Certero`, `Paso Fantasmal`, `Corazón Espinado`, `Sed Carmesí`, `Fortuna Astral`).
+  * Las Mejoras de Ascenso aplican **solo a la run actual** (`player.runAscensionUpgrades`) en la columna `BUFF / NERF` y se reinician al comenzar una nueva run. El `BASE` permanente (HERO_DATA + crecimiento + 28 nodos de talento) se mantiene intacto entre runs.
+* **BLOQUE 5 — Auditoría de Interconexiones:**
+  * `% Suerte` (`p.luck`) conectado a drops de Cartas Cosméticas, Metamonedas `💀`, Dado del Jefe y Yunque Tahúr.
+  * Habilidad de Nivel 6 desbloqueable en Forja con Re-roll (`200 🪙`) durante la run.
+  * `forceOpenInRunBazaar` abre sin fallos desde los 3 caminos entre pisos.
+* **Versión v2.0.0 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 50` y `versionName "2.0.0"` en `android/app/build.gradle`, `package.json`, `js/game.js` (`GAME_VERSION`) y `js/improvements.js` (`IMPROVEMENTS_VERSION`).
+  * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
+  * Generación y publicación del ejecutable `TORRE21-v2.0.0.apk` y `BlackjackTorre21.apk`.
+  * Actualización de `.github/workflows/build.yml` con título `v2.0.0 (Build #${{ github.run_number }})`.
+  * Nueva suite de tests automatizados `scripts/test-v2-mechanics.js` integrada en `npm run verify`.
 
 ### [v1.9.9] — Noviembre 2026 (Actual)
 * **Desbloqueo Automático de Habilidad Inicial en Nivel 6:**

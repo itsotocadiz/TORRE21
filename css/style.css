@@ -1813,9 +1813,32 @@ header {
   color: #94a3b8;
 }
 
-/* ============================================================
-   LEGIBILIDAD MEJORADA DE STATS, LOGS Y CARPETAS
-   ============================================================ */
+/* BLOQUE 4: Modal de Mejora de Ascenso (por pasar de Acto) */
+#screen-ascension-upgrade .ascension-upgrade-modal {
+  background: linear-gradient(135deg, #0d121c 0%, #1a1f2d 100%);
+  border: 2px solid #66fcf1;
+  border-radius: 12px;
+  max-width: 380px;
+  width: 92%;
+  padding: 16px;
+  box-shadow: 0 0 40px rgba(102, 252, 241, 0.4);
+  text-align: center;
+}
+#screen-ascension-upgrade .ascension-header {
+  font-family: var(--font-pixel);
+  font-size: 13px;
+  color: #66fcf1;
+  text-shadow: 0 0 10px rgba(102, 252, 241, 0.7);
+  margin-bottom: 12px;
+}
+#screen-ascension-upgrade .ascension-sub {
+  font-size: 9.5px;
+  color: #94a3b8;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+
 #log-container {
   font-family: var(--font-ui);
   font-size: 11px;
@@ -6069,6 +6092,14 @@ body.sudden-death-active #stage {
   font-weight: 700;
   color: #ffd166;
   letter-spacing: 0.5px;
+}
+
+/* BLOQUE 1: Cartas del rival clickeables para expansión 3D */
+#dealer-cards .card, #dealer-cards .card-face,
+#enemy-cards .card, #enemy-cards .card-face,
+#enemy-hand .card, #enemy-hand .card-face {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 /* Escena y tarjeta 3D Flip Card */
