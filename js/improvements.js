@@ -1444,7 +1444,8 @@
         const result = _orig.apply(this, arguments);
         const goldAfter = gs && typeof gs.gold === "number" ? gs.gold : 0;
         if (goldAfter < goldBefore) {
-          recordShopPurchase();
+          // BLOQUE 3: NO doble incremento — recordGoldShopPurchase ya
+          // incrementa gameState.shopPurchasesThisFloor en cada compra.
           updateShopPurchaseBadge();
         }
         return result;

@@ -98,6 +98,36 @@
   HERO_DATA.necro = HERO_DATA.necromancer;
 
   /* ============================================================
+     CRECIMIENTO POR NIVEL (PERMANENTE) — PROBLEMA 1 FIX
+     Cada nivel sobre 1 otorga stats BASE según la clase.
+     Se aplica en recalculatePlayerStats y getHeroDisplayStats.
+     ============================================================ */
+  const LEVEL_GROWTH = {
+    knight:      { maxHp: 15, pwr: 1, def: 1, maxShield: 5 },
+    rogue:       { maxHp: 10, pwr: 2, def: 0, critChance: 3, dodgeChance: 2 },
+    monk:        { maxHp: 12, pwr: 1, def: 1, maxShield: 3, lifesteal: 2 },
+    necromancer: { maxHp: 8,  pwr: 2, def: 0, luck: 3, critChance: 2 },
+    mage:        { maxHp: 8,  pwr: 2, def: 0, luck: 3, critChance: 2 }
+  };
+  function _calcLevelGrowth(heroClass, level) {
+    const g = LEVEL_GROWTH[heroClass] || LEVEL_GROWTH.knight;
+    const lvl = Math.max(0, (level || 1) - 1);
+    return {
+      maxHp: (g.maxHp || 0) * lvl,
+      pwr: (g.pwr || 0) * lvl,
+      def: g.defDiv2 ? Math.floor(lvl / 2) : ((g.def || 0) * lvl),
+      critChance: (g.critChance || 0) * lvl,
+      dodgeChance: (g.dodgeChance || 0) * lvl,
+      lifesteal: (g.lifesteal || 0) * lvl,
+      luck: (g.luck || 0) * lvl,
+      maxShield: (g.maxShield || 0) * lvl
+    };
+  }
+  // Compat: def para rogue/necro usa Math.floor(lvlBonus/2)
+  LEVEL_GROWTH.rogue.defDiv2 = true;
+  LEVEL_GROWTH.necromancer.defDiv2 = true;
+
+  /* ============================================================
      HABILIDADES ACTIVAS POTENTES DE HÉROE (HERO ACTIVE SKILLS v1.9.3)
      Catálogo de Habilidades con recarga de 3 a 4 manos obtenibles en combate
      ============================================================ */
@@ -5610,6 +5640,17 @@
     baseLifesteal += (p.levelUpStats.lifesteal || 0);
     baseThorns += (p.levelUpStats.thorns || 0);
 
+    // 2.5. CRECIMIENTO POR NIVEL PERMANENTE (Problema 1 FIX)
+    const lvlBonus = Math.max(0, (p.level || 1) - 1);
+    const _lg = _calcLevelGrowth(heroKey, p.level);
+    baseMaxHp += _lg.maxHp;
+    basePwr += _lg.pwr;
+    baseDef += _lg.def;
+    baseCrit += _lg.critChance;
+    baseDodge += _lg.dodgeChance;
+    baseLifesteal += _lg.lifesteal;
+    baseLuck += _lg.luck;
+
     // 3. AUDITORÍA TOTAL DE LOS 28 NODOS DEL ÁRBOL DE TALENTOS
     if (typeof getHeroTalentTree === "function") {
       const tree = getHeroTalentTree(heroKey);
@@ -5724,6 +5765,7 @@
     p.luck = Math.min(50, Math.max(0, baseLuck));
     p.lifesteal = Math.min(50, Math.max(0, baseLifesteal));
     p.thorns = Math.max(0, baseThorns);
+    p.pwr = Math.max(0, basePwr);
     p.def = Math.max(0, baseDef);
     p.maxHp = Math.max(20, baseMaxHp);
     p.hp = Math.min(p.hp || p.maxHp, p.maxHp);
@@ -5742,17 +5784,36 @@
     const legPwr = (hMeta.legacyPwr || 0) * 1;
     const legDef = (hMeta.legacyDef || 0) * 1;
 
-    const baseMaxHp = (typeof hMeta.baseMaxHp === "number" && hMeta.baseMaxHp > 0) ? hMeta.baseMaxHp : (heroCfg.maxHp + bonuses.hp);
-    const basePwr = (typeof hMeta.basePwr === "number" && hMeta.basePwr >= 0) ? hMeta.basePwr : (heroCfg.pwr + bonuses.pwr);
-    const baseDef = (typeof hMeta.baseDef === "number" && hMeta.baseDef >= 0) ? hMeta.baseDef : (heroCfg.def + bonuses.def);
-    const startingShield = heroCfg.startingShield || 0;
+    const baseMaxHpRaw = (typeof hMeta.baseMaxHp === "number" && hMeta.baseMaxHp > 0) ? hMeta.baseMaxHp : (heroCfg.maxHp + bonuses.hp);
+    const basePwrRaw = (typeof hMeta.basePwr === "number" && hMeta.basePwr >= 0) ? hMeta.basePwr : (heroCfg.pwr + bonuses.pwr);
+    const baseDefRaw = (typeof hMeta.baseDef === "number" && hMeta.baseDef >= 0) ? hMeta.baseDef : (heroCfg.def + bonuses.def);
+    let startingShield = heroCfg.startingShield || 0;
 
+    // CRECIMIENTO POR NIVEL PERMANENTE (Problema 1 FIX)
+    const _lgDisplay = _calcLevelGrowth(heroKey, permLevel);
+    // Si saveHeroRunProgress ya aplicó crecimiento (hMeta.baseMaxHp > hero.maxHp), no duplicar
+    const _hasLvlGrowth = (typeof hMeta.baseMaxHp === "number" && hMeta.baseMaxHp > heroCfg.maxHp + bonuses.hp + 0.5);
+    let baseMaxHp = baseMaxHpRaw;
+    let basePwr = basePwrRaw;
+    let baseDef = baseDefRaw;
+    startingShield += _lgDisplay.maxShield;
+    if (!_hasLvlGrowth) {
+      baseMaxHp += _lgDisplay.maxHp;
+      basePwr += _lgDisplay.pwr;
+      baseDef += _lgDisplay.def;
+    }
     // Stats RPG de base canónicos
-    const baseDodge = (typeof heroCfg.dodgeChance === "number") ? heroCfg.dodgeChance : 0;
-    const baseCrit = (typeof heroCfg.critChance === "number") ? heroCfg.critChance : 0;
+    let baseDodge = (typeof heroCfg.dodgeChance === "number") ? heroCfg.dodgeChance : 0;
+    let baseCrit = (typeof heroCfg.critChance === "number") ? heroCfg.critChance : 0;
     const baseThorns = (typeof heroCfg.thorns === "number") ? heroCfg.thorns : 0;
-    const baseLifesteal = (typeof heroCfg.lifesteal === "number") ? heroCfg.lifesteal : 0;
-    const baseLuck = (typeof heroCfg.luck === "number") ? heroCfg.luck : 0;
+    let baseLifesteal = (typeof heroCfg.lifesteal === "number") ? heroCfg.lifesteal : 0;
+    let baseLuck = (typeof heroCfg.luck === "number") ? heroCfg.luck : 0;
+
+    // Crecimiento por nivel en stats secundarios
+    baseCrit += _lgDisplay.critChance;
+    baseDodge += _lgDisplay.dodgeChance;
+    baseLifesteal += _lgDisplay.lifesteal;
+    baseLuck += _lgDisplay.luck;
 
     // Si hay un jugador activo en gameState y coincide con este héroe y está en combate
     const isCombatActive = !!(typeof gameState !== "undefined" && gameState && gameState.player && gameState.player.playerHand && gameState.player.playerHand.length > 0);
@@ -8842,6 +8903,8 @@
       if (goldBanner) goldBanner.classList.add("hidden");
     }
     p.gold = gameState.gold;
+    // Problema 1 FIX: recalcular stats al iniciar partida para aplicar crecimiento por nivel
+    if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
     updateHud();
 
     if (frenzyBonus > 0) {
@@ -19072,40 +19135,43 @@
       role: "🛡️ Tanque de Diamantes",
       hp: 15,
       heal: 20,
-      pwr: (lvl) => (lvl % 2 === 0 ? 1 : 0),
+      pwr: 1,
       def: 1,
       bonusShield: 5,
-      desc: "+15 HP Máx, +1 DEF, +5 Escudo de base por piso"
+      desc: "+15 HP Máx, +1 PWR, +1 DEF, +5 Escudo de base por piso"
     },
     rogue: {
       name: "Pícaro",
       role: "🗡️ Asesino Crítico",
-      hp: 7,
+      hp: 10,
       heal: 12,
       pwr: 2,
-      def: (lvl) => (lvl % 3 === 0 ? 1 : 0),
-      bonusCrit: 0.05,
-      desc: "+2 PWR permanente, +7 HP Máx, crítico mortal"
+      def: (lvl) => (lvl % 2 === 1 ? 1 : 0),
+      bonusCrit: 3,
+      desc: "+10 HP Máx, +2 PWR, +3 CRIT, progresión de DEF"
     },
     monk: {
       name: "Monje",
       role: "💍 Artista Marcial",
-      hp: 11,
+      hp: 12,
       heal: 25,
       pwr: 1,
-      def: (lvl) => (lvl % 2 === 0 ? 1 : 0),
-      bonusDodge: 0.05,
-      desc: "+11 HP Máx, +1 PWR, sanación interior +25 HP"
+      def: 1,
+      bonusShield: 3,
+      bonusLifesteal: 2,
+      desc: "+12 HP Máx, +1 PWR, +1 DEF, +2 Vampirismo, +3 Escudo de base por piso"
     },
     necromancer: {
       name: "Nigromante",
       role: "💀 Cosechador de Almas",
-      hp: 9,
+      hp: 8,
       heal: 15,
       pwr: 2,
-      def: (lvl) => (lvl % 3 === 0 ? 1 : 0),
+      def: (lvl) => (lvl % 2 === 1 ? 1 : 0),
+      bonusCrit: 2,
+      bonusLuck: 3,
       soulShield: 6,
-      desc: "+2 PWR místico, +9 HP Máx, +6 Escudo de Almas"
+      desc: "+8 HP Máx, +2 PWR, +2 CRIT, +3 Suerte, progresión de DEF"
     }
   };
   window.CLASS_STAT_GROWTH = CLASS_STAT_GROWTH;
@@ -19193,6 +19259,8 @@
     p.nextLevelExp = getExpRequiredForLevel(p.level || 1);
     // SPRINT 1: la EXP restante también es permanente (sobrevive a la muerte)
     saveHeroRunProgress(p, null);
+    // Problema 1 FIX: recalcular stats permanentes tras subir de nivel
+    if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
     updateHud();
   }
 

@@ -93,6 +93,13 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
     * **Guante de Plomo** (`relic_lead_glove`): +3 PWR permanente contra enemigos aturdidos (conectado al bonus de daño cuando `enemyStunned` está activo).
     * **Reloj de Arena Arcano** (`relic_arcanum_hourglass`): +1 Dado de Reroll permanente por piso (`_bonusRerollsPerFloor`) y +8% Esquiva permanente (`_arcanumDodge`).
   * **Estado Herido Abierto** (`playerOpenWound`): Ahora reduce -1 DEF además de anular el vampirismo.
+* **BLOQUE 6 — Crecimiento Permanente de Stats por Nivel:**
+  * Al subir de nivel, las estadísticas `HP`, `PWR`, `DEF`, `Escudo`, `Crítico`, `Esquivar`, `Vampirismo` y `Suerte` aumentan **permanente y matemáticamente** según la clase del héroe, sumando `lvlBonus = Math.max(0, level - 1)` directamente a las stats base (no a valores de Nivel 1 de `HERO_DATA`):
+    * **Caballero:** +15 HP, +1 PWR, +1 DEF, +5 Escudo por nivel.
+    * **Pícaro:** +10 HP, +2 PWR, +1 DEF (cada 2 niveles), +3% Crítico, +2% Esquivar por nivel.
+    * **Monje:** +12 HP, +1 PWR, +1 DEF, +2 Vampirismo, +3 Escudo por nivel.
+    * **Nigromante/Mago:** +8 HP, +2 PWR, +1 DEF (cada 2 niveles), +3 Suerte, +2% Crítico por nivel.
+  * `gainExp`, `startGame` e `initFloor` llaman a `recalculatePlayerStats(player)` y `updateHud()` de inmediato, aplicando el crecimiento en el Menú Principal, la Ficha (`📊`) y el combate.
 * **Versión v2.0.0 Sincronizada y Compilación APK Android:**
   * Incremento a `versionCode 50` y `versionName "2.0.0"` en `android/app/build.gradle`, `package.json`, `js/game.js` (`GAME_VERSION`) y `js/improvements.js` (`IMPROVEMENTS_VERSION`).
   * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.
