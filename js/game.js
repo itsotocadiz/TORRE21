@@ -5713,6 +5713,10 @@
       if (gameState.status.playerClumsy) baseDodge = Math.max(0, baseDodge - 10);
       if (gameState.status.playerOpenWound) baseLifesteal = 0;
       if (gameState.status.playerRuneShell) baseThorns += 1;
+      // -1 DEF permanente por herida abierta
+      if (gameState.status.playerOpenWound) baseDef -= 1;
+      // +8% Esquiva permanente del Reloj de Arena Arcano
+      if (p._arcanumDodge > 0) baseDodge += p._arcanumDodge;
     }
 
     p.dodgeChance = Math.min(45, Math.max(0, baseDodge));
@@ -5904,7 +5908,9 @@
       { id: "relic_valk_light", name: "Relicario de la Luz", icon: "✨", desc: "+3 PWR y te cura +6 HP automáticamente si ganas una mano con 19 o 20.", apply: (p) => { p.pwr += 3; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 3; p._valkHealOnHighWin = true; } },
       { id: "relic_valk_core", name: "Núcleo Diamantino", icon: "💎", desc: "+3 DEF permanente y 2 Rerolls adicionales de inmediato.", apply: (p) => { p.def += 3; if (p.levelUpStats) p.levelUpStats.def = (p.levelUpStats.def || 0) + 3; p.rerollsAvailable = (p.rerollsAvailable || 0) + 2; } },
       { id: "relic_valk_thorns", name: "Escudo de Represalia Pétrea", icon: "🗿", desc: "+1 Espina y mitiga 3 de daño en cualquier contraataque rival.", apply: (p) => { p.thorns = (p.thorns || 0) + 1; p._valkCounterMitigate = 3; if (p.levelUpStats) p.levelUpStats.thorns = (p.levelUpStats.thorns || 0) + 1; } },
-      { id: "relic_valk_eye", name: "Ojo del Destino Lúcido", icon: "👁️", desc: "+12% Suerte y revela 1 carta oculta del rival en cada mano.", apply: (p) => { p.luck = (p.luck || 0) + 12; p._valkRevealCard = true; } }
+      { id: "relic_valk_eye", name: "Ojo del Destino Lúcido", icon: "👁️", desc: "+12% Suerte y revela 1 carta oculta del rival en cada mano.", apply: (p) => { p.luck = (p.luck || 0) + 12; p._valkRevealCard = true; } },
+      { id: "relic_arcanum_hourglass", name: "Reloj de Arena Arcano", icon: "⏳", desc: "+1 Dado de Reroll permanente por piso y +8% Esquiva permanente.", apply: (p) => { p._bonusRerollsPerFloor = (p._bonusRerollsPerFloor || 0) + 1; p._arcanumDodge = 8; } },
+      { id: "relic_lead_glove", name: "Guante de Plomo", icon: "🧤", desc: "+3 PWR permanente contra enemigos aturdidos.", apply: (p) => { p._leadGlovePwr = 3; } }
     ],
     3: [
       { id: "relic_archmage_eye", name: "Ojo Arcano del Archimago", icon: "🔮", desc: "+4 PWR y forja un Sello Cósmico Arcano permanente en tu baraja.", apply: (p) => { p.pwr += 4; if (p.levelUpStats) p.levelUpStats.pwr = (p.levelUpStats.pwr || 0) + 4; if (typeof forgeRandomCosmicSeal === "function") forgeRandomCosmicSeal(); } },
@@ -8736,8 +8742,11 @@
       if (p._clubsFloorRerolls) {
         p.rerollsAvailable = (p.rerollsAvailable || 0) + p._clubsFloorRerolls;
       }
+      if (p._bonusRerollsPerFloor && p._bonusRerollsPerFloor > 0) {
+        p.rerollsAvailable = (p.rerollsAvailable || 0) + p._bonusRerollsPerFloor;
+        addLog(`⏳ Reloj de Arena Arcano: +${p._bonusRerollsPerFloor} Dado de Reroll para el piso.`, "heal");
+      }
     }
-    
     // FASE 6: Artefactos por victoria (1 a 3 aleatorios al iniciar ascensión si ya se ha ganado)
     try {
       if (localStorage.getItem("blackjack_has_won_run") === "true") {
@@ -12535,6 +12544,26 @@
       price: 26,
       desc: "+15 HP Máximo y restaura +20 HP de salud de inmediato.",
       apply: (p) => { p.maxHp += 15; p.hp = Math.min(p.maxHp, p.hp + 20); }
+    },
+    {
+      id: "relic_lead_glove",
+      name: "Guante de Plomo",
+      icon: "🧤",
+      tier: 2,
+      unlockLevel: 3,
+      price: 30,
+      desc: "+3 PWR permanente contra enemigos aturdidos.",
+      apply: (p) => { p._leadGlovePwr = 3; }
+    },
+    {
+      id: "relic_arcanum_hourglass",
+      name: "Reloj de Arena Arcano",
+      icon: "⏳",
+      tier: 2,
+      unlockLevel: 3,
+      price: 35,
+      desc: "+1 Dado de Reroll permanente por piso y +8% Esquiva permanente.",
+      apply: (p) => { p._bonusRerollsPerFloor = (p._bonusRerollsPerFloor || 0) + 1; p._arcanumDodge = 8; }
     }
   ];
   window.SHOP_ARTIFACTS = SHOP_ARTIFACTS;
@@ -15685,17 +15714,17 @@
   }
   window.closeCardDetailModal = closeCardDetailModal;
 
-  /* BLOQUE 1: Listener delegado en fase de captura para cartas visibles del rival */
+  /* BLOQUE 1: Listener delegado en fase de captura para cartas visibles (tuyas y del rival) */
   document.addEventListener("click", function(e) {
     if (!e || !e.target) return;
     if (e.target.classList && (e.target.classList.contains("interactive-card") || e.target.closest(".interactive-card"))) {
       const cardEl = e.target.classList.contains("interactive-card") ? e.target : e.target.closest(".interactive-card");
-      const parentContainer = cardEl.closest("#enemy-cards, #enemy-hand, #dealer-cards");
+      const parentContainer = cardEl.closest("#enemy-cards, #enemy-hand, #dealer-cards, #player-cards, #player-hand");
       if (parentContainer) {
         if (typeof window.showCardDetailModal === "function") {
           var parsedCardData = null;
           if (cardEl.dataset && cardEl.dataset.cardData) {
-            try { parsedCardData = JSON.parse(cardEl.dataset.cardData); } catch (e) { parsedCardData = null; }
+            try { parsedCardData = JSON.parse(cardEl.dataset.cardData); } catch (e2) { parsedCardData = null; }
           }
           window.showCardDetailModal(cardEl._cardData || parsedCardData || {}, true);
         }
@@ -19752,9 +19781,8 @@
         checkHeroUnlockCondition("rogue", 1, "add");
       }
 
-      // SPRINT 4 — Perks Tácticos: se captura el flag "pendiente" de la mano
-      // anterior ANTES de reevaluar (evaluateSynergies limpia los flags).
-      const pendingNextBJx4 = !!p._synergyNextBJx4;
+      // SPRINT 4 — Perks Tácticos: se captura el crit del Corazón de Diamante
+      // para el log de debug; el valor real se lee de p._synergyDiamondHeartCrit.
 
       // SPRINT 4 — Perks Tácticos: evaluar y aplicar los combos de condición
       if (typeof evaluateSynergies === "function") {
@@ -19879,6 +19907,15 @@
         bonus += p._synergyBonusPwr;
         addLog(`⚡ Perk Táctico: +${p._synergyBonusPwr} de daño de impacto en este golpe.`, "critical");
       }
+      if (p._synergyDiamondHeartDirect > 0) {
+        bonus += p._synergyDiamondHeartDirect;
+        addLog(`💎 Perk Táctico [Corazón de Diamante]: +${p._synergyDiamondHeartDirect} Ataque directo.`, "critical");
+      }
+      // Guante de Plomo (Reliquia): +3 PWR permanente contra enemigos aturdidos
+      if (p._leadGlovePwr > 0 && gameState.status && gameState.status.enemyStunned) {
+        bonus += p._leadGlovePwr;
+        addLog(`🧤 Guante de Plomo: +${p._leadGlovePwr} PWR contra enemigo aturdido.`, "critical");
+      }
 
       // 1. ATAQUE LIMPIO (v1.8.0): Las cartas no son daño; determinan la victoria del asalto.
       // Ataque Base del Personaje + Bonos Planos (Reliquias, Sellos, Cartas, Atributos)
@@ -19914,7 +19951,12 @@
       // 3. Sistema de Golpe Crítico RPG Dinámico en cualquier mano (Estrictamente basado en p.critChance)
       if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
       const totalCritChance = (typeof p.critChance === "number") ? p.critChance : 0;
-      const isCrit = (totalCritChance > 0 && Math.random() * 100 < totalCritChance);
+      const diamondHeartCrit = p._synergyDiamondHeartCrit || 0;
+      if (diamondHeartCrit > 0) {
+        addLog("💎 Perk [Corazón de Diamante]: +" + Math.round(diamondHeartCrit * 100) + "% Crítico esta mano.", "critical");
+      }
+      const effectiveCritChance = isNatural21 ? totalCritChance : (totalCritChance + (diamondHeartCrit * 100));
+      const isCrit = (effectiveCritChance > 0 && Math.random() * 100 < effectiveCritChance);
 
       let critMultiplier = 1.0;
       if (isCrit) {
@@ -20168,11 +20210,6 @@
             addLog("❤️‍🔥 ¡BLACKJACK HEREDADO! Golpe devastador de " + dmg + " daño y +16 HP restaurados.", "critical");
           } else {
             addLog("❤️‍🔥 ¡BLACKJACK NATURAL (21)! Golpe de Blackjack de " + dmg + " daño.", "critical");
-          }
-          if (pendingNextBJx4) {
-            addLog("💎 Perk Táctico [Corazón de Diamante]: Blackjack amplificado a x4 (Daño = " + dmg + ").", "critical");
-            p._synergyNextBJx4 = false;
-            p._consumedBJx4ThisHand = true;
           }
           playBlackjackSound();
         } else {
@@ -21664,6 +21701,10 @@
       if (p._clubsFloorRerolls) {
         p.rerollsAvailable = (p.rerollsAvailable || 0) + p._clubsFloorRerolls;
         addLog(`♣️ Alquimia de Dados (♣️): +${p._clubsFloorRerolls} Dado(s) de Reroll obtenidos para el piso ${gameState.floor}.`, "gold");
+      }
+      if (p._bonusRerollsPerFloor && p._bonusRerollsPerFloor > 0) {
+        p.rerollsAvailable = (p.rerollsAvailable || 0) + p._bonusRerollsPerFloor;
+        addLog(`⏳ Reloj de Arena Arcano: +${p._bonusRerollsPerFloor} Dado de Reroll para el piso ${gameState.floor}.`, "heal");
       }
     }
 

@@ -68,10 +68,10 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v2.0.0] — Noviembre 2026 (Actual)
-* **BLOQUE 1 — Expansión 3D de Cartas del Rival:**
-  * Las cartas visibles del rival (`#enemy-cards`, `#enemy-hand`) ahora pueden tocarse para ampliarlas al **240x340px** en el modal `🃏 INSPECCIÓN 3D DE CARTA` (`#screen-card-detail`).
+* **BLOQUE 1 — Expansión 3D de Cartas (Tuyas y del Rival):**
+  * Las cartas visibles del jugador (`#player-cards`, `#player-hand`) y del rival (`#enemy-cards`, `#enemy-hand`) pueden tocarse para ampliarlas al **240x340px** en el modal `🃏 INSPECCIÓN 3D DE CARTA` (`#screen-card-detail`).
   * Al tocar la carta en el modal, gira en **3D (`rotateY(180deg)`)** mostrando su nombre, valor y la descripción completa de sus habilidades/efectos oscuros (`darkSigil` / `specialEffect`).
-  * Listener delegado en fase de captura (`document.addEventListener('click', ..., true)`) para detectar toques en cartas del rival.
+  * Listener delegado en fase de captura (`document.addEventListener('click', ..., true)`) para detectar toques en cartas propias y del rival.
 * **BLOQUE 2 — Botón de Reanudar Partida:**
   * Al salir al Campamento (`⛺ SALIR AL CAMPAMENTO`) desde una partida activa con vida (`hp > 0`), el botón `▶ REANUDAR PARTIDA` ahora siempre aparece visible en el menú principal con el piso, héroe y HP guardados.
   * Se mantiene `gameState.inRun = true` y se llama a `saveMidRunState()` antes de cambiar de vista.
@@ -84,10 +84,15 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * **Al subir de nivel (`¡SUBIDA DE NIVEL!`):** Solo se muestra el 👑 Crecimiento Natural (`+HP, +PWR, +DEF`) y el 🌳 +1 Punto de Talento con botón `🌳 ABRIR ÁRBOL DE TALENTOS` y `✅ CONTINUAR ASCENSO`. Se eliminaron las 3 tarjetas de bendición de ascenso.
   * **Al pasar de Acto (`⚡ ¡ACTO SUPERADO!`):** Nueva ventana modal con 3 opciones al azar de Mejoras de Ascenso (`Vitalidad de Jack`, `Furia de Jack`, `Bastión de Jack`, `Ojo Certero`, `Paso Fantasmal`, `Corazón Espinado`, `Sed Carmesí`, `Fortuna Astral`).
   * Las Mejoras de Ascenso aplican **solo a la run actual** (`player.runAscensionUpgrades`) en la columna `BUFF / NERF` y se reinician al comenzar una nueva run. El `BASE` permanente (HERO_DATA + crecimiento + 28 nodos de talento) se mantiene intacto entre runs.
-* **BLOQUE 5 — Auditoría de Interconexiones:**
-  * `% Suerte` (`p.luck`) conectado a drops de Cartas Cosméticas, Metamonedas `💀`, Dado del Jefe y Yunque Tahúr.
+* **BLOQUE 5 — Auditoría de Interconexiones y Mejoras de Combate:**
+  * **Perk Táctico [Corazón de Diamante]:** Rediseñado — cuando HP > 80% y Escudo >= 8, otorga **+6 Ataque directo** y **+15% Crítico** en la mano actual (en lugar del antiguo "siguiente Blackjack x4"). Los flags `_synergyDiamondHeartDirect` y `_synergyDiamondHeartCrit` se capturan tras `evaluateSynergies` y se aplican al bonus de daño y a la chance de crítico efectivo.
+  * **% Suerte** (`p.luck`) conectado a drops de Cartas Cosméticas, Metamonedas `💀`, Dado del Jefe y Yunque Tahúr.
   * Habilidad de Nivel 6 desbloqueable en Forja con Re-roll (`200 🪙`) durante la run.
   * `forceOpenInRunBazaar` abre sin fallos desde los 3 caminos entre pisos.
+  * **Nuevas reliquias en ALL_RELICS y SHOP_ARTIFACTS:**
+    * **Guante de Plomo** (`relic_lead_glove`): +3 PWR permanente contra enemigos aturdidos (conectado al bonus de daño cuando `enemyStunned` está activo).
+    * **Reloj de Arena Arcano** (`relic_arcanum_hourglass`): +1 Dado de Reroll permanente por piso (`_bonusRerollsPerFloor`) y +8% Esquiva permanente (`_arcanumDodge`).
+  * **Estado Herido Abierto** (`playerOpenWound`): Ahora reduce -1 DEF además de anular el vampirismo.
 * **Versión v2.0.0 Sincronizada y Compilación APK Android:**
   * Incremento a `versionCode 50` y `versionName "2.0.0"` en `android/app/build.gradle`, `package.json`, `js/game.js` (`GAME_VERSION`) y `js/improvements.js` (`IMPROVEMENTS_VERSION`).
   * Sincronización completa entre raíz, `www/` y `android/app/src/main/assets/public/`.

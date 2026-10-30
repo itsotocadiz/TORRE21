@@ -137,9 +137,9 @@
       apply: (p, e, gs) => { gs.status.enemyPoison = Math.floor((gs.status.enemyPoison || 0) * 1.5); }
     },
     { id: "diamond_heart",  name: "CORAZÓN DE DIAMANTE",  icon: "💎",
-      desc: "HP>80% + Escudo>8 -> siguiente BJ x4",
-      check: (p, gs) => p.hp >= p.maxHp * 0.80 && (gs.status.playerShield || 0) >= 8 && !p._consumedBJx4ThisHand,
-      apply: (p) => { p._synergyNextBJx4 = true; }
+      desc: "HP>80% + Escudo>=8 -> +6 Ataque directo y +15% Crítico esta mano",
+      check: (p, gs) => p.hp >= p.maxHp * 0.80 && (gs.status.playerShield || 0) >= 8,
+      apply: (p) => { p._synergyDiamondHeartDirect = 6; p._synergyDiamondHeartCrit = 0.15; }
     },
     { id: "dark_harvest",   name: "COSECHA OSCURA",        icon: "💀",
       desc: "3+ rivales caídos + Nigromante -> +8 HP al vencer",
@@ -207,11 +207,12 @@
     if (!p) return;
     p._synergyBonusPwr = 0;
     p._synergyBonusDef = 0;
-    p._synergyNextBJx4 = false;
     p._synergyDarkHarvest = false;
     p._synergyGoldenTouch = false;
     p._synergyExtraDodge = 0;
     p._synergyLastStand = false;
+    p._synergyDiamondHeartDirect = 0;
+    p._synergyDiamondHeartCrit = 0;
   }
   window.resetTacticalPerkFlags = resetTacticalPerkFlags;
 

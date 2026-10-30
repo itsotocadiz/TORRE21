@@ -6094,10 +6094,12 @@ body.sudden-death-active #stage {
   letter-spacing: 0.5px;
 }
 
-/* BLOQUE 1: Cartas del rival clickeables para expansión 3D */
+/* BLOQUE 1: Cartas del rival y jugador clickeables para expansión 3D */
 #dealer-cards .card, #dealer-cards .card-face,
 #enemy-cards .card, #enemy-cards .card-face,
-#enemy-hand .card, #enemy-hand .card-face {
+#enemy-hand .card, #enemy-hand .card-face,
+#player-cards .card, #player-cards .card-face,
+#player-hand .card, #player-hand .card-face {
   pointer-events: auto !important;
   cursor: pointer !important;
 }

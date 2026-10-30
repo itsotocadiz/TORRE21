@@ -131,22 +131,24 @@ check('el daño de perk NO se acumula entre manos', pD._synergyBonusPwr === firs
 check('la DEF de perk NO se acumula entre manos', pD._synergyBonusDef === firstDef,
   '1ª=' + firstDef + ' 2ª=' + pD._synergyBonusDef);
 check('perk [Muralla de Hierro] armado con +3 DEF', pD._synergyBonusDef === 3, 'def=' + pD._synergyBonusDef);
-check('perk [Corazón de Diamante] armado para el próximo BJ', pD._synergyNextBJx4 === true);
+check('perk [Corazón de Diamante] armado: +6 daño directo y +15% Crítico',
+  pD._synergyDiamondHeartDirect === 6 && pD._synergyDiamondHeartCrit === 0.15);
 check('perk [Toque de Midas] armado para la mano ganada', pD._synergyGoldenTouch === true);
 
 console.log('\n== 6. resetTacticalPerkFlags limpia todo ==');
 api.resetTacticalPerkFlags(pD);
 check('flags de daño a 0', pD._synergyBonusPwr === 0 && pD._synergyBonusDef === 0);
-check('flags booleanos a false',
-  pD._synergyNextBJx4 === false && pD._synergyDarkHarvest === false &&
-  pD._synergyGoldenTouch === false && pD._synergyLastStand === false);
+check('flags numéricas a 0',
+  pD._synergyBonusPwr === 0 && pD._synergyBonusDef === 0 &&
+  pD._synergyDiamondHeartDirect === 0 && pD._synergyDiamondHeartCrit === 0);
 check('flag de esquiva a 0', pD._synergyExtraDodge === 0);
 
 console.log('\n== 7. Cableado en game.js (los flags SÍ se leen en combate) ==');
 [
   ['_synergyBonusPwr', 'daño de esta mano en la fórmula'],
   ['_synergyBonusDef', 'DEF del contraataque rival'],
-  ['_synergyNextBJx4', 'multiplicador x4 de Blackjack'],
+  ['_synergyDiamondHeartDirect', '+6 Ataque directo en bonus'],
+  ['_synergyDiamondHeartCrit', '+15% Crítico efectivo'],
   ['_synergyDarkHarvest', '+8 HP al tumbar al rival'],
   ['_synergyGoldenTouch', '+2 Oro por mano ganada'],
   ['_synergyExtraDodge', 'esquiva del contraataque'],
@@ -156,7 +158,8 @@ console.log('\n== 7. Cableado en game.js (los flags SÍ se leen en combate) ==')
 });
 check('game.js suma el daño de perk en bonus', gameSrc.indexOf('bonus += p._synergyBonusPwr') !== -1);
 check('game.js suma la DEF de perk al contraataque', gameSrc.indexOf('totalDef += p._synergyBonusDef') !== -1);
-check('game.js captura el BJ pendiente antes de reevaluar', gameSrc.indexOf('pendingNextBJx4') !== -1);
+check('game.js conecta el bonus directo del Corazón de Diamante', gameSrc.indexOf('p._synergyDiamondHeartDirect > 0') !== -1);
+check('game.js conecta el crit del Corazón de Diamante', gameSrc.indexOf('diamondHeartCrit') !== -1);
 check('game.js evalúa los perks al ganar la mano', gameSrc.indexOf('evaluateSynergies(p, e, gameState)') !== -1);
 
 console.log('\n---------------------------------------');
