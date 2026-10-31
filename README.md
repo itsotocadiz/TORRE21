@@ -6,14 +6,14 @@ Roguelike táctico de cartas para Android y Web basado en la mística del 21, co
 
 ## 📱 Descarga del APK para Móviles
 
-👉 **[📥 DESCARGAR APK TORRE21 v2.0.0 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/releases/latest/download/BlackjackTorre21.apk)**
+👉 **[📥 DESCARGAR APK TORRE21 v2.0.1 (Click aquí para bajar en Android)](https://github.com/itsotocadiz/TORRE21/releases/latest/download/BlackjackTorre21.apk)**
 
 El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante GitHub Actions. Cada actualización genera automáticamente un instalador APK listo para Android:
 
-👉 **[Descargar última versión v2.0.0 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
+👉 **[Descargar última versión v2.0.1 (APK) en GitHub Releases](https://github.com/itsotocadiz/TORRE21/releases)**  \
 📥 **[Enlace directo a GitHub Releases (Último APK compilado)](https://github.com/itsotocadiz/TORRE21/releases/latest)**
 
-1. Descarga el archivo `TORRE21-v2.0.0.apk` o `BlackjackTorre21.apk` desde tu celular Android.
+1. Descarga el archivo `TORRE21-v2.0.1.apk` o `BlackjackTorre21.apk` desde tu celular Android.
 2. Ábrelo para instalar o actualizar (permite la instalación de aplicaciones de fuentes confiables si tu dispositivo lo solicita). Preserva intactos todos tus progresos, talentos y partidas guardadas.
 3. ¡Asciende por la Torre!
 
@@ -67,7 +67,43 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 
 ## 📜 Historial de Versiones (Changelog)
 
-### [v2.0.0] — Noviembre 2026 (Actual)
+### [v2.0.1] — Noviembre 2026 (Actual)
+* **BLOQUE 1 — Árbol de Talentos (28 Nodos) 100% Interconectado:**
+  * Eliminación de banderas residuales (`_treeTitanHpApplied`); `recalculatePlayerStats` integra matemáticamente los 28 nodos del árbol de talentos en las estadísticas permanentes base del héroe (`player.permanentBase`).
+  * Las 4 ramas arcanas aplican con fidelidad: Filo de Picas (+PWR y daño crítico), Baluarte de Diamantes (+DEF y escudo inicial de piso `_diamondsFloorShield`), Vitalidad de Corazones (+HP Máx, regeneración entre pisos `_heartsFloorRegen` y curación de Fénix `_heartsDefeatHeal`), y Fortuna del Trébol (+Suerte `p.luck`, +Esquiva y dados de reroll `_clubsFloorRerolls`).
+* **BLOQUE 2 — Catálogo de Accesorios al 100% (Efecto en Combate y Reflejo en Ficha):**
+  * Sincronización transparente de las tres propiedades de equipamiento: `p.accessory`, `p.equippedAccessory` y `p.activeAccessory`.
+  * Efecto real en combate de todos los accesorios del juego:
+    * **Cinturón de Espinas** (`spiked_belt`): +1 Espina permanente reflejada en stats y daño reflejado.
+    * **Amuleto Sangriento** (`blood_amulet`): +6% Vampirismo y curación de +6 HP al derrotar al rival.
+    * **Ojo del Vidente** (`seer_eye`): +8% Crítico y visión de todas las cartas del rival cuando la mano suma 14 o más.
+    * **Pata de Conejo** (`lucky_charm`): +3 Suerte efectiva conectada a todos los sistemas de drops.
+    * **Guante de Plomo** (`lead_glove` / `lead_gauntlet`): +2 PWR base, +2 de ataque si la mano contiene cartas bajas (2, 3, 4, 5), +3 PWR contra rivales aturdidos y +2 Escudo al ganar la mano con cartas bajas.
+    * **Banda de Mercurio** (`mercury_band`): +8% Esquiva y +1 Dado de Reroll extra al inicio de cada piso.
+  * Todas las modificaciones temporales de la run se reflejan con exactitud matemática en la columna `BUFF / NERF` de la Ficha de Héroe (`openFighterInspect`).
+* **BLOQUE 3 — Modal 3D Detallado de Naipes en Combate (Rival y Jugador):**
+  * Modal 3D (`#screen-card-detail`) optimizado con giro 3D táctil (`rotateY(180deg)`), escenas con perspectiva y sombras arcanas.
+  * Cartas estándar: visualización de valor en Blackjack, afinidad elemental del palo según el Árbol de Talentos y sinergia defensiva de parejas.
+  * Cartas especiales y cósmicas: visualización de sellos, rareza, efectos y arte cósmico de monstruo derrotado.
+  * Botón táctil ergonómico `✕ CERRAR / ENTENDIDO` (>= 44px de área táctil WCAG) para una respuesta ágil e intuitiva en móviles.
+* **BLOQUE 4 — Registro e Impacto de Pactos del Abismo:**
+  * Registro de todos los pactos aceptados en `player.activePacts` con metadata estructurada (`id`, `name`, `tier`, `reward`, `curse`).
+  * Impacto numérico inmediato en `recalculatePlayerStats`: pactos de sangre (+HP, -DEF), pactos de poder (+PWR, -HP Máx) y pactos de cosecha oscura (+8 HP por victoria).
+* **BLOQUE 5 — Rueda del Destino Interconectada a la Suerte:**
+  * La Suerte del héroe (`player.luck`) incrementa la probabilidad de desviar una mala tirada de la ruleta hacia bendiciones o recuperación vital (en hitos y en tiradas de muerte súbita).
+  * Persistencia de bonificaciones de la rueda en la run (`p.wheelBonusMaxHp`, `p.wheelBonusPwr`, `p.wheelBonusDef`, `p.wheelBonusShield`) con recálculo dinámico y actualización instantánea del HUD.
+* **BLOQUE 6 — Curva de Dificultad Equilibrada (Actos I y II):**
+  * **Dante de Picas (Jefe Acto I):** Ajustado de 120 HP / 15 PWR / 3 DEF a 85 HP / 11 PWR / 2 DEF (~-29% HP, ~-27% PWR).
+  * **Valquiria de Diamantes (Jefa Acto II):** Ajustada de 160 HP / 19 PWR / 5 DEF a 115 HP / 14 PWR / 3 DEF (~-28% HP, ~-26% PWR).
+  * **Rivales de Acto I:** Duende Pilluelo (25 HP / 7 PWR / 1 DEF), Alimaña de Cripta (24 HP / 8 PWR / 0 DEF), Esqueleto Maldito (30 HP / 8 PWR / 2 DEF).
+  * **Rivales de Acto II:** Escarabajo de Arena (48 HP / 10 PWR / 2 DEF), Orco Berserker (54 HP / 11 PWR / 2 DEF), Gárgola Pétrea (60 HP / 11 PWR / 3 DEF).
+  * **Escudo en Acto II (Normal):** No se aplica el escudo acumulativo temprano antes del Piso 8.
+  * **Curación de Descanso Poscombate (Normal):** +12 HP tras vencer rivales en Acto I y +8 HP en Acto II.
+* **Versión v2.0.1 Sincronizada y Compilación APK Android:**
+  * Incremento a `versionCode 51` y `versionName "2.0.1"` en `android/app/build.gradle`, `package.json`, `js/game.js`, `js/improvements.js` e `index.html`.
+  * Publicación y distribución de `TORRE21-v2.0.1.apk` y `BlackjackTorre21.apk`.
+
+### [v2.0.0] — Noviembre 2026
 * **BLOQUE 1 — Expansión 3D de Cartas (Tuyas y del Rival):**
   * Las cartas visibles del jugador (`#player-cards`, `#player-hand`) y del rival (`#enemy-cards`, `#enemy-hand`) pueden tocarse para ampliarlas al **240x340px** en el modal `🃏 INSPECCIÓN 3D DE CARTA` (`#screen-card-detail`).
   * Al tocar la carta en el modal, gira en **3D (`rotateY(180deg)`)** mostrando su nombre, valor y la descripción completa de sus habilidades/efectos oscuros (`darkSigil` / `specialEffect`).

@@ -123,14 +123,15 @@ check('game.js: shopBoughtItemsThisFloor se reinicia en initFloor',
 check('improvements.js: Luck conectado a drops (p.luck)',
   /p\.luck|p\["luck"\]|player\.luck/.test(improvementsJs) || /p\.luck/.test(gameJs));
 
-console.log('== 6. Versiones y Sincronización ==');
-check('game.js: GAME_VERSION = "v2.0.0"', /const GAME_VERSION\s*=\s*"v2\.0\.0"/.test(gameJs));
-check('improvements.js: IMPROVEMENTS_VERSION = "v2.0.0"', /IMPROVEMENTS_VERSION\s*=\s*"v2\.0\.0"/.test(improvementsJs));
-check('index.html: versión v2.0.0', /v2\.0\.0/.test(indexHtml));
-check('build.gradle: versionCode 50', /versionCode\s+50/.test(fs.readFileSync(path.join(rootDir, 'android', 'app', 'build.gradle'), 'utf8')));
-check('build.gradle: versionName "2.0.0"', /versionName\s+"2\.0\.0"/.test(fs.readFileSync(path.join(rootDir, 'android', 'app', 'build.gradle'), 'utf8')));
-check('build.yml: título de release v2.0.0', /v2\.0\.0.*Build/.test(fs.readFileSync(path.join(rootDir, '.github', 'workflows', 'build.yml'), 'utf8')));
-check('README.md: enlace de descarga v2.0.0', /TORRE21-v2\.0\.0\.apk|BlackjackTorre21\.apk.*v2\.0\.0|releases\/latest\/download\/BlackjackTorre21\.apk/.test(fs.readFileSync(path.join(rootDir, 'README.md'), 'utf8')));
+const pkgVer = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8')).version;
+console.log(`== 6. Versiones y Sincronización (v${pkgVer}) ==`);
+check(`game.js: GAME_VERSION = "v${pkgVer}"`, new RegExp(`const GAME_VERSION\\s*=\\s*"v${pkgVer.replace(/\\./g, '\\.')}"`).test(gameJs));
+check(`improvements.js: IMPROVEMENTS_VERSION = "v${pkgVer}"`, new RegExp(`IMPROVEMENTS_VERSION\\s*=\\s*"v${pkgVer.replace(/\\./g, '\\.')}"`).test(improvementsJs));
+check(`index.html: versión v${pkgVer}`, new RegExp(`v${pkgVer.replace(/\\./g, '\\.')}`).test(indexHtml));
+check(`build.gradle: versionCode >= 50`, /versionCode\s+(5[0-9])/.test(fs.readFileSync(path.join(rootDir, 'android', 'app', 'build.gradle'), 'utf8')));
+check(`build.gradle: versionName "${pkgVer}"`, new RegExp(`versionName\\s+"${pkgVer.replace(/\\./g, '\\.')}"`).test(fs.readFileSync(path.join(rootDir, 'android', 'app', 'build.gradle'), 'utf8')));
+check(`build.yml: título de release v${pkgVer}`, new RegExp(`v${pkgVer.replace(/\\./g, '\\.')}.*Build`).test(fs.readFileSync(path.join(rootDir, '.github', 'workflows', 'build.yml'), 'utf8')));
+check(`README.md: enlace de descarga v${pkgVer}`, new RegExp(`TORRE21-v${pkgVer.replace(/\\./g, '\\.')}\\.apk|BlackjackTorre21\\.apk.*v${pkgVer.replace(/\\./g, '\\.')}|releases/latest/download/BlackjackTorre21\\.apk`).test(fs.readFileSync(path.join(rootDir, 'README.md'), 'utf8')));
 
 console.log('\n---------------------------------------');
 console.log('RESULTADO: ' + passed + ' pass / ' + (total - passed) + ' fail\n');

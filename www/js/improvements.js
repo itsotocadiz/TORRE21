@@ -7,7 +7,7 @@
  */
 (function () {
   "use strict";
-  window.IMPROVEMENTS_VERSION = "v2.0.0";
+  window.IMPROVEMENTS_VERSION = "v2.0.1";
 
   // FIX CRÍTICO BLOQUEANTE (v1.9.0): Forzar cierre de modales de combate en el arranque
   try {
@@ -603,7 +603,18 @@
     const pact = ABYSS_PACTS.find(p => p.id === pactId);
     if (!pact) return;
     const gs = window.gameState;
-    pact.apply(gs.player, gs);
+    if (!gs || !gs.player) return;
+    const p = gs.player;
+    if (!p.activePacts) p.activePacts = [];
+    p.activePacts.push({
+      id: pact.id,
+      name: pact.name,
+      tier: pact.tier,
+      reward: pact.reward,
+      curse: pact.curse
+    });
+    pact.apply(p, gs);
+    if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
     if (typeof addLog === "function") addLog(`👁️ Pactaste con el Abismo [${pact.name}]: ${pact.reward} a cambio de ${pact.curse}.`, "critical");
     if (typeof spawnFloatingText === "function") spawnFloatingText("player-sprite", "👁️ PACTO ACEPTADO", "crit");
     try {

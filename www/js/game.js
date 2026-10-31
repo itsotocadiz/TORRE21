@@ -1,8 +1,8 @@
 "use strict";
-  const GAME_VERSION = "v2.0.0";
+  const GAME_VERSION = "v2.0.1";
   window.GAME_VERSION = GAME_VERSION;
   /* ============================================================
-     TORRE DEL BLACKJACK 21 — ROGUELIKE (v2.0.0)
+     TORRE DEL BLACKJACK 21 — ROGUELIKE (v2.0.1)
      ============================================================ */
 
   const HERO_DATA = {
@@ -4184,7 +4184,15 @@
       if (hasArtifact("warriors_ring")) flatBonus += 3;
       if (hasArtifact("fury_bracer") && player.furyBracerStreak) flatBonus += player.furyBracerStreak;
     }
-    if (player.accessory === "mercury_band") flatBonus += 2;
+    const curAcc = player.accessory || player.equippedAccessory || player.activeAccessory;
+    if (curAcc === "mercury_band") flatBonus += 2;
+    if (curAcc === "lead_glove" || curAcc === "lead_gauntlet") {
+      const hasLow = (playerHand || []).some(c => c && [2, 3, 4, 5].includes(Number(c.value) || Number(c.rank)));
+      if (hasLow) flatBonus += 2;
+      if (window.gameState && window.gameState.status && (window.gameState.status.enemyStunned || (window.gameState.status.enemyStunRounds || 0) > 0)) {
+        flatBonus += 3;
+      }
+    }
     if (player.gem === "topaz") flatBonus += 2;
     if (player._synergyBonusPwr) flatBonus += player._synergyBonusPwr;
 
@@ -4434,7 +4442,15 @@
       if (hasArtifact("warriors_ring")) flatBonus += 3;
       if (hasArtifact("fury_bracer") && player.furyBracerStreak) flatBonus += player.furyBracerStreak;
     }
-    if (player.accessory === "mercury_band") flatBonus += 2;
+    const curAcc = player.accessory || player.equippedAccessory || player.activeAccessory;
+    if (curAcc === "mercury_band") flatBonus += 2;
+    if (curAcc === "lead_glove" || curAcc === "lead_gauntlet") {
+      const hasLow = (playerHand || []).some(c => c && [2, 3, 4, 5].includes(Number(c.value) || Number(c.rank)));
+      if (hasLow) flatBonus += 2;
+      if (window.gameState && window.gameState.status && (window.gameState.status.enemyStunned || (window.gameState.status.enemyStunRounds || 0) > 0)) {
+        flatBonus += 3;
+      }
+    }
     if (player.gem === "topaz") flatBonus += 2;
     if (player._synergyBonusPwr) flatBonus += player._synergyBonusPwr;
 
@@ -4961,9 +4977,9 @@
       name: "Dante de Picas",
       sprite: "🗡️",
       img: "assets/svg/enemy_dante_spades.svg",
-      hp: 120,
-      pwr: 15,
-      def: 3,
+      hp: 85,
+      pwr: 11,
+      def: 2,
       trait: "spade_lord",
       traitShort: "★ FILO VELOZ",
       traitName: "Filo Veloz (+30% daño de cartas de Picas)"
@@ -4972,9 +4988,9 @@
       name: "Valquiria de Diamantes",
       sprite: "🛡️",
       img: "assets/svg/enemy_valkyrie_diamonds.svg",
-      hp: 160,
-      pwr: 19,
-      def: 5,
+      hp: 115,
+      pwr: 14,
+      def: 3,
       trait: "diamond_aegis",
       traitShort: "★ BALUARTE",
       traitName: "Baluarte Sagrado (+10 Escudo al iniciar cada mano)"
@@ -5031,14 +5047,14 @@
      ============================================================ */
   const ACT_ENEMY_POOLS = {
     1: [
-      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 35, pwr: 10, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 4 oro si gana; drena escudo y +2 ATQ si tienes 0)" },
-      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 32, pwr: 11, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+2 Veneno y -1 DEF por 1 ronda al ganar)" },
-      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 42, pwr: 12, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con el 35% de HP Máximo)" }
+      { name: "Duende Pilluelo", sprite: "👺", img: "assets/svg/enemy_goblin.svg", hp: 25, pwr: 7, def: 1, trait: "thief", traitShort: "★ ROBO", traitName: "Robo (te roba 4 oro si gana; drena escudo y +2 ATQ si tienes 0)" },
+      { name: "Alimaña de Cripta", sprite: "🐀", img: "assets/svg/enemy_plague_rat.svg", hp: 24, pwr: 8, def: 0, trait: "plague", traitShort: "★ PESTE", traitName: "Peste (+2 Veneno y -1 DEF por 1 ronda al ganar)" },
+      { name: "Esqueleto Maldito", sprite: "💀", img: "assets/svg/enemy_skeleton.svg", hp: 30, pwr: 8, def: 2, trait: "undead", traitShort: "★ RESURRECCIÓN", traitName: "Resurrección (revive con el 35% de HP Máximo)" }
     ],
     2: [
-      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 65, pwr: 14, def: 3, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+4 Escudo al finalizar la mano si sigue vivo)" },
-      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 75, pwr: 16, def: 3, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+2 ATQ permanente al recibir daño o bajo 50% HP)" },
-      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 85, pwr: 15, def: 5, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel Pétrea (mitiga 2 daño; +4 Escudo con 19-21)" }
+      { name: "Escarabajo de Arena", sprite: "🪲", img: "assets/svg/enemy_sand_beetle.svg", hp: 48, pwr: 10, def: 2, trait: "carapace", traitShort: "★ CAPARAZÓN", traitName: "Caparazón (+4 Escudo al finalizar la mano si sigue vivo)" },
+      { name: "Orco Berserker", sprite: "👹", img: "assets/svg/enemy_orc.svg", hp: 54, pwr: 11, def: 2, trait: "fury", traitShort: "★ FURIA", traitName: "Furia (+2 ATQ permanente al recibir daño o bajo 50% HP)" },
+      { name: "Gárgola Pétrea", sprite: "🦇", img: "assets/svg/enemy_gargoyle.svg", hp: 60, pwr: 11, def: 3, trait: "stone", traitShort: "★ PIEL PÉTREA", traitName: "Piel Pétrea (mitiga 2 daño; +4 Escudo con 19-21)" }
     ],
     3: [
       { name: "Víbora del Pantano", sprite: "🐍", img: "assets/svg/enemy_viper.svg", hp: 100, pwr: 18, def: 4, trait: "venom", traitShort: "★ VENENO", traitName: "Ponzoña (+3 Veneno al ganar mano o impactar)" },
@@ -5651,34 +5667,31 @@
     baseLifesteal += _lg.lifesteal;
     baseLuck += _lg.luck;
 
-    // 3. AUDITORÍA TOTAL DE LOS 28 NODOS DEL ÁRBOL DE TALENTOS
+    // 3. AUDITORÍA TOTAL DE LOS 28 NODOS DEL ÁRBOL DE TALENTOS (PERMANENTES)
     if (typeof getHeroTalentTree === "function") {
       const tree = getHeroTalentTree(heroKey);
       const ranks = (tree && tree.ranks) || {};
 
-      // Rama Picas
+      // ♠️ Rama del Filo
       if (ranks["spades_2"]) baseCrit += (ranks["spades_2"] * 4);
       if (ranks["spades_5"]) baseLifesteal += (ranks["spades_5"] * 12);
 
-      // Rama Diamantes: Espinas crecen estrictamente de 1 en 1 (+1 por rango)
+      // ♦️ Rama del Baluarte: Espinas (+1 por rango) y DEF (+2 por rango)
       if (ranks["diamonds_4"]) baseThorns += (ranks["diamonds_4"] * 1);
       if (ranks["diamonds_5"]) baseDef += (ranks["diamonds_5"] * 2);
 
-      // Rama Corazones: Vigor de Titán (+15 HP Máx por rango)
+      // ♥️ Rama de la Vitalidad: Vigor de Titán (+15 HP Máx por rango)
       if (ranks["hearts_3"]) baseMaxHp += (ranks["hearts_3"] * 15);
+      if (ranks["hearts_5"]) p._heartsKillRegen = 8;
 
-      // Rama Tréboles: Trébol Afortunado (+6% Suerte por rango)
+      // ♣️ Rama de la Fortuna: Trébol Afortunado (+6% Suerte por rango)
       if (ranks["clubs_2"]) baseLuck += (ranks["clubs_2"] * 6);
-    }
 
-    if (p._treeCritChanceBonus) baseCrit += p._treeCritChanceBonus;
-    if (p._spadesCritLifesteal) baseLifesteal += Math.round(p._spadesCritLifesteal * 100);
-    if (p._diamondsTalentDef) baseDef += p._diamondsTalentDef;
-    if (p._heartsTitanHp && !p._treeTitanHpApplied) {
-      baseMaxHp += p._heartsTitanHp;
-      p._treeTitanHpApplied = true;
+      // Pasivas de Piso y Combate vinculadas a ramas elementales
+      if (ranks["diamonds_3"]) p._diamondsFloorShield = (ranks["diamonds_3"] * 8);
+      if (ranks["hearts_2"]) p._heartsFloorRegen = (ranks["hearts_2"] * 4);
+      if (ranks["clubs_4"]) p._clubsFloorRerolls = (ranks["clubs_4"] * 1);
     }
-    if (p._clubsClutchLuck) baseLuck += Math.round(p._clubsClutchLuck * 100);
 
     // 4. ATRIBUTOS RPG ESCALADOS (DEX / INT)
     if (p.attributes) {
@@ -5692,7 +5705,7 @@
       }
     }
 
-    // Estadísticas Base Permanentes del Héroe (Nivel + Maestría + Talentos + Atributos)
+    // Estadísticas Base Permanentes del Héroe (Nivel + Maestría + Crecimiento + Talentos + Atributos)
     p.permanentBase = {
       hp: baseMaxHp,
       pwr: basePwr,
@@ -5704,33 +5717,93 @@
       thorns: baseThorns
     };
 
-    // 5. BENDICIONES DEL DESTINO (Temporales de la Run)
+    // ============================================================
+    // ESTADÍSTICAS TEMPORALES DE LA RUN (BUFF / NERF)
+    // ============================================================
+    let runPwr = basePwr;
+    let runDef = baseDef;
+    let runMaxHp = baseMaxHp;
+    let runCrit = baseCrit;
+    let runDodge = baseDodge;
+    let runLuck = baseLuck;
+    let runLifesteal = baseLifesteal;
+    let runThorns = baseThorns;
+
+    // 5. ACCESORIOS UNIFICADOS (BLOQUE 2)
+    const acc = p.accessory || p.equippedAccessory || p.activeAccessory || (typeof gameState !== "undefined" && gameState.player && gameState.player.accessory);
+    if (acc) {
+      p.accessory = acc;
+      p.equippedAccessory = acc;
+      p.activeAccessory = acc;
+      if (acc === "spiked_belt") {
+        runThorns += 1;
+      } else if (acc === "blood_amulet") {
+        runLifesteal += 6;
+      } else if (acc === "seer_eye") {
+        runCrit += 8;
+      } else if (acc === "lucky_charm" || acc === "luck_amulet") {
+        runLuck += 10;
+        runDodge += 8;
+      } else if (acc === "lead_glove" || acc === "lead_gauntlet") {
+        runPwr += 2;
+      } else if (acc === "mercury_band") {
+        runDodge += 8;
+      } else if (acc === "steel_helm") {
+        runDef += 1;
+      } else if (acc === "amber_amulet") {
+        runMaxHp += 5;
+      }
+    }
+
+    // 6. BONOS ACUMULADOS DE LA RUEDA DEL DESTINO (BLOQUE 5)
+    if (p.wheelBonusPwr) runPwr += p.wheelBonusPwr;
+    if (p.wheelBonusDef) runDef += p.wheelBonusDef;
+    if (p.wheelBonusMaxHp) runMaxHp += p.wheelBonusMaxHp;
+    if (p.wheelBonusCrit) runCrit += p.wheelBonusCrit;
+    if (p.wheelBonusLuck) runLuck += p.wheelBonusLuck;
+    if (p.wheelBonusThorns) runThorns += p.wheelBonusThorns;
+
+    // 7. PACTOS DEL ABISMO Y MESA SACRIFICIAL (BLOQUE 4)
+    if (p.activePacts && Array.isArray(p.activePacts)) {
+      p.activePacts.forEach(pact => {
+        if (!pact) return;
+        const pid = pact.id || "";
+        if (pid === "vampire_sacrifice" || pid === "pact_vampire") runLifesteal += 15;
+        if (pid === "crit_sacrifice") { runCrit += 12; runDef = Math.max(0, runDef - 1); }
+        if (pid === "dodge_sacrifice") runDodge += 10;
+        if (pid === "thorns_sacrifice") runThorns += 1;
+        if (pid === "pact_glass" || pid === "crushing_gravity") runDef = Math.max(0, runDef - 1);
+        if (pid === "pact_fury") { runPwr += 3; runDef = Math.max(0, runDef - 2); }
+        if (pid === "pact_split_soul") { runMaxHp = Math.max(20, Math.floor(runMaxHp * 0.75)); runPwr += 3; }
+        if (pid === "pact_seer") runMaxHp = Math.max(20, Math.floor(runMaxHp * 0.90));
+        if (pid === "pact_chaos") runPwr += 3;
+        if (pid === "pact_thorn") runPwr += 1;
+        if (pid === "cursed_deck") runPwr += 2;
+        if (pid === "frail_soul") { runMaxHp = Math.max(20, runMaxHp - 12); runPwr += 3; }
+        if (pid === "gambler_pact") { runPwr += 3; runCrit += 12; runLuck += 15; }
+      });
+    }
+    if (p._sacrificeCrit) runCrit += p._sacrificeCrit;
+    if (p._sacrificeDodge) runDodge += p._sacrificeDodge;
+    if (p._sacrificeVampirism) runLifesteal += p._sacrificeVampirism;
+    if (p._sacrificeThorns) runThorns += p._sacrificeThorns;
+
+    // 8. BENDICIONES DEL DESTINO (Temporales de la Run)
     if (p.starterBlessing) {
       const bId = (typeof p.starterBlessing === "object") ? p.starterBlessing.id : p.starterBlessing;
-      if (bId === "wind_cloak") baseDodge += 15;
-      if (bId === "gladiator_pact") baseLifesteal += 10;
-      if (bId === "oak_bark") baseThorns += 1; // Rebalanceo estricto +1
-      if (bId === "keen_eye") baseCrit += 10;
-      if (bId === "copper_pouch" || bId === "midas_touch") baseLuck += 10;
+      if (bId === "wind_cloak") runDodge += 15;
+      if (bId === "gladiator_pact") runLifesteal += 10;
+      if (bId === "oak_bark") runThorns += 1;
+      if (bId === "keen_eye") runCrit += 10;
+      if (bId === "copper_pouch" || bId === "midas_touch") runLuck += 10;
     }
 
-    // 6. ACCESORIOS EQUIPADOS (Cinturón con Púas +1 Espina, Amuleto de Suerte, etc.)
-    if (p.accessory === "spiked_belt") baseThorns += 1;
-    if (p.accessory === "lucky_charm") baseLuck += 10;
-    if (p.accessory === "blood_amulet") baseLifesteal += 5;
-
-    // 7. JOYA HEREDADA (BLACKJACK_HERITAGE v1.8.5: +3 PWR, +10% Crítico, +16 HP)
+    // 9. JOYA HEREDADA
     if (p.gem === "blackjack_heritage" || p._heritageCrit) {
-      baseCrit += 10;
+      runCrit += 10;
     }
 
-    // 8. PACTOS DE LA MESA SACRIFICIAL REBALANCEADOS (HIGH RISK, HIGH REWARD)
-    if (p._sacrificeCrit) baseCrit += p._sacrificeCrit;
-    if (p._sacrificeDodge) baseDodge += p._sacrificeDodge;
-    if (p._sacrificeVampirism) baseLifesteal += p._sacrificeVampirism;
-    if (p._sacrificeThorns) baseThorns += p._sacrificeThorns;
-
-    // 9. RELIQUIAS Y ARTEFACTOS (SANITIZADOS)
+    // 10. RELIQUIAS Y ARTEFACTOS
     const allRelics = [
       ...(p.artifacts || []),
       ...(p.relics || []),
@@ -5740,34 +5813,31 @@
     allRelics.forEach(r => {
       if (!r) return;
       const rid = (typeof r === "object") ? (r.id || "") : String(r);
-      if (rid.includes("crit") || rid === "sharp_blade" || rid === "assassin_dagger") baseCrit += 10;
-      if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") baseDodge += 10;
-      if (rid.includes("luck") || rid === "lucky_charm" || rid === "lucky_coin") baseLuck += 10;
-      if (rid.includes("vampire") || rid === "bloody_chalice" || rid === "blood_chalice") baseLifesteal += 10;
-      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") baseThorns += 1;
-      if (rid === "relic_necro_bones" || r._boneThorns) baseThorns += 1;
+      if (rid.includes("crit") || rid === "sharp_blade" || rid === "assassin_dagger") runCrit += 10;
+      if (rid.includes("dodge") || rid === "shadow_cloak" || rid === "wind_cloak") runDodge += 10;
+      if (rid.includes("luck") || rid === "lucky_charm" || rid === "lucky_coin") runLuck += 10;
+      if (rid.includes("vampire") || rid === "bloody_chalice" || rid === "blood_chalice") runLifesteal += 10;
+      if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") runThorns += 1;
+      if (rid === "relic_necro_bones" || r._boneThorns) runThorns += 1;
     });
 
-    // 10. BUFFS Y NERFS EN TIEMPO REAL
+    // 11. BUFFS Y NERFS EN TIEMPO REAL
     if (typeof gameState !== "undefined" && gameState.status) {
-      if (gameState.status.playerBlind) baseCrit = Math.max(0, baseCrit - 10);
-      if (gameState.status.playerClumsy) baseDodge = Math.max(0, baseDodge - 10);
-      if (gameState.status.playerOpenWound) baseLifesteal = 0;
-      if (gameState.status.playerRuneShell) baseThorns += 1;
-      // -1 DEF permanente por herida abierta
-      if (gameState.status.playerOpenWound) baseDef -= 1;
-      // +8% Esquiva permanente del Reloj de Arena Arcano
-      if (p._arcanumDodge > 0) baseDodge += p._arcanumDodge;
+      if (gameState.status.playerBlind) runCrit = Math.max(0, runCrit - 10);
+      if (gameState.status.playerClumsy) runDodge = Math.max(0, runDodge - 10);
+      if (gameState.status.playerOpenWound) { runLifesteal = 0; runDef -= 1; }
+      if (gameState.status.playerRuneShell) runThorns += 1;
+      if (p._arcanumDodge > 0) runDodge += p._arcanumDodge;
     }
 
-    p.dodgeChance = Math.min(45, Math.max(0, baseDodge));
-    p.critChance = Math.min(90, Math.max(0, baseCrit));
-    p.luck = Math.min(50, Math.max(0, baseLuck));
-    p.lifesteal = Math.min(50, Math.max(0, baseLifesteal));
-    p.thorns = Math.max(0, baseThorns);
-    p.pwr = Math.max(0, basePwr);
-    p.def = Math.max(0, baseDef);
-    p.maxHp = Math.max(20, baseMaxHp);
+    p.dodgeChance = Math.min(45, Math.max(0, runDodge));
+    p.critChance = Math.min(90, Math.max(0, runCrit));
+    p.luck = Math.min(50, Math.max(0, runLuck));
+    p.lifesteal = Math.min(50, Math.max(0, runLifesteal));
+    p.thorns = Math.max(0, runThorns);
+    p.pwr = Math.max(0, runPwr);
+    p.def = Math.max(0, runDef);
+    p.maxHp = Math.max(20, runMaxHp);
     p.hp = Math.min(p.hp || p.maxHp, p.maxHp);
   }
   window.recalculatePlayerStats = recalculatePlayerStats;
@@ -9085,17 +9155,19 @@
           ${lootPill}
         `;
       }
+      el._cardData = {
+        rank: card.rank,
+        suit: card.suit,
+        value: card.currentAdaptedValue || card.value,
+        name: card.name || null,
+        desc: card.desc || null,
+        badgeText: card.badgeText || null,
+        seal: card.enchantment || null,
+        isEnemyCard: false,
+        cosmetic: cosmetic
+      };
       el.onclick = () => {
-        showCardDetailModal({
-          rank: card.rank,
-          suit: card.suit,
-          value: card.currentAdaptedValue || card.value,
-          name: card.name || null,
-          desc: card.desc || null,
-          badgeText: card.badgeText || null,
-          seal: card.enchantment || null,
-          cosmetic: cosmetic
-        });
+        showCardDetailModal(el._cardData, false);
       };
       pHandEl.appendChild(el);
     });
@@ -10158,9 +10230,40 @@
     await sleep(800);
     sprite.classList.remove("flash-kill");
 
-    if (p.accessory === "blood_amulet") {
+    const isBloodAmulet = (p.accessory === "blood_amulet" || p.equippedAccessory === "blood_amulet" || p.activeAccessory === "blood_amulet");
+    if (isBloodAmulet) {
       p.hp = Math.min(p.maxHp, p.hp + 6);
-      addLog(`Amuleto de Sangre: +6 HP (${p.hp}/${p.maxHp})`, "heal");
+      spawnFloatingText("player-sprite", "+6 HP", "heal");
+      addLog(`🩸 Amuleto de Sangre: +6 HP al derrotar al rival (${p.hp}/${p.maxHp} HP).`, "heal");
+    }
+
+    // Sangre de Fénix (Talento hearts_5)
+    if (p._heartsKillRegen && p._heartsKillRegen > 0) {
+      p.hp = Math.min(p.maxHp, p.hp + p._heartsKillRegen);
+      spawnFloatingText("player-sprite", `❤️ +${p._heartsKillRegen} FÉNIX`, "heal");
+      addLog(`❤️ Sangre de Fénix (Talento ♥️): +${p._heartsKillRegen} HP restaurados al abatir al rival.`, "heal");
+    }
+
+    // Pacto del Parásito (Pacto del Abismo)
+    if (p._pactDarkHarvest || (p.activePacts && p.activePacts.some(pa => pa && (pa.id === "pact_leech" || pa.id === "pact_dark_harvest")))) {
+      p.hp = Math.min(p.maxHp, p.hp + 8);
+      spawnFloatingText("player-sprite", "+8 HP PARÁSITO", "heal");
+      addLog(`👁️ Pacto del Parásito: +8 HP drenados al eliminar al rival (${p.hp}/${p.maxHp} HP).`, "heal");
+    }
+
+    // Curación Poscombate Acto 1 y 2 (Bloque 6: Suavizado de progresión)
+    const curAct = (typeof getActForFloor === "function") ? getActForFloor(gameState.floor) : 1;
+    const isNormalDiff = (gameState.diff === "normal" || (typeof getGameDifficulty === "function" && getGameDifficulty() === "normal"));
+    if (isNormalDiff) {
+      let postHeal = 0;
+      if (curAct === 1) postHeal = 12;
+      else if (curAct === 2) postHeal = 8;
+      if (postHeal > 0 && p.hp < p.maxHp) {
+        const actualHeal = Math.min(postHeal, p.maxHp - p.hp);
+        p.hp += actualHeal;
+        spawnFloatingText("player-sprite", `+${actualHeal} HP DESCANSO`, "heal");
+        addLog(`🌿 Alivio del Novicio (Acto ${curAct}): Recuperas +${actualHeal} HP tras superar el asalto (${p.hp}/${p.maxHp} HP).`, "heal");
+      }
     }
 
     if (p.playerHand && p.playerHand.some(c => (c.specialId || c.id) === "club_jack_thief")) {
@@ -15223,7 +15326,10 @@
     gameState.gold -= price;
     if (typeof recordGoldShopPurchase === "function") recordGoldShopPurchase("amulet");
     p.accessory = type;
+    p.equippedAccessory = type;
+    p.activeAccessory = type;
     registerCodexDiscovery("amulets", type);
+    if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
     saveMidRunState();
     playCoinSound();
     addLog(`Compraste ${AMULET_INFO[type].name} (-${price} oro).`, "heal");
@@ -15610,6 +15716,8 @@
     const backIconEl = document.getElementById("card-detail-back-icon");
 
     const rank = data.rank || "?";
+    const suit = data.suit || "♠";
+    const isRed = (suit === "♥" || suit === "hearts" || suit === "♦" || suit === "diamonds");
     let seal = data.seal || data.enchantment || data.sealEffect || null;
     if (!seal) {
       const keys = [`${suit}_${rank}`, `${rank}${suit}`, `${suit}${rank}`, `${rank}_${suit}`, data.id].filter(Boolean);
@@ -15722,11 +15830,18 @@
     } else {
       if (sealIconEl) sealIconEl.style.display = "none";
       if (sealBadgeEl) {
-        sealBadgeEl.innerText = "CARTA ESTÁNDAR";
+        sealBadgeEl.innerText = "CARTA NORMAL (ESTÁNDAR)";
         sealBadgeEl.style.display = "";
       }
-      if (descEl) descEl.innerText = "Naipe de la baraja básica. Puedes impregnarle sellos arcanos en los Sobres del Bazar.";
-      if (synergyEl) synergyEl.innerText = "Forma parejas (Duplas) para ganar +2 de Defensa de armadura.";
+      const valStr = data.value || (rank === "A" ? "1 u 11 puntos" : (["K", "Q", "J"].includes(rank) ? "10 puntos" : `${rank} puntos`));
+      let affinityDesc = "";
+      if (suit === "♠" || suit === "spades") affinityDesc = "Afinidad del Filo (♠️): Aporta daño perforante puro al ganar el asalto cuando la afinidad está activa.";
+      else if (suit === "♦" || suit === "diamonds") affinityDesc = "Afinidad del Baluarte (♦️): Genera Escudo protector azul al ganar el asalto cuando la afinidad está activa.";
+      else if (suit === "♥" || suit === "hearts") affinityDesc = "Afinidad Vital (♥️): Restaura salud directa al héroe al ganar el asalto cuando la afinidad está activa.";
+      else if (suit === "♣" || suit === "clubs") affinityDesc = "Afinidad de la Fortuna (♣️): Entrega Oro extra de botín al ganar el asalto cuando la afinidad está activa.";
+
+      if (descEl) descEl.innerHTML = `<b>Valor en Blackjack:</b> ${valStr}.<br><b>Palo:</b> ${suitName} (${suit}).<br><b>Efecto Elemental:</b> ${affinityDesc}`;
+      if (synergyEl) synergyEl.innerHTML = `<b>Sinergia de Pareja (Dupla):</b> Si juegas dos cartas del mismo valor numérico, activas +2 DEF de Armadura adicional en el asalto.`;
     }
 
     if (data.cosmetic && cardPreview) {
@@ -15784,12 +15899,13 @@
       const cardEl = e.target.classList.contains("interactive-card") ? e.target : e.target.closest(".interactive-card");
       const parentContainer = cardEl.closest("#enemy-cards, #enemy-hand, #dealer-cards, #player-cards, #player-hand");
       if (parentContainer) {
+        const isEnemy = !!cardEl.closest("#enemy-cards, #enemy-hand, #dealer-cards");
         if (typeof window.showCardDetailModal === "function") {
           var parsedCardData = null;
           if (cardEl.dataset && cardEl.dataset.cardData) {
             try { parsedCardData = JSON.parse(cardEl.dataset.cardData); } catch (e2) { parsedCardData = null; }
           }
-          window.showCardDetailModal(cardEl._cardData || parsedCardData || {}, true);
+          window.showCardDetailModal(cardEl._cardData || parsedCardData || {}, isEnemy);
         }
         return;
       }
@@ -16664,10 +16780,21 @@
     const p = gameState.player;
     gameState.curseTakenOnFloor[gameState.floor] = true;
 
-    const pact = SACRIFICE_PACTS_POOL.find(p => p.id === curseType);
-    if (pact && typeof pact.onApply === "function") {
-      pact.onApply(p, gameState);
+    const pact = SACRIFICE_PACTS_POOL.find(item => item.id === curseType);
+    if (pact) {
+      if (!p.activePacts) p.activePacts = [];
+      p.activePacts.push({
+        id: pact.id,
+        name: pact.title || pact.name,
+        tier: "altar",
+        reward: pact.gainText,
+        curse: pact.costText
+      });
+      if (typeof pact.onApply === "function") {
+        pact.onApply(p, gameState);
+      }
     }
+    if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
 
     updateHud();
     document.getElementById("screen-event").classList.add("hidden");
@@ -19979,10 +20106,22 @@
         bonus += p._synergyDiamondHeartDirect;
         addLog(`💎 Perk Táctico [Corazón de Diamante]: +${p._synergyDiamondHeartDirect} Ataque directo.`, "critical");
       }
-      // Guante de Plomo (Reliquia): +3 PWR permanente contra enemigos aturdidos
-      if (p._leadGlovePwr > 0 && gameState.status && gameState.status.enemyStunned) {
-        bonus += p._leadGlovePwr;
-        addLog(`🧤 Guante de Plomo: +${p._leadGlovePwr} PWR contra enemigo aturdido.`, "critical");
+      // Guante de Plomo (Accesorio): +2 Atq y +2 Escudo con cartas 2,3,4,5; +3 PWR vs enemigo aturdido
+      const curAcc = p.accessory || p.equippedAccessory || p.activeAccessory;
+      const isLeadGlove = (curAcc === "lead_glove" || curAcc === "lead_gauntlet" || p._leadGlovePwr > 0);
+      if (isLeadGlove) {
+        const hasLow = (p.playerHand || []).some(c => c && [2, 3, 4, 5].includes(Number(c.value) || Number(c.rank)));
+        if (hasLow) {
+          bonus += 2;
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerShield = (gameState.status.playerShield || 0) + 2;
+          spawnFloatingText("player-sprite", "🛡️ +2 ESCUDO GUANTE", "shield");
+          addLog("🥊 Guante de Plomo: +2 Ataque y +2 Escudo protector por cartas bajas en mano.", "heal");
+        }
+        if (gameState.status && (gameState.status.enemyStunned || (gameState.status.enemyStunRounds || 0) > 0)) {
+          bonus += 3;
+          addLog("🥊 Guante de Plomo: +3 PWR adicional contra enemigo aturdido.", "critical");
+        }
       }
 
       // 1. ATAQUE LIMPIO (v1.8.0): Las cartas no son daño; determinan la victoria del asalto.
@@ -21529,7 +21668,27 @@
 
     // Wrap correcto: +4PI garantiza modulo positivo (con +2PI salían indices negativos)
     const rawSlice = (arrowAngle - normalizedRotation + 4 * Math.PI) % (2 * Math.PI);
-    const sliceIndex = Math.floor(rawSlice / sliceAngle) % slices;
+    let sliceIndex = Math.floor(rawSlice / sliceAngle) % slices;
+
+    const p = gameState.player || {};
+    // Conectar el stat de % Suerte (player.luck) para sesgo favorable
+    if (gameState.wheelMode === "milestone") {
+      if ((sliceIndex === 8 || sliceIndex === 9) && (p.luck || 0) > 0) {
+        const luckChance = Math.min(0.80, (p.luck || 0) / 40);
+        if (Math.random() < luckChance) {
+          sliceIndex = Math.floor(Math.random() * 8);
+          addLog(`🍀 ¡Tu Suerte de Héroe (${p.luck}%) desvió la Rueda hacia un sector de Bendición!`, "heal");
+        }
+      }
+    } else {
+      if (sliceIndex >= 4 && (p.luck || 0) > 0) {
+        const luckChance = Math.min(0.70, (p.luck || 0) / 45);
+        if (Math.random() < luckChance) {
+          sliceIndex = Math.floor(Math.random() * 4);
+          addLog(`🍀 ¡Tu Suerte de Héroe (${p.luck}%) desvió el puntero del Destino hacia la Salvación!`, "heal");
+        }
+      }
+    }
 
     if (gameState.wheelMode === "milestone") {
       // ---- HITO 80/20: modificador permanente (no hay muerte) ----
@@ -21599,20 +21758,25 @@
 
   function applyWheelOutcome(sliceIndex) {
     const p = gameState.player;
+    if (!p) return;
     if (sliceIndex === 0) {
-      p.maxHp += 15;
+      p.wheelBonusMaxHp = (p.wheelBonusMaxHp || 0) + 15;
       p.hp = p.maxHp;
       spawnFloatingText("player-sprite", "+15 MAX HP", "heal");
+      addLog("❤️ ¡La Rueda del Destino te otorga +15 HP Máximo y curación completa!", "heal");
     } else if (sliceIndex === 1) {
-      p.pwr += 2;
+      p.wheelBonusPwr = (p.wheelBonusPwr || 0) + 2;
       spawnFloatingText("player-sprite", "+2 PWR", "crit");
+      addLog("⚔️ ¡La Rueda del Destino te otorga +2 PWR permanente de ataque!", "heal");
     } else if (sliceIndex === 2) {
-      p.def += 2;
+      p.wheelBonusDef = (p.wheelBonusDef || 0) + 2;
       spawnFloatingText("player-sprite", "+2 DEF", "shield");
+      addLog("🛡️ ¡La Rueda del Destino te otorga +2 DEF permanente de armadura!", "heal");
     } else if (sliceIndex === 3) {
       gameState.gold += 40;
       p.rerollsAvailable = (p.rerollsAvailable || 0) + 1;
-      spawnFloatingText("player-sprite", "+40 ORO", "heal");
+      spawnFloatingText("player-sprite", "+40 ORO", "gold");
+      addLog("🪙 ¡La Rueda del Destino te otorga +40 de Oro y +1 Dado de Reroll!", "gold");
     } else if (sliceIndex === 4) {
       if (!gameState.status) gameState.status = {};
       p.wheelBonusShield = (p.wheelBonusShield || 0) + 12;
@@ -21623,26 +21787,30 @@
       p.potions = (p.potions || 0) + 1;
       p.rerollsAvailable = (p.rerollsAvailable || 0) + 1;
       spawnFloatingText("player-sprite", "+1 POCIÓN", "heal");
+      addLog("🧪 ¡La Rueda del Destino te concede +1 Poción y +1 Reroll!", "heal");
     } else if (sliceIndex === 6) {
-      // SPRINT 3: Abre 1 Yunque gratis (Forja Arquetípica de Lote)
       setTimeout(() => {
         if (typeof openBoosterPackBySource === "function") {
           openBoosterPackBySource("arcane_group", { free: true, source: "postCombat" });
         }
       }, 500);
+      addLog("🔨 ¡La Rueda del Destino abre el Yunque Ancestral para forjar una carta!", "heal");
     } else if (sliceIndex === 7) {
       addLog("✨ ¡La Rueda del Destino te concede +60 de EXP permanente!", "critical");
       if (typeof gainExp === "function") {
         gainExp(60).catch(() => {});
       }
     } else if (sliceIndex === 8) {
-      p.maxHp = Math.max(20, p.maxHp - 6);
-      p.hp = Math.min(p.hp, p.maxHp);
+      p.wheelBonusMaxHp = (p.wheelBonusMaxHp || 0) - 6;
       spawnFloatingText("player-sprite", "-6 MAX HP", "damage");
+      addLog("💀 Castigo del Destino: -6 de HP Máximo para esta run.", "damage");
     } else if (sliceIndex === 9) {
-      p.pwr = Math.max(0, p.pwr - 1);
+      p.wheelBonusPwr = (p.wheelBonusPwr || 0) - 1;
       spawnFloatingText("player-sprite", "-1 PWR", "damage");
+      addLog("💀 Castigo del Destino: -1 PWR permanente de ataque.", "damage");
     }
+    if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+    updateHud();
     saveMidRunState();
   }
 
@@ -21693,7 +21861,8 @@
     if (t.trait === "carapace") {
       enemyStartShield += 5;
     }
-    if (gameState.floor >= 4) {
+    const minFloorForShield = (diffKey === "normal") ? 8 : 4;
+    if (gameState.floor >= minFloorForShield) {
       const shieldMult = (diffKey === "normal") ? 2 : (diffKey === "hard" ? 3 : 4);
       enemyStartShield += Math.min(30, (gameState.floor - 3) * shieldMult);
     }
@@ -21755,12 +21924,14 @@
     // Mazo nuevo (barajado) al inicio de cada piso
     rebuildDrawPile();
 
-    // Aplicación de talentos al iniciar el piso
+    // Aplicación de talentos y accesorios al iniciar el piso
     if (p) {
-      if (p._diamondsFloorShield) {
+      if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+      if (p._diamondsFloorShield || p.wheelBonusShield) {
         gameState.status = gameState.status || {};
-        gameState.status.playerShield = (gameState.status.playerShield || 0) + p._diamondsFloorShield;
-        addLog(`♦️ Baluarte Inicial (♦️): +${p._diamondsFloorShield} Escudo al comenzar el piso ${gameState.floor}.`, "heal");
+        const totalStartShield = (p._diamondsFloorShield || 0) + (p.wheelBonusShield || 0);
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + totalStartShield;
+        addLog(`♦️ Baluarte Inicial / Rueda: +${totalStartShield} Escudo al comenzar el piso ${gameState.floor}.`, "heal");
       }
       if (p._heartsFloorRegen && gameState.floor > 1) {
         p.hp = Math.min(p.maxHp, p.hp + p._heartsFloorRegen);
@@ -21769,6 +21940,11 @@
       if (p._clubsFloorRerolls) {
         p.rerollsAvailable = (p.rerollsAvailable || 0) + p._clubsFloorRerolls;
         addLog(`♣️ Alquimia de Dados (♣️): +${p._clubsFloorRerolls} Dado(s) de Reroll obtenidos para el piso ${gameState.floor}.`, "gold");
+      }
+      const curAcc = p.accessory || p.equippedAccessory || p.activeAccessory;
+      if (curAcc === "mercury_band") {
+        p.rerollsAvailable = (p.rerollsAvailable || 0) + 1;
+        addLog("⚡ Banda de Mercurio: +1 Dado de Reroll obtenido para este piso.", "heal");
       }
       if (p._bonusRerollsPerFloor && p._bonusRerollsPerFloor > 0) {
         p.rerollsAvailable = (p.rerollsAvailable || 0) + p._bonusRerollsPerFloor;

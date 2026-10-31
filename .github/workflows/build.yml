@@ -65,16 +65,18 @@ jobs:
         continue-on-error: true
         with:
           tag_name: build-${{ github.run_number }}
-          name: Black Jack Torre 21 — v2.0.0 (Build #${{ github.run_number }})
+          name: Black Jack Torre 21 — v2.0.1 (Build #${{ github.run_number }})
           body: |
-            ### ♠ Black Jack: La Torre del 21 — v2.0.0 (BUILD 57)
+            ### ♠ Black Jack: La Torre del 21 — v2.0.1 (BUILD 58)
             Compilación continua generada automáticamente en GitHub Actions para Android.
             
             * Toca `BlackjackTorre21.apk` para instalar o actualizar el juego en tu dispositivo móvil.
-            * Novedades v2.0.0:
-              - **BLOQUE 1**: Las cartas visibles del rival ahora se expanden en 3D (240x340px) al tocarlas, mostrando su nombre, valor y habilidades oscuras (`darkSigil` / `specialEffect`) con giro `rotateY(180deg)`.
-              - **BLOQUE 2**: El botón `▶ REANUDAR PARTIDA` ahora siempre aparece al volver al Campamento desde una partida activa, manteniendo el estado guardado en `localStorage`.
-              - **BLOQUE 3**: Candado estricto en la tienda: máximo 1 poción por tipo y máximo 2 objetos de oro por piso (el contador persiste entre aperturas de la tienda y se reinicia solo al cambiar de piso).
-              - **BLOQUE 4**: Separación de mecánicas: el Árbol de Talentos (28 nodos) es PERMANENTE y se otiene al subir de nivel; la Mejora de Ascenso (Buff/Nerf) es exclusiva de la run y se elige al pasar de Acto.
-            * APK `BlackjackTorre21.apk` y `TORRE21-v2.0.0.apk` listos para descargar.
+            * Novedades v2.0.1:
+              - **BLOQUE 1**: Árbol de Talentos (28 nodos) completamente interconectado a las estadísticas permanentes base del héroe (`p.permanentBase`) y afinidades elementales en combate.
+              - **BLOQUE 2**: Catálogo de accesorios al 100% (Cinturón de Espinas, Amuleto Sangriento, Ojo del Vidente, Pata de Conejo, Guante de Plomo y Banda de Mercurio) con efecto en batalla y reflejo matemático en Ficha de Héroe (BUFF/NERF).
+              - **BLOQUE 3**: Modal 3D detallado de naipes en combate tanto para rival como para jugador (cartas estándar con valor Blackjack, afinidad de palo y sinergia de pareja; cartas especiales con sello y arte cósmico; botón táctil de cierre).
+              - **BLOQUE 4**: Pactos del Abismo persistidos en `player.activePacts` con aplicación inmediata de bonos y penalizaciones en atributos.
+              - **BLOQUE 5**: Rueda del Destino interconectada a Suerte (`player.luck`) con persistencia de estadísticas de run y recálculo en tiempo real.
+              - **BLOQUE 6**: Curva de dificultad y progresión equilibrada en Actos 1 y 2 (Dante de Picas 85 HP/11 PWR, Valquiria 115 HP/14 PWR, pools de enemigos ajustados y curación de descanso).
+            * APK `BlackjackTorre21.apk` y `TORRE21-v2.0.1.apk` listos para descargar.
           files: BlackjackTorre21.apk
