@@ -68,6 +68,21 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
 ## 📜 Historial de Versiones (Changelog)
 
 ### [v2.0.1] — Noviembre 2026 (Actual)
+* **BLOQUE 0 — Auditoría y Conexión al 100% de Bendiciones Iniciales (STARTER_BLESSINGS):**
+  * **Normalización Canónica de Lectura:** Implementados y expuestos en `window` los helpers universales `getActiveStarterBlessingId(player)`, `getActiveStarterBlessing(player)` y `hasStarterBlessing(id)` que soportan transparentemente estructuras de objeto `{ id }`, identificadores en string (`"oak_bark"`), fallbacks (`activeBlessing` / `blessing`) y normalización de alias históricos (`jagged_dagger`/`daga_mellada` ➔ `notched_dagger`, `shield_blessing` ➔ `dawn_aegis`).
+  * **Integración en `recalculatePlayerStats`:** Las 16 bendiciones con estadísticas de run se calculan y suman con exactitud en `runMaxHp`, `runPwr`, `runDef`, `runCrit`, `runDodge` y `runLuck`, reflejando automáticamente la diferencia con la base permanente en la columna `BUFF / NERF` de la Ficha del Personaje (`openFighterInspect`) y en el HUD de combate.
+  * **Efectos Pasivos Mecánicos en Combate y Piso:**
+    * *Égida del Alba* (`dawn_aegis`): +2 DEF fija y recarga +10 de Escudo protector azul en `initFloor`.
+    * *Rodela de Madera* (`wooden_buckler`): +1 DEF y +5 de Escudo inicial en `initFloor`.
+    * *Malla de Acero* (`steel_mail`): +2 DEF y +8 de Escudo inicial en `initFloor`.
+    * *Fortaleza Inexpugnable* (`unyielding_fortress`): +3 DEF y absorción del primer golpe (`absorbFirstHit = true`).
+    * *Ojo Avizor* (`keen_eye`): +10% Crítico y +1 Dado de Reroll táctico adicional por piso.
+    * *Frasco Alquímico* (`alchemist_flask`): +15 HP extra de curación y +5 de Escudo azul acumulativo al consumir pociones.
+    * *Juramento del Tahúr* (`gambler_oath`): +3 PWR, +12% Crítico, +15% Suerte y al ganar doblando (`turnDoubleDamage`) restaura +8 HP y entrega +6 de Oro.
+    * *Corteza de Roble* (`oak_bark`): +15 HP Máx y regenera +3 HP tras ganar cada mano en `resolveHandResult`.
+    * *Señor de las Sombras* (`shadow_lord`): +10% Crítico e ignora el 100% de la armadura enemiga (DEF 0) con manos de 19, 20 o 21.
+  * **Unificación en la Interfaz y Códice:** Mochila de equipo (`updateCombatGearModalUI`), inspección de ranura (`inspectGearSlot`), Ficha de Combate y Medallón del Destino (`updatePlayerAccSlot`) unificados con `getActiveStarterBlessing(player)`, erradicando el cartel de "Sin Bendición Activa" cuando se tiene una bendición elegida. Registro automático en el álbum del Códice (`torre21_unlocked_blessings`) en `selectStarterBlessing`.
+  * **Suite de Pruebas Automatizada:** Creada la suite `scripts/test-starter-blessings.js` que audita las 20 bendiciones, normalización, recálculo de stats, efectos mecánicos y Códice, integrada oficialmente en `package.json` (`npm test` y `npm run verify`).
 * **BLOQUE 1 — Árbol de Talentos (28 Nodos) 100% Interconectado:**
   * Eliminación de banderas residuales (`_treeTitanHpApplied`); `recalculatePlayerStats` integra matemáticamente los 28 nodos del árbol de talentos en las estadísticas permanentes base del héroe (`player.permanentBase`).
   * Las 4 ramas arcanas aplican con fidelidad: Filo de Picas (+PWR y daño crítico), Baluarte de Diamantes (+DEF y escudo inicial de piso `_diamondsFloorShield`), Vitalidad de Corazones (+HP Máx, regeneración entre pisos `_heartsFloorRegen` y curación de Fénix `_heartsDefeatHeal`), y Fortuna del Trébol (+Suerte `p.luck`, +Esquiva y dados de reroll `_clubsFloorRerolls`).

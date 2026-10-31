@@ -5789,13 +5789,26 @@
     if (p._sacrificeThorns) runThorns += p._sacrificeThorns;
 
     // 8. BENDICIONES DEL DESTINO (Temporales de la Run)
-    if (p.starterBlessing) {
-      const bId = (typeof p.starterBlessing === "object") ? p.starterBlessing.id : p.starterBlessing;
-      if (bId === "wind_cloak") runDodge += 15;
-      if (bId === "gladiator_pact") runLifesteal += 10;
-      if (bId === "oak_bark") runThorns += 1;
-      if (bId === "keen_eye") runCrit += 10;
-      if (bId === "copper_pouch" || bId === "midas_touch") runLuck += 10;
+    const bId = (typeof getActiveStarterBlessingId === "function") 
+      ? getActiveStarterBlessingId(p) 
+      : ((p && p.starterBlessing) ? (typeof p.starterBlessing === "object" ? p.starterBlessing.id : p.starterBlessing) : null);
+    if (bId) {
+      if (bId === "oak_bark") runMaxHp += 15;
+      else if (bId === "notched_dagger" || bId === "jagged_dagger" || bId === "daga_mellada") runPwr += 1;
+      else if (bId === "wooden_buckler" || bId === "shield_blessing") runDef += 1;
+      else if (bId === "dawn_aegis") runDef += 2;
+      else if (bId === "copper_pouch") runLuck += 10;
+      else if (bId === "keen_eye") runCrit += 10;
+      else if (bId === "gladiator_pact") { runPwr += 3; runDef = Math.max(0, runDef - 1); }
+      else if (bId === "steel_mail") runDef += 2;
+      else if (bId === "wind_cloak") runDodge += 20;
+      else if (bId === "dragon_heart") runMaxHp += 35;
+      else if (bId === "berserker_rage") runPwr += 3;
+      else if (bId === "unyielding_fortress") runDef += 3;
+      else if (bId === "midas_touch") runLuck += 10;
+      else if (bId === "gambler_oath") { runPwr += 3; runCrit += 12; runLuck += 15; }
+      else if (bId === "shadow_lord") runCrit += 10;
+      else if (bId === "jack_sovereignty") { runMaxHp += 50; runPwr += 4; runDef += 2; }
     }
 
     // 9. JOYA HEREDADA
@@ -8617,10 +8630,13 @@
       const e = gameState.enemy;
 
       // Re-vincular la Bendición del Destino con el catálogo para restaurar metadatos completos y funciones
-      if (p && p.starterBlessing && p.starterBlessing.id && typeof STARTER_BLESSINGS !== "undefined") {
-        const fullBlessing = STARTER_BLESSINGS.find(b => b.id === p.starterBlessing.id);
+      if (p && (p.starterBlessing || p.activeBlessing || p.blessing) && typeof STARTER_BLESSINGS !== "undefined") {
+        const fullBlessing = (typeof getActiveStarterBlessing === "function") 
+          ? getActiveStarterBlessing(p) 
+          : STARTER_BLESSINGS.find(b => b.id === (typeof p.starterBlessing === "object" ? p.starterBlessing.id : p.starterBlessing));
         if (fullBlessing) {
-          p.starterBlessing = Object.assign({}, fullBlessing, p.starterBlessing);
+          p.starterBlessing = Object.assign({}, fullBlessing, (typeof p.starterBlessing === "object" ? p.starterBlessing : {}));
+          p.activeBlessing = fullBlessing.id;
         }
       }
       if (typeof updatePlayerAccSlot === "function") {
@@ -9521,6 +9537,13 @@
           p.potions--;
         }
         let healBase = 30;
+        if (typeof hasStarterBlessing === "function" && hasStarterBlessing("alchemist_flask")) {
+          healBase += 15;
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerShield = (gameState.status.playerShield || 0) + 5;
+          spawnFloatingText("player-sprite", "+5 ESCUDO 🧪", "shield");
+          addLog("🧪 Frasco Alquímico: +15 HP extra de curación y +5 de Escudo azul obtenidos.", "heal");
+        }
         if (p._heartsPotionBoost) healBase = Math.round(healBase * (1 + p._heartsPotionBoost));
         const healed = Math.min(healBase, p.maxHp - p.hp);
         p.hp += healed;
@@ -11937,8 +11960,8 @@
       tier: 1,
       tierLabel: "COMÚN",
       unlockLevel: 1,
-      desc: "Inicias cada piso con +5 de Escudo protector azul.",
-      apply: () => {}
+      desc: "+1 DEF y recarga +5 de Escudo protector azul al comenzar cada piso.",
+      apply: (p) => { p.def += 1; }
     },
     {
       id: "copper_pouch",
@@ -11947,8 +11970,8 @@
       tier: 1,
       tierLabel: "COMÚN",
       unlockLevel: 1,
-      desc: "+20 Oro inicial y +2 Oro por cada rival liquidado.",
-      apply: () => { gameState.gold += 20; }
+      desc: "+20 Oro inicial, +10% Suerte y +2 Oro por cada rival liquidado.",
+      apply: (p) => { gameState.gold += 20; p.luck = (p.luck || 0) + 10; }
     },
     {
       id: "keen_eye",
@@ -11957,8 +11980,8 @@
       tier: 1,
       tierLabel: "COMÚN",
       unlockLevel: 1,
-      desc: "+1 Reroll táctico adicional en cada piso de la Torre.",
-      apply: (p) => { p.rerollsAvailable = (p.rerollsAvailable || 0) + 1; }
+      desc: "+10% Crítico y +1 Dado de Reroll táctico adicional en cada piso de la Torre.",
+      apply: (p) => { p.rerollsAvailable = (p.rerollsAvailable || 0) + 1; p.critChance = (p.critChance || 0) + 10; }
     },
 
     // Tier II (Rara - Nvl 3)
@@ -11969,8 +11992,8 @@
       tier: 2,
       tierLabel: "RARA",
       unlockLevel: 3,
-      desc: "+20 HP Máx y +1 PWR; al bajar del 30% de HP ganas +2 DEF de emergencia.",
-      apply: (p) => { p.maxHp += 20; p.hp += 20; p.pwr += 1; }
+      desc: "+3 PWR y -1 DEF permanente (+2 DEF de emergencia al bajar del 30% de HP).",
+      apply: (p) => { p.pwr += 3; p.def = Math.max(0, p.def - 1); }
     },
     {
       id: "steel_mail",
@@ -11983,14 +12006,24 @@
       apply: (p) => { p.def += 2; }
     },
     {
+      id: "dawn_aegis",
+      name: "Égida del Alba",
+      icon: "🛡️",
+      tier: 2,
+      tierLabel: "RARA",
+      unlockLevel: 3,
+      desc: "+2 DEF fija y recarga +10 de Escudo protector al comenzar cada piso u oleada.",
+      apply: (p) => { p.def += 2; }
+    },
+    {
       id: "wind_cloak",
       name: "Capa de Viento",
       icon: "💨",
       tier: 2,
       tierLabel: "RARA",
       unlockLevel: 3,
-      desc: "20% de probabilidad pasiva de esquivar el daño al perder una mano.",
-      apply: () => {}
+      desc: "+20% Esquivar pasivo de daño al perder una mano.",
+      apply: (p) => { p.dodgeChance = (p.dodgeChance || 0) + 20; }
     },
     {
       id: "alchemist_flask",
@@ -12041,8 +12074,18 @@
       tier: 3,
       tierLabel: "ÉPICA",
       unlockLevel: 6,
-      desc: "+40 Oro inicial; todos los artículos del Bazar tienen 25% de descuento.",
+      desc: "+40 Oro inicial, +10% Suerte y todos los artículos del Bazar tienen 25% de descuento.",
       apply: () => { gameState.gold += 40; }
+    },
+    {
+      id: "gambler_oath",
+      name: "Juramento del Tahúr",
+      icon: "🎲",
+      tier: 3,
+      tierLabel: "ÉPICA",
+      unlockLevel: 6,
+      desc: "+3 PWR, +12% Crítico y +15% Suerte. Ganar doblando (¡DOBLAR!) restaura +8 HP y da +6 Oro.",
+      apply: (p) => { p.pwr += 3; p.critChance = (p.critChance || 0) + 12; p.luck = (p.luck || 0) + 15; }
     },
 
     // Tier IV (Mítica/Legendaria - Nvl 9-10)
@@ -12073,8 +12116,8 @@
       tier: 4,
       tierLabel: "MÍTICA",
       unlockLevel: 9,
-      desc: "Ignoras el 100% de la armadura enemiga cuando tu mano suma 19, 20 o 21.",
-      apply: () => {}
+      desc: "+10% Crítico e ignoras el 100% de la armadura enemiga cuando tu mano suma 19, 20 o 21.",
+      apply: (p) => { p.critChance = (p.critChance || 0) + 10; }
     },
     {
       id: "forge_master",
@@ -12105,10 +12148,46 @@
   ];
   window.STARTER_BLESSINGS = STARTER_BLESSINGS;
 
+  function getActiveStarterBlessingId(player) {
+    const p = player || (typeof gameState !== "undefined" ? gameState.player : null);
+    if (!p) return null;
+    const sb = p.starterBlessing || p.activeBlessing || p.blessing;
+    if (!sb) return null;
+    const rawId = (typeof sb === "string") ? sb : (sb.id || null);
+    if (!rawId) return null;
+    if (rawId === "jagged_dagger" || rawId === "daga_mellada") return "notched_dagger";
+    if (rawId === "shield_blessing") return "dawn_aegis";
+    return rawId;
+  }
+  window.getActiveStarterBlessingId = getActiveStarterBlessingId;
+
+  function getActiveStarterBlessing(player) {
+    const p = player || (typeof gameState !== "undefined" ? gameState.player : null);
+    if (!p) return null;
+    const bId = getActiveStarterBlessingId(p);
+    if (!bId) return null;
+    if (typeof STARTER_BLESSINGS !== "undefined") {
+      const found = STARTER_BLESSINGS.find(b => b.id === bId || (b.id === "notched_dagger" && (bId === "jagged_dagger" || bId === "daga_mellada")) || (b.id === "dawn_aegis" && bId === "shield_blessing"));
+      if (found) return found;
+    }
+    if (typeof p.starterBlessing === "object" && p.starterBlessing && p.starterBlessing.name) {
+      return p.starterBlessing;
+    }
+    return { id: bId, name: bId, icon: "✨", desc: "Bendición del destino activa." };
+  }
+  window.getActiveStarterBlessing = getActiveStarterBlessing;
+
   function hasStarterBlessing(id) {
-    if (!gameState || !gameState.player || !gameState.player.starterBlessing) return false;
-    const sb = gameState.player.starterBlessing;
-    return (typeof sb === "string" ? sb : sb.id) === id;
+    if (!id) return false;
+    const p = (typeof gameState !== "undefined") ? gameState.player : null;
+    const activeId = getActiveStarterBlessingId(p);
+    if (!activeId) return false;
+    if (activeId === id) return true;
+    if ((id === "notched_dagger" || id === "jagged_dagger" || id === "daga_mellada") &&
+        (activeId === "notched_dagger" || activeId === "jagged_dagger" || activeId === "daga_mellada")) return true;
+    if ((id === "dawn_aegis" || id === "shield_blessing") &&
+        (activeId === "dawn_aegis" || activeId === "shield_blessing")) return true;
+    return false;
   }
   window.hasStarterBlessing = hasStarterBlessing;
 
@@ -12117,8 +12196,9 @@
     const accSlot = document.getElementById("player-acc-slot");
     if (!accSlot) return;
 
-    if (p && p.starterBlessing) {
-      const b = p.starterBlessing;
+    const activeB = (typeof getActiveStarterBlessing === "function") ? getActiveStarterBlessing(p) : (p ? p.starterBlessing : null);
+    if (activeB) {
+      const b = activeB;
       accSlot.innerHTML = `<span class="acc-blessing-icon" style="font-size:11px;line-height:1;display:block;">${b.icon || "🔮"}</span>`;
       accSlot.className = `player-acc-slot equipped blessing-tier-${b.tier || 1}`;
       accSlot.style.display = "flex";
@@ -12148,8 +12228,9 @@
     const tagEl = document.getElementById("bmodal-tag");
     const descEl = document.getElementById("bmodal-desc");
 
-    if (p.starterBlessing) {
-      const b = p.starterBlessing;
+    const activeB = (typeof getActiveStarterBlessing === "function") ? getActiveStarterBlessing(p) : (p ? p.starterBlessing : null);
+    if (activeB) {
+      const b = activeB;
       if (iconEl) iconEl.innerText = b.icon || "🔮";
       if (titleEl) titleEl.innerText = (b.name || "BENDICIÓN").toUpperCase();
       if (tagEl) tagEl.innerText = (b.tierLabel || ("TIER " + (b.tier || "I"))) + " • PASIVA PERMANENTE";
@@ -12341,9 +12422,22 @@
     if (typeof unlockBlessingInCodex === "function") {
       unlockBlessingInCodex(blessing.id);
     }
+    if (typeof registerCodexDiscovery === "function") {
+      registerCodexDiscovery("blessings", blessing.name || blessing.id);
+    }
+    try {
+      const savedUnlocked = JSON.parse(localStorage.getItem("torre21_unlocked_blessings") || "[]");
+      if (!savedUnlocked.includes(blessing.id)) {
+        savedUnlocked.push(blessing.id);
+        localStorage.setItem("torre21_unlocked_blessings", JSON.stringify(savedUnlocked));
+      }
+    } catch (_) {}
 
     if (typeof blessing.apply === "function") {
       blessing.apply(p);
+    }
+    if (typeof recalculatePlayerStats === "function") {
+      recalculatePlayerStats(p);
     }
     addLog(`✨ ¡Elegiste la Bendición del Destino! ${blessing.icon} ${blessing.name} incrustada en tu Medallón.`, "critical");
     updatePlayerAccSlot();
@@ -16317,9 +16411,11 @@
       const accInfo = (p.accessory && typeof AMULET_INFO !== "undefined" && AMULET_INFO[p.accessory])
         ? AMULET_INFO[p.accessory]
         : (p.accessory ? { name: p.accessory, icon: "💍", desc: "Accesorio equipado." } : null);
-      const blessingInfo = (p.starterBlessing && typeof STARTER_BLESSINGS !== "undefined")
-        ? (typeof p.starterBlessing === "object" ? p.starterBlessing : STARTER_BLESSINGS.find(b => b.id === p.starterBlessing))
-        : (p.gem ? { name: p.gem.toUpperCase(), icon: "💎", desc: "Bendición activa." } : null);
+      const blessingInfo = (typeof getActiveStarterBlessing === "function" && getActiveStarterBlessing(p))
+        ? getActiveStarterBlessing(p)
+        : ((p.starterBlessing && typeof STARTER_BLESSINGS !== "undefined")
+          ? (typeof p.starterBlessing === "object" ? p.starterBlessing : STARTER_BLESSINGS.find(b => b.id === p.starterBlessing))
+          : (p.gem ? { name: p.gem.toUpperCase(), icon: "💎", desc: "Bendición activa." } : null));
 
       heroDossierEl.innerHTML = `
         <div class="dossier-hero-header">
@@ -17179,8 +17275,9 @@
         } else {
           itemsList.push(`<div style="background:rgba(255,209,102,0.08);border:1px dashed rgba(255,209,102,0.4);padding:8px;border-radius:6px;margin-bottom:8px;color:#ffd166;">🔒 <b>Habilidad de Combate:</b> Bloqueada. Visita la <b>Forja</b> en el Bazar de la Torre para despertar una Habilidad Heroica.</div>`);
         }
-        if (p.starterBlessing) {
-          const b = p.starterBlessing;
+        const activeB = (typeof getActiveStarterBlessing === "function") ? getActiveStarterBlessing(p) : p.starterBlessing;
+        if (activeB) {
+          const b = activeB;
           itemsList.push(`<div>✨ <b>Bendición del Destino [${b.tierLabel || ('Tier ' + b.tier)}]:</b> ${b.icon || '✨'} ${b.name} — <span style="color:#ffd166;">${b.desc}</span></div>`);
         }
         if (p.gem) {
@@ -17420,7 +17517,7 @@
 
     const uiGem = document.getElementById("ui-gem");
     if (uiGem) {
-      const sb = p.starterBlessing;
+      const sb = (typeof getActiveStarterBlessing === "function") ? getActiveStarterBlessing(p) : p.starterBlessing;
       if (sb) {
         const shortName = (sb.name || "Bendición").split(" ")[0].toUpperCase();
         uiGem.innerText = `${sb.icon || "🔮"} ${shortName}`;
@@ -17743,7 +17840,9 @@
     }
 
     const isEn = (typeof getGameLanguage === "function" && getGameLanguage() === "en");
-    const activeBlessing = p ? (p.starterBlessing || p.blessing || p.activeBlessing || p.gem) : null;
+    const activeBlessing = (typeof getActiveStarterBlessing === "function" && getActiveStarterBlessing(p))
+      ? getActiveStarterBlessing(p)
+      : (p ? (p.starterBlessing || p.blessing || p.activeBlessing || p.gem) : null);
     const gemBtn = document.getElementById("ui-gem-pill");
     const gemTag = document.getElementById("ui-gem-tag");
     const gemIcon = document.getElementById("ui-gem-icon");
@@ -17849,14 +17948,9 @@
         descEl.innerText = "Esta ranura está disponible. Puedes adquirir hasta 5 artefactos pasivos en la Tienda o en eventos de la Torre.";
       }
     } else if (type === "blessing") {
-      const activeBlessingId = p ? (p.starterBlessing || p.blessing || p.activeBlessing) : null;
-      let blessingInfo = null;
-      if (activeBlessingId && typeof STARTER_BLESSINGS !== "undefined") {
-        blessingInfo = STARTER_BLESSINGS.find(b => b.id === activeBlessingId || b.id === (typeof activeBlessingId === "object" ? activeBlessingId.id : activeBlessingId));
-      }
-      if (!blessingInfo && typeof activeBlessingId === "object" && activeBlessingId) {
-        blessingInfo = activeBlessingId;
-      }
+      const blessingInfo = (typeof getActiveStarterBlessing === "function" && getActiveStarterBlessing(p))
+        ? getActiveStarterBlessing(p)
+        : null;
       if (blessingInfo) {
         titleEl.innerHTML = `${blessingInfo.icon || '💎'} ${(blessingInfo.name || 'BENDICIÓN ACTIVA').toUpperCase()}`;
         descEl.innerText = blessingInfo.desc || "Bendición divina inicial que acompaña a tu héroe en la Torre.";
@@ -20086,6 +20180,12 @@
         spawnFloatingText("player-sprite", "+3 HP ROBLE", "heal");
         addLog("🪵 Corteza de Roble: +3 HP regenerados tras ganar la mano.", "heal");
       }
+      if (hasStarterBlessing("gambler_oath") && p.turnDoubleDamage) {
+        p.hp = Math.min(p.maxHp, p.hp + 8);
+        gameState.gold = (gameState.gold || 0) + 6;
+        spawnFloatingText("player-sprite", "+8 HP 🎲 TAHÚR", "heal");
+        addLog("🎲 Juramento del Tahúr: ¡Victoria al doblar! +8 HP restaurados y +6 Oro obtenidos.", "gold");
+      }
       if (hasStarterBlessing("shadow_lord") && p.playerScore >= 19) {
         effectiveEnemyDef = 0;
         addLog("⚔️ Señor de las Sombras: Ignoraste el 100% de la armadura enemiga (DEF 0).", "critical");
@@ -22186,7 +22286,7 @@
     // Reset de estados de combate por piso
     const heroCfg = HERO_DATA[p.class] || HERO_DATA.knight;
     const baseHeroShield = heroCfg.startingShield || 0;
-    gameState.status.playerShield = baseHeroShield + (p.gem === "sapphire" ? 5 : 0) + (p.wheelBonusShield || 0) + (hasArtifact("guardian_quartz") ? 6 : 0) + (hasArtifact("diamond_aegis") ? 10 : 0) + (hasStarterBlessing("wooden_buckler") ? 5 : 0) + (hasStarterBlessing("steel_mail") ? 8 : 0);
+    gameState.status.playerShield = baseHeroShield + (p.gem === "sapphire" ? 5 : 0) + (p.wheelBonusShield || 0) + (hasArtifact("guardian_quartz") ? 6 : 0) + (hasArtifact("diamond_aegis") ? 10 : 0) + (hasStarterBlessing("wooden_buckler") ? 5 : 0) + (hasStarterBlessing("steel_mail") ? 8 : 0) + (hasStarterBlessing("dawn_aegis") ? 10 : 0);
     if (cfg && cfg.shieldPenaltyPct && gameState.status.playerShield > 0) {
       gameState.status.playerShield = Math.floor(gameState.status.playerShield * (1 - cfg.shieldPenaltyPct));
     }
