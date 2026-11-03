@@ -412,6 +412,8 @@
       case "luck":      p._runBuffs.luck = (p._runBuffs.luck || 0) + 8; break;
       default: return false;
     }
+    if (typeof window.recalculatePlayerStats === "function") window.recalculatePlayerStats(p);
+    if (typeof window.updateHud === "function") window.updateHud();
     return true;
   }
   window.applyAscensionUpgrade = applyAscensionUpgrade;

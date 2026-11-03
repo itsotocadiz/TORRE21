@@ -15778,6 +15778,34 @@ body:has(#screen-event:not(.hidden)) header {
   font-weight: 800 !important;
 }
 
+/* SECCIÓN EXCLUSIVA: RELIQUIAS DEMONÍACAS (JEFES DE ACTO) */
+.demonic-relics-section {
+  border: 1px solid rgba(255, 77, 109, 0.35) !important;
+  background: radial-gradient(ellipse at top, rgba(255, 77, 109, 0.12), rgba(15, 17, 23, 0.95)) !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  margin-top: 6px !important;
+}
+
+.gear-demonic-grid {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  margin-top: 4px !important;
+}
+
+.gear-demonic-slot.filled {
+  border-color: #ff4d6d !important;
+  background: radial-gradient(circle at center, rgba(255, 77, 109, 0.25), rgba(20, 10, 15, 0.95)) !important;
+  box-shadow: 0 0 10px rgba(255, 77, 109, 0.45) !important;
+}
+
+.gear-demonic-slot.filled:active {
+  transform: scale(0.92) !important;
+}
+
 .gear-compact-row {
   display: flex !important;
   gap: 8px !important;

@@ -5832,7 +5832,44 @@
       if (rid.includes("vampire") || rid === "bloody_chalice" || rid === "blood_chalice") runLifesteal += 10;
       if (rid.includes("thorn") || rid === "thorn_crown" || rid === "mirror_shield") runThorns += 1;
       if (rid === "relic_necro_bones" || r._boneThorns) runThorns += 1;
+
+      // Bonos planos de artefactos de tienda y reliquias
+      if (rid === "iron_pendant") runDef += 1;
+      if (rid === "warriors_ring") runPwr += 1;
+      if (rid === "titan_heart") runMaxHp += 30;
+      if (rid === "valhalla_helm") runDef += 4;
+      if (rid === "infinity_ring") { runPwr += 2; runDef += 2; runMaxHp += 30; }
+      if (rid === "gamblers_loaded_die") runPwr += 2;
+      if (rid === "aegis_plating") runDef += 2;
+      if (rid === "hermetic_vial") runMaxHp += 15;
+      if (rid === "relic_hourglass") runMaxHp += 20;
+      if (rid === "relic_arcanum_hourglass") runDodge += 8;
+
+      // Reliquias demoníacas pasivas
+      if (rid === "relic_dante_blade") runPwr += 3;
+      if (rid === "relic_dante_spades") runDef += 2;
+      if (rid === "relic_dante_blood") runMaxHp += 25;
+      if (rid === "relic_valk_light") runPwr += 3;
+      if (rid === "relic_valk_core") runDef += 3;
+      if (rid === "relic_archmage_eye") runPwr += 4;
+      if (rid === "relic_archmage_heart") runMaxHp += 30;
+      if (rid === "relic_necro_scythe") runPwr += 5;
+      if (rid === "relic_necro_bones") runDef += 4;
+      if (rid === "relic_shadow_crown") { runPwr += 4; runDef += 3; }
+      if (rid === "relic_shadow_throne") { runLifesteal += 18; runCrit += 18; runThorns += 1; }
     });
+
+    // 10.5. MEJORAS DE ASCENSO TEMPORALES DE LA RUN (_runBuffs: Sed Carmesí, etc.)
+    if (p._runBuffs) {
+      if (p._runBuffs.pwr) runPwr += p._runBuffs.pwr;
+      if (p._runBuffs.def) runDef += p._runBuffs.def;
+      if (p._runBuffs.hp) runMaxHp += p._runBuffs.hp;
+      if (p._runBuffs.crit) runCrit += p._runBuffs.crit;
+      if (p._runBuffs.dodge) runDodge += p._runBuffs.dodge;
+      if (p._runBuffs.thorns) runThorns += p._runBuffs.thorns;
+      if (p._runBuffs.lifesteal) runLifesteal += p._runBuffs.lifesteal;
+      if (p._runBuffs.luck) runLuck += p._runBuffs.luck;
+    }
 
     // 11. BUFFS Y NERFS EN TIEMPO REAL
     if (typeof gameState !== "undefined" && gameState.status) {
@@ -6126,21 +6163,15 @@
     const p = gameState.player;
     if (relic && p) {
       p.demonRelics = p.demonRelics || [];
-      p.demonRelics.push({ id: relic.id, name: relic.name, icon: relic.icon, desc: relic.desc });
-      
-      // Sanitización estricta de artefactos: guardar solo string ID y respetar el límite inquebrantable de 5
-      if (typeof sanitizePlayerArtifacts === "function") {
-        sanitizePlayerArtifacts(p);
+      if (!p.demonRelics.some(r => r && (r.id === relic.id || r === relic.id))) {
+        p.demonRelics.push({ id: relic.id, name: relic.name, icon: relic.icon, desc: relic.desc });
       }
-      if (Array.isArray(p.artifacts) && p.artifacts.length < 5 && !p.artifacts.includes(relic.id)) {
-        p.artifacts.push(relic.id);
-        if (typeof sanitizePlayerArtifacts === "function") sanitizePlayerArtifacts(p);
-      }
-      
+
       if (typeof relic.apply === "function") relic.apply(p);
       if (typeof recalculatePlayerStats === "function") recalculatePlayerStats(p);
+      if (typeof updateCombatGearModalUI === "function") updateCombatGearModalUI();
       updateHud();
-      addLog(`👹 Reliquia Demoníaca reclamada: ${relic.name}.`, "critical");
+      addLog(`👹 Reliquia Demoníaca reclamada: ${relic.name} (${relic.desc}).`, "critical");
       spawnFloatingText("player-sprite", relic.icon + " RECLAMADO", "crit");
       try { playVictoryFanfareSound(); } catch (_) {}
     }
@@ -9668,6 +9699,13 @@
         spawnFloatingText("player-sprite", "🔥 ¡FÉNIX SALVADOR!", "crit");
         addLog("🔥 ¡Bendición del Fénix! La carta transmuta a As (1) y te salva de pasarte.", "critical");
         playVictorySound();
+      } else if (p.playerScore > BUST_LIMIT && p._shadowMirrorBustProtect && !p._shadowMirrorUsedThisFloor) {
+        p._shadowMirrorUsedThisFloor = true;
+        newCard.value = 1;
+        p.playerScore = calculateHandScore(p.playerHand);
+        spawnFloatingText("player-sprite", "🎭 ¡ESPEJO DE SOMBRAS!", "crit");
+        addLog("🎭 Espejo de Sombras del 21: ¡Anula tu primer BUST del piso ajustando la carta a valor 1!", "critical");
+        try { playVictorySound(); } catch (_) {}
       }
 
       p.bust = p.playerScore > BUST_LIMIT;
@@ -9824,6 +9862,14 @@
         addLog("💀 Malfas del Vacío [Cosecha de Almas]: Drena 3 HP de tu vitalidad al pedir carta y regenera +5 HP.", "damage");
       }
 
+      // Reliquia Demoníaca Cosecha de Malfas (_necroHarvestHeal: 35% prob de curar +4 HP al pedir carta)
+      if (p._necroHarvestHeal && Math.random() < 0.35 && p.hp < p.maxHp) {
+        const healAmt = Math.min(4, p.maxHp - p.hp);
+        p.hp += healAmt;
+        spawnFloatingText("player-sprite", `💀 +${healAmt} HP COSECHA`, "heal");
+        addLog(`💀 Cosecha de Malfas: Drenas la niebla al pedir carta y recuperas +${healAmt} HP.`, "heal");
+      }
+
       // Salvación de Sello Fénix individual (Sello Arcano) o Bendición de Fénix
       const phoenixCard = p.playerHand.find(c => c.enchantment && (c.enchantment.id === "phoenix" || c.enchantment.type === "phoenix") && c.value > 1);
       if (p.playerScore > BUST_LIMIT && phoenixCard) {
@@ -9839,6 +9885,13 @@
         spawnFloatingText("player-sprite", "🔥 ¡FÉNIX SALVADOR!", "crit");
         addLog("🔥 ¡Bendición del Fénix! La carta transmuta a As (1) y te salva de pasarte (BUST).", "critical");
         playVictorySound();
+      } else if (p.playerScore > BUST_LIMIT && p._shadowMirrorBustProtect && !p._shadowMirrorUsedThisFloor) {
+        p._shadowMirrorUsedThisFloor = true;
+        newCard.value = 1;
+        p.playerScore = calculateHandScore(p.playerHand);
+        spawnFloatingText("player-sprite", "🎭 ¡ESPEJO DE SOMBRAS!", "crit");
+        addLog("🎭 Espejo de Sombras del 21: ¡Anula tu primer BUST del piso ajustando la carta a valor 1!", "critical");
+        try { playVictorySound(); } catch (_) {}
       }
       p.bust = p.playerScore > BUST_LIMIT;
       p.blackjack = (p.playerScore === 21 && p.playerHand.length === 2);
@@ -10272,6 +10325,16 @@
       p.hp = Math.min(p.maxHp, p.hp + 8);
       spawnFloatingText("player-sprite", "+8 HP PARÁSITO", "heal");
       addLog(`👁️ Pacto del Parásito: +8 HP drenados al eliminar al rival (${p.hp}/${p.maxHp} HP).`, "heal");
+    }
+
+    // Reliquia Demoníaca Manto del Nigromante del Abismo (_necroKillHeal: +15 HP al matar rival)
+    if (p._necroKillHeal && p._necroKillHeal > 0) {
+      const nHeal = Math.min(p._necroKillHeal, p.maxHp - p.hp);
+      if (nHeal > 0) {
+        p.hp += nHeal;
+        spawnFloatingText("player-sprite", `🌑 +${nHeal} HP MANTO`, "heal");
+        addLog(`🌑 Manto del Nigromante del Abismo: +${nHeal} HP restaurados al eliminar a ${e.name} (${p.hp}/${p.maxHp} HP).`, "heal");
+      }
     }
 
     // Curación Poscombate Acto 1 y 2 (Bloque 6: Suavizado de progresión)
@@ -17297,6 +17360,10 @@
           const artStr = p.artifacts.map(a => getItemSpanishName(a)).join(", ");
           itemsList.push(`<div>🏺 <b>Artefactos de Poder (${p.artifacts.length}):</b> ${artStr}.</div>`);
         }
+        if (p.demonRelics && p.demonRelics.length > 0) {
+          const demStr = p.demonRelics.map(d => `${d.icon || '👹'} <b style="color:#ff758f;">${d.name || d.id}</b> — <span style="color:#fecdd3;">${d.desc || 'Poder supremo de Jefe'}</span>`).join("<br>");
+          itemsList.push(`<div style="margin-top:6px;padding:8px;background:rgba(255,77,109,0.12);border:1px solid rgba(255,77,109,0.35);border-radius:6px;line-height:1.5;">👹 <b>Reliquias Demoníacas de Jefes (${p.demonRelics.length}/5):</b><br>${demStr}</div>`);
+        }
         if (p.cardUpgrades && p.cardUpgrades.length > 0) {
           const uList = p.cardUpgrades.map(id => {
             const u = CARD_UPGRADES.find(c => c.id === id);
@@ -17919,6 +17986,32 @@
         perksListEl.innerHTML = `<div class="gear-empty-notice">${emptyText}</div>`;
       }
     }
+
+    // Renderizado de Sección Exclusiva: Reliquias Demoníacas de Jefes de Acto
+    const demonicCountEl = document.getElementById("gear-modal-demonic-count");
+    const demonicGridEl = document.getElementById("gear-modal-demonic-grid");
+    const demonRelics = Array.isArray(p.demonRelics) ? p.demonRelics : [];
+    if (demonicCountEl) demonicCountEl.innerText = `${demonRelics.length}/5`;
+    if (demonicGridEl) {
+      if (demonRelics.length > 0) {
+        demonicGridEl.innerHTML = demonRelics.map((dr, idx) => {
+          const rid = (typeof dr === "object") ? dr.id : String(dr);
+          const rName = (typeof dr === "object" && dr.name) ? dr.name : rid;
+          const rIcon = (typeof dr === "object" && dr.icon) ? dr.icon : "👹";
+          return `
+            <div class="gear-art-slot gear-demonic-slot filled" onclick="inspectGearSlot('demonic', '${rid}')" title="${rName}">
+              <span class="gear-slot-icon">${rIcon}</span>
+              <span class="gear-art-slot-num" style="color:#ff758f;">J${idx + 1}</span>
+            </div>
+          `;
+        }).join("");
+      } else {
+        const noDemonicTxt = isEn
+          ? "👹 Defeat Act Bosses (Floors 3, 7, 11, 15, 19) to claim their supreme Demonic Relics."
+          : "👹 Derrota al Líder de cada Acto (Pisos 3, 7, 11, 15 y 19) para arrancarles sus Reliquias Demoníacas.";
+        demonicGridEl.innerHTML = `<div class="gear-empty-notice" style="color:#ff758f; border:1px solid rgba(255,77,109,0.3); background:rgba(255,77,109,0.08);">${noDemonicTxt}</div>`;
+      }
+    }
   }
   window.updateCombatGearModalUI = updateCombatGearModalUI;
 
@@ -17929,6 +18022,27 @@
     const titleEl = document.getElementById("gear-detail-title");
     const descEl = document.getElementById("gear-detail-desc");
     if (!titleEl || !descEl) return;
+
+    if (type === "demonic") {
+      let info = null;
+      if (p && Array.isArray(p.demonRelics)) {
+        info = p.demonRelics.find(d => (typeof d === "object" && d.id === id) || d === id);
+      }
+      if (!info && typeof DEMONIC_RELICS_BY_ACT !== "undefined") {
+        for (const list of Object.values(DEMONIC_RELICS_BY_ACT)) {
+          const found = list.find(d => d.id === id);
+          if (found) { info = found; break; }
+        }
+      }
+      if (info) {
+        titleEl.innerHTML = `👹 ${(info.name || id).toUpperCase()} <span style="font-size:10px;color:#ff758f;border:1px solid #ff758f;border-radius:4px;padding:1px 5px;margin-left:6px;">RELIQUIA DE JEFE</span>`;
+        descEl.innerText = info.desc || "Reliquia demoníaca arrancada a un Líder de Acto tras una victoria cumbre.";
+      } else {
+        titleEl.innerHTML = "👹 RELIQUIA DEMONÍACA";
+        descEl.innerText = "Dones arcanos e infernales obtenidos exclusivamente al derrotar jefes supremos de la Torre.";
+      }
+      return;
+    }
 
     if (type === "artifact") {
       let info = null;
@@ -19237,6 +19351,20 @@
       addLog("🛡️ As de Diamantes Baluarte: +4 Escudo protector al inicio de la mano.", "shield");
     }
 
+    // Reliquia Demoníaca: Baluarte de Diamantes (_valkAegisShield: +10 Escudo al iniciar cada mano)
+    if (p._valkAegisShield && p._valkAegisShield > 0) {
+      if (!gameState.status) gameState.status = {};
+      gameState.status.playerShield = (gameState.status.playerShield || 0) + p._valkAegisShield;
+      spawnFloatingText("player-sprite", `🛡️ +${p._valkAegisShield} BALUARTE`, "shield");
+      addLog(`🛡️ Baluarte de Diamantes: +${p._valkAegisShield} de Escudo protector generado al inicio de la mano.`, "heal");
+    }
+
+    // Reliquia Demoníaca: Ojo del Destino Lúcido (_valkRevealCard: revela 1 carta oculta del rival)
+    if (p._valkRevealCard && e) {
+      e.enemyRevealed = true;
+      addLog("👁️ Ojo del Destino Lúcido: Revela la carta boca abajo del rival.", "info");
+    }
+
     renderCards();
     updateHud();
     updateCombatState();
@@ -20010,6 +20138,38 @@
         try { playBlackjackFanfareSound(); } catch (_) {}
       }
 
+      // Reliquias Demoníacas en mano ganadora:
+      // 1. Filo Sangriento de Dante (_dantePoison21): +2 Veneno al rival con cada 21
+      if (p._dantePoison21 && (isNatural21 || p.playerScore === 21)) {
+        if (!gameState.status) gameState.status = {};
+        gameState.status.enemyPoison = (gameState.status.enemyPoison || 0) + 2;
+        spawnFloatingText("enemy-sprite", "🗡️ +2 VENENO DANTE", "damage");
+        addLog("🗡️ Filo Sangriento de Dante: ¡Tu 21 envenena al rival con +2 de Veneno!", "critical");
+        try { playPoisonSound(); } catch (_) {}
+      }
+
+      // 2. Relicario de la Luz (_valkHealOnHighWin): +6 HP al ganar con 19 o 20
+      if (p._valkHealOnHighWin && (p.playerScore === 19 || p.playerScore === 20)) {
+        const healAmt = Math.min(6, p.maxHp - p.hp);
+        if (healAmt > 0) {
+          p.hp += healAmt;
+          spawnFloatingText("player-sprite", `✨ +${healAmt} HP LUZ`, "heal");
+          addLog(`✨ Relicario de la Luz: Tu victoria con ${p.playerScore} te restaura +${healAmt} HP.`, "heal");
+        }
+      }
+
+      // 3. Cota de Picas del Conquistador (_spadesShieldBonus): +2 Escudo por cada carta de ♠
+      if (p._spadesShieldBonus && Array.isArray(p.playerHand)) {
+        const spadesInHand = p.playerHand.filter(c => c && (c.suit === "♠" || c.suit === "spades")).length;
+        if (spadesInHand > 0) {
+          const sBonus = spadesInHand * p._spadesShieldBonus;
+          if (!gameState.status) gameState.status = {};
+          gameState.status.playerShield = (gameState.status.playerShield || 0) + sBonus;
+          spawnFloatingText("player-sprite", `♠️ +${sBonus} ESCUDO PICAS`, "shield");
+          addLog(`♠️ Cota de Picas: +${sBonus} de Escudo protector generado por tus ${spadesInHand} naipes de Picas.`, "heal");
+        }
+      }
+
       // Racha "¡ON FIRE! 🔥" (Dopamina pura y ritmo frenético)
       gameState.playerStreak = (gameState.playerStreak || 0) + 1;
       let streakMult = 1.0;
@@ -20701,12 +20861,30 @@
       }
 
       if (isSuddenDeath) {
-        rawDmg *= suddenMult; // Daño rival se multiplica por x2, x3, x4...
-        totalDef = Math.max(0, totalDef - (1 + suddenRound)); // Perforación de armadura creciente
-        spawnFloatingText("enemy-sprite", `🔥 ATAQUE x${suddenMult}`, "crit");
+        if (p._suddenDeathPactImmune && suddenRound <= 5) {
+          addLog("⚔️ Pacto del Vencedor Inmortal: Inmune a la furia de Muerte Súbita durante los primeros 5 asaltos.", "heal");
+        } else {
+          rawDmg *= suddenMult; // Daño rival se multiplica por x2, x3, x4...
+          totalDef = Math.max(0, totalDef - (1 + suddenRound)); // Perforación de armadura creciente
+          spawnFloatingText("enemy-sprite", `🔥 ATAQUE x${suddenMult}`, "crit");
+        }
       }
       // Reset de racha de brazal de furia al perder mano
       if (hasArtifact("fury_bracer")) p.furyBracerStreak = 0;
+
+      // Baraja Espectral del Archimago (_halfBustDamage): Reduce daño de Bust a la mitad
+      if (p.bust && p._halfBustDamage && rawDmg > 0) {
+        rawDmg = Math.ceil(rawDmg / 2);
+        addLog("👻 Baraja Espectral del Archimago: El daño de BUST se reduce a la mitad.", "heal");
+        spawnFloatingText("player-sprite", "👻 BUST / 2", "shield");
+      }
+
+      // Manto del Vacío (_voidVeilDodge: 25% de probabilidad de anular el contraataque rival)
+      if (p._voidVeilDodge && Math.random() < p._voidVeilDodge && rawDmg > 0) {
+        addLog("🌌 Manto del Vacío: ¡El vacío absorbe y anula por completo el contraataque rival!", "heal");
+        spawnFloatingText("player-sprite", "🌌 ANULADO POR VACÍO", "crit");
+        rawDmg = 0;
+      }
 
       // Aturdimiento por Sello del Trueno
       if (gameState.status && gameState.status.enemyStunned) {
@@ -20781,6 +20959,12 @@
       if (p._diamondsCounterMitigate && incomingDmg > 0) {
         incomingDmg = Math.max(0, incomingDmg - p._diamondsCounterMitigate);
         addLog(`♦️ Placas Reactivas (♦): -${p._diamondsCounterMitigate} daño mitigado de contraataque.`, "heal");
+      }
+      // Escudo de Represalia Pétrea (_valkCounterMitigate: mitiga 3 de daño en contragolpe)
+      if (p._valkCounterMitigate && incomingDmg > 0) {
+        const mitVal = Math.min(incomingDmg, p._valkCounterMitigate);
+        incomingDmg = Math.max(0, incomingDmg - mitVal);
+        addLog(`🗿 Escudo de Represalia Pétrea: -${mitVal} daño mitigado de contraataque.`, "heal");
       }
       // Yelmo de Valhalla: daño recibido limitado a un máximo de 20
       if (hasArtifact("valhalla_helm") && incomingDmg > 20) {
@@ -21147,6 +21331,20 @@
         spawnFloatingText("player-sprite", "🔥 GRACIA DEL FÉNIX", "crit");
         addLog("🔥 ¡Gracia del Fénix activada! Renaces milagrosamente con el 50% de tu salud.", "critical");
         try { playVictorySound(); } catch (_) {}
+        updateHud();
+        showNextRoundButton();
+        return;
+      }
+      // Reliquia Demoníaca Reloj de Arena de la Parca (_parcaRevive: deja a 1 HP con +25 Escudo al recibir golpe letal)
+      if (p._parcaRevive && !p._parcaReviveUsedCombat) {
+        p._parcaReviveUsedCombat = true;
+        p.hp = 1;
+        if (!gameState.status) gameState.status = {};
+        gameState.status.playerShield = (gameState.status.playerShield || 0) + 25;
+        setPlayerSpriteState("idle");
+        spawnFloatingText("player-sprite", "⏳ RELOJ DE LA PARCA", "shield");
+        addLog("⏳ Reloj de Arena de la Parca: ¡El tiempo retrocede ante el golpe mortal! Sobrevives con 1 HP y +25 de Escudo protector.", "critical");
+        try { playShieldSound(); } catch (_) {}
         updateHud();
         showNextRoundButton();
         return;
@@ -21985,6 +22183,7 @@
     e.blackjack = false;
     e.stand = false;
     e.enemyRevealed = false;
+    if (p) p._parcaReviveUsedCombat = false;
 
     const eSpriteEl = document.getElementById("enemy-sprite");
     if (eSpriteEl) {
@@ -22049,6 +22248,12 @@
       if (p._bonusRerollsPerFloor && p._bonusRerollsPerFloor > 0) {
         p.rerollsAvailable = (p.rerollsAvailable || 0) + p._bonusRerollsPerFloor;
         addLog(`⏳ Reloj de Arena Arcano: +${p._bonusRerollsPerFloor} Dado de Reroll para el piso ${gameState.floor}.`, "heal");
+      }
+      p._shadowMirrorUsedThisFloor = false;
+      p._parcaReviveUsedCombat = false;
+      if (p._etherCalice) {
+        p.overdrive = 100;
+        addLog("⚡ Cáliz de Éter: Inicias el piso con Overdrive al 100% listo para desatar.", "heal");
       }
     }
 
@@ -22282,6 +22487,7 @@
     e.blackjack = false;
     e.stand = false;
     e.enemyRevealed = false;
+    if (p) p._parcaReviveUsedCombat = false;
 
     // Reset de estados de combate por piso
     const heroCfg = HERO_DATA[p.class] || HERO_DATA.knight;

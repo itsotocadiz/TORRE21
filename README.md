@@ -114,6 +114,36 @@ El proyecto cuenta con **compilación continua automatizada (CI/CD)** mediante G
   * **Rivales de Acto II:** Escarabajo de Arena (48 HP / 10 PWR / 2 DEF), Orco Berserker (54 HP / 11 PWR / 2 DEF), Gárgola Pétrea (60 HP / 11 PWR / 3 DEF).
   * **Escudo en Acto II (Normal):** No se aplica el escudo acumulativo temprano antes del Piso 8.
   * **Curación de Descanso Poscombate (Normal):** +12 HP tras vencer rivales en Acto I y +8 HP en Acto II.
+* **BLOQUE 7 — Apartado Exclusivo de Reliquias Demoníacas, Mejoras de Ascenso (Sed Carmesí) y Persistencia de Artefactos:**
+  * **Reconexión Total de Mejoras de Ascenso (`_runBuffs`):**
+    * Corregido el bug donde "Sed Carmesí" (+6% Vampirismo) y las demás mejoras de ascensión de piso (`Vitalidad de Jack`, `Furia de Jack`, `Bastión de Jack`, `Ojo Certero`, `Paso Fantasmal`, `Corazón Espinado`, `Fortuna Astral`) se borraban de los atributos efectivos en el recálculo de cada turno.
+    * `recalculatePlayerStats` ahora lee, suma y respeta todos los atributos acumulados en `player._runBuffs` (`lifesteal`, `crit`, `dodge`, `thorns`, `luck`, `pwr`, `def`, `hp`).
+    * Al seleccionar una mejora de ascenso en `chooseAscensionUpgrade` / `applyAscensionUpgrade`, se dispara inmediatamente el recálculo general y la actualización del HUD y de la Ficha.
+  * **Apartado Exclusivo para Reliquias Demoníacas de Jefes en la Mochila y Ficha:**
+    * Creada una nueva sección dedicada e independiente para las Reliquias Demoníacas obtenidas de jefes (`player.demonRelics`, capacidad 0/5) en el Modal de Mochila de Combate (`#gear-demonic-section`, `#gear-modal-demonic-grid` en `#modal-combat-gear`) y en la Ficha del Personaje (`openFighterInspect`).
+    * Las Reliquias de Jefe ya no saturan ni compiten por los 5 slots de artefactos comunes.
+    * Estilizado visual con aura carmesí y obsidiana, marco dorado y ergonomía táctil (48x48px WCAG 2.5.5).
+    * Modal de inspección de equipo (`inspectGearSlot`) con badge distintivo `👑 RELIQUIA DEMONÍACA (JEFE)`.
+  * **Persistencia de Atributos Planos en Artefactos Comunes:**
+    * Conectados y persistidos los atributos planos (`hp`, `pwr`, `def`, `crit`, `dodge`, `thorns`, `luck`, `lifesteal`) de artefactos (`iron_pendant`, `warriors_ring`, `titan_heart`, `valhalla_helm`, `hawk_eye_pendant`, `wind_boots`, `thorn_cloak`) dentro del ciclo de vida de `recalculatePlayerStats`.
+  * **Cableado Mecánico en Combate de las 14 Reliquias Demoníacas:**
+    * Conectadas todas las banderas pasivas en combate:
+      * *Veneno del 21 de Dante* (`_dantePoison21`): Al obtener 21, infunde 3 de veneno al rival.
+      * *Gracia de la Valquiria* (`_valkHealOnHighWin`): Ganar con 20 o 21 restaura +8 HP.
+      * *Baluarte de Picas* (`_spadesShieldBonus`): Ganar la mano con cartas de picas otorga +4 de Escudo.
+      * *Égida de Diamante* (`_valkAegisShield`): Genera +8 de Escudo inicial al empezar el combate.
+      * *Visión Valquiria* (`_valkRevealCard`): Revela la carta oculta del rival con manos de 12 o más.
+      * *Velo del Vacío* (`_voidVeilDodge`): Confiere +25% de Esquiva si la vida cae por debajo del 30%.
+      * *Mitigación de Quiebre* (`_halfBustDamage`): Reduce a la mitad (50%) el daño recibido por pasarse de 21 (BUST).
+      * *Inmunidad al Hambre de Muerte Súbita* (`_suddenDeathPactImmune`): Inmunidad total al primer daño de Furia / Muerte Súbita.
+      * *Pacto con la Muerte de la Parca* (`_parcaRevive`): Resurrección milagrosa con 25 HP al sufrir un golpe fatal.
+      * *Cosecha de Almas* (`_necroHarvestHeal`): Restaura +5 HP cada vez que ganas una mano.
+      * *Festín Funerario* (`_necroKillHeal`): Restaura +20 HP tras derrotar al enemigo.
+      * *Espejo Sombrío* (`_shadowMirrorBustProtect`): Protege y anula el daño del primer BUST de la run.
+      * *Cáliz de Éter* (`_etherCalice`): Regenera +2 Puntos Tácticos al plantarse con 20 o 21.
+      * *Guante de Plomo Demoníaco* (`_leadGlovePwr`): Confiere +2 PWR directo a las estadísticas del héroe.
+  * **Suite de Pruebas Automatizada:**
+    * Creada la suite `scripts/test-demonic-relics-and-ascension.js` que verifica el apartado de reliquias de jefes, la persistencia de `_runBuffs` (incluida Sed Carmesí), stats de artefactos y las 14 mecánicas demoníacas, integrada en `package.json` (49/49 suites con éxito).
 * **Versión v2.0.1 Sincronizada y Compilación APK Android:**
   * Incremento a `versionCode 51` y `versionName "2.0.1"` en `android/app/build.gradle`, `package.json`, `js/game.js`, `js/improvements.js` e `index.html`.
   * Publicación y distribución de `TORRE21-v2.0.1.apk` y `BlackjackTorre21.apk`.
